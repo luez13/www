@@ -18,6 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $apellido = $_SESSION['apellido'];
     $correo = $_SESSION['correo'];
 
+    // Generar un token único
+    $token = hash('sha256', $nombre . $apellido . $correo . implode(',', $selected));
+
+    // Aquí deberías almacenar el token en la base de datos
+
     $pdf = new FPDF();
     $pdf->AddPage();
     $pdf->SetFont('Arial','B',16);
@@ -39,6 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } // Limpiar cualquier salida en el búfer
 
     // Enviar el PDF al navegador
-    $pdf->Output('F', 'documentos/certificado.pdf');
+    $pdf->Output('F', 'documentos/' . $token . '.pdf');
+
+    // Devolver el token como respuesta
+    echo $token;
 }
 ?>

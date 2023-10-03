@@ -62,10 +62,10 @@ $('#generarPDF').on('click', function() {
         url: 'generarPDF.php',
         type: 'POST',
         data: {selected: selected, nombre: nombre, apellido: apellido, correo: correo},
-        success: function() {
-            // Agregar un enlace al PDF en la página
-            var link = $('<a>').attr('href', 'documentos/certificado.pdf').attr('target', '_blank').text('Ver PDF').addClass('btn btn-primary');
-            $('#resultado').append(link);
+        success: function(token) {
+        // Agregar un enlace al PDF en la página
+        var link = $('<a>').attr('href', 'documentos/' + token + '.pdf').attr('target', '_blank').text('Ver PDF').addClass('btn btn-primary');
+        $('#resultado').append(link);
         }
     });
 });
