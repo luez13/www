@@ -59,35 +59,43 @@ $('#generarPDF').on('click', function() {
     var nombre = $('#nombre').val();
     var apellido = $('#apellido').val();
     var correo = $('#correo').val();
-    var cedula = $('#cedula').val();  // Obtener el valor de la cédula
+	var cedula = $('#cedula').val();  // Obtener el valor de la cédula
 
-    $.ajax({
+	$.ajax({
         url: 'generarPDF.php',
         type: 'POST',
         data: {selected: selected, nombre: nombre, apellido: apellido, correo: correo, cedula: cedula},  // Incluir la cédula
         success: function(token) {
-        // Buscar el botón existente
-        var link = $('#pdfLink').find('a');
+            // Buscar el botón existente
+            var link = $('#pdfLink').find('a');
 
-        // Si el botón no existe, crear uno nuevo
-        if (link.length === 0) {
-            link = $('<a>').text('Ver PDF').addClass('btn btn-primary');
-            $('#pdfLink').append(link);
-        }
+            // Crear un nuevo formulario y botón si no existen
+            if (link.length === 0) {
+                var form = $('<form>').attr('action', 'mostrarPDF.php').attr('method', 'post').attr('target', '_blank');
+                var hiddenField = $('<input>').attr('type', 'hidden').attr('name', 'token');
+                form.append(hiddenField);
+                
+                link = $('<button>').text('Ver PDF').addClass('btn btn-primary');
+                form.append(link);
+                
+                $('#pdfLink').append(form);
+            } else {
+                var form = link.parent();
+            }
 
-        // Actualizar el href del botón
-        var href = 'documentos/' + token + '.pdf';
-        link.attr('href', href).attr('target', '_blank');
+            // Actualizar el valor del campo oculto con el token
+            form.find('input[type=hidden]').val(token);
 
-        // Agregar una animación al botón
-        link.fadeOut(500, function() {
-            $(this).fadeIn(500);
-        });
+            // Agregar una animación al botón
+            link.fadeOut(500, function() {
+                $(this).fadeIn(500);
+            });
 
-        // Generar el código QR
-        QRCode.toDataURL(href, function(err, url) {
-            $('#qrcode').html('<img src="' + url + '">');
-        });
+            // Generar el código QR
+            var href = 'mostrarPDF.php?token=' + token;
+            QRCode.toDataURL(href, function(err, url) {
+                $('#qrcode').html('<img src="' + url + '">');
+            });
         }
     });
 });

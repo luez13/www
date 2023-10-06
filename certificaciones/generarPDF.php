@@ -12,11 +12,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['nombre'] = $_POST['nombre'];
     $_SESSION['apellido'] = $_POST['apellido'];
     $_SESSION['correo'] = $_POST['correo'];
+    $_SESSION['cedula'] = $_POST['cedula'];
 
     $selected = $_SESSION['selected'];
     $nombre = $_SESSION['nombre'];
     $apellido = $_SESSION['apellido'];
     $correo = $_SESSION['correo'];
+    $cedula = $_SESSION['cedula'];
 
     // Generar un token único
 $token = hash('sha256', $nombre . $apellido . $correo . implode(',', $selected));
@@ -69,12 +71,7 @@ try {
     $pdf->Ln();
     $pdf->Cell(40,10,'Correo: ' . $correo);
     $pdf->Ln();
-    $pdf->Cell(40,10,'user_id: ' . $_POST['cedula']);
-    $pdf->Ln();
-    $pdf->Cell(40,10,'Document_id: ' . $document_id);
-    $pdf->Ln();
-    $pdf->Cell(40,10,'Token: ' . $token);
-    echo $_POST['cedula'];
+    $pdf->Cell(40,10,'Cédula: ' . $cedula);
     $pdf->Ln();
 
     foreach ($selected as $item) {
@@ -87,7 +84,7 @@ try {
     } // Limpiar cualquier salida en el búfer
 
     // Enviar el PDF al navegador
-    $pdf->Output('F', 'documentos/' . $token . '.pdf');
+    //$pdf->Output('F', 'documentos/' . $token . '.pdf');
 
     // Devolver el token como respuesta
     echo $token;
