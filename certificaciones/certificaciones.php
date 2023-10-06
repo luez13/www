@@ -9,10 +9,10 @@
 <body>
 <div class="container">
         <h2>Ingrese su cédula</h2>
-        <form id="cedulaForm">
-            <div class="form-group">
-                <label for="cedula">Cédula:</label>
-                <input type="text" class="form-control" id="cedula" required>
+        <form id="cedulaForm" method="POST">
+        <div class="form-group">
+            <label for="cedula">Cédula:</label>
+            <input type="text" class="form-control" id="cedula" name="cedula" required>
             </div>
             <input type="hidden" id="nombre" name="nombre">
             <input type="hidden" id="apellido" name="apellido">
@@ -59,11 +59,12 @@ $('#generarPDF').on('click', function() {
     var nombre = $('#nombre').val();
     var apellido = $('#apellido').val();
     var correo = $('#correo').val();
+    var cedula = $('#cedula').val();  // Obtener el valor de la cédula
 
     $.ajax({
         url: 'generarPDF.php',
         type: 'POST',
-        data: {selected: selected, nombre: nombre, apellido: apellido, correo: correo},
+        data: {selected: selected, nombre: nombre, apellido: apellido, correo: correo, cedula: cedula},  // Incluir la cédula
         success: function(token) {
         // Buscar el botón existente
         var link = $('#pdfLink').find('a');

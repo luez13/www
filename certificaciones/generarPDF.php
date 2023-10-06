@@ -19,7 +19,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $correo = $_SESSION['correo'];
 
     // Generar un token único
-    $token = hash('sha256', $nombre . $apellido . $correo . implode(',', $selected));
+$token = hash('sha256', $nombre . $apellido . $correo . implode(',', $selected));
+
+// Aquí deberías almacenar el token en la base de datos
+try {
+    // Asegúrate de cambiar estos valores por los correctos para tu base de datos
+    $host = "localhost";
+    $db   = "pruebas";
+    $user = "root";
+    $pass = "";
+
+    // Crear una nueva conexión PDO
+    $conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Obtener el id del usuario a partir de la cédula
+    $stmt = $conn->prepare("SELECT id FROM usuario WHERE cedula = :cedula");
+    $stmt->execute([':cedula' => $_POST['cedula']]);
+    $user_id = $stmt->fetchColumn();
+
+    // Obtener el id del documento a partir del nombre del documento seleccionado
+    // Asegúrate de que 'selected[0]' es el nombre del documento seleccionado
+    $stmt = $conn->prepare("SELECT id_doc FROM documentos WHERE nombre_doc = :nombre_doc");
+    $stmt->execute([':nombre_doc' => $_POST['selected'][0]]);
+    $document_id = $stmt->fetchColumn();
+
+    if ($user_id && $document_id) {
+        // Preparar la consulta SQL para insertar el token en la tabla doc_ref
+        $stmt = $conn->prepare("UPDATE doc_ref SET token = :token WHERE user_id = :user_id AND document_id = :document_id");
+
+        // Ejecutar la consulta SQL con los valores correctos
+        $stmt->execute([':token' => $token, ':user_id' => $user_id, ':document_id' => $document_id]);
+    } else {
+        echo "No se encontró un usuario o documento con esos datos.";
+    }
+} catch(PDOException $e) {
+    echo "Error: " . $e->getMessage();
+}
 
     // Aquí deberías almacenar el token en la base de datos
 
@@ -32,6 +68,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pdf->Cell(40,10,'Apellido: ' . $apellido);
     $pdf->Ln();
     $pdf->Cell(40,10,'Correo: ' . $correo);
+    $pdf->Ln();
+    $pdf->Cell(40,10,'user_id: ' . $_POST['cedula']);
+    $pdf->Ln();
+    $pdf->Cell(40,10,'Document_id: ' . $document_id);
+    $pdf->Ln();
+    $pdf->Cell(40,10,'Token: ' . $token);
+    echo $_POST['cedula'];
     $pdf->Ln();
 
     foreach ($selected as $item) {
