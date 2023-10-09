@@ -1,4 +1,4 @@
-<?php
+<?php/*
 require_once('fpdf/fpdf.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -46,5 +46,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         echo "No se encontró un token con esos datos.";
     }
-}
+}*/
 ?>
