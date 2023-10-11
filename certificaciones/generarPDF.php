@@ -71,6 +71,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        if (isset($token)) {
+            // Aquí deberías devolver el token como respuesta
+            echo $token;  // Asegúrate de que esta es la última línea de código que se ejecuta
+        } else {
+            echo "No se encontró un token con esos datos.";
+        }
+    } catch(PDOException $e) {
+        echo "Error: " . $e->getMessage();
+    }
+} else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    // Aquí deberías generar y enviar el PDF si se recibe un token como parámetro GET
+
+    // Obtener el token de la URL
+    if (isset($_GET['token'])) {
+        $token = $_GET['token'];
+    } else {
+        echo "No se recibió ningún token.";
+        exit;
+    }
+
+    // Obtener los datos asociados al token de la base de datos
+    try {
+        // Asegúrate de cambiar estos valores por los correctos para tu base de datos
+        $host = "localhost";
+        $db   = "pruebas";
+        $user = "root";
+        $pass = "";
+
+        // Crear una nueva conexión PDO
+        $conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
         // Preparar la consulta SQL para obtener los datos asociados al token
         if ($token) {
             $stmt = $conn->prepare("SELECT usuario.nombre, usuario.apellido, usuario.correo, documentos.nombre_doc FROM doc_ref INNER JOIN usuario ON doc_ref.user_id=usuario.id INNER JOIN documentos ON doc_ref.document_id=documentos.id_doc WHERE doc_ref.token = :token");
@@ -97,9 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdf->Ln();  // Nueva línea
             $pdf->Cell(40,10,'Correo: ' . $data['correo']);
             $pdf->Ln();  // Nueva línea
-            $pdf->Cell(40,10,'Cedula: ' . utf8_decode($cedula));
-            $pdf->Ln();  // Nueva línea
-            $pdf->Cell(40,10,'Documento seleccionado: ' . $selected[0]);
+            $pdf->Cell(40,10,'Documento seleccionado: ' . $data['nombre_doc']);
         
             if (ob_get_length()) {
                 ob_end_clean();

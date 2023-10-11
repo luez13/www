@@ -81,7 +81,7 @@
 
                     // Crear un nuevo formulario y botón si no existen
                     if (link.length === 0) {
-                        var form = $('<form>').attr('action', 'generarPDF.php').attr('method', 'post').attr('target', '_blank');  // Cambiar a 'generarPDF.php'
+                        var form = $('<form>').attr('action', 'generarPDF.php').attr('method', 'get').attr('target', '_blank');  // Cambiar a 'generarPDF.php'
                         var hiddenField = $('<input>').attr('type', 'hidden').attr('name', 'token');
                         form.append(hiddenField);
                         
@@ -101,12 +101,16 @@
                         $(this).fadeIn(500);
                     });
 
-                    // Generar el código QR
-                    var href = 'generarPDF.php?token=' + data;
-                    QRCode.toDataURL(href, function(err, url) {
-                        $('#qrcode').html('<img src="' + url + '" width="200" height="200">');
-                    });
+                // Generar el código QR
+                var href = 'generarPDF.php?token=' + data;
+                console.log('Data:', data);  // Imprimir el valor de data
+                console.log('Href:', href);  // Imprimir el valor de href
+                QRCode.toDataURL(href, function(err, url) {
+                    $('#qrcode').html('<img src="' + url + '" width="200" height="200">');
+                });
                 } else if (Array.isArray(data)) {
+                    console.log(data);
+                } else if (typeof data === 'object') {
                     console.log(data);
                 }
             }
