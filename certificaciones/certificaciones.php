@@ -5,53 +5,77 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+    <!-- Asegúrate de incluir jQuery antes de bootstrap.min.js -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </head>
 <body>
 <div class="container">
-        <h2>Ingrese su cédula</h2>
-        <form id="cedulaForm" method="POST">
-        <div class="form-group">
-            <label for="cedula">Cédula:</label>
-            <input type="text" class="form-control" id="cedula" name="cedula" required>
-            </div>
-            <input type="hidden" id="nombre" name="nombre">
-            <input type="hidden" id="apellido" name="apellido">
-            <input type="hidden" id="correo" name="correo">
-            <button type="submit" class="btn btn-primary">Enviar</button>
-        </form>
+    <h2>Cédulas</h2>
+    <div id="cedulas" class="list-group"></div>
+    <div id="datos" class="collapse">
+        <h2>Datos</h2>
         <div id="resultado"></div>
-        <button id="generarPDF" class="btn btn-secondary" disabled>Generar PDF</button>
+        <button id="generarPDF" class="btn btn-primary" disabled>Generar PDF</button>
+    </div>
+</div>
         <!-- Aquí es donde agregas el nuevo div -->
         <div id="pdfLink"></div>
         <div id="qrcode"></div>
     </div>
 
     <script>
-        $('#cedulaForm').on('submit', function(e) {
-            e.preventDefault();
-            var cedula = $('#cedula').val();
-            $.ajax({
-                url: 'validar.php',
-                type: 'POST',
-                dataType: 'json',
-                data: {cedula: cedula},
-                success: function(data) {
-                    var html = '<p>Nombre: ' + data[0].nombre + '</p><p>Apellido: ' + data[0].apellido + '</p><p>Correo: ' + data[0].correo + '</p>';
-                    data.forEach(function(item) {
-                        html += '<p><input type="radio" id="' + item.nombre_doc + '" name="documento" value="' + item.nombre_doc + '"><label for="' + item.nombre_doc + '"> ' + item.nombre_doc + '</label></p>';
-                    });
-                    $('#resultado').html(html);
-                    $('#generarPDF').prop('disabled', false);
-                    
-                    // Almacenar los datos en los campos ocultos
-                    $('#nombre').val(data[0].nombre);
-                    $('#apellido').val(data[0].apellido);
-                    $('#correo').val(data[0].correo);
-                }
-            });
-        });
+$(document).ready(function() {
+    $.ajax({
+        url: 'validar.php',
+        type: 'POST',
+        dataType: 'json',
+        success: function(data) {
+            if (data && Array.isArray(data)) {
+                var html = '';
+                data.forEach(function(item) {
+                    html += '<button class="list-group-item list-group-item-action cedula">' + item.cedula + '</button>';
+                });
+                $('#cedulas').html(html);
 
-        $('#generarPDF').on('click', function() {
+                $('.cedula').on('click', function() {
+    var cedula = $(this).text();
+    $.ajax({
+        url: 'validar.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {cedula: cedula},
+        success: function(data) {
+            var html = '<p>Nombre: ' + data[0].nombre + '</p><p>Apellido: ' + data[0].apellido + '</p><p>Correo: ' + data[0].correo + '</p>';
+            data.forEach(function(item) {
+                html += '<p><input type="radio" id="' + item.nombre_doc + '" name="documento" value="' + item.nombre_doc + '"><label for="' + item.nombre_doc + '"> ' + item.nombre_doc + '</label></p>';
+            });
+            $('#resultado').html(html);
+            $('#datos').collapse('show');  // Mostrar los datos con una animación
+
+            // Almacenar los datos en los campos ocultos
+            $('#nombre').val(data[0].nombre);
+            $('#apellido').val(data[0].apellido);
+            $('#correo').val(data[0].correo);
+            $('#cedula').val(cedula);  // Almacenar la cédula en el campo oculto
+
+            $('#generarPDF').prop('disabled', false);  // Habilitar el botón de generar PDF
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Error: ' + textStatus + ', ' + errorThrown);
+        }
+    });
+});
+
+            } else {
+                console.error('Error: Los datos recibidos no son válidos');
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Error: ' + textStatus + ', ' + errorThrown);
+        }
+    });
+
+    $('#generarPDF').on('click', function() {
         // Obtener el valor del botón de opción seleccionado
         var selected = [$('input[name=documento]:checked').val()];
 
@@ -116,6 +140,7 @@
             }
         });
     });
+});
     </script>
 </body>
 </html>
