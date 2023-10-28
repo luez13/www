@@ -1,29 +1,54 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>IUT - SAREC</title>
     <title>Formulario de Cédula</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
     <!-- Asegúrate de incluir jQuery antes de bootstrap.min.js -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+        }
+        .list-group-item {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
+<div class="header text-center">
+        <h1>Instituto Universitario de Tecnología (IUT) - SAREC</h1>
+    </div>
+    <div class="container">
     <h2>Cédulas</h2>
     <div id="cedulas" class="list-group"></div>
+    <input type="hidden" id="cedula">
     <div id="datos" class="collapse">
         <h2>Datos</h2>
         <div id="resultado"></div>
         <button id="generarPDF" class="btn btn-primary" disabled>Generar PDF</button>
-    </div>
-</div>
-        <!-- Aquí es donde agregas el nuevo div -->
-        <div id="pdfLink"></div>
+        <button id="verPDF" class="btn btn-success" style="display: none;">Ver PDF</button>
         <div id="qrcode"></div>
     </div>
+</div>
 
-    <script>
+<script>
 $(document).ready(function() {
     $.ajax({
         url: 'validar.php',
@@ -38,34 +63,40 @@ $(document).ready(function() {
                 $('#cedulas').html(html);
 
                 $('.cedula').on('click', function() {
-    var cedula = $(this).text();
-    $.ajax({
-        url: 'validar.php',
-        type: 'POST',
-        dataType: 'json',
-        data: {cedula: cedula},
-        success: function(data) {
-            var html = '<p>Nombre: ' + data[0].nombre + '</p><p>Apellido: ' + data[0].apellido + '</p><p>Correo: ' + data[0].correo + '</p>';
-            data.forEach(function(item) {
-                html += '<p><input type="radio" id="' + item.nombre_doc + '" name="documento" value="' + item.nombre_doc + '"><label for="' + item.nombre_doc + '"> ' + item.nombre_doc + '</label></p>';
-            });
-            $('#resultado').html(html);
-            $('#datos').collapse('show');  // Mostrar los datos con una animación
+                    var cedula = $(this).text();
+                    $('#cedula').val(cedula);
+                    var cedula = $(this).text();
+                    $.ajax({
+                        url: 'validar.php',
+                        type: 'POST',
+                        dataType: 'json',
+                        data: {cedula: cedula},
+                        success: function(data) {
+                            var html = '<div class="card">';
+                            html += '<div class="card-body">';
+                            html += '<h5 class="card-title">' + data[0].nombre + ' ' + data[0].apellido + '</h5>';
+                            html += '<h6 class="card-subtitle mb-2 text-muted">' + data[0].correo + '</h6>';
+                            data.forEach(function(item) {
+                                html += '<div class="form-check">';
+                                html += '<input class="form-check-input" type="radio" name="documento" id="' + item.nombre_doc + '" value="' + item.nombre_doc + '">';
+                                html += '<label class="form-check-label" for="' + item.nombre_doc + '">' + item.nombre_doc + '</label>';
+                                html += '</div>';
+                            });
+                            html += '</div>';
+                            html += '</div>';
+                            $('#resultado').html(html);
+                            $('#datos').collapse('show');  // Mostrar los datos con una animación
 
-            // Almacenar los datos en los campos ocultos
-            $('#nombre').val(data[0].nombre);
-            $('#apellido').val(data[0].apellido);
-            $('#correo').val(data[0].correo);
-            $('#cedula').val(cedula);  // Almacenar la cédula en el campo oculto
+                            // Almacenar la cédula en el campo oculto
+                            $('#cedula').val(cedula);  // Almacenar la cédula en el campo oculto
 
-            $('#generarPDF').prop('disabled', false);  // Habilitar el botón de generar PDF
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            console.error('Error: ' + textStatus + ', ' + errorThrown);
-        }
-    });
-});
-
+                            $('#generarPDF').prop('disabled', false);  // Habilitar el botón de generar PDF
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.error('Error: ' + textStatus + ', ' + errorThrown);
+                        }
+                    });
+                });
             } else {
                 console.error('Error: Los datos recibidos no son válidos');
             }
@@ -76,71 +107,46 @@ $(document).ready(function() {
     });
 
     $('#generarPDF').on('click', function() {
-        // Obtener el valor del botón de opción seleccionado
-        var selected = [$('input[name=documento]:checked').val()];
+    var selected = [$('input[name=documento]:checked').val()];
+    
+    // Validar que se haya seleccionado un documento
+    if (!selected[0]) {
+        alert('Por favor selecciona un documento');
+        return;
+    }
 
-        // Obtener los datos de los campos ocultos
-        var nombre = $('#nombre').val();
-        var apellido = $('#apellido').val();
-        var correo = $('#correo').val();
-        var cedula = $('#cedula').val();  // Obtener el valor de la cédula
+    var cedula = $('#cedula').val();
 
-        $.ajax({
-            url: 'generarPDF.php',
-            type: 'POST',
-            data: {selected: selected, nombre: nombre, apellido: apellido, correo: correo, cedula: cedula},
-            success: function(response) {
-                var data;
-                try {
-                    // Intenta parsear la respuesta como JSON
-                    data = JSON.parse(response);
-                } catch (e) {
-                    // Si no es JSON, asume que es un token
-                    data = response;
-                }
+    var data = {selected: selected, cedula: cedula};
+    var jsonData = JSON.stringify(data);
+    var urlSafeData = encodeURIComponent(jsonData);
 
-                if (typeof data === 'string') {
-                    // Aquí deberías manejar el token como antes
-                    var link = $('#pdfLink').find('a');
+    // Generar la URL del PDF
+    var pdfUrl = window.location.origin + '/generarPDF.php?data=' + urlSafeData;
 
-                    // Crear un nuevo formulario y botón si no existen
-                    if (link.length === 0) {
-                        var form = $('<form>').attr('action', 'generarPDF.php').attr('method', 'get').attr('target', '_blank');  // Cambiar a 'generarPDF.php'
-                        var hiddenField = $('<input>').attr('type', 'hidden').attr('name', 'token');
-                        form.append(hiddenField);
-                        
-                        link = $('<button>').text('Ver PDF').addClass('btn btn-primary');
-                        form.append(link);
-                        
-                        $('#pdfLink').append(form);
-                    } else {
-                        var form = link.parent();
-                    }
-
-                    // Actualizar el valor del campo oculto con el token
-                    form.find('input[type=hidden]').val(data);
-
-                    // Agregar una animación al botón
-                    link.fadeOut(500, function() {
-                        $(this).fadeIn(500);
-                    });
-
-                // Generar el código QR
-                var href = 'generarPDF.php?token=' + data;
-                console.log('Data:', data);  // Imprimir el valor de data
-                console.log('Href:', href);  // Imprimir el valor de href
-                QRCode.toDataURL(href, function(err, url) {
-                    $('#qrcode').html('<img src="' + url + '" width="200" height="200">');
-                });
-                } else if (Array.isArray(data)) {
-                    console.log(data);
-                } else if (typeof data === 'object') {
-                    console.log(data);
-                }
-            }
-        });
+    // Actualizar el código QR con la URL del PDF
+    $('#qrcode').empty();
+    var qrCode = new QRCode(document.getElementById("qrcode"), {
+        text: pdfUrl,
+        width: 256,
+        height: 256
     });
+
+    // Mostrar el código QR
+    $('#qrcode').show();
+
+    // Actualizar el botón con la URL del PDF
+    $('#verPDF').off('click');
+    $('#verPDF').on('click', function() {
+        window.open(pdfUrl, '_blank');
+    });
+    
+    // Mostrar el botón
+    $('#verPDF').show();
 });
-    </script>
+
+});
+</script>
+
 </body>
 </html>
