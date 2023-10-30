@@ -107,44 +107,47 @@ $(document).ready(function() {
     });
 
     $('#generarPDF').on('click', function() {
-    var selected = [$('input[name=documento]:checked').val()];
-    
-    // Validar que se haya seleccionado un documento
-    if (!selected[0]) {
-        alert('Por favor selecciona un documento');
-        return;
-    }
+        var selected = [$('input[name=documento]:checked').val()];
+        
+        // Validar que se haya seleccionado un documento
+        if (!selected[0]) {
+            alert('Por favor selecciona un documento');
+            return;
+        }
 
-    var cedula = $('#cedula').val();
+        var cedula = $('#cedula').val();
 
-    var data = {selected: selected, cedula: cedula};
-    var jsonData = JSON.stringify(data);
-    var urlSafeData = encodeURIComponent(jsonData);
+        var data = {selected: selected, cedula: cedula};
+        
+        // Convertir el objeto de datos en una cadena JSON
+        var jsonData = JSON.stringify(data);
+        
+        // Codificar esa cadena en Base64
+        var encodedData = btoa(jsonData);
+        
+        // Generar la URL del PDF
+        var pdfUrl = window.location.origin + '/generarPDF.php?data=' + encodeURIComponent(encodedData);
 
-    // Generar la URL del PDF
-    var pdfUrl = window.location.origin + '/generarPDF.php?data=' + urlSafeData;
+        // Actualizar el código QR con la URL del PDF
+        $('#qrcode').empty();
+        var qrCode = new QRCode(document.getElementById("qrcode"), {
+            text: pdfUrl,
+            width: 256,
+            height: 256
+        });
 
-    // Actualizar el código QR con la URL del PDF
-    $('#qrcode').empty();
-    var qrCode = new QRCode(document.getElementById("qrcode"), {
-        text: pdfUrl,
-        width: 256,
-        height: 256
+        // Mostrar el código QR
+        $('#qrcode').show();
+
+        // Actualizar el botón con la URL del PDF
+        $('#verPDF').off('click');
+        $('#verPDF').on('click', function() {
+            window.open(pdfUrl, '_blank');
+        });
+        
+        // Mostrar el botón
+        $('#verPDF').show();
     });
-
-    // Mostrar el código QR
-    $('#qrcode').show();
-
-    // Actualizar el botón con la URL del PDF
-    $('#verPDF').off('click');
-    $('#verPDF').on('click', function() {
-        window.open(pdfUrl, '_blank');
-    });
-    
-    // Mostrar el botón
-    $('#verPDF').show();
-});
-
 });
 </script>
 

@@ -12,7 +12,8 @@ function generate_pdf($conn, $data) {
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         if (isset($_GET['data']) && !empty($_GET['data'])) {
-            $jsonData = $_GET['data'];
+            // Decodificar los datos de la URL
+            $jsonData = base64_decode($_GET['data']);
             $data = json_decode($jsonData, true);
 
             if (!empty($data)) {
