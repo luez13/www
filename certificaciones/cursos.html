@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<html>
+<body>
+
+<h2>Cursos</h2>
+
+<div id="cursos"></div>
+
+<!-- Botón para ir a la página de creación de cursos -->
+<button onclick="window.location.href='crear_curso.html'">Crear Curso</button>
+
+<script>
+    // Hacer una solicitud AJAX a obtener_cursos.php para obtener los datos de los cursos
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'obtener_cursos.php', true);
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        // Mostrar los datos en el div "cursos"
+        document.getElementById('cursos').innerHTML = xhr.responseText;
+      }
+    };
+    xhr.send();
+</script>
+
+</body>
+</html>

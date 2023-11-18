@@ -1,0 +1,35 @@
+<!-- curso_formulario.html -->
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<html>
+<body>
+
+<h2>Formulario de Curso</h2>
+
+<form action="controladores/curso_controlador.php" method="post">
+  <input type="hidden" id="id_curso" name="id_curso">
+  <!-- Los demás campos son iguales a los de crear_curso.html -->
+  <input type="submit" id="submit_button" value="Crear Curso">
+</form>
+
+<script>
+    function crear_curso() {
+        document.getElementById('id_curso').value = '';
+        document.getElementById('action').value = 'crear';
+        document.getElementById('submit_button').value = 'Crear Curso';
+    }
+    
+    function editar_curso(id_curso) {
+        document.getElementById('id_curso').value = id_curso;
+        document.getElementById('action').value = 'editar';
+        document.getElementById('submit_button').value = 'Editar Curso';
+    }
+    
+    function eliminar_curso(id_curso) {
+        document.getElementById('id_curso').value = id_curso;
+        document.getElementById('action').value = 'eliminar';
+        document.getElementById('submit_button').value = 'Eliminar Curso';
+    }
+</script>    
+</body>
+</html>
