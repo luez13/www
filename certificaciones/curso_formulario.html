@@ -7,29 +7,64 @@
 <h2>Formulario de Curso</h2>
 
 <form action="controladores/curso_controlador.php" method="post">
-  <input type="hidden" id="id_curso" name="id_curso">
-  <!-- Los demás campos son iguales a los de crear_curso.html -->
-  <input type="submit" id="submit_button" value="Crear Curso">
-</form>
-
+    <input type="hidden" name="action" value="crear">
+    <input type="hidden" name="promotor" value="<?php echo $_SESSION['user_id']; ?>">
+    <label for="nombre_curso">Nombre del curso:</label><br>
+    <input type="text" id="nombre_curso" name="nombre_curso"><br>
+    <label for="descripcion">Descripción:</label><br>
+    <textarea id="descripcion" name="descripcion"></textarea><br>
+    <label for="duracion">Duración:</label><br>
+    <input type="text" id="duracion" name="duracion"><br>
+    <label for="periodo">Periodo:</label><br>
+    <input type="date" id="periodo" name="periodo"><br>
+    <label for="modalidad">Modalidad:</label><br>
+    <select id="modalidad" name="modalidad">
+      <option value="" disabled selected>Selecciona modalidad</option>
+      <option value="presencial">Presencial</option>
+      <option value="virtual">Virtual</option>
+    </select><br>
+    <label for="tipo_evaluacion">Tipo de Evaluación:</label><br>
+    <select id="tipo_evaluacion" name="tipo_evaluacion">
+      <option value="" disabled selected>Selecciona tipo de evaluación</option>
+      <option value="evaluada">Evaluada</option>
+      <option value="presencial">Presencial</option>
+    </select><br>
+    <label for="tipo_curso">Tipo de Curso:</label><br>
+    <select id="tipo_curso" name="tipo_curso">
+      <option value="" disabled selected>Selecciona tipo de curso</option>
+      <option value="PNF">PNF</option>
+      <option value="Curso de Formación">Curso de Formación</option>
+      <!-- Añade más opciones según sea necesario -->
+    </select><br>
+    <label for="limite_inscripciones">Límite de Inscripciones:</label><br>
+    <input type="number" id="limite_inscripciones" name="limite_inscripciones"><br>
+    <input type="submit" value="Crear Curso">
+  </form>
 <script>
-    function crear_curso() {
-        document.getElementById('id_curso').value = '';
-        document.getElementById('action').value = 'crear';
-        document.getElementById('submit_button').value = 'Crear Curso';
+    function mostrarNota() {
+  var tipo_evaluacion = document.getElementById('tipo_evaluacion').value;
+  if (tipo_evaluacion == 'evaluada') {
+    document.getElementById('nota').style.display = 'block';
+  } else {
+    document.getElementById('nota').style.display = 'none';
+  }
+}
+    // Obtener el valor del parámetro action de la URL
+    var urlParams = new URLSearchParams(window.location.search);
+    var action = urlParams.get('action');
+
+    // Llamar a la función correspondiente según el valor de action
+    if (action == 'crear') {
+        crear_curso();
+    } else if (action == 'editar') {
+        // Obtener el valor del parámetro id_curso de la URL
+        var id_curso = urlParams.get('id_curso');
+        editar_curso(id_curso);
+    } else if (action == 'eliminar') {
+        // Obtener el valor del parámetro id_curso de la URL
+        var id_curso = urlParams.get('id_curso');
+        eliminar_curso(id_curso);
     }
-    
-    function editar_curso(id_curso) {
-        document.getElementById('id_curso').value = id_curso;
-        document.getElementById('action').value = 'editar';
-        document.getElementById('submit_button').value = 'Editar Curso';
-    }
-    
-    function eliminar_curso(id_curso) {
-        document.getElementById('id_curso').value = id_curso;
-        document.getElementById('action').value = 'eliminar';
-        document.getElementById('submit_button').value = 'Eliminar Curso';
-    }
-</script>    
+</script>
 </body>
 </html>

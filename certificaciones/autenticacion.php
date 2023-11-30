@@ -21,7 +21,24 @@ if ($_POST['action'] == 'registro') {
 
     // Redirigir a la página de inicio de sesión
     header('Location: index.html');
-} elseif ($_POST['action'] == 'login') {
+} elseif ($_POST['action'] == 'editar') {
+    // Obtener el id del usuario de la sesión
+    $user_id = $_SESSION['user_id'];
+
+    // Obtener los datos del formulario
+    $nombre = $_POST['nombre'];
+    $apellido = $_POST['apellido'];
+    $correo = $_POST['correo'];
+    $cedula = $_POST['cedula'];
+
+    // Actualizar los datos del usuario en la base de datos
+    $stmt = $db->prepare('UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula WHERE id = :id');
+    $stmt->execute(['id' => $user_id, 'nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'cedula' => $cedula]);
+
+    // Redirigir a la página de perfil
+    header('Location: perfil.php');
+}
+elseif ($_POST['action'] == 'login') {
     // Obtener los datos del formulario
     $correo = $_POST['correo'];
     $password = $_POST['password'];

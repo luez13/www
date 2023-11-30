@@ -1,27 +1,46 @@
-<!DOCTYPE html>
-<meta charset="UTF-8">
-<html>
-<body>
+<style>
+  /* Style the button that is used to open and close the collapsible content */
+  .collapsible {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+  }
 
-<h2>Cursos</h2>
+  /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+  .active, .collapsible:hover {
+    background-color: #ccc;
+  }
 
-<div id="cursos"></div>
-
-<!-- Botón para ir a la página de creación de cursos -->
-<button onclick="window.location.href='crear_curso.html'">Crear Curso</button>
-
+  /* Style the collapsible content. Note: hidden by default */
+  .content {
+    padding: 0 18px;
+    display: none;
+    overflow: hidden;
+    background-color: #f1f1f1;
+  }
+</style>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // Hacer una solicitud AJAX a obtener_cursos.php para obtener los datos de los cursos
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'obtener_cursos.php', true);
-    xhr.onload = function () {
-      if (xhr.status === 200) {
-        // Mostrar los datos en el div "cursos"
-        document.getElementById('cursos').innerHTML = xhr.responseText;
-      }
-    };
-    xhr.send();
-</script>
+  $(document).ready(function() {
+    // Hacer una solicitud AJAX a obtener_cursos.php
+    $.get("obtener_cursos.php", function(data) {
+      // Mostrar el resultado en el div "cursos_disponibles"
+      $("#cursos_disponibles").html(data);
+    });
 
-</body>
-</html>
+    // Agregar un evento de clic a los botones que se expanden
+    $(document).on("click", ".collapsible", function() {
+      // Cambiar la clase del botón a activo o inactivo
+      $(this).toggleClass("active");
+      // Mostrar u ocultar el contenido del botón
+      $(this).next().slideToggle();
+    });
+  });
+</script>
+<div id="cursos_disponibles"></div>
