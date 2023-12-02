@@ -1,0 +1,66 @@
+hola, tengo una base de datos llamada certificaciones_DB, dentro del esquema esta cursos, dentro de cursos estan las siguientes tablas:
+certificaciones columnas:
+
+id_idcertificacion: integer, llave primaria.
+id_usuario: integer, llave foránea curso.usuarios id.
+curso_id: integer, llave foránea curso.curso id_curso.
+valor_unico: UUID, llave única.
+completado: boolean.
+cursos columnas:
+
+id_curso: integer.
+promotor: varchar.
+modalidad: varchar.
+nombre_curso: varchar.
+descripcion: text.
+duracion: interval.
+periodo: date.
+tipo_evaluacion: varchar.
+tipo_curso: varchar.
+autorizacion: varchar.
+limite_inscripciones: integer.
+estado: boolean.
+roles columnas:
+
+id_rol: integer, llave primaria.
+nombre_rol: varchar.
+usuarios columnas:
+
+id: integer, llave primaria.
+nombre: varchar.
+apellido: varchar.
+correo: varchar, llave única.
+password: text.
+cedula: varchar, llave única.
+id_rol: integer, llave foránea curso.roles id_rol.
+token: varchar(255).
+confirmado: boolean.
+
+asi esta formada la base de datos.
+
+y esto es un esquema de como estan organizados mis archivos:
+
+proyecto/
+├── config/
+│   └── model.php
+├── controllers/
+│   ├── asignar_nota.php
+│   ├── autenticacion.php
+│   ├── curso_acciones.php
+│   └── curso_controlador.php
+├── models/
+│   ├── curso.php
+│   ├── datos_usuario.php
+│   └── obtener_cursos.php
+├── public/
+│   ├── assets/
+│   │   └── estilo.css
+│   ├── cursos.html
+│   ├── gestion_cursos.php
+│   ├── index.php
+│   └── perfil.php
+└── views/
+    ├── curso_formulario.html
+    ├── curso.php
+    ├── footer.php
+    └── header.php
