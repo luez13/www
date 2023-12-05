@@ -5,9 +5,6 @@ include '../config/model.php';
 // Incluir el archivo header.php en views
 include '../views/header.php';
 
-// Iniciar la sesión
-session_start();
-
 // Crear una instancia de la clase DB
 $db = new DB();
 
@@ -85,6 +82,7 @@ switch ($action) {
         } else {
             // Mostrar un mensaje de error al usuario
             echo '<p>Los datos de inscripción son inválidos</p>';
+            echo $id_usuario;
         }
         break;
     case 'cancelar_inscripcion':

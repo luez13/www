@@ -1,3 +1,7 @@
+<?php
+// Iniciar la sesión
+session_start();
+?>
 <!DOCTYPE html>
 <meta charset="UTF-8">
 <html>

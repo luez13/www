@@ -1,6 +1,4 @@
 <?php
-// Incluir el archivo header.php en views
-include '../views/header.php';
 
 // Mostrar un formulario para iniciar sesión
 echo '<h3>Iniciar sesión</h3>';

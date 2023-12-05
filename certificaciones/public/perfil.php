@@ -1,7 +1,4 @@
 <?php
-// Iniciar la sesión
-session_start();
-
 // Incluir el archivo model.php en config
 include '../config/model.php';
 
@@ -25,6 +22,7 @@ try {
     echo '<p>Correo: ' . $user['correo'] . '</p>';
     echo '<p>Cédula: ' . $user['cedula'] . '</p>';
     echo '<p>Rol: ' . $user['id_rol'] . '</p>';
+    echo $user_id;
     // Mostrar un botón para editar los datos del usuario
     echo '<form action="../controllers/autenticacion.php" method="post">';
     echo '<input type="hidden" name="action" value="editar">';
@@ -47,7 +45,7 @@ echo '</form>';
 
 // Consultar la base de datos para obtener los cursos en los que el usuario está inscrito
 try {
-    $stmt = $db->prepare('SELECT c.* FROM cursos.cursos c JOIN cursos.certificaciones ce ON c.id_curso = ce.id_curso WHERE ce.id_usuario = :id_usuario AND ce.completado = false');
+    $stmt = $db->prepare('SELECT c.* FROM cursos.cursos c JOIN cursos.certificaciones ce ON c.id_curso = ce.curso_id WHERE ce.id_usuario = :id_usuario AND ce.completado = false');
     $stmt->execute(['id_usuario' => $user_id]);
     $cursos_inscritos = $stmt->fetchAll();
     // Mostrar los cursos en los que el usuario está inscrito en formato HTML
@@ -65,7 +63,7 @@ try {
 
 // Consultar la base de datos para obtener los cursos que el usuario ha finalizado
 try {
-    $stmt = $db->prepare('SELECT c.* FROM cursos.cursos c JOIN cursos.certificaciones ce ON c.id_curso = ce.id_curso WHERE ce.id_usuario = :id_usuario AND ce.completado = true');
+    $stmt = $db->prepare('SELECT c.* FROM cursos.cursos c JOIN cursos.certificaciones ce ON c.id_curso = ce.curso_id WHERE ce.id_usuario = :id_usuario AND ce.completado = true');
     $stmt->execute(['id_usuario' => $user_id]);
     $cursos_finalizados = $stmt->fetchAll();
     // Mostrar los cursos que el usuario ha finalizado en formato HTML

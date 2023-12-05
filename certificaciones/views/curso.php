@@ -8,11 +8,8 @@ include '../views/header.php';
 // Incluir el archivo curso.php en models
 include '../models/curso.php';
 
-// Iniciar la sesión
-session_start();
-
 // Obtener el id del usuario de la sesión
-$id_usuario = isset($_POST['id_usuario']) ? $_POST['id_usuario'] : null;
+$id_usuario = $_SESSION['user_id'];
 
 // Crear una instancia de la clase DB
 $db = new DB();
@@ -51,7 +48,6 @@ echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
 echo '<input type="hidden" name="id_usuario" value="' . $id_usuario . '">'; // Asegúrate de tener disponible la variable $id_usuario
 echo '<input type="submit" value="Inscribirse al curso">';
 echo '</form>';
-
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>
