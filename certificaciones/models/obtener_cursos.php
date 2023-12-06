@@ -11,7 +11,7 @@ $db = new DB();
 // Consultar la base de datos para obtener los cursos disponibles
 try {
     $stmt = $db->prepare('SELECT * FROM cursos.cursos WHERE estado = :estado');
-    $stmt->execute(['estado' => 'Activo']);
+    $stmt->execute(['estado' => true ]);
     $cursos = $stmt->fetchAll();
     // Mostrar los cursos en formato HTML
     echo '<h3>Cursos disponibles</h3>';

@@ -15,7 +15,7 @@ nombre_curso: varchar.
 descripcion: text.
 duracion: interval.
 periodo: date.
-tipo_evaluacion: varchar.
+tipo_evaluacion: boolean.
 tipo_curso: varchar.
 autorizacion: varchar.
 limite_inscripciones: integer.

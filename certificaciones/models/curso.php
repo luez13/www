@@ -12,15 +12,24 @@ class Curso {
 
     // Crear un método para crear un curso
     public function crear($nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones, $user_id) {
+        // Verificar si el usuario existe en la base de datos
+        $stmt = $this->db->prepare('SELECT * FROM cursos.usuarios WHERE id = :user_id');
+        $stmt->execute(['user_id' => $user_id]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$user) {
+            echo '<p>El usuario no existe</p>';
+            return;
+        }
+
         // Insertar los datos en la base de datos
         try {
-            $stmt = $this->db->prepare('INSERT INTO cursos.cursos (nombre, descripcion, duracion, periodo, modalidad, tipo_evaluacion, tipo_curso, limite_inscripciones, id_promotor, estado) VALUES (:nombre, :descripcion, :duracion, :periodo, :modalidad, :tipo_evaluacion, :tipo_curso, :limite_inscripciones, :id_promotor, :estado)');
-            $stmt->execute(['nombre' => $nombre, 'descripcion' => $descripcion, 'duracion' => $duracion, 'periodo' => $periodo, 'modalidad' => $modalidad, 'tipo_evaluacion' => $tipo_evaluacion, 'tipo_curso' => $tipo_curso, 'limite_inscripciones' => $limite_inscripciones, 'id_promotor' => $user_id, 'estado' => 'Activo']);
+            $stmt = $this->db->prepare('INSERT INTO cursos.cursos (nombre_curso, descripcion, duracion, periodo, modalidad, tipo_evaluacion, tipo_curso, limite_inscripciones, promotor) VALUES (:nombre_curso, :descripcion, :duracion, :periodo, :modalidad, :tipo_evaluacion, :tipo_curso, :limite_inscripciones, :promotor)');
+            $stmt->execute(['nombre_curso' => $nombre, 'descripcion' => $descripcion, 'duracion' => $duracion, 'periodo' => $periodo, 'modalidad' => $modalidad, 'tipo_evaluacion' => $tipo_evaluacion, 'tipo_curso' => $tipo_curso, 'limite_inscripciones' => $limite_inscripciones, 'promotor' => $user_id]);
         } catch (PDOException $e) {
             // Mostrar un mensaje de error al usuario
             echo '<p>Ha ocurrido un error al crear el curso: ' . $e->getMessage() . '</p>';
         }
-    }
+    }      
 
     // Crear un método para editar un curso
     public function editar($id_curso, $nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones) {
@@ -59,15 +68,15 @@ class Curso {
     }
 
     // Definir el método obtener_contenido
-    public function obtener_contenido($id_curso) {
-        // Preparar la consulta SQL para obtener los datos del curso
-        $stmt = $this->db->prepare('SELECT * FROM cursos.cursos WHERE id_curso = :id');
-        // Ejecutar la consulta con el id del curso
-        $stmt->execute(['id' => $id_curso]);
+    public function obtener_contenido($user_id) {
+        // Preparar la consulta SQL para obtener los cursos creados por el usuario
+        $stmt = $this->db->prepare('SELECT * FROM cursos.cursos WHERE promotor = :promotor');
+        // Ejecutar la consulta con el id del usuario
+        $stmt->execute(['promotor' => $user_id]);
         // Obtener el resultado como un array asociativo
-        $curso = $stmt->fetch(PDO::FETCH_ASSOC);
-        // Devolver el array con los datos del curso
-        return $curso;
-    }
+        $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Devolver el array con los datos de los cursos
+        return $cursos;
+}
 }
 ?>

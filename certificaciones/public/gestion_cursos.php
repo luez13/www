@@ -15,29 +15,30 @@ $db = new DB();
 $curso = new Curso($db);
 
 // Obtener el id del usuario de la sesión
-session_start();
 $user_id = $_SESSION['user_id'];
 
 // Mostrar un formulario para crear un nuevo curso
 echo '<h3>Crear un nuevo curso</h3>';
-echo '<form action="controllers/curso_controlador.php" method="post">';
+echo '<form action="../controllers/curso_controlador.php" method="post">';
 echo '<input type="hidden" name="action" value="crear">';
-echo '<p>Nombre: <input type="text" name="nombre" required></p>';
+echo '<p>Nombre del curso: <input type="text" name="nombre_curso" required></p>';
 echo '<p>Descripción: <textarea name="descripcion" required></textarea></p>';
 echo '<p>Duración (en horas): <input type="number" name="duracion" min="1" required></p>';
-echo '<p>Periodo (en días): <input type="number" name="periodo" min="1" required></p>';
+echo '<p>Periodo (en días): <input type="date" name="periodo" min="1" required></p>';
 echo '<p>Modalidad: <select name="modalidad" required>';
 echo '<option value="Presencial">Presencial</option>';
 echo '<option value="Virtual">Virtual</option>';
 echo '<option value="Mixto">Mixto</option>';
 echo '</select></p>';
-echo '<p>Tipo de evaluación: <select name="tipo_evaluacion" required>';
-echo '<option value="Sin nota">Sin nota</option>';
-echo '<option value="Con nota">Con nota</option>';
-echo '</select></p>';
+echo '<p>Tipo de evaluación: 
+<input type="radio" id="con_nota" name="tipo_evaluacion" value="true" required>
+<label for="con_nota">Con nota</label>
+<input type="radio" id="sin_nota" name="tipo_evaluacion" value="false">
+<label for="sin_nota">Sin nota</label>
+</p>';
 echo '<p>Tipo de curso: <select name="tipo_curso" required>';
-echo '<option value="Obligatorio">Obligatorio</option>';
-echo '<option value="Electivo">Electivo</option>';
+echo '<option value="PNF">PNF</option>';
+echo '<option value="Formacion">Formacion</option>';
 echo '</select></p>';
 echo '<p>Límite de inscripciones: <input type="number" name="limite_inscripciones" min="1" required></p>';
 echo '<p><input type="submit" value="Crear curso"></p>';
@@ -59,11 +60,11 @@ echo '<th>Estado</th>';
 echo '<th>Opciones</th>';
 echo '</tr>';
 // Usar el método de la clase Curso para obtener los cursos creados por el usuario
-$cursos = $curso->obtener_cursos($user_id);
+$cursos = $curso->obtener_contenido($user_id);
 // Recorrer los cursos y mostrar sus datos en la tabla
 foreach ($cursos as $curso) {
     echo '<tr>';
-    echo '<td>' . $curso['nombre'] . '</td>';
+    echo '<td>' . $curso['nombre_curso'] . '</td>';
     echo '<td>' . $curso['descripcion'] . '</td>';
     echo '<td>' . $curso['duracion'] . ' horas</td>';
     echo '<td>' . $curso['periodo'] . ' días</td>';
@@ -74,21 +75,21 @@ foreach ($cursos as $curso) {
     echo '<td>' . $curso['estado'] . '</td>';
     echo '<td>';
     // Mostrar un botón para editar el curso
-    echo '<form action="controllers/curso_controlador.php" method="post">';
+    echo '<form action="../controllers/curso_controlador.php" method="post">';
     echo '<input type="hidden" name="action" value="editar">';
-    echo '<input type="hidden" name="id_curso" value="' . $curso['id'] . '">';
+    echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
     echo '<input type="submit" value="Editar">';
     echo '</form>';
     // Mostrar un botón para eliminar el curso
-    echo '<form action="controllers/curso_controlador.php" method="post">';
+    echo '<form action="../controllers/curso_controlador.php" method="post">';
     echo '<input type="hidden" name="action" value="eliminar">';
-    echo '<input type="hidden" name="id_curso" value="' . $curso['id'] . '">';
+    echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
     echo '<input type="submit" value="Eliminar">';
     echo '</form>';
     // Mostrar un botón para finalizar el curso
-    echo '<form action="controllers/curso_controlador.php" method="post">';
+    echo '<form action="../controllers/curso_controlador.php" method="post">';
     echo '<input type="hidden" name="action" value="finalizar">';
-    echo '<input type="hidden" name="id_curso" value="' . $curso['id'] . '">';
+    echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
     echo '<input type="submit" value="Finalizar">';
     echo '</form>';
     echo '</td>';
