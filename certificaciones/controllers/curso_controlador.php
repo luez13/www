@@ -83,7 +83,7 @@ switch ($action) {
     case 'editar':
         // Obtener los datos del formulario
         $id_curso = $_POST['id_curso'];
-        $nombre = $_POST['nombre'];
+        $nombre = $_POST['nombre_curso'];
         $descripcion = $_POST['descripcion'];
         $duracion = $_POST['duracion'];
         $periodo = $_POST['periodo'];
@@ -91,6 +91,7 @@ switch ($action) {
         $tipo_evaluacion = $_POST['tipo_evaluacion'];
         $tipo_curso = $_POST['tipo_curso'];
         $limite_inscripciones = $_POST['limite_inscripciones'];
+
         // Validar los datos
         if (validar_curso($nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones)) {
             // Editar el curso usando el método de la clase Curso
@@ -124,23 +125,7 @@ switch ($action) {
         break;
 }
 
-echo "<br>";
-echo $nombre_curso;
-echo "<br>";
-echo $descripcion;
-echo "<br>";
-echo $duracion;
-echo "<br>";
-echo $periodo;
-echo "<br>";
-echo $modalidad;
-echo "<br>";
-echo $tipo_evaluacion;
-echo "<br>";
-echo $tipo_curso;
-echo "<br>";
-echo $limite_inscripciones;
-echo "<br>";
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>
+<a href="../public/perfil.php"><button>Regresar</button></a>

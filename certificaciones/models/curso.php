@@ -35,7 +35,8 @@ class Curso {
     public function editar($id_curso, $nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones) {
         // Actualizar los datos en la base de datos
         try {
-            $stmt = $this->db->prepare('UPDATE cursos.cursos SET nombre = :nombre, descripcion = :descripcion, duracion = :duracion, periodo = :periodo, modalidad = :modalidad, tipo_evaluacion = :tipo_evaluacion, tipo_curso = :tipo_curso, limite_inscripciones = :limite_inscripciones WHERE id = :id');
+            $stmt = $this->db->prepare('UPDATE cursos.cursos SET nombre_curso = :nombre, descripcion = :descripcion, duracion = :duracion, periodo = :periodo, modalidad = :modalidad, tipo_evaluacion = :tipo_evaluacion, tipo_curso = :tipo_curso, limite_inscripciones = :limite_inscripciones WHERE id_curso = :id');
+            $tipo_evaluacion = $tipo_evaluacion === 'Con nota' ? true : false;
             $stmt->execute(['nombre' => $nombre, 'descripcion' => $descripcion, 'duracion' => $duracion, 'periodo' => $periodo, 'modalidad' => $modalidad, 'tipo_evaluacion' => $tipo_evaluacion, 'tipo_curso' => $tipo_curso, 'limite_inscripciones' => $limite_inscripciones, 'id' => $id_curso]);
         } catch (PDOException $e) {
             // Mostrar un mensaje de error al usuario
@@ -78,5 +79,18 @@ class Curso {
         // Devolver el array con los datos de los cursos
         return $cursos;
 }
+
+// Definir el método obtener_curso
+public function obtener_curso($id_curso) {
+    // Preparar la consulta SQL para obtener los detalles del curso
+    $stmt = $this->db->prepare('SELECT * FROM cursos.cursos WHERE id_curso = :id_curso');
+    // Ejecutar la consulta con el id del curso
+    $stmt->execute(['id_curso' => $id_curso]);
+    // Obtener el resultado como un array asociativo
+    $curso = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Devolver el array con los datos del curso
+    return $curso;
+}
+
 }
 ?>

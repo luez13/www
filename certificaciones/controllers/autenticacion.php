@@ -205,7 +205,6 @@ switch ($action) {
         // Validar los datos
         if (validar_edicion($nombre, $apellido, $correo, $cedula)) {
             // Obtener el id del usuario de la sesión
-            session_start();
             $user_id = $_SESSION['user_id'];
             // Actualizar los datos en la base de datos
             try {

@@ -75,11 +75,11 @@ foreach ($cursos as $curso) {
     echo '<td>' . $curso['estado'] . '</td>';
     echo '<td>';
     // Mostrar un botón para editar el curso
-    echo '<form action="../controllers/curso_controlador.php" method="post">';
-    echo '<input type="hidden" name="action" value="editar">';
+    echo '<form action="../views/curso_formulario.php" method="get">';
     echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
     echo '<input type="submit" value="Editar">';
     echo '</form>';
+
     // Mostrar un botón para eliminar el curso
     echo '<form action="../controllers/curso_controlador.php" method="post">';
     echo '<input type="hidden" name="action" value="eliminar">';
@@ -95,6 +95,7 @@ foreach ($cursos as $curso) {
     echo '</td>';
     echo '</tr>';
 }
+
 echo '</table>';
 
 // Incluir el archivo footer.php en views
