@@ -92,8 +92,14 @@ foreach ($cursos as $curso) {
     echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
     echo '<input type="submit" value="Finalizar">';
     echo '</form>';
+    // Mostrar un botón de "Detalles del curso" para cada curso
+    echo '<form action="../public/detalles_curso.php" method="get">';
+    echo '<input type="hidden" name="id" value="' . $curso['id_curso'] . '">';
+    echo '<input type="submit" value="Detalles del curso">';
+    echo '</form>';
     echo '</td>';
     echo '</tr>';
+
 }
 
 echo '</table>';

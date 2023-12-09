@@ -69,22 +69,30 @@ switch ($action) {
         $curso_id = $_POST['curso_id'];
         // Validar los datos
         if (validar_inscripcion($id_usuario, $curso_id)) {
-            // Insertar los datos en la base de datos
-            try {
-                $stmt = $db->prepare('INSERT INTO cursos.certificaciones (id_usuario, curso_id, fecha_inscripcion, completado) VALUES (:id_usuario, :curso_id, NOW(), false)');
-                $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
-                // Mostrar un mensaje de éxito al usuario
-                echo '<p>Te has inscrito correctamente en el curso</p>';
-            } catch (PDOException $e) {
-                // Mostrar un mensaje de error al usuario
-                echo '<p>Ha ocurrido un error al inscribirte en el curso: ' . $e->getMessage() . '</p>';
+            // Verificar si el usuario ya está inscrito en el curso
+            $stmt = $db->prepare('SELECT * FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
+            $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
+            $inscripcion = $stmt->fetch();
+            if ($inscripcion) {
+                // Mostrar un mensaje al usuario
+                echo '<p>Ya estás inscrito en este curso.</p>';
+            } else {
+                // Insertar los datos en la base de datos
+                try {
+                    $stmt = $db->prepare('INSERT INTO cursos.certificaciones (id_usuario, curso_id, fecha_inscripcion, completado) VALUES (:id_usuario, :curso_id, NOW(), false)');
+                    $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
+                    // Mostrar un mensaje de éxito al usuario
+                    echo '<p>Te has inscrito correctamente en el curso</p>';
+                } catch (PDOException $e) {
+                    // Mostrar un mensaje de error al usuario
+                    echo '<p>Ha ocurrido un error al inscribirte en el curso: ' . $e->getMessage() . '</p>';
+                }
             }
         } else {
             // Mostrar un mensaje de error al usuario
             echo '<p>Los datos de inscripción son inválidos</p>';
-            echo $id_usuario;
         }
-        break;
+        break;    
     case 'cancelar_inscripcion':
         // Obtener los datos del formulario
         $id_usuario = $_POST['id_usuario'];

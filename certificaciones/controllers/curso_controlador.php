@@ -128,4 +128,3 @@ switch ($action) {
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>
-<a href="../public/perfil.php"><button>Regresar</button></a>

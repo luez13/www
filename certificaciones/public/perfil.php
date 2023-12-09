@@ -22,12 +22,16 @@ try {
     echo '<p>Correo: ' . $user['correo'] . '</p>';
     echo '<p>Cédula: ' . $user['cedula'] . '</p>';
     echo '<p>Rol: ' . $user['id_rol'] . '</p>';
-    echo $user_id;
     // Mostrar un botón para editar los datos del usuario
-    echo '<form action="../controllers/autenticacion.php" method="post">';
+    echo '<form action="../models/datos_usuario.php" method="post">';
     echo '<input type="hidden" name="action" value="editar">';
+    echo '<input type="hidden" name="nombre" value="' . $user['nombre'] . '">';
+    echo '<input type="hidden" name="apellido" value="' . $user['apellido'] . '">';
+    echo '<input type="hidden" name="correo" value="' . $user['correo'] . '">';
+    echo '<input type="hidden" name="cedula" value="' . $user['cedula'] . '">';
     echo '<input type="submit" value="Editar datos">';
-    echo '</form>';
+    echo '</form>';    
+
 } catch (PDOException $e) {
     // Mostrar un mensaje de error al usuario
     echo '<p>Ha ocurrido un error al obtener los datos del usuario: ' . $e->getMessage() . '</p>';
@@ -53,7 +57,7 @@ try {
     echo '<ul>';
     foreach ($cursos_inscritos as $curso) {
         // Mostrar el nombre del curso como un enlace que redirige al archivo curso.php con el id del curso
-        echo '<li><a href="views/curso.php?id=' . $curso['id_curso'] . '">' . $curso['nombre_curso'] . '</a></li>';
+        echo '<li><a href="../views/curso.php?id=' . $curso['id_curso'] . '">' . $curso['nombre_curso'] . '</a></li>';
     }
     echo '</ul>';
 } catch (PDOException $e) {

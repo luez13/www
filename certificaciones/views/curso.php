@@ -21,7 +21,7 @@ $curso = new Curso($db);
 $id_curso = $_GET['id'];
 
 // Usar el método de la clase Curso para obtener el contenido del curso
-$curso_contenido = $curso->obtener_contenido($id_curso);
+$curso_contenido = $curso->obtener_curso($id_curso);
 
 // Asignar el tipo de evaluación según el valor booleano
 if ($curso_contenido['tipo_evaluacion'] == 0) {
@@ -48,6 +48,14 @@ echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
 echo '<input type="hidden" name="id_usuario" value="' . $id_usuario . '">'; // Asegúrate de tener disponible la variable $id_usuario
 echo '<input type="submit" value="Inscribirse al curso">';
 echo '</form>';
+
+echo '<form action="../controllers/curso_acciones.php" method="post">';
+echo '<input type="hidden" name="action" value="cancelar_inscripcion">';
+echo '<input type="hidden" name="id_usuario" value="' . $id_usuario . '">';
+echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
+echo '<input type="submit" value="Cancelar inscripción">';
+echo '</form>';
+
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>

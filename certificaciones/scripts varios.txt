@@ -58,7 +58,8 @@ proyecto/
 │   ├── cursos.html
 │   ├── gestion_cursos.php
 │   ├── index.php
-│   └── perfil.php
+│   ├── perfil.php
+│   └── detallles_curso.php
 └── views/
     ├── curso_formulario.html
     ├── curso.php

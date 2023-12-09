@@ -43,8 +43,8 @@ $nota = $_POST['nota'];
 if (validar_datos($id_usuario, $id_curso, $nota)) {
     // Actualizar la base de datos con la nota
     try {
-        $stmt = $db->prepare('UPDATE cursos.certificaciones SET nota = :nota WHERE id_usuario = :id_usuario AND id_curso = :id_curso');
-        $stmt->execute(['nota' => $nota, 'id_usuario' => $id_usuario, 'id_curso' => $id_curso]);
+        $stmt = $db->prepare('UPDATE cursos.certificaciones SET nota = :nota WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
+        $stmt->execute(['nota' => $nota, 'id_usuario' => $id_usuario, 'curso_id' => $id_curso]);
         // Mostrar un mensaje de éxito al usuario
         echo '<p>La nota se ha asignado correctamente</p>';
     } catch (PDOException $e) {

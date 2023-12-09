@@ -48,7 +48,7 @@ class Curso {
     public function eliminar($id_curso) {
         // Eliminar los datos de la base de datos
         try {
-            $stmt = $this->db->prepare('DELETE FROM cursos.cursos WHERE id = :id');
+            $stmt = $this->db->prepare('DELETE FROM cursos.cursos WHERE id_curso = :id');
             $stmt->execute(['id' => $id_curso]);
         } catch (PDOException $e) {
             // Mostrar un mensaje de error al usuario
@@ -60,13 +60,14 @@ class Curso {
     public function finalizar($id_curso) {
         // Cambiar el estado del curso a finalizado en la base de datos
         try {
-            $stmt = $this->db->prepare('UPDATE cursos.cursos SET estado = :estado WHERE id = :id');
-            $stmt->execute(['estado' => 'Finalizado', 'id' => $id_curso]);
+            $stmt = $this->db->prepare('UPDATE cursos.cursos SET estado = :estado WHERE id_curso = :id');
+            $stmt->execute(['estado' => 'FALSE', 'id' => $id_curso]);
         } catch (PDOException $e) {
             // Mostrar un mensaje de error al usuario
             echo '<p>Ha ocurrido un error al finalizar el curso: ' . $e->getMessage() . '</p>';
         }
     }
+    
 
     // Definir el método obtener_contenido
     public function obtener_contenido($user_id) {
@@ -78,18 +79,47 @@ class Curso {
         $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         // Devolver el array con los datos de los cursos
         return $cursos;
-}
+    }
 
-// Definir el método obtener_curso
-public function obtener_curso($id_curso) {
-    // Preparar la consulta SQL para obtener los detalles del curso
-    $stmt = $this->db->prepare('SELECT * FROM cursos.cursos WHERE id_curso = :id_curso');
-    // Ejecutar la consulta con el id del curso
-    $stmt->execute(['id_curso' => $id_curso]);
-    // Obtener el resultado como un array asociativo
-    $curso = $stmt->fetch(PDO::FETCH_ASSOC);
-    // Devolver el array con los datos del curso
-    return $curso;
+    // Definir el método obtener_curso
+    public function obtener_curso($id_curso) {
+        // Preparar la consulta SQL para obtener los detalles del curso
+        $stmt = $this->db->prepare('SELECT * FROM cursos.cursos WHERE id_curso = :id_curso');
+        // Ejecutar la consulta con el id del curso
+        $stmt->execute(['id_curso' => $id_curso]);
+        // Obtener el resultado como un array asociativo
+        $curso = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Devolver el array con los datos del curso
+        return $curso;
+    }
+
+// Crear una función para obtener los usuarios inscritos en un curso
+public function obtener_estudiantes($id_curso) {
+    // Crear un array vacío para almacenar los usuarios
+    $usuarios = array();
+    // Preparar la consulta SQL para obtener los usuarios inscritos en el curso
+    $sql = "SELECT u.id, u.nombre, u.apellido, u.cedula, u.correo FROM cursos.usuarios u
+    INNER JOIN cursos.certificaciones c ON u.id = c.id_usuario
+    WHERE c.curso_id = :curso_id";
+    // Ejecutar la consulta usando el método prepare y execute de la clase DB
+    $stmt = $this->db->prepare($sql);
+    // Ejecutar la consulta con un array asociativo que contenga los valores para cada marcador de posición
+    $stmt->execute(array(':curso_id' => $id_curso));
+    // Recorrer los resultados usando el método fetch de la clase DB
+    while ($row = $stmt->fetch()) {
+        // Crear un array asociativo con los datos del usuario
+        $usuario = array(
+            'id' => $row['id'],
+            'nombre' => $row['nombre'],
+            'apellido' => $row['apellido'],
+            'cedula' => $row['cedula'],
+            'correo' => $row['correo']
+        );
+        // Agregar el usuario al array de usuarios
+        array_push($usuarios, $usuario);
+    }
+    // Devolver el array de usuarios
+    return $usuarios;
 }
 
 }
