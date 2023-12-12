@@ -1,12 +1,22 @@
 <?php
 // Definir las constantes de configuración de la base de datos
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'certificaciones_DB');
-define('DB_USER', 'postgres');
-define('DB_PASS', '0000');
+if (!defined('DB_HOST')) {
+    define('DB_HOST', 'localhost');
+}
+if (!defined('DB_NAME')) {
+    define('DB_NAME', 'certificaciones_DB');
+}
+if (!defined('DB_USER')) {
+    define('DB_USER', 'postgres');
+}
+if (!defined('DB_PASS')) {
+    define('DB_PASS', '0000');
+}
 
-// Crear la clase DB
-class DB {
+// Crear la clase DB solo si no está definida
+if (!class_exists('DB')) {
+    class DB {
+
     // Crear una propiedad para guardar la conexión
     private $conn;
 
@@ -26,5 +36,6 @@ class DB {
         // Usar el método prepare de PDO y devolver el resultado
         return $this->conn->prepare($sql);
     }
+}
 }
 ?>

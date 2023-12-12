@@ -1,12 +1,6 @@
 <?php
-// Incluir el archivo model.php en config
-include '../config/model.php';
-
 // Incluir el archivo header.php en views
 include '../views/header.php';
-
-// Crear una instancia de la clase DB
-$db = new DB();
 
 $user_id = $_SESSION['user_id'];
 
@@ -75,7 +69,7 @@ try {
     echo '<ul>';
     foreach ($cursos_finalizados as $curso) {
         // Mostrar el nombre del curso como un enlace que redirige al archivo curso.php con el id del curso
-        echo '<li><a href="views/curso.php?id=' . $curso['id_curso'] . '">' . $curso['nombre_curso'] . '</a></li>';
+        echo '<li><a href="../views/curso.php?id=' . $curso['id_curso'] . '">' . $curso['nombre_curso'] . '</a></li>';
     }
     echo '</ul>';
 } catch (PDOException $e) {

@@ -1,6 +1,12 @@
 <?php
+// Incluir autenticacion.php
+require_once '../controllers/autenticacion.php';
+
 // Iniciar la sesión
 session_start();
+
+// Llamar a la función verificar_sesion
+verificar_sesion();
 ?>
 <!DOCTYPE html>
 <meta charset="UTF-8">

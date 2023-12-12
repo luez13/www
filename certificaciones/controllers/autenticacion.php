@@ -2,9 +2,6 @@
 // Incluir el archivo model.php en config
 include '../config/model.php';
 
-// Incluir el archivo header.php en views
-include '../views/header.php';
-
 // Crear una instancia de la clase DB
 $db = new DB();
 
@@ -105,6 +102,21 @@ function verificar_password($password, $hash) {
     return password_verify($password, $hash);
 }
 
+// Crear una función para verificar si la sesión está iniciada
+function verificar_sesion() {
+    // Verificar si el usuario ha iniciado sesión
+    if (!isset($_SESSION['user_id'])) {
+        // Establecer un mensaje de error
+        $_SESSION['error'] = "No tienes acceso";
+
+        // Redirigir al usuario a la página de inicio de sesión, a menos que ya esté en ella
+        if (basename($_SERVER['PHP_SELF']) != 'index.php') {
+            header('Location: ../public/index.php');
+            exit();
+        }
+    }
+}
+
 // Crear una función para enviar un correo electrónico de confirmación
 function enviar_correo_confirmacion($correo, $nombre, $token) {
     // Definir el asunto del correo
@@ -122,8 +134,11 @@ function enviar_correo_confirmacion($correo, $nombre, $token) {
     mail($correo, $asunto, $mensaje, $cabeceras);
 }
 
-// Obtener la acción del formulario
-$action = $_POST['action'];
+// Comprobar si la variable $_POST['action'] está definida
+if (isset($_POST['action'])) {
+    // Asignar el valor de la variable a una variable local
+    $action = $_POST['action'];
+    // Ejecutar el código según el valor de la variable
 
 // Ejecutar la acción correspondiente
 switch ($action) {
@@ -173,7 +188,6 @@ switch ($action) {
                     // Verificar si la contraseña es correcta
                     if (verificar_password($password, $user['password'])) {
                         // Iniciar la sesión y guardar el id y el rol del usuario
-                        session_start();
                         $_SESSION['user_id'] = $user['id'];
                         $_SESSION['user_rol'] = $user['id_rol'];
                         $_SESSION['nombre'] = $user['nombre']; // Guardar el nombre del usuario
@@ -224,7 +238,6 @@ switch ($action) {
         break;
     case 'logout':
         // Cerrar la sesión y destruir los datos
-        session_start();
         session_unset();
         session_destroy();
         // Redirigir al usuario a la página de inicio de sesión
@@ -266,12 +279,6 @@ switch ($action) {
             echo '<p>Debes ingresar tu correo electrónico</p>';
         }
         break;
-    default:
-        // Mostrar un mensaje de error al usuario
-        echo '<p>Acción inválida</p>';
-        break;
 }
-
-// Incluir el archivo footer.php en views
-include '../views/footer.php';
+}
 ?>
