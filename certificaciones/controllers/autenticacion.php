@@ -188,6 +188,7 @@ switch ($action) {
                     // Verificar si la contraseña es correcta
                     if (verificar_password($password, $user['password'])) {
                         // Iniciar la sesión y guardar el id y el rol del usuario
+                        session_start();
                         $_SESSION['user_id'] = $user['id'];
                         $_SESSION['user_rol'] = $user['id_rol'];
                         $_SESSION['nombre'] = $user['nombre']; // Guardar el nombre del usuario
@@ -238,6 +239,7 @@ switch ($action) {
         break;
     case 'logout':
         // Cerrar la sesión y destruir los datos
+        session_start();
         session_unset();
         session_destroy();
         // Redirigir al usuario a la página de inicio de sesión
