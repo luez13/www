@@ -40,7 +40,7 @@ asi esta formada la base de datos.
 
 y esto es un esquema de como estan organizados mis archivos:
 
-proyecto/
+certificaciones/
 ├── config/
 │   └── model.php
 ├── controllers/

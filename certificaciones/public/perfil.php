@@ -10,6 +10,7 @@ try {
     $stmt->execute(['id' => $user_id]);
     $user = $stmt->fetch();
     // Mostrar los datos del usuario en formato HTML
+    echo '<div class="container">';
     echo '<h3>Datos del usuario</h3>';
     echo '<p>Nombre: ' . $user['nombre'] . '</p>';
     echo '<p>Apellido: ' . $user['apellido'] . '</p>';
@@ -23,22 +24,27 @@ try {
     echo '<input type="hidden" name="apellido" value="' . $user['apellido'] . '">';
     echo '<input type="hidden" name="correo" value="' . $user['correo'] . '">';
     echo '<input type="hidden" name="cedula" value="' . $user['cedula'] . '">';
-    echo '<input type="submit" value="Editar datos">';
+    echo '<input type="submit" value="Editar datos" class="btn btn-dark">';
     echo '</form>';    
+    echo '</div>';
 
 } catch (PDOException $e) {
     // Mostrar un mensaje de error al usuario
     echo '<p>Ha ocurrido un error al obtener los datos del usuario: ' . $e->getMessage() . '</p>';
 }
 // Mostrar un botón para ver los cursos disponibles
+echo '<div class="container">';
 echo '<form action="cursos.php" method="get">';
-echo '<input type="submit" value="Ver cursos disponibles">';
+echo '<input type="submit" value="Ver cursos disponibles" class="btn btn-dark">';
 echo '</form>';
+echo '</div>';
 
 // Mostrar un botón para ver los cursos creados por el usuario
+echo '<div class="container">';
 echo '<form action="gestion_cursos.php" method="get">';
-echo '<input type="submit" value="Ver cursos creados por ti">';
+echo '<input type="submit" value="Ver cursos creados por ti" class="btn btn-secondary">';
 echo '</form>';
+echo '</div>';
 
 
 // Consultar la base de datos para obtener los cursos en los que el usuario está inscrito
@@ -47,6 +53,7 @@ try {
     $stmt->execute(['id_usuario' => $user_id]);
     $cursos_inscritos = $stmt->fetchAll();
     // Mostrar los cursos en los que el usuario está inscrito en formato HTML
+    echo '<div class="container">';
     echo '<h3>Cursos en los que estás inscrito</h3>';
     echo '<ul>';
     foreach ($cursos_inscritos as $curso) {
@@ -54,6 +61,7 @@ try {
         echo '<li><a href="../views/curso.php?id=' . $curso['id_curso'] . '">' . $curso['nombre_curso'] . '</a></li>';
     }
     echo '</ul>';
+    echo '</div>';
 } catch (PDOException $e) {
     // Mostrar un mensaje de error al usuario
     echo '<p>Ha ocurrido un error al obtener los cursos en los que estás inscrito: ' . $e->getMessage() . '</p>';
@@ -65,6 +73,7 @@ try {
     $stmt->execute(['id_usuario' => $user_id]);
     $cursos_finalizados = $stmt->fetchAll();
     // Mostrar los cursos que el usuario ha finalizado en formato HTML
+    echo '<div class="container">';
     echo '<h3>Cursos que has finalizado</h3>';
     echo '<ul>';
     foreach ($cursos_finalizados as $curso) {
@@ -72,6 +81,7 @@ try {
         echo '<li><a href="../views/curso.php?id=' . $curso['id_curso'] . '">' . $curso['nombre_curso'] . '</a></li>';
     }
     echo '</ul>';
+    echo '</div>';
 } catch (PDOException $e) {
     // Mostrar un mensaje de error al usuario
     echo '<p>Ha ocurrido un error al obtener los cursos que has finalizado: ' . $e->getMessage() . '</p>';

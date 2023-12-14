@@ -212,7 +212,6 @@ switch ($action) {
         }
         break;
     case 'editar':
-        var_dump ($_POST);
         // Obtener los datos del formulario
         $nombre = $_POST['nombre'];
         $apellido = $_POST['apellido'];
