@@ -71,9 +71,9 @@ echo '</form>';
 echo '</div>';
 
 // Mostrar un enlace para recuperar la contraseña
-echo '<div class="container">';
-echo '<p class="text-center">¿Olvidaste tu contraseña? <a href="../views/recuperar.php" class="alert-link">Haz clic aquí</a></p>';
-echo '</div>';
+// echo '<div class="container">';
+// echo '<p class="text-center">¿Olvidaste tu contraseña? <a href="../views/recuperar.php" class="alert-link">Haz clic aquí</a></p>';
+// echo '</div>';
 
 // Incluir el archivo footer.php en views
 include '../views/footer.php';

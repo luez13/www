@@ -42,19 +42,29 @@ echo '<p>Tipo de evaluación: ' . $tipo_evaluacion . '</p>';
 echo '<p>Tipo de curso: ' . $curso_contenido['tipo_curso'] . '</p>';
 echo '<p>Límite de inscripciones: ' . $curso_contenido['limite_inscripciones'] . '</p>';
 echo '<p>Promotor: ' . $curso_contenido['promotor'] . '</p>';
-echo '<form action="../controllers/curso_acciones.php" method="post">';
-echo '<input type="hidden" name="action" value="inscribirse">';
-echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
-echo '<input type="hidden" name="id_usuario" value="' . $id_usuario . '">'; // Asegúrate de tener disponible la variable $id_usuario
-echo '<input type="submit" value="Inscribirse al curso">';
-echo '</form>';
 
-echo '<form action="../controllers/curso_acciones.php" method="post">';
-echo '<input type="hidden" name="action" value="cancelar_inscripcion">';
-echo '<input type="hidden" name="id_usuario" value="' . $id_usuario . '">';
-echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
-echo '<input type="submit" value="Cancelar inscripción">';
-echo '</form>';
+// Consultar si el usuario ya está inscrito en el curso
+$stmt = $db->prepare('SELECT * FROM cursos.certificaciones WHERE curso_id = :curso_id AND id_usuario = :id_usuario');
+$stmt->execute(['curso_id' => $id_curso, 'id_usuario' => $_SESSION['user_id']]);
+$inscripcion = $stmt->fetch();
+
+if (!$inscripcion) {
+    // Si el usuario no está inscrito, mostrar el botón de inscribirse
+    echo '<form action="../controllers/curso_acciones.php" method="post">';
+    echo '<input type="hidden" name="action" value="inscribirse">';
+    echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
+    echo '<input type="hidden" name="id_usuario" value="' . $_SESSION['user_id'] . '">';
+    echo '<input type="submit" value="Inscribirse al curso">';
+    echo '</form>';
+} else {
+    // Si el usuario ya está inscrito, mostrar el botón de cancelar inscripción
+    echo '<form action="../controllers/curso_acciones.php" method="post">';
+    echo '<input type="hidden" name="action" value="cancelar_inscripcion">';
+    echo '<input type="hidden" name="id_usuario" value="' . $_SESSION['user_id'] . '">';
+    echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
+    echo '<input type="submit" value="Cancelar inscripción">';
+    echo '</form>';
+}
 
 // Incluir el archivo footer.php en views
 include '../views/footer.php';

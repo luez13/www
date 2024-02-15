@@ -66,13 +66,13 @@ function validar_edicion($nombre, $apellido, $correo, $cedula) {
 // Crear una función para redirigir al usuario a la página de inicio de sesión
 function redirigir_login() {
     // Usar la función header para enviar el encabezado de redirección
-    header('Location: ../public/index.php');
+    header('Location: ../public/perfil.php');
     // Terminar la ejecución del script
     exit();
 }
 
 // Crear una función para redirigir al usuario a la página de perfil
-function redirigir_perfil() {
+function redirigir_perfilUsuario() {
     // Usar la función header para enviar el encabezado de redirección
     header('Location: ../public/perfil.php');
     // Terminar la ejecución del script
@@ -134,6 +134,14 @@ function enviar_correo_confirmacion($correo, $nombre, $token) {
     mail($correo, $asunto, $mensaje, $cabeceras);
 }
 
+function esPerfil4($id_usuario) {
+    $db = new DB();
+    $stmt = $db->prepare('SELECT id_rol FROM cursos.usuarios WHERE id = :id_usuario');
+    $stmt->execute([':id_usuario' => $id_usuario]);
+    $rol = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $rol['id_rol'] == 4;
+}
+
 // Comprobar si la variable $_POST['action'] está definida
 if (isset($_POST['action'])) {
     // Asignar el valor de la variable a una variable local
@@ -193,7 +201,7 @@ switch ($action) {
                         $_SESSION['user_rol'] = $user['id_rol'];
                         $_SESSION['nombre'] = $user['nombre']; // Guardar el nombre del usuario
                         // Redirigir al usuario a la página de perfil
-                        redirigir_perfil();
+                        redirigir_login();
                     } else {
                         // Mostrar un mensaje de error al usuario
                         echo '<p>La contraseña es incorrecta</p>';
@@ -211,7 +219,8 @@ switch ($action) {
             echo '<p>Los datos de inicio de sesión son inválidos</p>';
         }
         break;
-    case 'editar':
+    case 'editar_perfil':
+        session_start();
         // Obtener los datos del formulario
         $nombre = $_POST['nombre'];
         $apellido = $_POST['apellido'];
@@ -227,6 +236,8 @@ switch ($action) {
                 $stmt->execute(['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'cedula' => $cedula, 'id' => $user_id]);
                 // Mostrar un mensaje de éxito al usuario
                 echo '<p>Tus datos se han actualizado correctamente</p>';
+                redirigir_perfilUsuario();
+
             } catch (PDOException $e) {
                 // Mostrar un mensaje de error al usuario
                 echo '<p>Ha ocurrido un error al actualizar tus datos: ' . $e->getMessage() . '</p>';

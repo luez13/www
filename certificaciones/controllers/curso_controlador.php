@@ -36,13 +36,13 @@ function validar_curso($nombre, $descripcion, $duracion, $periodo, $modalidad, $
     return true;
 }
 
-// Crear una función para redirigir al usuario a la página de perfil
-function redirigir_perfil() {
-    // Usar la función header para enviar el encabezado de redirección
-    header('Location: ../public/perfil.php');
-    // Terminar la ejecución del script
-    exit();
-}
+// // Crear una función para redirigir al usuario a la página de perfil
+// function redirigir_perfil() {
+//     // Usar la función header para enviar el encabezado de redirección
+//     header('Location: ../public/perfil.php');
+//     // Terminar la ejecución del script
+//     exit();
+// }
 
 // Crear una función para redirigir al usuario a la página de gestión de cursos
 function redirigir_gestion() {

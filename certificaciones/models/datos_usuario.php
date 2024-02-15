@@ -18,7 +18,7 @@ if ($_POST['action'] == 'editar') {
     // Mostrar los datos del usuario en campos de entrada
     echo '<h3>Editar datos del usuario</h3>';
     echo '<form action="../controllers/autenticacion.php" method="post">';
-    echo '<input type="hidden" name="action" value="editar">';
+    echo '<input type="hidden" name="action" value="editar_perfil">';
     echo '<label for="nombre">Nombre:</label>';
     echo '<input type="text" id="nombre" name="nombre" value="' . $nombre . '">';
     echo '<label for="apellido">Apellido:</label>';

@@ -46,6 +46,14 @@ echo '<input type="submit" value="Ver cursos creados por ti" class="btn btn-seco
 echo '</form>';
 echo '</div>';
 
+require_once '../controllers/autenticacion.php';
+if (esPerfil4($user_id)) {
+    echo '<div class="container">';
+    echo '<form action="usuarios.php" method="get">';
+    echo '<input type="submit" value="Ver usuarios del sistema" class="btn btn-primary">';
+    echo '</form>';
+    echo '</div>';
+}
 
 // Consultar la base de datos para obtener los cursos en los que el usuario está inscrito
 try {

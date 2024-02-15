@@ -50,7 +50,7 @@ function validar_finalizacion($id_usuario, $curso_id) {
     return true;
 }
 
-// Crear una función para redirigir al usuario a la página de perfil
+// // Crear una función para redirigir al usuario a la página de perfil
 function redirigir_perfil() {
     // Usar la función header para enviar el encabezado de redirección
     header('Location: ../public/perfil.php');
@@ -67,6 +67,8 @@ switch ($action) {
         // Obtener los datos del formulario
         $id_usuario = $_POST['id_usuario'];
         $curso_id = $_POST['curso_id'];
+        // Generar un hash
+        $valor_unico = hash('sha256', $id_usuario . $curso_id . time());
         // Validar los datos
         if (validar_inscripcion($id_usuario, $curso_id)) {
             // Verificar si el usuario ya está inscrito en el curso
@@ -79,8 +81,8 @@ switch ($action) {
             } else {
                 // Insertar los datos en la base de datos
                 try {
-                    $stmt = $db->prepare('INSERT INTO cursos.certificaciones (id_usuario, curso_id, fecha_inscripcion, completado) VALUES (:id_usuario, :curso_id, NOW(), false)');
-                    $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
+                    $stmt = $db->prepare('INSERT INTO cursos.certificaciones (id_usuario, curso_id, valor_unico, fecha_inscripcion, completado) VALUES (:id_usuario, :curso_id, :valor_unico, NOW(), false)');
+                    $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id, 'valor_unico' => $valor_unico]);
                     // Mostrar un mensaje de éxito al usuario
                     echo '<p>Te has inscrito correctamente en el curso</p>';
                 } catch (PDOException $e) {
@@ -92,28 +94,37 @@ switch ($action) {
             // Mostrar un mensaje de error al usuario
             echo '<p>Los datos de inscripción son inválidos</p>';
         }
-        break;    
-    case 'cancelar_inscripcion':
-        // Obtener los datos del formulario
-        $id_usuario = $_POST['id_usuario'];
-        $curso_id = $_POST['curso_id'];
-        // Validar los datos
-        if (validar_cancelacion($id_usuario, $curso_id)) {
-            // Eliminar los datos de la base de datos
-            try {
-                $stmt = $db->prepare('DELETE FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
+        break;         
+        case 'cancelar_inscripcion':
+            // Obtener los datos del formulario
+            $id_usuario = $_POST['id_usuario'];
+            $curso_id = $_POST['curso_id'];
+            // Validar los datos
+            if (validar_cancelacion($id_usuario, $curso_id)) {
+                // Verificar si el curso está finalizado
+                $stmt = $db->prepare('SELECT completado FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
                 $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
-                // Mostrar un mensaje de éxito al usuario
-                echo '<p>Has cancelado tu suscripción al curso</p>';
-            } catch (PDOException $e) {
+                $finalizado = $stmt->fetchColumn();
+                if ($finalizado) {
+                    // Mostrar un mensaje al usuario
+                    echo '<p>No puedes cancelar tu inscripción porque el curso ya está finalizado.</p>';
+                } else {
+                    // Eliminar los datos de la base de datos
+                    try {
+                        $stmt = $db->prepare('DELETE FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
+                        $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
+                        // Mostrar un mensaje de éxito al usuario
+                        echo '<p>Has cancelado tu suscripción al curso</p>';
+                    } catch (PDOException $e) {
+                        // Mostrar un mensaje de error al usuario
+                        echo '<p>Ha ocurrido un error al cancelar tu suscripción al curso: ' . $e->getMessage() . '</p>';
+                    }
+                }
+            } else {
                 // Mostrar un mensaje de error al usuario
-                echo '<p>Ha ocurrido un error al cancelar tu suscripción al curso: ' . $e->getMessage() . '</p>';
+                echo '<p>Los datos de cancelación son inválidos</p>';
             }
-        } else {
-            // Mostrar un mensaje de error al usuario
-            echo '<p>Los datos de cancelación son inválidos</p>';
-        }
-        break;
+            break;        
     case 'finalizar_curso':
         // Obtener los datos del formulario
         $id_usuario = $_POST['id_usuario'];
