@@ -30,6 +30,11 @@ if ($curso_contenido['tipo_evaluacion'] == 0) {
     $tipo_evaluacion = 'Evaluada';
 }
 
+// Obtener el nombre del promotor
+$stmt = $db->prepare('SELECT nombre FROM cursos.usuarios WHERE id = :id_promotor');
+$stmt->execute(['id_promotor' => $curso_contenido['promotor']]);
+$promotor = $stmt->fetch();
+
 // Mostrar el contenido del curso en formato HTML
 echo '<h3>Contenido del curso</h3>';
 echo '<p>Nombre: ' . $curso_contenido['nombre_curso'] . '</p>';
@@ -40,8 +45,15 @@ echo '<p>Modalidad: ' . $curso_contenido['modalidad'] . '</p>';
 // Mostrar el tipo de evaluación del curso
 echo '<p>Tipo de evaluación: ' . $tipo_evaluacion . '</p>';
 echo '<p>Tipo de curso: ' . $curso_contenido['tipo_curso'] . '</p>';
-echo '<p>Límite de inscripciones: ' . $curso_contenido['limite_inscripciones'] . '</p>';
-echo '<p>Promotor: ' . $curso_contenido['promotor'] . '</p>';
+
+// Mostrar los cupos disponibles
+$stmt = $db->prepare('SELECT COUNT(*) FROM cursos.certificaciones WHERE curso_id = :curso_id');
+$stmt->execute(['curso_id' => $id_curso]);
+$count = $stmt->fetchColumn();
+$cupos_disponibles = $curso_contenido['limite_inscripciones'] - $count;
+echo '<p>Cupos disponibles: ' . $cupos_disponibles . '</p>';
+
+echo '<p>Promotor: ' . $promotor['nombre'] . '</p>'; // Mostrar el nombre del promotor
 
 // Consultar si el usuario ya está inscrito en el curso
 $stmt = $db->prepare('SELECT * FROM cursos.certificaciones WHERE curso_id = :curso_id AND id_usuario = :id_usuario');
@@ -57,15 +69,49 @@ if (!$inscripcion) {
     echo '<input type="submit" value="Inscribirse al curso">';
     echo '</form>';
 } else {
-    // Si el usuario ya está inscrito, mostrar el botón de cancelar inscripción
-    echo '<form action="../controllers/curso_acciones.php" method="post">';
-    echo '<input type="hidden" name="action" value="cancelar_inscripcion">';
-    echo '<input type="hidden" name="id_usuario" value="' . $_SESSION['user_id'] . '">';
-    echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
-    echo '<input type="submit" value="Cancelar inscripción">';
-    echo '</form>';
+    // Si el usuario ya está inscrito y el curso no está completado, mostrar el botón de cancelar inscripción
+    if (!$inscripcion['completado']) {
+        echo '<form action="../controllers/curso_acciones.php" method="post">';
+        echo '<input type="hidden" name="action" value="cancelar_inscripcion">';
+        echo '<input type="hidden" name="id_usuario" value="' . $_SESSION['user_id'] . '">';
+        echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
+        echo '<input type="submit" value="Cancelar inscripción">';
+        echo '</form>';
+    }
+
+    // Si el tipo de evaluación es 'Evaluada', mostrar la nota del usuario
+    if ($tipo_evaluacion == 'Evaluada') {
+        echo '<p>Nota: ' . $inscripcion['nota'] . '</p>';
+    }
 }
+echo '<button id="ver-certificado">Ver Certificado</button>';
 
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+    var certificadoButton = document.getElementById('ver-certificado');
+    if(certificadoButton) {
+        certificadoButton.addEventListener('click', function() {
+            // Crear una nueva instancia de jsPDF
+            var doc = new jsPDF();
+
+            // Agregar texto al documento
+            doc.setFontSize(22);
+            doc.text('Certificado de Formación', 10, 10);
+            doc.setFontSize(16);
+            doc.text('Nombre del Curso: ' + '<?php echo $curso_contenido['nombre_curso']; ?>', 10, 20);
+            doc.text('Nombre del Estudiante: ' + '<?php echo $_SESSION['nombre']; ?>', 10, 30);
+            doc.text('Certificamos que el estudiante ha completado el curso.', 10, 40);
+            doc.text('Fecha: ' + new Date().toLocaleDateString(), 10, 50);
+            doc.text('Firma: ___________________', 10, 60);
+
+            // Descargar el PDF
+            doc.save('Certificado.pdf');
+        });
+    }
+});
+</script>

@@ -121,6 +121,25 @@ public function obtener_estudiantes($id_curso) {
     // Devolver el array de usuarios
     return $usuarios;
 }
+public function obtener_nota($id_curso, $id_usuario) {
+    $stmt = $this->db->prepare("SELECT nota FROM cursos.certificaciones WHERE curso_id = :id_curso AND id_usuario = :id_usuario");
+    $stmt->execute([':id_curso' => $id_curso, ':id_usuario' => $id_usuario]);
+    return $stmt->fetch(PDO::FETCH_ASSOC)['nota'];
+}
 
+public function obtener_completado($id_curso, $id_usuario) {
+    $stmt = $this->db->prepare("SELECT completado FROM cursos.certificaciones WHERE curso_id = :id_curso AND id_usuario = :id_usuario");
+    $stmt->execute([':id_curso' => $id_curso, ':id_usuario' => $id_usuario]);
+    return $stmt->fetch(PDO::FETCH_ASSOC)['completado'];
+}
+
+public function actualizar_completado($id_curso, $id_usuario, $completado) {
+    $sql = "UPDATE cursos.certificaciones SET completado = :completado WHERE curso_id = :id_curso AND id_usuario = :id_usuario";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindParam(':completado', $completado, PDO::PARAM_BOOL);
+    $stmt->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
+    $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+    return $stmt->execute();
+}
 }
 ?>

@@ -34,6 +34,11 @@ function redirigir($url) {
     exit();
 }
 
+foreach ($_POST['completado'] as $id_usuario => $completado) {
+    $stmt = $db->prepare('UPDATE cursos.certificaciones SET completado = :completado WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
+    $stmt->execute(['completado' => $completado ? 1 : 0, 'id_usuario' => $id_usuario, 'curso_id' => $id_curso]);
+}
+
 // Obtener los datos del formulario
 $id_usuario = $_POST['id_usuario'];
 $id_curso = $_POST['id_curso'];
@@ -57,7 +62,7 @@ if (validar_datos($id_usuario, $id_curso, $nota)) {
 }
 
 // Redirigir al usuario a la página de gestión de cursos
-redirigir('../public/gestion_cursos.php');
+header('Location: ../public/detalles_curso.php?id=' . $id_curso);
 
 // Incluir el archivo footer.php en views
 include '../views/footer.php';

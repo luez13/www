@@ -26,13 +26,13 @@ if (is_numeric($id_curso) && $id_curso > 0) {
     $usuarios = $curso->obtener_estudiantes($id_curso);
 
     // Obtener el curso de la base de datos usando el método de la clase Curso
-    $curso = $curso->obtener_curso($id_curso); // Aquí se asigna un valor a la variable $curso
+    $curso_info = $curso->obtener_curso($id_curso); // Aquí se asigna un valor a la variable $curso
 
     // Verificar que la variable $curso no sea nula
-    if (isset($curso)) { 
+    if (isset($curso_info)) { 
         // Aquí puedes acceder a las propiedades del curso, como $curso->nombre_curso, $curso->descripcion, etc.
-        echo '<h3>' . $curso['nombre_curso'] . '</h3>';
-        echo '<p>' . $curso['descripcion'] . '</p>';        
+        echo '<h3>' . $curso_info['nombre_curso'] . '</h3>';
+        echo '<p>' . $curso_info['descripcion'] . '</p>';        
 
         // Mostrar los usuarios inscritos
         echo '<h3>Usuarios inscritos</h3>';
@@ -44,21 +44,26 @@ if (is_numeric($id_curso) && $id_curso > 0) {
         echo '<th>Correo</th>';
         echo '</tr>';
         foreach ($usuarios as $usuario) {
+            $nota = $curso->obtener_nota($id_curso, $usuario['id']);
+            $completado = $curso->obtener_completado($id_curso, $usuario['id']);
             echo '<tr>';
             echo '<td>' . $usuario['nombre'] . '</td>';
             echo '<td>' . $usuario['apellido'] . '</td>';
             echo '<td>' . $usuario['cedula'] . '</td>';
             echo '<td>' . $usuario['correo'] . '</td>';
+            echo '<td>' . $nota . '</td>'; // Mostrar la nota del usuario
+            echo '<td><input type="checkbox" class="completado" data-id-curso="' . $id_curso . '" data-id-usuario="' . $usuario['id'] . '"' . ($completado ? ' checked' : '') . '>';
+            echo '<span> Si está marcado, el curso está completado. Si no está marcado, el curso no está completado.</span></td>'; // Mostrar el estado de finalización del curso
             echo '</tr>';
         }
         echo '</table>';
 
         // Mostrar los cupos disponibles
-        $cupos_disponibles = $curso['limite_inscripciones'] - count($usuarios);
+        $cupos_disponibles = $curso_info['limite_inscripciones'] - count($usuarios);
         echo '<p>Cupos disponibles: ' . $cupos_disponibles . '</p>';
 
         // Si el curso tiene evaluación, mostrar un formulario para asignar la nota a cada usuario
-        if ($curso['tipo_evaluacion']) {
+        if ($curso_info['tipo_evaluacion']) {
             echo '<h3>Asignar nota</h3>';
             foreach ($usuarios as $usuario) {
                 echo '<form action="../controllers/asignar_nota.php" method="post">';
@@ -83,3 +88,28 @@ if (is_numeric($id_curso) && $id_curso > 0) {
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>
+<script>
+$(document).ready(function(){
+    $('.completado').change(function() {
+        var id_curso = $(this).data('id-curso');
+        var id_usuario = $(this).data('id-usuario');
+        var completado = $(this).is(':checked') ? 1 : 0;
+
+        $.ajax({
+            url: '../controllers/actualizar_estado.php',
+            type: 'POST',
+            data: {
+                id_curso: id_curso,
+                id_usuario: id_usuario,
+                completado: completado
+            },
+            success: function(response) {
+                console.log(response);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+            }
+        });
+    });
+});
+</script>

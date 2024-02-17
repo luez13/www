@@ -8,6 +8,8 @@ include '../views/header.php';
 // Incluir el archivo curso.php en models
 include '../models/curso.php';
 
+$user_id = $_SESSION['user_id'];
+
 // Crear una instancia de la clase DB
 $db = new DB();
 
@@ -123,6 +125,47 @@ switch ($action) {
         // Mostrar un mensaje de error al usuario
         echo '<p>Acción inválida</p>';
         break;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_curso') {
+    $id_curso = $_POST['id_curso'];
+    $promotor = $_POST['promotor'];
+    $modalidad = $_POST['modalidad'];
+    $nombre_curso = $_POST['nombre_curso'];
+    $descripcion = $_POST['descripcion'];
+    $duracion = $_POST['duracion'];
+    $periodo = $_POST['periodo'];
+    $tipo_evaluacion = $_POST['tipo_evaluacion'];
+    $tipo_curso = $_POST['tipo_curso'];
+    $limite_inscripciones = $_POST['limite_inscripciones'];
+    $estado = $_POST['estado'];
+
+    // Verificar si el curso ya está autorizado
+    $stmt = $db->prepare("SELECT autorizacion FROM cursos.cursos WHERE id_curso = :id_curso");
+    $stmt->execute([':id_curso' => $id_curso]);
+    $autorizacion_actual = $stmt->fetch(PDO::FETCH_ASSOC)['autorizacion'];
+
+    $autorizacion = $_POST['autorizacion'] != 'no' ? $user_id : $autorizacion_actual;
+
+    // Actualizar los datos del curso
+    $db = new DB();
+    $stmt = $db->prepare("UPDATE cursos.cursos SET promotor = :promotor, modalidad = :modalidad, nombre_curso = :nombre_curso, descripcion = :descripcion, duracion = :duracion, periodo = :periodo, tipo_evaluacion = :tipo_evaluacion, tipo_curso = :tipo_curso, autorizacion = :autorizacion, limite_inscripciones = :limite_inscripciones, estado = :estado WHERE id_curso = :id_curso");
+    $stmt->bindParam(':promotor', $promotor);
+    $stmt->bindParam(':modalidad', $modalidad);
+    $stmt->bindParam(':nombre_curso', $nombre_curso);
+    $stmt->bindParam(':descripcion', $descripcion);
+    $stmt->bindParam(':duracion', $duracion);
+    $stmt->bindParam(':periodo', $periodo);
+    $stmt->bindParam(':tipo_evaluacion', $tipo_evaluacion);
+    $stmt->bindParam(':tipo_curso', $tipo_curso);
+    $stmt->bindParam(':autorizacion', $autorizacion);
+    $stmt->bindParam(':limite_inscripciones', $limite_inscripciones);
+    $stmt->bindParam(':estado', $estado);
+    $stmt->bindParam(':id_curso', $id_curso);
+    $stmt->execute();
+    
+
+    header('Location: ../public/editar_cursos.php'); // Redirige de nuevo a la página de cursos
 }
 
 // Incluir el archivo footer.php en views

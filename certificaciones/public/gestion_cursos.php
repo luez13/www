@@ -23,7 +23,7 @@ echo '<form action="../controllers/curso_controlador.php" method="post">';
 echo '<input type="hidden" name="action" value="crear">';
 echo '<p>Nombre del curso: <input type="text" name="nombre_curso" required></p>';
 echo '<p>Descripción: <textarea name="descripcion" required></textarea></p>';
-echo '<p>Duración (en horas): <input type="number" name="duracion" min="1" required></p>';
+echo '<p>Duración (en días): <input type="number" name="duracion" min="1" required></p>';
 echo '<p>Periodo (en días): <input type="date" name="periodo" min="1" required></p>';
 echo '<p>Modalidad: <select name="modalidad" required>';
 echo '<option value="Presencial">Presencial</option>';

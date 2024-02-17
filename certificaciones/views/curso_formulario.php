@@ -27,7 +27,7 @@ echo '<input type="hidden" name="action" value="editar">';
 echo '<input type="hidden" name="id_curso" value="' . $id_curso . '">';
 echo '<p>Nombre: <input type="text" name="nombre_curso" value="' . $curso_editar['nombre_curso'] . '" required></p>';
 echo '<p>Descripción: <textarea name="descripcion" required>' . $curso_editar['descripcion'] . '</textarea></p>';
-echo '<p>Duración (en horas): <input type="number" name="duracion" value="' . $curso_editar['duracion'] . '" min="1" required></p>';
+echo '<p>Duración (en días): <input type="number" name="duracion" value="' . $curso_editar['duracion'] . '" min="1" required></p>';
 echo '<p>Periodo (en días): <input type="date" name="periodo" value="' . $curso_editar['periodo'] . '" min="1" required></p>';
 echo '<p>Modalidad: <select name="modalidad" required>';
 echo '<option value="Presencial"' . ($curso_editar['modalidad'] == 'Presencial' ? ' selected' : '') . '>Presencial</option>';

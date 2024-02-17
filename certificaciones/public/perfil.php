@@ -53,7 +53,14 @@ if (esPerfil4($user_id)) {
     echo '<input type="submit" value="Ver usuarios del sistema" class="btn btn-primary">';
     echo '</form>';
     echo '</div>';
+
+    echo '<div class="container">';
+    echo '<form action="editar_cursos.php" method="get">';
+    echo '<input type="submit" value="Editar cursos" class="btn btn-primary">';
+    echo '</form>';
+    echo '</div>';
 }
+
 
 // Consultar la base de datos para obtener los cursos en los que el usuario está inscrito
 try {
