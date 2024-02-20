@@ -91,12 +91,31 @@ if (!$inscripcion) {
 }
 
 echo '</div>';
+// Ruta a tu imagen
+$imagePath = '../public/assets/IUT.jpg';
+
+// Obtén los contenidos de la imagen
+$imageContent = file_get_contents($imagePath);
+
+// Codifica los contenidos de la imagen a base64
+$base64Image = base64_encode($imageContent);
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
 <script>
+function drawTextWithBorder(doc, text, x, y) {
+    var offset = 0.5; // Puedes ajustar este valor para cambiar el grosor del borde
+    doc.setTextColor(255, 255, 255); // Color del borde (blanco)
+    for(var i = -offset; i <= offset; i += offset) {
+        for(var j = -offset; j <= offset; j += offset) {
+            doc.text(text, x + i, y + j, { align: 'center' }); // Centra el texto
+        }
+    }
+    doc.setTextColor(0, 0, 0); // Color del texto (negro)
+    doc.text(text, x, y, { align: 'center' }); // Centra el texto
+}
+
 document.addEventListener('DOMContentLoaded', (event) => {
     var certificadoButton = document.getElementById('ver-certificado');
     if(certificadoButton) {
@@ -104,18 +123,22 @@ document.addEventListener('DOMContentLoaded', (event) => {
             // Crear una nueva instancia de jsPDF
             var doc = new jsPDF();
 
-            // Agregar texto al documento
-            doc.setFontSize(22);
-            doc.text('Certificado de Formación', 10, 10);
-            doc.setFontSize(16);
-            doc.text('Nombre del Curso: ' + '<?php echo $curso_contenido['nombre_curso']; ?>', 10, 20);
-            doc.text('Nombre del Estudiante: ' + '<?php echo $_SESSION['nombre']; ?>', 10, 30);
-            doc.text('Certificamos que el estudiante ha completado el curso.', 10, 40);
-            doc.text('Fecha: ' + new Date().toLocaleDateString(), 10, 50);
-            doc.text('Firma: ___________________', 10, 60);
+            // Agregar imagen de fondo
+            var imgData = 'data:image/jpeg;base64,<?php echo $base64Image; ?>';
+            doc.addImage(imgData, 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
 
-            // Descargar el PDF
-            doc.save('Certificado.pdf');
+            // Agregar texto al documento
+            doc.setFontSize(36);
+            doc.setFont('helvetica'); // Cambia la familia de fuentes y el estilo
+            drawTextWithBorder(doc, 'Certificado de Formación', doc.internal.pageSize.getWidth() / 2, 60); // Centra el texto
+            doc.setFontSize(20);
+            drawTextWithBorder(doc, 'Nombre del Curso: ' + '<?php echo $curso_contenido['nombre_curso']; ?>', doc.internal.pageSize.getWidth() / 2, 120); // Centra el texto
+            drawTextWithBorder(doc, 'Nombre del Estudiante: ' + '<?php echo $_SESSION['nombre']; ?>', doc.internal.pageSize.getWidth() / 2, 150); // Centra el texto
+            doc.setFontSize(16);
+            drawTextWithBorder(doc, 'Certificamos que el estudiante ha completado el curso.', doc.internal.pageSize.getWidth() / 2, 180); // Centra el texto
+
+            // Abrir el PDF en una nueva pestaña
+            window.open(doc.output('bloburl'), '_blank');
         });
     }
 });
