@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Horario del Estudiante</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+
+    <style>
+body {
+    background-color: #e6f7ff; /* Un tono de azul claro para el fondo */
+    color: #001529; /* Un tono de azul oscuro para el texto */
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: calc(100% - 20px);
+    margin: 10px;
+    padding: 10px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: auto;
+}
+
+th, td {
+    border: 1px solid #001529; /* Un tono de azul oscuro para las bordes */
+    padding: 5px;
+    text-align: center; /* Centra el texto en todas las celdas */
+}
+
+.header {
+    font-weight: bold; /* Resalta los encabezados */
+}
+
+.justificado {
+    text-align: justify; /* Justifica el texto solo en celdas específicas */
+}
+/* Colorea el fondo de las celdas con diferentes tonos de azul */
+#tablaMaterias tr:nth-child(even) td:nth-child(2) {
+    background-color: #1890ff; /* Un tono de azul claro */
+    color: #fff; /* Color del texto en blanco para mejor contraste */
+}
+
+#tablaMaterias tr:nth-child(odd) td:nth-child(2) {
+    background-color: #0050b3; /* Un tono de azul oscuro */
+    color: #fff; /* Color del texto en blanco para mejor contraste */
+}
+#tablaMaterias tr:first-child td:nth-child(2) {
+    color: #000; /* Cambia el color del texto a negro */
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <table>
+            <tr>
+                <td colspan="">NOMBRE/S Y/O APELLIDO/S:</td>
+                <td class="" colspan="">Juan Augusto Pérez Contreras</td>
+                <td colspan="">CEDULA:</td>
+                <td class="" colspan="">12252283</td>
+            </tr>
+            <tr>
+                <td colspan="">TRIMESTRE:</td>
+                <td colspan="">1</td>
+                <td colspan="">PERIODO:</td>
+                <td class="" colspan="">2023</td>
+            </tr>
+            <tr>
+                <td colspan="">PROGRAMA:</td>
+                <td colspan="">PNF informatica</td>
+                <td colspan="">SECCIÓN:</td>
+                <td colspan="">SID3C</td>
+            </tr>
+            <tr>
+                
+                <td colspan="">SEDE:</td>
+                <td colspan="">San Cristobal</td>
+                <td colspan="">TRAYECTO:</td>
+                <td colspan="">3</td>
+            </tr>
+        </table>
+    </div>
+    <div class="container">
+    <table>
+        <tr>
+            <td>SEMANA "X<!-- aqui se puede colocar la semana en que se genero junto con la fecha-->" DEL LAPSO ACADEMINCA: de febreo de 20XX hasta 10 de marzo del 20XX</td>
+        </tr>
+    </table>
+    </div>
+    <div class="container"></div>
+    <table id="tablaMaterias">
+        <tr>
+            <td>Codigo de Materia</td>
+            <td>Materia</td>
+            <td>Docente</td>
+            <td>Sección</td>
+            <td>UC</td>
+        </tr>
+    </table>
+        <div>
+            <td><br></td>
+        </div>
+        <div class="container"> <!-- Envuelve la segunda tabla en otro div -->
+            <table id="tablaHorarios">
+                <tr>
+                    <th>Hora</th> <!-- Agrega una celda de encabezado -->
+                    <th>Lunes</th>
+                    <th>Martes</th>
+                    <th>Miércoles</th>
+                    <th>Jueves</th>
+                    <th>Viernes</th>
+                    <th>Sábado</th>
+                    <th>Domingo</th>
+                </tr>
+                <!-- Las filas adicionales se generarán automáticamente -->
+            </table>
+            <button onclick="generarPDF()">Generar PDF</button>
+        
+            <script>
+                function crearCelda(texto, clase) {
+                    var celda = document.createElement('td');
+                    celda.textContent = texto;
+                    if (clase) celda.classList.add(clase);
+                    return celda;
+                }
+                
+                function asignarColor(celda, indice) {
+                    var color = colores[indice % colores.length];
+                    celda.style.backgroundColor = color;
+                }
+                
+                var colores = ['#e6f7ff', '#FF5733', '#C70039', '#900C3F', '#581845', '#28B463', '#138D75', '#F4D03F', '#F7DC6F', '#82E0AA', '#1E8449', '#196F3D', '#F1948A', '#C39BD3', '#BB8FCE', '#7FB3D5', '#5499C7', '#48C9B0', '#45B39D', '#52BE80'];
+                
+                var horarios = ['7:00 - 7:30', '7:30 - 8:00', '8:00 - 8:30', '8:30 - 9:00', '9:00 - 9:30', '9:30 - 10:00', '10:00 - 10:30', '10:30 - 11:00', '11:00 - 11:30', '11:30 - 12:00','12:00 - 12:30', '12:30 - 1:00'];
+                
+                var respuesta = '[{"codigo":"1","nombre":"Materia A","docente":"Profesor A","seccion":"SID3C","UC":"2", "horarios": {"Lunes": ["7:00 - 7:30", "7:30 - 8:00", "8:00 - 8:30"], "Martes": ["7:00 - 7:30", "7:30 - 8:00", "8:00 - 8:30"], "Miércoles": ["7:00 - 7:30", "7:30 - 8:00", "8:00 - 8:30"], "Jueves": ["7:00 - 7:30", "7:30 - 8:00", "8:00 - 8:30"], "Viernes": ["7:00 - 7:30", "7:30 - 8:00", "8:00 - 8:30"]}},';
+                for (var i = 2; i <= 9; i++) {
+                    respuesta += `{"codigo":"${i}","nombre":"Materia ${String.fromCharCode(64 + i)}","docente":"Profesor ${String.fromCharCode(64 + i)}","seccion":"SID3C","UC":"2", "horarios": {"Lunes": ["${7 + (i-1)%6}:00 - ${7 + (i-1)%6}:30", "${7 + (i-1)%6}:30 - ${8 + (i-1)%6}:00", "${8 + (i-1)%6}:00 - ${8 + (i-1)%6}:30"], "Martes": ["${9 + (i-1)%6}:00 - ${9 + (i-1)%6}:30", "${9 + (i-1)%6}:30 - ${10 + (i-1)%6}:00", "${10 + (i-1)%6}:00 - ${10 + (i-1)%6}:30"], "Miércoles": ["${11 + (i-1)%6}:00 - ${11 + (i-1)%6}:30", "${11 + (i-1)%6}:30 - ${12 + (i-1)%6}:00", "${12 + (i-1)%6}:00 - ${12 + (i-1)%6}:30"], "Jueves": ["${13 + (i-1)%6}:00 - ${13 + (i-1)%6}:30", "${13 + (i-1)%6}:30 - ${14 + (i-1)%6}:00", "${14 + (i-1)%6}:00 - ${14 + (i-1)%6}:30"], "Viernes": ["${15 + (i-1)%6}:00 - ${15 + (i-1)%6}:30", "${15 + (i-1)%6}:30 - ${16 + (i-1)%6}:00", "${16 + (i-1)%6}:00 - ${16 + (i-1)%6}:30"]}},`;
+                }
+respuesta = respuesta.slice(0, -1) + ']'; // Elimina la última coma y cierra el array
+                respuesta = respuesta.slice(0, -1) + ']';
+                
+                var materias = JSON.parse(respuesta);
+                
+                var tablaMaterias = document.querySelector('#tablaMaterias');
+                for (var i = 0; i < materias.length; i++) {
+                    var fila = document.createElement('tr');
+                    fila.appendChild(crearCelda(materias[i].codigo));
+                    fila.appendChild(crearCelda(materias[i].nombre));
+                    fila.appendChild(crearCelda(materias[i].docente));
+                    fila.appendChild(crearCelda(materias[i].seccion));
+                    fila.appendChild(crearCelda(materias[i].UC));
+                    tablaMaterias.appendChild(fila);
+                }
+                
+                // Almacena los colores de las materias en un objeto
+                var coloresMaterias = {};
+
+                var celdasMateria = document.querySelectorAll('#tablaMaterias tr td:nth-child(2)');
+                for (var i = 0; i < celdasMateria.length; i++) {
+                    var color = colores[i % colores.length]; // Obtiene el color
+                    if (materias[i]) { // Asegúrate de que materias[i] está definido
+                        coloresMaterias[materias[i].nombre] = color; // Almacena el color
+                    }
+                    celdasMateria[i].style.backgroundColor = color; // Asigna el color
+                }
+                
+                var tablaHorarios = document.querySelector('#tablaHorarios');
+                
+                for (var i = 0; i < horarios.length; i++) {
+                    var fila = document.createElement('tr');
+                
+                    var celdaHora = crearCelda(horarios[i]);
+                    fila.appendChild(celdaHora);
+                
+                    for (var j = 0; j < 7; j++) {
+                        var celdaInfo = crearCelda('');
+                        celdaInfo.classList.add('info');
+                        fila.appendChild(celdaInfo);
+                    }
+                
+                    tablaHorarios.appendChild(fila);
+                }
+                
+                for (var i = 0; i < materias.length; i++) {
+                    var materia = materias[i];
+                    for (var dia in materia.horarios) {
+                        for (var j = 0; j < materia.horarios[dia].length; j++) {
+                            var celdasHora = tablaHorarios.querySelectorAll(`tr td:first-child`);
+                            var indiceHora = Array.from(celdasHora).findIndex(celda => celda.textContent === materia.horarios[dia][j]);
+                            if (indiceHora === -1) continue;
+
+                            var fila = celdasHora[indiceHora].parentNode;
+                            var celdaDia = fila.querySelector(`td:nth-child(${['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].indexOf(dia) + 2})`);
+                            if (celdaDia) {
+                            celdaDia.textContent = materia.nombre;
+                            var colorHorario = colores[(i+1) % colores.length]; // Obtiene el color, ignorando el primer color
+                            celdaDia.style.backgroundColor = colorHorario; // Asigna el color
+                        }
+                    }
+                }
+            }
+                
+            function generarPDF() {
+                var opt = {
+                    margin:       [10, 5, 10, 5], // Ajusta los márgenes a 10pt en la parte superior e inferior, y 5pt en los lados izquierdo y derecho
+                    filename:     'miArchivo.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2 },
+                    jsPDF:        { unit: 'pt', format: 'letter', orientation: 'portrait' }
+                };
+
+                var worker = html2pdf().from(document.body).set(opt).save();
+            }
+
+                </script>
+        </div>
+    </div>
+</body>
+</html>

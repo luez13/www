@@ -15,9 +15,10 @@ if ($_POST['action'] == 'editar') {
     $correo = $_POST['correo'];
     $cedula = $_POST['cedula'];
 
+    echo '<div class="main-content">';
     // Mostrar los datos del usuario en campos de entrada
     echo '<h3>Editar datos del usuario</h3>';
-    echo '<form action="../controllers/autenticacion.php" method="post">';
+    echo '<form action="../controllers/autenticacion.php" method="post" onsubmit="return confirmarEdicion()">';
     echo '<input type="hidden" name="action" value="editar_perfil">';
     echo '<label for="nombre">Nombre:</label>';
     echo '<input type="text" id="nombre" name="nombre" value="' . $nombre . '">';
@@ -29,7 +30,15 @@ if ($_POST['action'] == 'editar') {
     echo '<input type="text" id="cedula" name="cedula" value="' . $cedula . '">';
     echo '<input type="submit" value="Guardar cambios">';
     echo '</form>';
+    echo '</div>';
 }
+
+echo '<script>
+function confirmarEdicion() {
+    alert("Los datos se han editado");
+    return true;
+}
+</script>';
 
 // Incluir el archivo footer.php en views
 include '../views/footer.php';

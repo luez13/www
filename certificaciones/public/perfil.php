@@ -3,10 +3,10 @@
 include '../views/header.php';
 
 $user_id = $_SESSION['user_id'];
-
+echo '<div class="main-content">';
 // Consultar la base de datos para obtener los datos del usuario
 try {
-    $stmt = $db->prepare('SELECT * FROM cursos.usuarios WHERE id = :id');
+    $stmt = $db->prepare('SELECT usuarios.*, roles.nombre_rol FROM cursos.usuarios INNER JOIN cursos.roles ON usuarios.id_rol = roles.id_rol WHERE usuarios.id = :id');
     $stmt->execute(['id' => $user_id]);
     $user = $stmt->fetch();
     // Mostrar los datos del usuario en formato HTML
@@ -16,7 +16,7 @@ try {
     echo '<p>Apellido: ' . $user['apellido'] . '</p>';
     echo '<p>Correo: ' . $user['correo'] . '</p>';
     echo '<p>Cédula: ' . $user['cedula'] . '</p>';
-    echo '<p>Rol: ' . $user['id_rol'] . '</p>';
+    echo '<p>Rol: ' . $user['nombre_rol'] . '</p>'; // Ahora muestra el nombre del rol
     // Mostrar un botón para editar los datos del usuario
     echo '<form action="../models/datos_usuario.php" method="post">';
     echo '<input type="hidden" name="action" value="editar">';
@@ -32,6 +32,7 @@ try {
     // Mostrar un mensaje de error al usuario
     echo '<p>Ha ocurrido un error al obtener los datos del usuario: ' . $e->getMessage() . '</p>';
 }
+
 // Mostrar un botón para ver los cursos disponibles
 echo '<div class="container">';
 echo '<form action="cursos.php" method="get">';
@@ -102,6 +103,7 @@ try {
     echo '<p>Ha ocurrido un error al obtener los cursos que has finalizado: ' . $e->getMessage() . '</p>';
 }
 
+echo '</div>';
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>

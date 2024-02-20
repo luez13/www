@@ -24,6 +24,10 @@ class Curso {
         // Insertar los datos en la base de datos
         try {
             $stmt = $this->db->prepare('INSERT INTO cursos.cursos (nombre_curso, descripcion, duracion, periodo, modalidad, tipo_evaluacion, tipo_curso, limite_inscripciones, promotor) VALUES (:nombre_curso, :descripcion, :duracion, :periodo, :modalidad, :tipo_evaluacion, :tipo_curso, :limite_inscripciones, :promotor)');
+            // Convertir el booleano de PHP a una representación válida de booleano en PostgreSQL
+            $tipo_evaluacion = $tipo_evaluacion ? 'true' : 'false';
+
+            // Luego, inserta $tipo_evaluacion en la base de datos tal como está
             $stmt->execute(['nombre_curso' => $nombre, 'descripcion' => $descripcion, 'duracion' => $duracion, 'periodo' => $periodo, 'modalidad' => $modalidad, 'tipo_evaluacion' => $tipo_evaluacion, 'tipo_curso' => $tipo_curso, 'limite_inscripciones' => $limite_inscripciones, 'promotor' => $user_id]);
         } catch (PDOException $e) {
             // Mostrar un mensaje de error al usuario
@@ -31,18 +35,18 @@ class Curso {
         }
     }      
 
-    // Crear un método para editar un curso
     public function editar($id_curso, $nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones) {
         // Actualizar los datos en la base de datos
         try {
             $stmt = $this->db->prepare('UPDATE cursos.cursos SET nombre_curso = :nombre, descripcion = :descripcion, duracion = :duracion, periodo = :periodo, modalidad = :modalidad, tipo_evaluacion = :tipo_evaluacion, tipo_curso = :tipo_curso, limite_inscripciones = :limite_inscripciones WHERE id_curso = :id');
-            $tipo_evaluacion = $tipo_evaluacion === 'Con nota' ? true : false;
+            // Convertir el booleano de PHP a una representación válida de booleano en PostgreSQL
+            $tipo_evaluacion = $tipo_evaluacion ? 'true' : 'false';
             $stmt->execute(['nombre' => $nombre, 'descripcion' => $descripcion, 'duracion' => $duracion, 'periodo' => $periodo, 'modalidad' => $modalidad, 'tipo_evaluacion' => $tipo_evaluacion, 'tipo_curso' => $tipo_curso, 'limite_inscripciones' => $limite_inscripciones, 'id' => $id_curso]);
         } catch (PDOException $e) {
             // Mostrar un mensaje de error al usuario
             echo '<p>Ha ocurrido un error al editar el curso: ' . $e->getMessage() . '</p>';
         }
-    }
+    }      
 
     // Crear un método para eliminar un curso
     public function eliminar($id_curso) {
@@ -140,6 +144,18 @@ public function actualizar_completado($id_curso, $id_usuario, $completado) {
     $stmt->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
     $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
     return $stmt->execute();
+}
+
+// Crear un método para iniciar un curso
+public function iniciar($id_curso) {
+    // Cambiar el estado del curso en la base de datos
+    try {
+        $stmt = $this->db->prepare('UPDATE cursos.cursos SET estado = :estado WHERE id_curso = :id');
+        $stmt->execute(['estado' => true, 'id' => $id_curso]);
+    } catch (PDOException $e) {
+        // Mostrar un mensaje de error al usuario
+        echo '<p>Ha ocurrido un error al iniciar el curso: ' . $e->getMessage() . '</p>';
+    }
 }
 }
 ?>

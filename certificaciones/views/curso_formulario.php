@@ -21,6 +21,7 @@ $id_curso = $_GET['id_curso'];
 $curso_editar = $curso->obtener_curso($id_curso);
 
 // Mostrar un formulario para editar el curso con los datos actuales
+echo '<div class="main-content">';
 echo '<h3>Editar curso</h3>';
 echo '<form action="../controllers/curso_controlador.php" method="post">';
 echo '<input type="hidden" name="action" value="editar">';
@@ -34,10 +35,12 @@ echo '<option value="Presencial"' . ($curso_editar['modalidad'] == 'Presencial' 
 echo '<option value="Virtual"' . ($curso_editar['modalidad'] == 'Virtual' ? ' selected' : '') . '>Virtual</option>';
 echo '<option value="Mixto"' . ($curso_editar['modalidad'] == 'Mixto' ? ' selected' : '') . '>Mixto</option>';
 echo '</select></p>';
-echo '<p>Tipo de evaluación: <select name="tipo_evaluacion" required>';
-echo '<option value="Sin nota"' . ($curso_editar['tipo_evaluacion'] == 'Sin nota' ? ' selected' : '') . '>Sin nota</option>';
-echo '<option value="Con nota"' . ($curso_editar['tipo_evaluacion'] == 'Con nota' ? ' selected' : '') . '>Con nota</option>';
-echo '</select></p>';
+echo '<p>Tipo de evaluación: ';
+echo '<input type="radio" id="con_nota" name="tipo_evaluacion" value="true" ' . ($curso_editar['tipo_evaluacion'] == true ? ' checked' : '') . ' required>';
+echo '<label for="con_nota">Con nota</label>';
+echo '<input type="radio" id="sin_nota" name="tipo_evaluacion" value="false" ' . ($curso_editar['tipo_evaluacion'] == false ? ' checked' : '') . ' required>';
+echo '<label for="sin_nota">Sin nota</label>';
+echo '</p>';
 echo '<p>Tipo de curso: <select name="tipo_curso" required>';
 echo '<option value="Obligatorio"' . ($curso_editar['tipo_curso'] == 'Obligatorio' ? ' selected' : '') . '>Obligatorio</option>';
 echo '<option value="Electivo"' . ($curso_editar['tipo_curso'] == 'Electivo' ? ' selected' : '') . '>Electivo</option>';
@@ -45,6 +48,7 @@ echo '</select></p>';
 echo '<p>Límite de inscripciones: <input type="number" name="limite_inscripciones" value="' . $curso_editar['limite_inscripciones'] . '" min="1" required></p>';
 echo '<p><input type="submit" value="Editar curso"></p>';
 echo '</form>';
+echo '</div>';
 
 // Incluir el archivo footer.php en views
 include '../views/footer.php';

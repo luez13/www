@@ -17,6 +17,7 @@ $curso = new Curso($db);
 // Obtener el id del curso del parámetro de la URL
 $id_curso = $_GET['id'];
 
+echo '<div class="main-content">';
 // Validar el id del curso
 if (is_numeric($id_curso) && $id_curso > 0) {
     // Obtener el id del usuario de la sesión
@@ -84,7 +85,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
     // Si el id del curso es inválido, mostrar un mensaje de error
     echo '<p>El id del curso es inválido.</p>';
 }
-
+echo '</div>';
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>

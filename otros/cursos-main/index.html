@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Example Courses</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+    <link rel="shortcut icon" href="iconiut.png" type="image/x-icon">
+    <style>
+        /* SCROLL-TOP-BUTTON */
+
+        .scroll-top-button img {
+            border-radius: 50%;
+            cursor: pointer;
+            position: fixed;
+            bottom: 0.1em;
+            right: 0.1em;
+            transform: translate(-50%, -50%) scale(0);
+            transition: 0.2s;
+            background-color: #0d6efd;
+        }
+
+        .show {
+            z-index: 10;
+        }
+
+        .show .scroll-top-button {
+            animation: popup 0.3s ease-in-out;
+            width: 6.6rem;
+            height: 6.6rem;
+            z-index: 11;
+        }
+
+        .show img {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        @keyframes popup {
+            0% {
+                width: 0rem;
+                height: 0rem;
+            }
+
+            50% {
+                width: 8rem;
+                height: 8rem;
+            }
+
+            100% {
+                width: 6.6rem;
+                height: 6.6rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5 mb-5">
+        <img class="img-fluid" src="banneriut.png" alt="UPTAI">
+        <h1>Listado de Cursos</h1>
+        <div class="row">
+            <div class="col-12">
+                <table id="tablaMaster" class="table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h3 class="h3" style="text-align: justify;">Example Title Lorem ipsum dolor, sit
+                                            amet
+                                            consectetur
+                                            adipisicing
+                                            elit. Doloribus repellendus in nesciunt fuga dicta cum nulla deserunt, sint
+                                            vero temporibus obcaecati eveniet eius est dolore, excepturi similique.
+                                            Quas, sed totam?</h3>
+                                    </div>
+                                </div>
+                                <div class="row mt-4 mb-4">
+                                    <div class="col-md-12 col-xl-5">
+                                        <div>
+                                            <img src="img-test.png" class="pb-3 img-fluid" alt="test" width="400"
+                                                height="200">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 col-xl-7 d-flex align-items-center">
+                                        <div class="">
+                                            <div class="">
+                                                <span class="fw-bold">Descripcion</span>
+                                                <br>
+                                                <span>Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                                                    Ducimus illo
+                                                    officiis
+                                                    in
+                                                    dolorem
+                                                    quas. Tenetur sit at dignissimos, suscipit assumenda expedita
+                                                    incidunt
+                                                    vel
+                                                    aperiam dolor
+                                                    ducimus excepturi, quisquam fuga. Totam.</span>
+                                                <hr class="">
+                                                <span class="mx-4 fw-bold">Cupo 1/30</span>
+                                                <span class="fw-bold">Modo: Presencial</span>
+                                                <button class="btn btn-primary mx-4">¡Inscribete Aqui
+                                                    Ahora!</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="row mt-4 mb-4">
+                                    <div class="col-md-12 col-xl-5">
+                                        <h3 class="h3">Example Title</h3>
+                                        <div>
+                                            <img src="img-test.png" class="pb-3 img-fluid" alt="test" width="400"
+                                                height="200">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 col-xl-7">
+                                        <div class="d-flex">
+                                            <div class="">
+                                                <span class="fw-bold">Descripcion</span>
+                                                <br>
+                                                <span>Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                                                    Ducimus illo
+                                                    officiis
+                                                    in
+                                                    dolorem
+                                                    quas. Tenetur sit at dignissimos, suscipit assumenda expedita
+                                                    incidunt
+                                                    vel
+                                                    aperiam dolor
+                                                    ducimus excepturi, quisquam fuga. Totam.</span>
+                                                <hr class="">
+                                                <span class="mx-4 fw-bold">Cupo 1/30</span>
+                                                <span class="fw-bold">Modo: Presencial</span>
+                                                <button class="btn btn-primary mx-4">¡Inscribete Aqui
+                                                    Ahora!</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="row mt-4 mb-4">
+                                    <div class="col-md-12 col-xl-5">
+                                        <h3 class="h3">Example Title</h3>
+                                        <div>
+                                            <img src="img-test.png" class="pb-3 img-fluid" alt="test" width="400"
+                                                height="200">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 col-xl-7">
+                                        <div class="d-flex">
+                                            <div class="">
+                                                <span class="fw-bold">Descripcion</span>
+                                                <br>
+                                                <span>Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                                                    Ducimus illo
+                                                    officiis
+                                                    in
+                                                    dolorem
+                                                    quas. Tenetur sit at dignissimos, suscipit assumenda expedita
+                                                    incidunt
+                                                    vel
+                                                    aperiam dolor
+                                                    ducimus excepturi, quisquam fuga. Totam.</span>
+                                                <hr class="">
+                                                <span class="mx-4 fw-bold">Cupo 1/30</span>
+                                                <span class="fw-bold">Modo: Presencial</span>
+                                                <button class="btn btn-primary mx-4">¡Inscribete Aqui
+                                                    Ahora!</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="row mt-4 mb-4">
+                                    <div class="col-md-12 col-xl-5">
+                                        <h3 class="h3">Example Title</h3>
+                                        <div>
+                                            <img src="img-test.png" class="pb-3 img-fluid" alt="test" width="400"
+                                                height="200">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 col-xl-7">
+                                        <div class="d-flex">
+                                            <div class="">
+                                                <span class="fw-bold">Descripcion</span>
+                                                <br>
+                                                <span>Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                                                    Ducimus illo
+                                                    officiis
+                                                    in
+                                                    dolorem
+                                                    quas. Tenetur sit at dignissimos, suscipit assumenda expedita
+                                                    incidunt
+                                                    vel
+                                                    aperiam dolor
+                                                    ducimus excepturi, quisquam fuga. Totam.</span>
+                                                <hr class="">
+                                                <span class="mx-4 fw-bold">Cupo 1/30</span>
+                                                <span class="fw-bold">Modo: Presencial</span>
+                                                <button class="btn btn-primary mx-4">¡Inscribete Aqui
+                                                    Ahora!</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center mt-5">
+            <footer class="fw-bold">
+                © 2023 SAREC. Sistema de Admisión, Registro y Control de Estudios
+            </footer>
+        </div>
+        <div class="scroll-top-container">
+            <div class="scroll-top-button">
+                <img src="up-arrow.png" width="50">
+            </div>
+        </div>
+        <!-- Include jQuery -->
+        <script src="https://code.jquery.com/jquery-3.7.1.js"
+            integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css" />
+
+        <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>
+        <script>
+            new DataTable('#tablaMaster', {
+                hover: false,
+                language: {
+                    "decimal": "",
+                    "emptyTable": "No hay información",
+                    "info": "Mostrando _START_ a _END_ de _TOTAL_ resultados",
+                    "infoEmpty": "Mostrando 0 a 0 de 0 resultados",
+                    "infoFiltered": "(Filtrado de _MAX_ total resultados)",
+                    "infoPostFix": "",
+                    "thousands": ",",
+                    "lengthMenu": "Mostrar _MENU_ Cursos",
+                    responsive: true,
+                    "loadingRecords": "Cargando...",
+                    "processing": "Procesando...",
+                    "search": "Buscar:",
+                    "zeroRecords": "Sin resultados encontrados",
+                    "paginate": {
+                        "first": "Primero",
+                        "last": "Ultimo",
+                        "next": "Siguiente",
+                        "previous": "Anterior"
+                    }
+                }
+            });
+            //------------- up button functionality --------
+            window.onscroll = function () {
+                if (document.documentElement.scrollTop > 100) {
+                    document.querySelector('.scroll-top-button').classList.add('show');
+                } else {
+                    document.querySelector('.scroll-top-button').classList.remove('show');
+                }
+            }
+            document.querySelector('.scroll-top-button').addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        </script>
+    </div>
+</body>
+
+</html>

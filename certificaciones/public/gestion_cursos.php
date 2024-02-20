@@ -17,6 +17,7 @@ $curso = new Curso($db);
 // Obtener el id del usuario de la sesión
 $user_id = $_SESSION['user_id'];
 
+echo '<div class="main-content">';
 // Mostrar un formulario para crear un nuevo curso
 echo '<h3>Crear un nuevo curso</h3>';
 echo '<form action="../controllers/curso_controlador.php" method="post">';
@@ -24,21 +25,23 @@ echo '<input type="hidden" name="action" value="crear">';
 echo '<p>Nombre del curso: <input type="text" name="nombre_curso" required></p>';
 echo '<p>Descripción: <textarea name="descripcion" required></textarea></p>';
 echo '<p>Duración (en días): <input type="number" name="duracion" min="1" required></p>';
-echo '<p>Periodo (en días): <input type="date" name="periodo" min="1" required></p>';
+echo '<p>Fecha de inicio: <input type="date" name="periodo" min="1" required></p>';
 echo '<p>Modalidad: <select name="modalidad" required>';
 echo '<option value="Presencial">Presencial</option>';
 echo '<option value="Virtual">Virtual</option>';
 echo '<option value="Mixto">Mixto</option>';
 echo '</select></p>';
 echo '<p>Tipo de evaluación: 
-<input type="radio" id="con_nota" name="tipo_evaluacion" value="true" required>
+<input type="radio" id="con_nota" name="tipo_evaluacion" value= true required>
 <label for="con_nota">Con nota</label>
-<input type="radio" id="sin_nota" name="tipo_evaluacion" value="false">
+<input type="radio" id="sin_nota" name="tipo_evaluacion" value= false required>
 <label for="sin_nota">Sin nota</label>
 </p>';
 echo '<p>Tipo de curso: <select name="tipo_curso" required>';
-echo '<option value="PNF">PNF</option>';
-echo '<option value="Formacion">Formacion</option>';
+echo '<option value="curso">Curso</option>';
+echo '<option value="Formacion permanente">Formacion permanente</option>';
+echo '<option value="convenio">Convenio</option>';
+echo '<option value="capacitacion">Capacitacion</option>';
 echo '</select></p>';
 echo '<p>Límite de inscripciones: <input type="number" name="limite_inscripciones" min="1" required></p>';
 echo '<p><input type="submit" value="Crear curso"></p>';
@@ -59,51 +62,68 @@ echo '<th>Límite de inscripciones</th>';
 echo '<th>Estado</th>';
 echo '<th>Opciones</th>';
 echo '</tr>';
-// Usar el método de la clase Curso para obtener los cursos creados por el usuario
+
 $cursos = $curso->obtener_contenido($user_id);
-// Recorrer los cursos y mostrar sus datos en la tabla
+
 foreach ($cursos as $curso) {
     echo '<tr>';
     echo '<td>' . $curso['nombre_curso'] . '</td>';
     echo '<td>' . $curso['descripcion'] . '</td>';
-    echo '<td>' . $curso['duracion'] . ' horas</td>';
+    echo '<td>' . $curso['duracion'] . ' dias</td>';
     echo '<td>' . $curso['periodo'] . ' días</td>';
     echo '<td>' . $curso['modalidad'] . '</td>';
-    echo '<td>' . $curso['tipo_evaluacion'] . '</td>';
+    echo '<td>' . ($curso['tipo_evaluacion'] ? 'Evaluada con ponderacion (calificacion)' : 'Sin ponderacion (calificacion)') . '</td>';
     echo '<td>' . $curso['tipo_curso'] . '</td>';
     echo '<td>' . $curso['limite_inscripciones'] . '</td>';
-    echo '<td>' . $curso['estado'] . '</td>';
+    echo '<td>' . ($curso['estado'] ? 'Activo' : 'Finalizado') . '</td>';
     echo '<td>';
-    // Mostrar un botón para editar el curso
-    echo '<form action="../views/curso_formulario.php" method="get">';
+
+    // Botones con clases de Bootstrap
+    echo '<form action="../views/curso_formulario.php" method="get" class="d-inline-block">';
     echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
-    echo '<input type="submit" value="Editar">';
+    echo '<input type="submit" value="Editar" class="btn btn-secondary">';
     echo '</form>';
 
-    // Mostrar un botón para eliminar el curso
-    echo '<form action="../controllers/curso_controlador.php" method="post">';
+    echo '<form action="../public/detalles_curso.php" method="get" class="d-inline-block">';
+    echo '<input type="hidden" name="id" value="' . $curso['id_curso'] . '">';
+    echo '<input type="submit" value="Detalles del curso" class="btn btn-dark">';
+    echo '</form>';
+
+    $estado = $curso['estado'] ? 'Finalizar' : 'Iniciar';
+    $action = $curso['estado'] ? 'finalizar' : 'iniciar';
+    $autorizado = $curso['autorizacion'];
+    echo '<form id="formCurso" action="../controllers/curso_controlador.php" method="post" class="d-inline-block">';
+    echo '<input type="hidden" name="action" value="' . $action . '">';
+    echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
+    echo '<input id="botonCurso" type="submit" value="' . $estado . '" class="btn btn-success">';
+    echo '</form>';
+
+    echo '<form action="../controllers/curso_controlador.php" method="post" class="d-inline-block">';
     echo '<input type="hidden" name="action" value="eliminar">';
     echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
-    echo '<input type="submit" value="Eliminar">';
+    echo '<input type="submit" value="Eliminar" class="btn btn-danger">';
     echo '</form>';
-    // Mostrar un botón para finalizar el curso
-    echo '<form action="../controllers/curso_controlador.php" method="post">';
-    echo '<input type="hidden" name="action" value="finalizar">';
-    echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
-    echo '<input type="submit" value="Finalizar">';
-    echo '</form>';
-    // Mostrar un botón de "Detalles del curso" para cada curso
-    echo '<form action="../public/detalles_curso.php" method="get">';
-    echo '<input type="hidden" name="id" value="' . $curso['id_curso'] . '">';
-    echo '<input type="submit" value="Detalles del curso">';
-    echo '</form>';
+
     echo '</td>';
     echo '</tr>';
-
 }
-
 echo '</table>';
 
-// Incluir el archivo footer.php en views
+echo '</div>';
 include '../views/footer.php';
 ?>
+
+<script>
+    window.onload = function() {
+        var boton = document.getElementById('botonCurso');
+        var form = document.getElementById('formCurso');
+        var autorizado = <?php echo $autorizado ? 'true' : 'false'; ?>;
+
+        boton.onclick = function(e) {
+            if (!autorizado) {
+                e.preventDefault();
+                alert('El curso no está autorizado');
+            }
+        }
+    }
+</script>

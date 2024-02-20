@@ -35,21 +35,24 @@ if (isset($_SESSION['nombre'])) {
     <!-- Mostrar el nombre del sistema y el nombre del usuario -->
     <h1>Sistema de gestión de cursos y certificaciones</h1>
     <?php
-    // Mostrar el mensaje de bienvenido solo si el usuario está logueado
-    if ($_SESSION['logueado']) {
-        echo '<h2>Bienvenido, ' . $_SESSION['nombre'] . '</h2>';
-    }
-    // Mostrar el botón de cerrar sesión solo si el usuario está logueado
-    if ($_SESSION['logueado']) {
-        echo '<form action="../controllers/autenticacion.php" method="post">';
-        echo '<input type="hidden" name="action" value="logout">';
-        echo '<input type="submit" value="Cerrar sesión">';
-        echo '</form>';
-    }
+echo '<style>
+.navbar-text {
+    margin-right: 4px;
+}
+.form-inline {
+    margin-left: 8px;
+}
+.form-inline.my-2.my-lg-0 {
+    margin-right: 10px;
+}
+.main-content {
+    padding-top: 70px; /* Ajusta este valor según el alto de tu navbar */
+}
+</style>';
 // Mostrar el navbar solo si el usuario está logueado y no está en index.php
 if ($_SESSION['logueado'] && basename($_SERVER['PHP_SELF']) != 'index.php') {
     echo '<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">';
-    echo '<a class="navbar-brand" href="#">Gestión de cursos</a>';
+    echo '<a class="navbar-brand" href="../public/perfil.php">Gestión de cursos</a>';
     echo '<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">';
     echo '<span class="navbar-toggler-icon"></span>';
     echo '</button>';
@@ -58,15 +61,20 @@ if ($_SESSION['logueado'] && basename($_SERVER['PHP_SELF']) != 'index.php') {
     echo '<li class="nav-item"><a class="nav-link" href="../public/perfil.php">Perfil</a></li>';
     echo '<li class="nav-item"><a class="nav-link" href="../public/cursos.php">Cursos</a></li>';
     echo '<li class="nav-item"><a class="nav-link" href="../public/gestion_cursos.php">Gestión de cursos</a></li>';
-    echo '<li class="nav-item"><a class="nav-link" href="../public/detalles_curso.php">Detalles del curso</a></li>';
-    echo '<li class="nav-item"><a class="nav-link" href="../views/curso_formulario.php">Formulario del curso</a></li>';
     echo '</ul>';
     echo '<form class="form-inline my-2 my-lg-0">';
-    echo '<input class="form-control mr-sm-2" type="search" placeholder="Buscar" aria-label="Buscar">';
-    echo '<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Buscar</button>';
+    /*echo '<input class="form-control mr-sm-2" type="search" placeholder="Buscar" aria-label="Buscar">';
+    echo '<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Buscar</button>';*/
+    echo '</form>';
+    // Mostrar el mensaje de bienvenida y el botón de cerrar sesión en la barra de navegación
+    echo '<p class="navbar-text">Bienvenido, ' . $_SESSION['nombre'] . '</p>';
+    echo '<form class="form-inline" action="../controllers/autenticacion.php" method="post">';
+    echo '<input type="hidden" name="action" value="logout">';
+    echo '<input class="btn btn-outline-danger my-2 my-sm-0" type="submit" value="Cerrar sesión">';
     echo '</form>';
     echo '</div>';
     echo '</nav>';
 }
+
 ?>
 </html>

@@ -18,7 +18,7 @@ $db = new DB();
 $stmt = $db->prepare("SELECT * FROM cursos.cursos");
 $stmt->execute();
 $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+echo '<div class="main-content">';
 foreach ($cursos as $curso) {
     // Mostrar los datos del curso en campos de entrada
     echo '<h3>Editar curso ' . $curso['nombre_curso'] . '</h3>';
@@ -37,7 +37,7 @@ foreach ($cursos as $curso) {
     echo '<p>Tipo de evaluación: ';
     echo '<input type="radio" id="con_nota" name="tipo_evaluacion" value="true"' . ($curso['tipo_evaluacion'] ? ' checked' : '') . ' required>';
     echo '<label for="con_nota">Con nota</label>';
-    echo '<input type="radio" id="sin_nota" name="tipo_evaluacion" value="false"' . (!$curso['tipo_evaluacion'] ? ' checked' : '') . '>';
+    echo '<input type="radio" id="sin_nota" name="tipo_evaluacion" value="false"' . (!$curso['tipo_evaluacion'] ? ' checked' : '') . ' required>';
     echo '<label for="sin_nota">Sin nota</label>';
     echo '</p>';
     echo '<p>Tipo de curso: <select name="tipo_curso" required>';
@@ -68,4 +68,7 @@ foreach ($cursos as $curso) {
     echo '<input type="submit" value="Guardar cambios">';
     echo '</form>';
 }
+echo '</div>';
+// Incluir el archivo footer.php en views
+include '../views/footer.php';
 ?>

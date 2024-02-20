@@ -61,6 +61,8 @@ function redirigir_perfil() {
 // Obtener la acción del formulario
 $action = $_POST['action'];
 
+echo '<div class="main-content">';
+
 // Ejecutar la acción correspondiente
 switch ($action) {
     case 'inscribirse':
@@ -152,6 +154,7 @@ switch ($action) {
         break;
 }
 
+echo '</div>';
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>

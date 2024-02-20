@@ -1,4 +1,4 @@
-hola, tengo una base de datos llamada certificaciones_DB, dentro del esquema esta cursos, dentro de cursos estan las siguientes tablas:
+hola, tengo una base de datos llamada certificaciones_DB en postgres, dentro del esquema esta cursos, dentro de cursos estan las siguientes tablas:
 certificaciones columnas:
 
 id_idcertificacion: integer, llave primaria.
@@ -47,11 +47,14 @@ certificaciones/
 │   ├── asignar_nota.php
 │   ├── autenticacion.php
 │   ├── curso_acciones.php
-│   └── curso_controlador.php
+│   ├── curso_controlador.php
+|   ├── usuarios_controlador.php
+|   └── actualizar_curso.php
 ├── models/
 │   ├── curso.php
 │   ├── datos_usuario.php
-│   └── obtener_cursos.php
+│   ├── obtener_cursos.php
+|   └── certificaciones.php
 ├── public/
 │   ├── assets/
 │   │   └── estilo.css
@@ -59,7 +62,9 @@ certificaciones/
 │   ├── gestion_cursos.php
 │   ├── index.php
 │   ├── perfil.php
-│   └── detallles_curso.php
+│   ├── detallles_curso.php
+|   ├── usuario.php
+│   └── editar_cursos.php
 └── views/
     ├── curso_formulario.html
     ├── curso.php

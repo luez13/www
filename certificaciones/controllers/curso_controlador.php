@@ -19,7 +19,7 @@ $curso = new Curso($db);
 // Crear una función para validar los datos de creación o edición de curso
 function validar_curso($nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones) {
     // Verificar que los datos no estén vacíos
-    if (empty($nombre) || empty($descripcion) || empty($duracion) || empty($periodo) || empty($modalidad) || empty($tipo_evaluacion) || empty($tipo_curso) || empty($limite_inscripciones)) {
+    if (empty($nombre) || empty($descripcion) || empty($duracion) || empty($periodo) || empty($modalidad) || !isset($tipo_evaluacion) || empty($tipo_curso) || empty($limite_inscripciones)) {
         return false;
     }
     // Verificar que la duración, el periodo y el límite de inscripciones sean numéricos
@@ -27,7 +27,7 @@ function validar_curso($nombre, $descripcion, $duracion, $periodo, $modalidad, $
         return false;
     }
     // Verificar que la modalidad y el tipo de evaluación sean válidos
-    if (!in_array($modalidad, ['Presencial', 'Virtual', 'Mixto']) || !in_array($tipo_evaluacion, ['Sin nota', 'Con nota'])) {
+    if (!in_array($modalidad, ['Presencial', 'Virtual', 'Mixto']) || !is_bool($tipo_evaluacion)) {
         return false;
     }
     // Verificar que periodo sea una fecha válida
@@ -38,14 +38,6 @@ function validar_curso($nombre, $descripcion, $duracion, $periodo, $modalidad, $
     return true;
 }
 
-// // Crear una función para redirigir al usuario a la página de perfil
-// function redirigir_perfil() {
-//     // Usar la función header para enviar el encabezado de redirección
-//     header('Location: ../public/perfil.php');
-//     // Terminar la ejecución del script
-//     exit();
-// }
-
 // Crear una función para redirigir al usuario a la página de gestión de cursos
 function redirigir_gestion() {
     // Usar la función header para enviar el encabezado de redirección
@@ -54,78 +46,6 @@ function redirigir_gestion() {
     exit();
 }
 
-// Obtener la acción del formulario
-$action = $_POST['action'];
-
-// Ejecutar la acción correspondiente
-switch ($action) {
-    case 'crear':
-        // Obtener los datos del formulario
-        $nombre_curso = $_POST['nombre_curso'];
-        $descripcion = $_POST['descripcion'];
-        $duracion = $_POST['duracion'];
-        $periodo = $_POST['periodo'];
-        $modalidad = $_POST['modalidad'];
-        $tipo_evaluacion = $_POST['tipo_evaluacion'] === 'true' ? true : false;
-        $tipo_curso = $_POST['tipo_curso'];
-        $limite_inscripciones = $_POST['limite_inscripciones'];
-        // Validar los datos
-        if (validar_curso($nombre_curso, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones)) {
-            // Obtener el id del usuario de la sesión
-            $promotor = $_SESSION['user_id'];
-            // Crear el curso usando el método de la clase Curso
-            $curso->crear($nombre_curso, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones, $promotor);
-            // Mostrar un mensaje de éxito al usuario
-            echo '<p>El curso se ha creado correctamente</p>';
-        } else {
-            // Mostrar un mensaje de error al usuario
-            echo '<p>Los datos del curso son inválidos</p>';
-        }
-        break;  
-    case 'editar':
-        // Obtener los datos del formulario
-        $id_curso = $_POST['id_curso'];
-        $nombre = $_POST['nombre_curso'];
-        $descripcion = $_POST['descripcion'];
-        $duracion = $_POST['duracion'];
-        $periodo = $_POST['periodo'];
-        $modalidad = $_POST['modalidad'];
-        $tipo_evaluacion = $_POST['tipo_evaluacion'];
-        $tipo_curso = $_POST['tipo_curso'];
-        $limite_inscripciones = $_POST['limite_inscripciones'];
-
-        // Validar los datos
-        if (validar_curso($nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones)) {
-            // Editar el curso usando el método de la clase Curso
-            $curso->editar($id_curso, $nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones);
-            // Mostrar un mensaje de éxito al usuario
-            echo '<p>El curso se ha editado correctamente</p>';
-        } else {
-            // Mostrar un mensaje de error al usuario
-            echo '<p>Los datos del curso son inválidos</p>';
-        }
-        break;
-    case 'eliminar':
-        // Obtener el id del curso del formulario
-        $id_curso = $_POST['id_curso'];
-        // Eliminar el curso usando el método de la clase Curso
-        $curso->eliminar($id_curso);
-        // Mostrar un mensaje de éxito al usuario
-        echo '<p>El curso se ha eliminado correctamente</p>';
-        break;
-    case 'finalizar':
-        // Obtener el id del curso del formulario
-        $id_curso = $_POST['id_curso'];
-        // Finalizar el curso usando el método de la clase Curso
-        $curso->finalizar($id_curso);
-        // Mostrar un mensaje de éxito al usuario
-        echo '<p>El curso se ha finalizado correctamente</p>';
-        break;
-    default:
-        // Mostrar un mensaje de error al usuario
-        echo '<p>Acción inválida</p>';
-        break;
-}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_curso') {
     $id_curso = $_POST['id_curso'];
@@ -167,7 +87,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_curso'
 
     header('Location: ../public/editar_cursos.php'); // Redirige de nuevo a la página de cursos
 }
+// Obtener la acción del formulario
+$action = $_POST['action'];
+echo '<div class="main-content">';
+// Ejecutar la acción correspondiente
+switch ($action) {
+    case 'crear':
+        // Obtener los datos del formulario
+        $nombre_curso = $_POST['nombre_curso'];
+        $descripcion = $_POST['descripcion'];
+        $duracion = $_POST['duracion'];
+        $periodo = $_POST['periodo'];
+        $modalidad = $_POST['modalidad'];
+        $tipo_evaluacion = $_POST['tipo_evaluacion'] === 'true' ? true : false;
+        $tipo_curso = $_POST['tipo_curso'];
+        $limite_inscripciones = $_POST['limite_inscripciones'];
+        // Validar los datos
+        if (validar_curso($nombre_curso, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones)) {
+            // Obtener el id del usuario de la sesión
+            $promotor = $_SESSION['user_id'];
+            // Crear el curso usando el método de la clase Curso
+            $curso->crear($nombre_curso, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones, $promotor);
+            // Mostrar un mensaje de éxito al usuario
+            echo '<p>El curso se ha creado correctamente</p>';
+        } else {
+            // Mostrar un mensaje de error al usuario
+            echo '<p>Los datos del curso son inválidos</p>';
+        }
+        break;
+    case 'editar':
+        // Obtener los datos del formulario
+        $id_curso = $_POST['id_curso'];
+        $nombre = $_POST['nombre_curso'];
+        $descripcion = $_POST['descripcion'];
+        $duracion = $_POST['duracion'];
+        $periodo = $_POST['periodo'];
+        $modalidad = $_POST['modalidad'];
+        $tipo_evaluacion = $_POST['tipo_evaluacion'] === 'true' ? true : false;
+        $tipo_curso = $_POST['tipo_curso'];
+        $limite_inscripciones = $_POST['limite_inscripciones'];
 
+        // Validar los datos
+        if (validar_curso($nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones)) {
+            // Editar el curso usando el método de la clase Curso
+            $curso->editar($id_curso, $nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones);
+            // Mostrar un mensaje de éxito al usuario
+            echo '<p>El curso se ha editado correctamente</p>';
+        } else {
+            // Mostrar un mensaje de error al usuario
+            echo '<p>Los datos del curso son inválidos</p>';
+        }
+        break;
+    case 'eliminar':
+        // Obtener el id del curso del formulario
+        $id_curso = $_POST['id_curso'];
+        // Eliminar el curso usando el método de la clase Curso
+        $curso->eliminar($id_curso);
+        // Mostrar un mensaje de éxito al usuario
+        echo '<p>El curso se ha eliminado correctamente</p>';
+        break;
+    case 'finalizar':
+        // Obtener el id del curso del formulario
+        $id_curso = $_POST['id_curso'];
+        // Finalizar el curso usando el método de la clase Curso
+        $curso->finalizar($id_curso);
+        // Mostrar un mensaje de éxito al usuario
+        echo '<p>El curso se ha finalizado correctamente</p>';
+        break;
+    default:
+        // Mostrar un mensaje de error al usuario
+        echo '<p>Acción inválida</p>';
+        break;
+    case 'iniciar':
+        // Obtener el id del curso del formulario
+        $id_curso = $_POST['id_curso'];
+        // Iniciar el curso usando el método de la clase Curso
+        // Asegúrate de tener este método en tu clase Curso
+        $curso->iniciar($id_curso);
+        // Mostrar un mensaje de éxito al usuario
+        echo '<p>El curso se ha iniciado correctamente</p>';
+        break;
+}
+
+echo '</div>';
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>

@@ -35,6 +35,8 @@ $stmt = $db->prepare('SELECT nombre FROM cursos.usuarios WHERE id = :id_promotor
 $stmt->execute(['id_promotor' => $curso_contenido['promotor']]);
 $promotor = $stmt->fetch();
 
+echo '<div class="main-content">';
+
 // Mostrar el contenido del curso en formato HTML
 echo '<h3>Contenido del curso</h3>';
 echo '<p>Nombre: ' . $curso_contenido['nombre_curso'] . '</p>';
@@ -77,6 +79,9 @@ if (!$inscripcion) {
         echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
         echo '<input type="submit" value="Cancelar inscripción">';
         echo '</form>';
+    } else {
+        // Si el curso está completado, mostrar el botón de ver certificado
+        echo '<button id="ver-certificado">Ver Certificado</button>';
     }
 
     // Si el tipo de evaluación es 'Evaluada', mostrar la nota del usuario
@@ -84,8 +89,8 @@ if (!$inscripcion) {
         echo '<p>Nota: ' . $inscripcion['nota'] . '</p>';
     }
 }
-echo '<button id="ver-certificado">Ver Certificado</button>';
 
+echo '</div>';
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>

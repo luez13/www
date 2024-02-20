@@ -11,14 +11,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
     $apellido = $_POST['apellido'];
     $correo = $_POST['correo'];
     $cedula = $_POST['cedula'];
+    $id_rol = $_POST['id_rol']; // Obtener el id del rol seleccionado
 
     // Actualizar los datos del usuario
     $db = new DB();
-    $stmt = $db->prepare("UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula WHERE id = :id");
+    $stmt = $db->prepare("UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula, id_rol = :id_rol WHERE id = :id");
     $stmt->bindParam(':nombre', $nombre);
     $stmt->bindParam(':apellido', $apellido);
     $stmt->bindParam(':correo', $correo);
     $stmt->bindParam(':cedula', $cedula);
+    $stmt->bindParam(':id_rol', $id_rol); // Actualizar el rol del usuario
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 

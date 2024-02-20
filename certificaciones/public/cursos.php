@@ -14,6 +14,7 @@ try {
     $stmt->execute(['estado' => true]);
     $cursos = $stmt->fetchAll();
 
+    echo '<div class="main-content">';
     // Mostrar los cursos en formato HTML
     echo '<h3>Cursos disponibles</h3>';
     echo '<ul>';
@@ -29,6 +30,7 @@ try {
         }
     }    
     echo '</ul>';
+    echo '</div>';
 } catch (PDOException $e) {
     // Mostrar un mensaje de error al usuario
     echo '<p>Ha ocurrido un error al obtener los cursos disponibles: ' . $e->getMessage() . '</p>';

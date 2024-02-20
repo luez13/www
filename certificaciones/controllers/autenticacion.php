@@ -165,12 +165,12 @@ switch ($action) {
             $hash = password_hash($password, PASSWORD_DEFAULT);
             // Insertar los datos en la base de datos
             try {
-                $stmt = $db->prepare('INSERT INTO cursos.usuarios (nombre, apellido, correo, password, cedula, token, confirmado, id_rol) VALUES (:nombre, :apellido, :correo, :password, :cedula, :token, false, 1)');
+                $stmt = $db->prepare('INSERT INTO cursos.usuarios (nombre, apellido, correo, password, cedula, token, confirmado, id_rol) VALUES (:nombre, :apellido, :correo, :password, :cedula, :token, true, 1)');
                 $stmt->execute(['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'password' => $hash, 'cedula' => $cedula, 'token' => $token]);
                 // Enviar un correo de confirmación al usuario
                 enviar_correo_confirmacion($correo, $nombre, $token);
                 // Mostrar un mensaje de éxito al usuario
-                echo '<p>Te has registrado correctamente. Por favor, revisa tu correo electrónico para confirmar tu cuenta.</p>';
+                echo '<script>alert("Te has registrado correctamente, inicia sesión"); window.location.href = "../public/index.php";</script>';
             } catch (PDOException $e) {
                 // Mostrar un mensaje de error al usuario
                 echo '<p>Ha ocurrido un error al registrarte: ' . $e->getMessage() . '</p>';
@@ -179,7 +179,7 @@ switch ($action) {
             // Mostrar un mensaje de error al usuario
             echo '<p>Los datos de registro son inválidos</p>';
         }
-        break;
+        break;     
     case 'login':
         // Obtener los datos del formulario
         $correo = $_POST['correo'];
