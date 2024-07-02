@@ -25,6 +25,8 @@ if (!class_exists('DB')) {
         // Intentar conectar a la base de datos usando PDO
         try {
             $this->conn = new PDO('pgsql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASS);
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
         } catch (PDOException $e) {
             // Mostrar un mensaje de error al usuario
             echo '<p>Ha ocurrido un error al conectar a la base de datos: ' . $e->getMessage() . '</p>';
