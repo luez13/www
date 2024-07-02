@@ -1,4 +1,4 @@
-hola, tengo una base de datos llamada certificaciones_DB en postgres, dentro del esquema esta cursos, dentro de cursos estan las siguientes tablas:
+hola, tengo una base de datos llamada certificaciones_DB en postgres 16, dentro del esquema esta cursos, dentro de cursos estan las siguientes tablas:
 certificaciones columnas:
 
 id_idcertificacion: integer, llave primaria.
