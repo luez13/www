@@ -32,16 +32,17 @@ echo '<option value="Virtual">Virtual</option>';
 echo '<option value="Mixto">Mixto</option>';
 echo '</select></p>';
 echo '<p>Tipo de evaluación: 
-<input type="radio" id="con_nota" name="tipo_evaluacion" value= true required>
-<label for="con_nota">Con nota</label>
-<input type="radio" id="sin_nota" name="tipo_evaluacion" value= false required>
-<label for="sin_nota">Sin nota</label>
+<input type="radio" id="calificacion" name="tipo_evaluacion" value= true required>
+<label for="calificacion">Calificacion</label>
+<input type="radio" id="participacion" name="tipo_evaluacion" value= false required>
+<label for="participacion">Participacion</label>
 </p>';
 echo '<p>Tipo de curso: <select name="tipo_curso" required>';
-echo '<option value="curso">Curso</option>';
-echo '<option value="Formacion permanente">Formacion permanente</option>';
-echo '<option value="convenio">Convenio</option>';
-echo '<option value="capacitacion">Capacitacion</option>';
+echo '<option value="seminarios">Seminarios</option>';
+echo '<option value="diplomados">Diplomados</option>';
+echo '<option value="congreso">Congreso</option>';
+echo '<option value="charlas">Charlas</option>';
+echo '<option value="talleres">Talleres</option>';
 echo '</select></p>';
 echo '<p>Límite de inscripciones: <input type="number" name="limite_inscripciones" min="1" required></p>';
 echo '<p><input type="submit" value="Crear curso"></p>';

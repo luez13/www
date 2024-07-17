@@ -4,8 +4,10 @@ certificaciones columnas:
 id_idcertificacion: integer, llave primaria.
 id_usuario: integer, llave foránea curso.usuarios id.
 curso_id: integer, llave foránea curso.curso id_curso.
-valor_unico: UUID, llave única.
+valor_unico: varchard, llave única.
 completado: boolean.
+nota: integer.
+fecha_inscripcion: timestamp.
 cursos columnas:
 
 id_curso: integer.
@@ -35,6 +37,15 @@ cedula: varchar, llave única.
 id_rol: integer, llave foránea curso.roles id_rol.
 token: varchar(255).
 confirmado: boolean.
+auditoria columnas:
+
+id_auditoria: integer.
+usuario: varchar.
+accion: varchar.
+tabla_afectada: varchar.
+fecha: timestamp.
+dato_previo: text.
+dato_modificado: text.
 
 asi esta formada la base de datos.
 
@@ -49,12 +60,11 @@ certificaciones/
 │   ├── curso_acciones.php
 │   ├── curso_controlador.php
 |   ├── usuarios_controlador.php
-|   └── actualizar_curso.php
+|   └── actualizar_estado.php
 ├── models/
 │   ├── curso.php
 │   ├── datos_usuario.php
-│   ├── obtener_cursos.php
-|   └── certificaciones.php
+│   └── obtener_cursos.php
 ├── public/
 │   ├── assets/
 │   │   └── estilo.css
@@ -70,3 +80,16 @@ certificaciones/
     ├── curso.php
     ├── footer.php
     └── header.php
+
+
+crear tabla auditoria:
+
+CREATE TABLE cursos.auditoria (
+    id_auditoria SERIAL PRIMARY KEY,
+    usuario VARCHAR(255) NOT NULL,
+    accion VARCHAR(20) NOT NULL,
+    tabla_afectada VARCHAR(50) NOT NULL,
+    fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    dato_previo TEXT,
+    dato_modificado TEXT
+);

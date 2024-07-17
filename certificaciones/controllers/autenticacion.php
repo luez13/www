@@ -142,6 +142,30 @@ function esPerfil4($id_usuario) {
     return $rol['id_rol'] == 4;
 }
 
+function esPerfil3($id_usuario) {
+    $db = new DB();
+    $stmt = $db->prepare('SELECT id_rol FROM cursos.usuarios WHERE id = :id_usuario');
+    $stmt->execute([':id_usuario' => $id_usuario]);
+    $rol = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $rol['id_rol'] == 3;
+}
+
+function esPerfil2($id_usuario) {
+    $db = new DB();
+    $stmt = $db->prepare('SELECT id_rol FROM cursos.usuarios WHERE id = :id_usuario');
+    $stmt->execute([':id_usuario' => $id_usuario]);
+    $rol = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $rol['id_rol'] == 2;
+}
+
+function esPerfil1($id_usuario) {
+    $db = new DB();
+    $stmt = $db->prepare('SELECT id_rol FROM cursos.usuarios WHERE id = :id_usuario');
+    $stmt->execute([':id_usuario' => $id_usuario]);
+    $rol = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $rol['id_rol'] == 1;
+}
+
 // Comprobar si la variable $_POST['action'] está definida
 if (isset($_POST['action'])) {
     // Asignar el valor de la variable a una variable local
@@ -226,18 +250,28 @@ switch ($action) {
         $apellido = $_POST['apellido'];
         $correo = $_POST['correo'];
         $cedula = $_POST['cedula'];
+        $nuevaContrasena = $_POST['nueva_contrasena']; // Nuevo campo para la nueva contraseña
+    
         // Validar los datos
         if (validar_edicion($nombre, $apellido, $correo, $cedula)) {
             // Obtener el id del usuario de la sesión
             $user_id = $_SESSION['user_id'];
+    
             // Actualizar los datos en la base de datos
             try {
                 $stmt = $db->prepare('UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula WHERE id = :id');
                 $stmt->execute(['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'cedula' => $cedula, 'id' => $user_id]);
+    
+                // Si se proporcionó una nueva contraseña, actualizarla también
+                if (!empty($nuevaContrasena)) {
+                    $hashNuevaContrasena = password_hash($nuevaContrasena, PASSWORD_DEFAULT);
+                    $stmt = $db->prepare('UPDATE cursos.usuarios SET password = :hash WHERE id = :id');
+                    $stmt->execute(['hash' => $hashNuevaContrasena, 'id' => $user_id]);
+                }
+    
                 // Mostrar un mensaje de éxito al usuario
                 echo '<p>Tus datos se han actualizado correctamente</p>';
                 redirigir_perfilUsuario();
-
             } catch (PDOException $e) {
                 // Mostrar un mensaje de error al usuario
                 echo '<p>Ha ocurrido un error al actualizar tus datos: ' . $e->getMessage() . '</p>';

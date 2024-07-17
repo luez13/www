@@ -60,7 +60,7 @@ if ($_SESSION['logueado'] && basename($_SERVER['PHP_SELF']) != 'index.php') {
     echo '<ul class="navbar-nav mr-auto mt-2 mt-lg-0">';
     echo '<li class="nav-item"><a class="nav-link" href="../public/perfil.php">Perfil</a></li>';
     echo '<li class="nav-item"><a class="nav-link" href="../public/cursos.php">Cursos</a></li>';
-    echo '<li class="nav-item"><a class="nav-link" href="../public/gestion_cursos.php">Gestión de cursos</a></li>';
+    /*echo '<li class="nav-item"><a class="nav-link" href="../public/gestion_cursos.php">Gestión de cursos</a></li>';*/
     echo '</ul>';
     echo '<form class="form-inline my-2 my-lg-0">';
     /*echo '<input class="form-control mr-sm-2" type="search" placeholder="Buscar" aria-label="Buscar">';

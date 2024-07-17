@@ -20,48 +20,41 @@ try {
     // Mostrar un botón para editar los datos del usuario
     echo '<form action="../models/datos_usuario.php" method="post">';
     echo '<input type="hidden" name="action" value="editar">';
-    echo '<input type="hidden" name="nombre" value="' . $user['nombre'] . '">';
-    echo '<input type="hidden" name="apellido" value="' . $user['apellido'] . '">';
-    echo '<input type="hidden" name="correo" value="' . $user['correo'] . '">';
-    echo '<input type="hidden" name="cedula" value="' . $user['cedula'] . '">';
+    echo '<input type="hidden" name="nombre" value="' . htmlspecialchars($user['nombre']) . '">';
+    echo '<input type="hidden" name="apellido" value="' . htmlspecialchars($user['apellido']) . '">';
+    echo '<input type="hidden" name="correo" value="' . htmlspecialchars($user['correo']) . '">';
+    echo '<input type="hidden" name="cedula" value="' . htmlspecialchars($user['cedula']) . '">';
+    echo '<input type="hidden" name="nueva_contrasena" value="' . htmlspecialchars($user['password']) . '">';
     echo '<input type="submit" value="Editar datos" class="btn btn-dark">';
-    echo '</form>';    
+    echo '</form>';  
     echo '</div>';
-
 } catch (PDOException $e) {
     // Mostrar un mensaje de error al usuario
     echo '<p>Ha ocurrido un error al obtener los datos del usuario: ' . $e->getMessage() . '</p>';
 }
 
-// Mostrar un botón para ver los cursos disponibles
-echo '<div class="container">';
-echo '<form action="cursos.php" method="get">';
-echo '<input type="submit" value="Ver cursos disponibles" class="btn btn-dark">';
-echo '</form>';
-echo '</div>';
-
-// Mostrar un botón para ver los cursos creados por el usuario
-echo '<div class="container">';
-echo '<form action="gestion_cursos.php" method="get">';
-echo '<input type="submit" value="Ver cursos creados por ti" class="btn btn-secondary">';
-echo '</form>';
-echo '</div>';
-
 require_once '../controllers/autenticacion.php';
+
+// Definir los botones comunes
+$verCursosDisponiblesBtn = '<div class="container"><form action="cursos.php" method="get"><input type="submit" value="Ver cursos disponibles" class="btn btn-dark"></form></div>';
+$verCursosCreadosBtn = '<div class="container"><form action="gestion_cursos.php" method="get"><input type="submit" value="Crear y gestionar tus cursos" class="btn btn-secondary"></form></div>';
+$verUsuariosBtn = '<div class="container"><form action="usuarios.php" method="get"><input type="submit" value="Ver usuarios del sistema" class="btn btn-primary"></form></div>';
+$editarCursosBtn = '<div class="container"><form action="editar_cursos.php" method="get"><input type="submit" value="Editar cursos" class="btn btn-primary"></form></div>';
+
 if (esPerfil4($user_id)) {
-    echo '<div class="container">';
-    echo '<form action="usuarios.php" method="get">';
-    echo '<input type="submit" value="Ver usuarios del sistema" class="btn btn-primary">';
-    echo '</form>';
-    echo '</div>';
-
-    echo '<div class="container">';
-    echo '<form action="editar_cursos.php" method="get">';
-    echo '<input type="submit" value="Editar cursos" class="btn btn-primary">';
-    echo '</form>';
-    echo '</div>';
+    echo $verCursosDisponiblesBtn;
+    echo $verUsuariosBtn;
+    echo $editarCursosBtn;
+} elseif (esPerfil3($user_id)) {
+    echo $verCursosDisponiblesBtn;
+    echo $verCursosCreadosBtn;
+    echo $editarCursosBtn;
+} elseif (esPerfil2($user_id)) {
+    echo $verCursosCreadosBtn;
+    echo $verCursosDisponiblesBtn;
+} elseif (esPerfil1($user_id)) {
+    echo $verCursosDisponiblesBtn;
 }
-
 
 // Consultar la base de datos para obtener los cursos en los que el usuario está inscrito
 try {

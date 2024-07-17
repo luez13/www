@@ -9,10 +9,11 @@ $user_id = $_SESSION['user_id'];
 
 // Verificar si el usuario es administrador
 require_once '../controllers/autenticacion.php';
-if (!esPerfil4($user_id)) {
+if (esPerfil3($user_id) || esPerfil4($user_id)) {
+    // El usuario tiene permiso para ver esta página
+} else {
     die('No tienes permiso para ver esta página.');
 }
-
 // Obtener todos los cursos
 $db = new DB();
 $stmt = $db->prepare("SELECT * FROM cursos.cursos");
@@ -35,14 +36,17 @@ foreach ($cursos as $curso) {
     echo '<option value="Mixto"' . ($curso['modalidad'] == 'Mixto' ? ' selected' : '') . '>Mixto</option>';
     echo '</select></p>';
     echo '<p>Tipo de evaluación: ';
-    echo '<input type="radio" id="con_nota" name="tipo_evaluacion" value="true"' . ($curso['tipo_evaluacion'] ? ' checked' : '') . ' required>';
-    echo '<label for="con_nota">Con nota</label>';
-    echo '<input type="radio" id="sin_nota" name="tipo_evaluacion" value="false"' . (!$curso['tipo_evaluacion'] ? ' checked' : '') . ' required>';
-    echo '<label for="sin_nota">Sin nota</label>';
-    echo '</p>';
+    echo '<input type="radio" id="calificacion" name="tipo_evaluacion" value="true"' . ($curso['tipo_evaluacion'] ? ' checked' : '') . ' required>';
+    echo '<label for="calificacion">Calificacion</label>';
+    echo '<input type="radio" id="participacion" name="tipo_evaluacion" value="false"' . (!$curso['tipo_evaluacion'] ? ' checked' : '') . ' required>';
+    echo '<label for="participacion">Participacion</label>';
+    echo '</p>';;
     echo '<p>Tipo de curso: <select name="tipo_curso" required>';
-    echo '<option value="PNF"' . ($curso['tipo_curso'] == 'PNF' ? ' selected' : '') . '>PNF</option>';
-    echo '<option value="Formacion"' . ($curso['tipo_curso'] == 'Formacion' ? ' selected' : '') . '>Formacion</option>';
+    echo '<option value="seminarios"' . ($curso['tipo_curso'] == 'seminarios' ? ' selected' : '') . '>Seminarios</option>';
+    echo '<option value="diplomados"' . ($curso['tipo_curso'] == 'diplomados' ? ' selected' : '') . '>Diplomados</option>';
+    echo '<option value="congreso"' . ($curso['tipo_curso'] == 'congreso' ? ' selected' : '') . '>Congreso</option>';
+    echo '<option value="charlas"' . ($curso['tipo_curso'] == 'charlas' ? ' selected' : '') . '>Charlas</option>';
+    echo '<option value="talleres"' . ($curso['tipo_curso'] == 'talleres' ? ' selected' : '') . '>Talleres</option>';
     echo '</select></p>';
     echo '<p>Límite de inscripciones: <input type="number" name="limite_inscripciones" value="' . $curso['limite_inscripciones'] . '" min="1" required></p>';
     echo '<p>Estado (curso en progreso si esta marcada la casilla, inactivo si no esta marcada la casilla): <input type="checkbox" id="estado" name="estado" value="true"' . ($curso['estado'] ? ' checked' : '') . '></p>';

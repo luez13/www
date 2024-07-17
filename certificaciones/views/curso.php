@@ -71,6 +71,10 @@ if (!$inscripcion) {
     echo '<input type="submit" value="Inscribirse al curso">';
     echo '</form>';
 } else {
+    // Si el tipo de evaluación es 'Evaluada', mostrar la nota del usuario
+    if ($tipo_evaluacion == 'Evaluada') {
+        echo '<p>Nota: ' . $inscripcion['nota'] . '</p>';
+    }
     // Si el usuario ya está inscrito y el curso no está completado, mostrar el botón de cancelar inscripción
     if (!$inscripcion['completado']) {
         echo '<form action="../controllers/curso_acciones.php" method="post">';
@@ -82,11 +86,6 @@ if (!$inscripcion) {
     } else {
         // Si el curso está completado, mostrar el botón de ver certificado
         echo '<button id="ver-certificado">Ver Certificado</button>';
-    }
-
-    // Si el tipo de evaluación es 'Evaluada', mostrar la nota del usuario
-    if ($tipo_evaluacion == 'Evaluada') {
-        echo '<p>Nota: ' . $inscripcion['nota'] . '</p>';
     }
 }
 
