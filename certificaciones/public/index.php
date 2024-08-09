@@ -38,11 +38,11 @@ include '../views/header.php';
                                     <a href="index.html" class="btn btn-facebook btn-user btn-block">Registrate con Facebook</a> -->
                                 </form>
                                 <hr>
-                                <div class="text-center">
+                                <!--<div class="text-center">
                                     <a class="small" href="forgot-password.html">¿Olvidaste tu contraseña?</a>
-                                </div>
+                                </div> -->
                                 <div class="text-center">
-                                    <a class="small" href="register.html">¡Crea una cuenta!</a>
+                                    <a class="small" href="register.php">¡Crea una cuenta!</a>
                                 </div>
                             </div>
                         </div>

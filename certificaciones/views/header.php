@@ -7,8 +7,12 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Llamar a la función verificar_sesion
-verificar_sesion();
+// Verificar si la página actual es register.php
+$current_page = basename($_SERVER['PHP_SELF']);
+if ($current_page !== 'register.php') {
+    // Llamar a la función verificar_sesion
+    verificar_sesion();
+}
 
 // Establecer una variable de sesión para indicar si el usuario está logueado o no
 if (isset($_SESSION['nombre'])) {
