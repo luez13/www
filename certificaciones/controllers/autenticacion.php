@@ -6,9 +6,9 @@ include '../config/model.php';
 $db = new DB();
 
 // Crear una función para validar los datos de registro
-function validar_registro($nombre, $apellido, $correo, $password, $cedula) {
+function validar_registro($nombre, $apellido, $correo, $password, $confirm_password, $cedula) {
     // Verificar que los datos no estén vacíos
-    if (empty($nombre) || empty($apellido) || empty($correo) || empty($password) || empty($cedula)) {
+    if (empty($nombre) || empty($apellido) || empty($correo) || empty($password) || empty($confirm_password) || empty($cedula)) {
         return false;
     }
     // Verificar que el nombre y el apellido solo contengan letras y espacios
@@ -21,6 +21,10 @@ function validar_registro($nombre, $apellido, $correo, $password, $cedula) {
     }
     // Verificar que la cédula solo contenga números
     if (!is_numeric($cedula)) {
+        return false;
+    }
+    // Verificar que las contraseñas coincidan
+    if ($password !== $confirm_password) {
         return false;
     }
     // Si todo está bien, devolver true
@@ -102,7 +106,6 @@ function verificar_password($password, $hash) {
     return password_verify($password, $hash);
 }
 
-// Crear una función para verificar si la sesión está iniciada
 function verificar_sesion() {
     // Verificar si el usuario ha iniciado sesión
     if (!isset($_SESSION['user_id'])) {
@@ -114,6 +117,13 @@ function verificar_sesion() {
             header('Location: ../public/index.php');
             exit();
         }
+    } else {
+        // Obtener el rol del usuario y almacenarlo en la sesión
+        $db = new DB();
+        $stmt = $db->prepare('SELECT id_rol FROM cursos.usuarios WHERE id = :id_usuario');
+        $stmt->execute([':id_usuario' => $_SESSION['user_id']]);
+        $rol = $stmt->fetch(PDO::FETCH_ASSOC);
+        $_SESSION['id_rol'] = $rol['id_rol'];
     }
 }
 
@@ -180,9 +190,11 @@ switch ($action) {
         $apellido = $_POST['apellido'];
         $correo = $_POST['correo'];
         $password = $_POST['password'];
+        $confirm_password = $_POST['confirm_password'];
         $cedula = $_POST['cedula'];
+        
         // Validar los datos
-        if (validar_registro($nombre, $apellido, $correo, $password, $cedula)) {
+        if (validar_registro($nombre, $apellido, $correo, $password, $confirm_password, $cedula)) {
             // Generar un token de confirmación
             $token = md5($correo . time());
             // Encriptar la contraseña
@@ -203,46 +215,49 @@ switch ($action) {
             // Mostrar un mensaje de error al usuario
             echo '<p>Los datos de registro son inválidos</p>';
         }
-        break;     
-    case 'login':
-        // Obtener los datos del formulario
-        $correo = $_POST['correo'];
-        $password = $_POST['password'];
-        // Validar los datos
-        if (validar_login($correo, $password)) {
-            // Consultar la base de datos para obtener el usuario con el correo ingresado
-            try {
-                $stmt = $db->prepare('SELECT * FROM cursos.usuarios WHERE correo = :correo');
-                $stmt->execute(['correo' => $correo]);
-                $user = $stmt->fetch();
-                // Verificar si el usuario existe y está confirmado
-                if ($user && $user['confirmado']) {
-                    // Verificar si la contraseña es correcta
-                    if (verificar_password($password, $user['password'])) {
-                        // Iniciar la sesión y guardar el id y el rol del usuario
-                        session_start();
-                        $_SESSION['user_id'] = $user['id'];
-                        $_SESSION['user_rol'] = $user['id_rol'];
-                        $_SESSION['nombre'] = $user['nombre']; // Guardar el nombre del usuario
-                        // Redirigir al usuario a la página de perfil
-                        redirigir_login();
+        break;    
+        case 'login':
+            // Obtener los datos del formulario
+            $correo = $_POST['correo'];
+            $password = $_POST['password'];
+            // Validar los datos
+            if (validar_login($correo, $password)) {
+                // Consultar la base de datos para obtener el usuario con el correo ingresado
+                try {
+                    $stmt = $db->prepare('SELECT * FROM cursos.usuarios WHERE correo = :correo');
+                    $stmt->execute(['correo' => $correo]);
+                    $user = $stmt->fetch();
+                    // Verificar si el usuario existe y está confirmado
+                    if ($user && $user['confirmado']) {
+                        // Verificar si la contraseña es correcta
+                        if (verificar_password($password, $user['password'])) {
+                            // Iniciar la sesión y guardar el id y el rol del usuario
+                            session_start();
+                            $_SESSION['user_id'] = $user['id'];
+                            $_SESSION['user_rol'] = $user['id_rol'];
+                            $_SESSION['nombre'] = $user['nombre']; // Guardar el nombre del usuario
+                            $_SESSION['apellido'] = $user['apellido'];
+                            $_SESSION['correo'] = $user['correo'];
+                            $_SESSION['cedula'] = $user['cedula'];
+                            // Redirigir al usuario a la página de perfil
+                            redirigir_login();
+                        } else {
+                            // Mostrar un mensaje de error al usuario
+                            echo '<script>alert("La contraseña es incorrecta"); window.location.href = "../public/index.php";</script>';
+                        }
                     } else {
                         // Mostrar un mensaje de error al usuario
-                        echo '<p>La contraseña es incorrecta</p>';
+                        echo '<script>alert("El usuario no existe o no está confirmado"); window.location.href = "../public/index.php";</script>';
                     }
-                } else {
+                } catch (PDOException $e) {
                     // Mostrar un mensaje de error al usuario
-                    echo '<p>El usuario no existe o no está confirmado</p>';
+                    echo '<script>alert("Ha ocurrido un error al iniciar sesión: ' . $e->getMessage() . '"); window.location.href = "../public/index.php";</script>';
                 }
-            } catch (PDOException $e) {
+            } else {
                 // Mostrar un mensaje de error al usuario
-                echo '<p>Ha ocurrido un error al iniciar sesión: ' . $e->getMessage() . '</p>';
+                echo '<script>alert("Los datos de inicio de sesión son inválidos"); window.location.href = "../public/index.php";</script>';
             }
-        } else {
-            // Mostrar un mensaje de error al usuario
-            echo '<p>Los datos de inicio de sesión son inválidos</p>';
-        }
-        break;
+            break;        
     case 'editar_perfil':
         session_start();
         // Obtener los datos del formulario
@@ -309,7 +324,7 @@ switch ($action) {
                     $stmt = $db->prepare('UPDATE cursos.usuarios SET password = :password WHERE correo = :correo');
                     $stmt->execute(['password' => $hash, 'correo' => $correo]);
                     // Enviar un correo de recuperación al usuario
-                    enviar_correo_recuperacion($correo, $user['nombre'], $password);
+                    //enviar_correo_recuperacion($correo, $user['nombre'], $password);
                     // Mostrar un mensaje de éxito al usuario
                     echo '<p>Te hemos enviado un correo electrónico con tu nueva contraseña. Por favor, revisa tu bandeja de entrada.</p>';
                 } else {

@@ -61,28 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
         if ($_SESSION['user_rol'] == 4) {
             echo '<label for="nueva_contrasena">Nueva Contraseña:</label>';
             echo '<input type="text" id="nueva_contrasena" name="nueva_contrasena">';
-            echo '<!-- Botón para abrir la ventana modal -->
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalContrasena">
-                        Ver Contraseña
-                    </button>
-
-                    <!-- Ventana modal -->
-                    <div class="modal fade" id="modalContrasena" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="modalLabel">Contraseña del Usuario</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    <!-- Aquí mostrarás la contraseña desde la base de datos -->
-                                    <p>Contraseña: <?php echo $contrasenaDesdeBD; ?></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>'; // Agregamos el botón aquí
         }
         echo '<label for="id_rol">Rol:</label>';
         echo '<select id="id_rol" name="id_rol">'; // Campo de selección para el rol

@@ -157,5 +157,19 @@ public function iniciar($id_curso) {
         echo '<p>Ha ocurrido un error al iniciar el curso: ' . $e->getMessage() . '</p>';
     }
 }
+
+public function tiene_inscritos_o_aprobados($id_curso) {
+    // Verificar si hay usuarios inscritos
+    $stmt = $this->db->prepare('SELECT COUNT(*) FROM cursos.certificaciones WHERE curso_id = :id_curso');
+    $stmt->execute(['id_curso' => $id_curso]);
+    $inscritos = $stmt->fetchColumn();
+
+    // Verificar si hay usuarios que han aprobado el curso
+    $stmt = $this->db->prepare('SELECT COUNT(*) FROM cursos.certificaciones WHERE curso_id = :id_curso AND completado = true');
+    $stmt->execute(['id_curso' => $id_curso]);
+    $aprobados = $stmt->fetchColumn();
+
+    return $inscritos > 0 || $aprobados > 0;
+}
 }
 ?>

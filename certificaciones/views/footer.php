@@ -1,20 +1,21 @@
-<?php
-echo '<div class="content" style="margin-bottom: 60px;">';  // Asegúrate de ajustar el valor de 60px al tamaño de tu pie de página
-?>
-<style>
-    .footer {
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        background-color: #f8f9fa;
-        color: black;
-        text-align: center;
-    }
-</style>
-<!-- Mostrar un mensaje de agradecimiento y los derechos reservados -->
-<div class="footer">
-    <p>Gracias por usar nuestro sistema. Todos los derechos reservados.</p>
-</div>
+<br>
+<br>
+<br>
+<br>
+<footer class="footer mt-auto py-3 bg-light">
+    <div class="container">
+        <span class="text-muted">© 2024 Sistema de gestión de cursos y certificaciones</span>
+    </div>
+</footer>
+
+<!-- Bootstrap core JavaScript-->
+<script src="../public/assets/vendor/jquery/jquery.min.js"></script>
+<script src="../public/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Core plugin JavaScript-->
+<script src="../public/assets/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+<!-- Custom scripts for all pages-->
+<script src="../public/assets/js/sb-admin-2.min.js"></script>
 </body>
 </html>

@@ -1,0 +1,28 @@
+.card {
+    margin-bottom: 20px;
+}
+body {
+    background-image: url("../assets/6849656_3407044.jpg");
+    background-size: cover; /* Ajusta el tamaño de la imagen al tamaño del contenedor */
+    /* Otras propiedades de estilo según tus preferencias */
+}
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: transparent; /* Cambiamos el color de fondo a transparente */
+    color: white; /* Cambiamos el color del texto a blanco */
+    text-align: center;
+    padding: 10px 0; /* Añadir padding para mejorar la apariencia */
+}
+.user-info {
+    font-size: 1.5em; /* Ajusta el tamaño según tus necesidades */
+    text-transform: none; /* Asegura que el texto no se transforme */
+}
+.user-info strong {
+    text-transform: uppercase; /* Solo transforma el texto del rol a mayúsculas */
+}
+.sidebar.toggled {
+    display: none;
+}

@@ -68,7 +68,7 @@ certificaciones/
 ├── public/
 │   ├── assets/
 │   │   └── estilo.css
-│   ├── cursos.html
+│   ├── cursos.php
 │   ├── gestion_cursos.php
 │   ├── index.php
 │   ├── perfil.php
@@ -78,6 +78,7 @@ certificaciones/
 └── views/
     ├── curso_formulario.html
     ├── curso.php
+    ├── historial.php
     ├── footer.php
     └── header.php
 
@@ -93,3 +94,81 @@ CREATE TABLE cursos.auditoria (
     dato_previo TEXT,
     dato_modificado TEXT
 );
+
+CREATE OR REPLACE FUNCTION cursos_audit() RETURNS TRIGGER AS $$
+DECLARE
+    accion_texto VARCHAR(10);
+    usuario_sistema INTEGER;
+BEGIN
+    -- Obtener el ID del usuario del sistema desde una variable de configuración
+    SELECT current_setting('myapp.current_user_id', true)::INTEGER INTO usuario_sistema;
+
+    IF TG_OP = 'DELETE' THEN
+        accion_texto := 'DELETE';
+    ELSIF TG_OP = 'UPDATE' THEN
+        accion_texto := 'UPDATE';
+    ELSE
+        accion_texto := 'INSERT';
+    END IF;
+
+    INSERT INTO cursos.auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
+    VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), OLD::text, NEW::text);
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Crear el trigger para la tabla certificaciones
+CREATE TRIGGER certificaciones_trigger
+AFTER INSERT OR UPDATE OR DELETE ON cursos.certificaciones
+FOR EACH ROW EXECUTE FUNCTION cursos_audit();
+
+-- Crear el trigger para la tabla cursos
+CREATE TRIGGER cursos_trigger
+AFTER INSERT OR UPDATE OR DELETE ON cursos.cursos
+FOR EACH ROW EXECUTE FUNCTION cursos_audit();
+
+-- Crear el trigger para la tabla roles
+CREATE TRIGGER roles_trigger
+AFTER INSERT OR UPDATE OR DELETE ON cursos.roles
+FOR EACH ROW EXECUTE FUNCTION cursos_audit();
+
+-- Crear el trigger para la tabla usuarios
+CREATE TRIGGER usuarios_trigger
+AFTER INSERT OR UPDATE OR DELETE ON cursos.usuarios
+FOR EACH ROW EXECUTE FUNCTION cursos_audit();
+
+Tu estructura actual es bastante buena, pero hay algunas mejoras que podrías considerar para hacerla más clara y modular:
+
+config/
+model.php: Perfecto para la configuración de la base de datos y funciones comunes.
+controllers/
+asignar_nota.php: Está bien aquí, pero podrías renombrarlo a algo más general como NotasController.php para seguir una convención de nombres.
+autenticacion.php: Podrías renombrarlo a AuthController.php para mantener consistencia.
+curso_acciones.php: Podrías fusionarlo con curso_controlador.php si las acciones son específicas de los cursos.
+curso_controlador.php: Renombrarlo a CursosController.php para seguir la convención.
+usuarios_controlador.php: Renombrarlo a UsuariosController.php.
+actualizar_estado.php: Podría ser parte de CursosController.php o UsuariosController.php dependiendo de qué estado estás actualizando.
+models/
+curso.php: Perfecto aquí.
+datos_usuario.php: Podrías renombrarlo a Usuario.php para seguir la convención de nombres.
+obtener_cursos.php: Podrías fusionarlo con curso.php si es específico de los cursos.
+public/
+assets/: Perfecto aquí.
+estilo.css: Perfecto aquí.
+cursos.html: Podrías moverlo a la carpeta views si es una vista.
+gestion_cursos.php: Podrías moverlo a la carpeta views si es una vista.
+index.php: Perfecto aquí.
+perfil.php: Podrías moverlo a la carpeta views si es una vista.
+detallles_curso.php: Podrías moverlo a la carpeta views si es una vista.
+usuario.php: Podrías moverlo a la carpeta views si es una vista.
+editar_cursos.php: Podrías moverlo a la carpeta views si es una vista.
+views/
+curso_formulario.html: Perfecto aquí.
+curso.php: Perfecto aquí.
+footer.php: Perfecto aquí.
+header.php: Perfecto aquí.
+Sugerencias adicionales:
+Separación de lógica y presentación: Asegúrate de que la lógica de negocio esté en los controladores y modelos, y la presentación en las vistas.
+Convenciones de nombres: Usar nombres consistentes y en inglés puede ayudar a mantener la claridad y la coherencia.
+¿Te gustaría ayuda con algún aspecto específico de la reorganización o tienes alguna otra pregunta?

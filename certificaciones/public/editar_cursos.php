@@ -24,7 +24,7 @@ foreach ($cursos as $curso) {
     // Mostrar los datos del curso en campos de entrada
     echo '<h3>Editar curso ' . $curso['nombre_curso'] . '</h3>';
     echo '<form action="../controllers/curso_controlador.php" method="post">';
-    echo '<input type="hidden" name="action" value="editar_curso">';
+    echo '<input type="hidden" name="action" value="editar">';
     echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
     echo '<p>Nombre del curso: <input type="text" name="nombre_curso" value="' . $curso['nombre_curso'] . '" required></p>';
     echo '<p>Descripción: <textarea name="descripcion" required>' . $curso['descripcion'] . '</textarea></p>';

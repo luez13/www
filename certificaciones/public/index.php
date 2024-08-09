@@ -1,80 +1,59 @@
 <?php
 // Incluir el archivo header.php
 include '../views/header.php';
+?>
 
-// Mostrar un formulario para iniciar sesión
-echo '<div class="container">';
-echo '<h3 class="text-center">Iniciar sesión</h3>';
-echo '<form action="../controllers/autenticacion.php" method="post" class="form-horizontal">';
-echo '<input type="hidden" name="action" value="login">';
-echo '<div class="form-group">';
-echo '<label for="correo" class="col-sm-2 control-label">Correo:</label>';
-echo '<div class="col-sm-10">';
-echo '<input type="email" name="correo" id="correo" class="form-control" required>';
-echo '</div>';
-echo '</div>';
-echo '<div class="form-group">';
-echo '<label for="password" class="col-sm-2 control-label">Contraseña:</label>';
-echo '<div class="col-sm-10">';
-echo '<input type="password" name="password" id="password" class="form-control" required>';
-echo '</div>';
-echo '</div>';
-echo '<div class="form-group">';
-echo '<div class="col-sm-offset-2 col-sm-10">';
-echo '<input type="submit" value="Iniciar sesión" class="btn btn-primary">';
-echo '</div>';
-echo '</div>';
-echo '</form>';
-echo '</div>';
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-xl-10 col-lg-12 col-md-9">
+            <div class="card o-hidden border-0 shadow-lg my-5">
+                <div class="card-body p-0">
+                    <div class="row">
+                        <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
+                        <div class="col-lg-6">
+                            <div class="p-5">
+                                <div class="text-center">
+                                    <img src="../public/assets/img/logo.png" width="50" height="50"> UPTAIET
+                                    <h1 class="h4 text-gray-900 mb-4">Bienvenido</h1>
+                                </div>
+                                <form class="user" action="../controllers/autenticacion.php" method="post">
+                                    <input type="hidden" name="action" value="login">
+                                    <div class="form-group">
+                                        <input type="email" class="form-control form-control-user" name="correo" id="correo" aria-describedby="emailHelp" placeholder="Ingresa correo electronico" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="password" class="form-control form-control-user" name="password" id="password" placeholder="Contraseña" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="custom-control custom-checkbox small">
+                                            <input type="checkbox" class="custom-control-input" id="customCheck">
+                                            <label class="custom-control-label" for="customCheck">Recuerdame</label>
+                                        </div>
+                                    </div>
+                                    <input type="submit" value="Iniciar sesión" class="btn btn-primary btn-user btn-block">
+                                    <hr>
+                                    <!-- <a href="index.html" class="btn btn-google btn-user btn-block">
+                                        <i class="fab fa-google fa-fw"></i> Registrate con Google
+                                    </a>
+                                    <a href="index.html" class="btn btn-facebook btn-user btn-block">Registrate con Facebook</a> -->
+                                </form>
+                                <hr>
+                                <div class="text-center">
+                                    <a class="small" href="forgot-password.html">¿Olvidaste tu contraseña?</a>
+                                </div>
+                                <div class="text-center">
+                                    <a class="small" href="register.html">¡Crea una cuenta!</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-// Mostrar un formulario para registrarse
-echo '<div class="container">';
-echo '<h3 class="text-center">Registrarse</h3>';
-echo '<form action="../controllers/autenticacion.php" method="post" class="form-horizontal">';
-echo '<input type="hidden" name="action" value="registro">';
-echo '<div class="form-group">';
-echo '<label for="nombre" class="col-sm-2 control-label">Nombre:</label>';
-echo '<div class="col-sm-10">';
-echo '<input type="text" name="nombre" id="nombre" class="form-control" required>';
-echo '</div>';
-echo '</div>';
-echo '<div class="form-group">';
-echo '<label for="apellido" class="col-sm-2 control-label">Apellido:</label>';
-echo '<div class="col-sm-10">';
-echo '<input type="text" name="apellido" id="apellido" class="form-control" required>';
-echo '</div>';
-echo '</div>';
-echo '<div class="form-group">';
-echo '<label for="correo" class="col-sm-2 control-label">Correo:</label>';
-echo '<div class="col-sm-10">';
-echo '<input type="email" name="correo" id="correo" class="form-control" required>';
-echo '</div>';
-echo '</div>';
-echo '<div class="form-group">';
-echo '<label for="password" class="col-sm-2 control-label">Contraseña:</label>';
-echo '<div class="col-sm-10">';
-echo '<input type="password" name="password" id="password" class="form-control" required>';
-echo '</div>';
-echo '</div>';
-echo '<div class="form-group">';
-echo '<label for="cedula" class="col-sm-2 control-label">Cédula:</label>';
-echo '<div class="col-sm-10">';
-echo '<input type="number" name="cedula" id="cedula" class="form-control" required>';
-echo '</div>';
-echo '</div>';
-echo '<div class="form-group">';
-echo '<div class="col-sm-offset-2 col-sm-10">';
-echo '<input type="submit" value="Registrarse" class="btn btn-success">';
-echo '</div>';
-echo '</div>';
-echo '</form>';
-echo '</div>';
-
-// Mostrar un enlace para recuperar la contraseña
-// echo '<div class="container">';
-// echo '<p class="text-center">¿Olvidaste tu contraseña? <a href="../views/recuperar.php" class="alert-link">Haz clic aquí</a></p>';
-// echo '</div>';
-
+<?php
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>

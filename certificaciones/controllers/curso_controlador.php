@@ -2,13 +2,8 @@
 // Incluir el archivo model.php en config
 include '../config/model.php';
 
-// Incluir el archivo header.php en views
-include '../views/header.php';
-
 // Incluir el archivo curso.php en models
 include '../models/curso.php';
-
-$user_id = $_SESSION['user_id'];
 
 // Crear una instancia de la clase DB
 $db = new DB();
@@ -38,58 +33,9 @@ function validar_curso($nombre, $descripcion, $duracion, $periodo, $modalidad, $
     return true;
 }
 
-// Crear una función para redirigir al usuario a la página de gestión de cursos
-function redirigir_gestion() {
-    // Usar la función header para enviar el encabezado de redirección
-    header('Location: ../public/gestion_cursos.php');
-    // Terminar la ejecución del script
-    exit();
-}
-
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_curso') {
-    $id_curso = $_POST['id_curso'];
-    $promotor = $_POST['promotor'];
-    $modalidad = $_POST['modalidad'];
-    $nombre_curso = $_POST['nombre_curso'];
-    $descripcion = $_POST['descripcion'];
-    $duracion = $_POST['duracion'];
-    $periodo = $_POST['periodo'];
-    $tipo_evaluacion = $_POST['tipo_evaluacion'];
-    $tipo_curso = $_POST['tipo_curso'];
-    $limite_inscripciones = $_POST['limite_inscripciones'];
-    $estado = $_POST['estado'];
-
-    // Verificar si el curso ya está autorizado
-    $stmt = $db->prepare("SELECT autorizacion FROM cursos.cursos WHERE id_curso = :id_curso");
-    $stmt->execute([':id_curso' => $id_curso]);
-    $autorizacion_actual = $stmt->fetch(PDO::FETCH_ASSOC)['autorizacion'];
-
-    $autorizacion = $_POST['autorizacion'] != 'no' ? $user_id : $autorizacion_actual;
-
-    // Actualizar los datos del curso
-    $db = new DB();
-    $stmt = $db->prepare("UPDATE cursos.cursos SET promotor = :promotor, modalidad = :modalidad, nombre_curso = :nombre_curso, descripcion = :descripcion, duracion = :duracion, periodo = :periodo, tipo_evaluacion = :tipo_evaluacion, tipo_curso = :tipo_curso, autorizacion = :autorizacion, limite_inscripciones = :limite_inscripciones, estado = :estado WHERE id_curso = :id_curso");
-    $stmt->bindParam(':promotor', $promotor);
-    $stmt->bindParam(':modalidad', $modalidad);
-    $stmt->bindParam(':nombre_curso', $nombre_curso);
-    $stmt->bindParam(':descripcion', $descripcion);
-    $stmt->bindParam(':duracion', $duracion);
-    $stmt->bindParam(':periodo', $periodo);
-    $stmt->bindParam(':tipo_evaluacion', $tipo_evaluacion);
-    $stmt->bindParam(':tipo_curso', $tipo_curso);
-    $stmt->bindParam(':autorizacion', $autorizacion);
-    $stmt->bindParam(':limite_inscripciones', $limite_inscripciones);
-    $stmt->bindParam(':estado', $estado);
-    $stmt->bindParam(':id_curso', $id_curso);
-    $stmt->execute();
-    
-
-    header('Location: ../public/editar_cursos.php'); // Redirige de nuevo a la página de cursos
-}
 // Obtener la acción del formulario
 $action = $_POST['action'];
-echo '<div class="main-content">';
+
 // Ejecutar la acción correspondiente
 switch ($action) {
     case 'crear':
@@ -108,11 +54,11 @@ switch ($action) {
             $promotor = $_SESSION['user_id'];
             // Crear el curso usando el método de la clase Curso
             $curso->crear($nombre_curso, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones, $promotor);
-            // Mostrar un mensaje de éxito al usuario
-            echo '<p>El curso se ha creado correctamente</p>';
+            // Devolver mensaje de éxito
+            echo 'El curso se ha creado correctamente';
         } else {
-            // Mostrar un mensaje de error al usuario
-            echo '<p>Los datos del curso son inválidos</p>';
+            // Devolver mensaje de error
+            echo 'Los datos del curso son inválidos';
         }
         break;
     case 'editar':
@@ -131,45 +77,46 @@ switch ($action) {
         if (validar_curso($nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones)) {
             // Editar el curso usando el método de la clase Curso
             $curso->editar($id_curso, $nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones);
-            // Mostrar un mensaje de éxito al usuario
-            echo '<p>El curso se ha editado correctamente</p>';
+            // Devolver mensaje de éxito
+            echo 'El curso se ha editado correctamente';
         } else {
-            // Mostrar un mensaje de error al usuario
-            echo '<p>Los datos del curso son inválidos</p>';
+            // Devolver mensaje de error
+            echo 'Los datos del curso son inválidos';
         }
         break;
     case 'eliminar':
         // Obtener el id del curso del formulario
         $id_curso = $_POST['id_curso'];
-        // Eliminar el curso usando el método de la clase Curso
-        $curso->eliminar($id_curso);
-        // Mostrar un mensaje de éxito al usuario
-        echo '<p>El curso se ha eliminado correctamente</p>';
+        // Verificar si hay usuarios inscritos o que hayan aprobado el curso
+        if (!$curso->tiene_inscritos_o_aprobados($id_curso)) {
+            // Eliminar el curso
+            $curso->eliminar($id_curso);
+            // Devolver mensaje de éxito
+            echo 'El curso se ha eliminado correctamente';
+        } else {
+            // Devolver mensaje de error
+            echo 'No se puede eliminar el curso porque hay usuarios inscritos o que han aprobado el curso';
+        }
         break;
     case 'finalizar':
         // Obtener el id del curso del formulario
         $id_curso = $_POST['id_curso'];
         // Finalizar el curso usando el método de la clase Curso
         $curso->finalizar($id_curso);
-        // Mostrar un mensaje de éxito al usuario
-        echo '<p>El curso se ha finalizado correctamente</p>';
-        break;
-    default:
-        // Mostrar un mensaje de error al usuario
-        echo '<p>Acción inválida</p>';
+        // Devolver mensaje de éxito
+        echo 'El curso se ha finalizado correctamente';
         break;
     case 'iniciar':
         // Obtener el id del curso del formulario
         $id_curso = $_POST['id_curso'];
         // Iniciar el curso usando el método de la clase Curso
-        // Asegúrate de tener este método en tu clase Curso
         $curso->iniciar($id_curso);
-        // Mostrar un mensaje de éxito al usuario
-        echo '<p>El curso se ha iniciado correctamente</p>';
+        // Devolver mensaje de éxito
+        echo 'El curso se ha iniciado correctamente';
+        break;
+    default:
+        // Devolver mensaje de error
+        echo 'Acción inválida';
         break;
 }
-
-echo '</div>';
-// Incluir el archivo footer.php en views
-include '../views/footer.php';
 ?>

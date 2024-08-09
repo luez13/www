@@ -8,15 +8,26 @@ include '../views/header.php';
 // Crear una instancia de la clase DB
 $db = new DB();
 
+// Obtener el tipo de curso y el estado de la solicitud GET
+$tipo_curso = isset($_GET['tipo_curso']) ? $_GET['tipo_curso'] : null;
+$estado = isset($_GET['estado']) ? $_GET['estado'] : FALSE || NULL;
+
+// Determinar el texto del estado
+$estado_texto = $estado ? 'Abiertos' : 'Cerrados';
+
 // Consultar la base de datos para obtener los cursos disponibles
 try {
-    $stmt = $db->prepare('SELECT * FROM cursos.cursos WHERE estado = :estado');
-    $stmt->execute(['estado' => true]);
+    if ($tipo_curso && $estado !== null) {
+        $stmt = $db->prepare('SELECT * FROM cursos.cursos WHERE tipo_curso = :tipo_curso AND estado = :estado');
+        $stmt->execute(['tipo_curso' => $tipo_curso, 'estado' => $estado]);
+    } else {
+        $stmt = $db->prepare('SELECT * FROM cursos.cursos WHERE estado = :estado');
+        $stmt->execute(['estado' => true]);
+    }
     $cursos = $stmt->fetchAll();
 
     echo '<div class="main-content">';
-    // Mostrar los cursos en formato HTML
-    echo '<h3>Cursos disponibles</h3>';
+    echo '<h3>' . ($tipo_curso ? ucfirst($tipo_curso) : 'Cursos') . ' ' . $estado_texto . '</h3>';
     echo '<ul>';
     foreach ($cursos as $curso) {
         // Consultar si el usuario ya está inscrito en el curso
