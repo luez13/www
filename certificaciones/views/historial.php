@@ -9,6 +9,14 @@ $user_id = $_SESSION['user_id'];
 
 require_once '../controllers/autenticacion.php';
 
+// Verificar si la solicitud es AJAX
+$is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+if (!$is_ajax) {
+    // Incluir el archivo header.php en views
+    include 'header.php';
+}
+
 echo '<div class="main-content">';
 
 if (isset($_GET['action']) && $_GET['action'] == 'inscritos') {
@@ -23,7 +31,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'inscritos') {
         echo '<ul>';
         foreach ($cursos_inscritos as $curso) {
             // Mostrar el nombre del curso como un enlace que redirige al archivo curso.php con el id del curso
-            echo '<li><a href="curso.php?id=' . $curso['id_curso'] . '">' . $curso['nombre_curso'] . '</a></li>';
+            echo '<li><a href="#" onclick="loadCourse(' . $curso['id_curso'] . ')">' . $curso['nombre_curso'] . '</a></li>';
         }
         echo '</ul>';
     } catch (PDOException $e) {
@@ -42,7 +50,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'inscritos') {
         echo '<ul>';
         foreach ($cursos_finalizados as $curso) {
             // Mostrar el nombre del curso como un enlace que redirige al archivo curso.php con el id del curso
-            echo '<li><a href="curso.php?id=' . $curso['id_curso'] . '">' . $curso['nombre_curso'] . '</a></li>';
+            echo '<li><a href="#" onclick="loadCourse(' . $curso['id_curso'] . ')">' . $curso['nombre_curso'] . '</a></li>';
         }
         echo '</ul>';
     } catch (PDOException $e) {
@@ -53,6 +61,8 @@ if (isset($_GET['action']) && $_GET['action'] == 'inscritos') {
 
 echo '</div>';
 
-// Incluir el archivo footer.php en views
-include 'footer.php';
+if (!$is_ajax) {
+    // Incluir el archivo footer.php en views
+    include 'footer.php';
+}
 ?>

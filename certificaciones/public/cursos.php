@@ -37,7 +37,7 @@ try {
     
         // Si el usuario no está inscrito en el curso, mostrarlo
         if (!$inscripcion) {
-            echo '<li><a href="../views/curso.php?id=' . $curso['id_curso'] . '">' . $curso['nombre_curso'] . '</a></li>';
+            echo '<li><a href="#" onclick="loadCourse(' . $curso['id_curso'] . ')">' . $curso['nombre_curso'] . '</a></li>';
         }
     }    
     echo '</ul>';

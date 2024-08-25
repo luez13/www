@@ -33,7 +33,7 @@ try {
 
     <!-- Nav Item - panel -->
     <li class="nav-item active">
-        <a class="nav-link" href="index.html">
+        <a class="nav-link" href="perfil.php">
             <i class="fas fa-desktop"></i>
             <span>INICIO</span></a>
     </li>
@@ -62,12 +62,16 @@ try {
                 <a class="collapse-item" href="#" onclick="loadCategory('cursos', true)">Cursos</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('seminarios', true)">Seminarios</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('diplomados', true)">Diplomados</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('congreso', true)">Congreso</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('charla', true)">Charla</a>
                 <h6 class="collapse-header">Rutas Cerradas:</h6>
                 <a class="collapse-item" href="#" onclick="loadCategory('masterclass', false)">MasterClass</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('talleres', false)">Talleres</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('cursos', false)">Cursos</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('seminarios', false)">Seminarios</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('diplomados', false)">Diplomados</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('congreso', false)">Congreso</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('charla', false)">Charla</a>
             </div>
         </div>
     </li>
@@ -104,11 +108,15 @@ try {
     <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
             <div class="bg-white py-2 collapse-inner rounded">
+                <?php if ($_SESSION['id_rol'] == 2 || $_SESSION['id_rol'] == 3): ?>
                 <h6 class="collapse-header">Facilitadores</h6>
-                <a class="collapse-item" href="#" onclick="loadPage('gestion_cursos.php?action=crear')">Postular Curso</a>
+                <a class="collapse-item" href="#" onclick="loadPage('gestion_cursos.php?action=crear')">Postular Propuesta</a>
                 <a class="collapse-item" href="#" onclick="loadPage('gestion_cursos.php?action=ver')">Ver Postulaciones</a>
+                <?php endif; ?>
+                <?php if ($_SESSION['id_rol'] == 4): ?>
                 <h6 class="collapse-header">Administrador</h6>
                 <a class="collapse-item" href="#" onclick="loadPage('editar_cursos.php')">Verificar Postulación</a>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -433,4 +441,42 @@ $(document).ready(function() {
         });
     });
 });
+
+function loadCourse(courseId) {
+    const url = '../views/curso.php';
+    console.log('Cargando curso con ID:', courseId);
+    console.log('URL:', url);
+    $.ajax({
+        url: url,
+        method: 'GET',
+        data: { id: courseId },
+        success: function(data) {
+            console.log('Datos recibidos:', data);
+            $('#page-content').html(data);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al cargar el curso:', error);
+            alert('Error al cargar el curso.');
+        }
+    });
+}
+
+function loadHistorial(action) {
+    const url = '../views/historial.php';
+    console.log('Cargando historial con acción:', action);
+    console.log('URL:', url);
+    $.ajax({
+        url: url,
+        method: 'GET',
+        data: { action: action },
+        success: function(data) {
+            console.log('Datos recibidos:', data);
+            $('#page-content').html(data);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al cargar el historial:', error);
+            alert('Error al cargar el historial.');
+        }
+    });
+}
 </script>

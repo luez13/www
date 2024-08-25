@@ -14,15 +14,34 @@ if ($_POST['action'] == 'editar_perfil') {
     $nuevaContrasena = $_POST['nueva_contrasena'];
 
     try {
-        $stmt = $db->prepare('UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula, password = :password WHERE id = :id');
-        $stmt->execute([
+        // Construir la consulta SQL
+        $sql = 'UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula';
+
+        // Agregar la contraseña a la consulta solo si se ha ingresado una nueva
+        if (!empty($nuevaContrasena)) {
+            $sql .= ', password = :password';
+        }
+
+        $sql .= ' WHERE id = :id';
+
+        // Preparar la consulta
+        $stmt = $db->prepare($sql);
+
+        // Vincular los parámetros
+        $params = [
             ':nombre' => $nombre,
             ':apellido' => $apellido,
             ':correo' => $correo,
             ':cedula' => $cedula,
-            ':password' => password_hash($nuevaContrasena, PASSWORD_DEFAULT),
             ':id' => $user_id
-        ]);
+        ];
+
+        if (!empty($nuevaContrasena)) {
+            $params[':password'] = password_hash($nuevaContrasena, PASSWORD_DEFAULT);
+        }
+
+        // Ejecutar la consulta
+        $stmt->execute($params);
 
         // Actualizar los datos en la sesión
         $_SESSION['nombre'] = $nombre;

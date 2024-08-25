@@ -73,7 +73,7 @@ certificaciones/
 │   ├── index.php
 │   ├── perfil.php
 │   ├── detallles_curso.php
-|   ├── usuario.php
+|   ├── register.php
 │   └── editar_cursos.php
 └── views/
     ├── curso_formulario.html
@@ -83,7 +83,57 @@ certificaciones/
     └── header.php
 
 
-crear tabla auditoria:
+-- Crear la base de datos
+CREATE DATABASE certificaciones_DB;
+
+-- Conectar a la base de datos
+\c certificaciones_DB;
+
+-- Crear el esquema
+CREATE SCHEMA cursos;
+
+-- Crear las tablas dentro del esquema cursos
+CREATE TABLE cursos.cursos (
+    id_curso SERIAL PRIMARY KEY,
+    promotor VARCHAR(255),
+    modalidad VARCHAR(255),
+    nombre_curso VARCHAR(255),
+    descripcion TEXT,
+    duracion INTERVAL,
+    periodo DATE,
+    tipo_evaluacion BOOLEAN,
+    tipo_curso VARCHAR(255),
+    autorizacion VARCHAR(255),
+    limite_inscripciones INTEGER,
+    estado BOOLEAN
+);
+
+CREATE TABLE cursos.roles (
+    id_rol SERIAL PRIMARY KEY,
+    nombre_rol VARCHAR(255)
+);
+
+CREATE TABLE cursos.usuarios (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(255),
+    apellido VARCHAR(255),
+    correo VARCHAR(255) UNIQUE,
+    password TEXT,
+    cedula VARCHAR(255) UNIQUE,
+    id_rol INTEGER REFERENCES cursos.roles(id_rol),
+    token VARCHAR(255),
+    confirmado BOOLEAN
+);
+
+CREATE TABLE cursos.certificaciones (
+    id_idcertificacion SERIAL PRIMARY KEY,
+    id_usuario INTEGER REFERENCES cursos.usuarios(id),
+    curso_id INTEGER REFERENCES cursos.cursos(id_curso),
+    valor_unico VARCHAR(255) UNIQUE,
+    completado BOOLEAN,
+    nota INTEGER,
+    fecha_inscripcion TIMESTAMP
+);
 
 CREATE TABLE cursos.auditoria (
     id_auditoria SERIAL PRIMARY KEY,
@@ -95,7 +145,8 @@ CREATE TABLE cursos.auditoria (
     dato_modificado TEXT
 );
 
-CREATE OR REPLACE FUNCTION cursos_audit() RETURNS TRIGGER AS $$
+-- Crear la función de auditoría dentro del esquema cursos
+CREATE OR REPLACE FUNCTION cursos.cursos_audit() RETURNS TRIGGER AS $$
 DECLARE
     accion_texto VARCHAR(10);
     usuario_sistema INTEGER;
@@ -118,25 +169,22 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Crear el trigger para la tabla certificaciones
+-- Crear los triggers dentro del esquema cursos
 CREATE TRIGGER certificaciones_trigger
 AFTER INSERT OR UPDATE OR DELETE ON cursos.certificaciones
-FOR EACH ROW EXECUTE FUNCTION cursos_audit();
+FOR EACH ROW EXECUTE FUNCTION cursos.cursos_audit();
 
--- Crear el trigger para la tabla cursos
 CREATE TRIGGER cursos_trigger
 AFTER INSERT OR UPDATE OR DELETE ON cursos.cursos
-FOR EACH ROW EXECUTE FUNCTION cursos_audit();
+FOR EACH ROW EXECUTE FUNCTION cursos.cursos_audit();
 
--- Crear el trigger para la tabla roles
 CREATE TRIGGER roles_trigger
 AFTER INSERT OR UPDATE OR DELETE ON cursos.roles
-FOR EACH ROW EXECUTE FUNCTION cursos_audit();
+FOR EACH ROW EXECUTE FUNCTION cursos.cursos_audit();
 
--- Crear el trigger para la tabla usuarios
 CREATE TRIGGER usuarios_trigger
 AFTER INSERT OR UPDATE OR DELETE ON cursos.usuarios
-FOR EACH ROW EXECUTE FUNCTION cursos_audit();
+FOR EACH ROW EXECUTE FUNCTION cursos.cursos_audit();
 
 Tu estructura actual es bastante buena, pero hay algunas mejoras que podrías considerar para hacerla más clara y modular:
 
