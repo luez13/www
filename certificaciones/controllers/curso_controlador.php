@@ -12,21 +12,17 @@ $db = new DB();
 $curso = new Curso($db);
 
 // Crear una función para validar los datos de creación o edición de curso
-function validar_curso($nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones) {
+function validar_curso($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos) {
     // Verificar que los datos no estén vacíos
-    if (empty($nombre) || empty($descripcion) || empty($duracion) || empty($periodo) || empty($modalidad) || !isset($tipo_evaluacion) || empty($tipo_curso) || empty($limite_inscripciones)) {
+    if (empty($nombre) || empty($descripcion) || empty($tiempo_asignado) || empty($inicio_mes) || empty($tipo_curso) || empty($limite_inscripciones) || empty($dias_clase) || empty($horario_inicio) || empty($horario_fin) || empty($nivel_curso) || empty($costo) || empty($conocimientos_previos)) {
         return false;
     }
-    // Verificar que la duración, el periodo y el límite de inscripciones sean numéricos
-    if (!is_numeric($duracion) || !is_numeric($limite_inscripciones)) {
+    // Verificar que los campos numéricos sean válidos
+    if (!is_numeric($tiempo_asignado) || !is_numeric($limite_inscripciones) || !is_numeric($costo)) {
         return false;
     }
-    // Verificar que la modalidad y el tipo de evaluación sean válidos
-    if (!in_array($modalidad, ['Presencial', 'Virtual', 'Mixto']) || !is_bool($tipo_evaluacion)) {
-        return false;
-    }
-    // Verificar que periodo sea una fecha válida
-    if (!preg_match("/\d{4}-\d{2}-\d{2}/", $periodo)) {
+    // Verificar que las fechas y horas sean válidas
+    if (!preg_match("/\d{4}-\d{2}-\d{2}/", $inicio_mes) || !preg_match("/\d{2}:\d{2}/", $horario_inicio) || !preg_match("/\d{2}:\d{2}/", $horario_fin)) {
         return false;
     }
     // Si todo está bien, devolver true
@@ -42,41 +38,62 @@ switch ($action) {
         // Obtener los datos del formulario
         $nombre_curso = $_POST['nombre_curso'];
         $descripcion = $_POST['descripcion'];
-        $duracion = $_POST['duracion'];
-        $periodo = $_POST['periodo'];
-        $modalidad = $_POST['modalidad'];
-        $tipo_evaluacion = $_POST['tipo_evaluacion'] === 'true' ? true : false;
+        $tiempo_asignado = $_POST['tiempo_asignado'];
+        $inicio_mes = $_POST['inicio_mes'];
         $tipo_curso = $_POST['tipo_curso'];
         $limite_inscripciones = $_POST['limite_inscripciones'];
+        $dias_clase = isset($_POST['dias_clase']) ? '{' . implode(',', $_POST['dias_clase']) . '}' : '{}';
+        $horario_inicio = $_POST['horario_inicio'];
+        $horario_fin = $_POST['horario_fin'];
+        $nivel_curso = $_POST['nivel_curso'];
+        $costo = $_POST['costo'];
+        $conocimientos_previos = $_POST['conocimientos_previos'];
+        $requerimientos_implementos = $_POST['requerimientos_implementos'];
+        $desempeño_al_concluir = $_POST['desempeño_al_concluir'];
+        $nombre_modulo = $_POST['nombre_modulo'];
+        $contenido = $_POST['contenido'];
+        $actividad = $_POST['actividad'];
+        $instrumento = $_POST['instrumento'];
+    
         // Validar los datos
-        if (validar_curso($nombre_curso, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones)) {
+        if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implementos, $desempeño_al_concluir)) {
             // Obtener el id del usuario de la sesión
             $promotor = $_SESSION['user_id'];
             // Crear el curso usando el método de la clase Curso
-            $curso->crear($nombre_curso, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones, $promotor);
+            $curso_id = $curso->crear($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implementos, $desempeño_al_concluir, $promotor);
+            
+            // Insertar los módulos
+            for ($i = 0; $i < count($nombre_modulo); $i++) {
+                $curso->crearModulo($curso_id, $nombre_modulo[$i], $contenido[$i], $actividad[$i], $instrumento[$i], $i + 1);
+            }
+    
             // Devolver mensaje de éxito
-            echo 'El curso se ha creado correctamente';
+            echo 'El curso y los módulos se han creado correctamente';
         } else {
             // Devolver mensaje de error
             echo 'Los datos del curso son inválidos';
         }
-        break;
+        break;       
     case 'editar':
         // Obtener los datos del formulario
         $id_curso = $_POST['id_curso'];
-        $nombre = $_POST['nombre_curso'];
+        $nombre_curso = $_POST['nombre_curso'];
         $descripcion = $_POST['descripcion'];
-        $duracion = $_POST['duracion'];
-        $periodo = $_POST['periodo'];
-        $modalidad = $_POST['modalidad'];
-        $tipo_evaluacion = $_POST['tipo_evaluacion'] === 'true' ? true : false;
+        $tiempo_asignado = $_POST['tiempo_asignado'];
+        $inicio_mes = $_POST['inicio_mes'];
         $tipo_curso = $_POST['tipo_curso'];
         $limite_inscripciones = $_POST['limite_inscripciones'];
-
+        $dias_clase = $_POST['dias_clase'];
+        $horario_inicio = $_POST['horario_inicio'];
+        $horario_fin = $_POST['horario_fin'];
+        $nivel_curso = $_POST['nivel_curso'];
+        $costo = $_POST['costo'];
+        $conocimientos_previos = $_POST['conocimientos_previos'];
+    
         // Validar los datos
-        if (validar_curso($nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones)) {
+        if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos)) {
             // Editar el curso usando el método de la clase Curso
-            $curso->editar($id_curso, $nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones);
+            $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos);
             // Devolver mensaje de éxito
             echo 'El curso se ha editado correctamente';
         } else {

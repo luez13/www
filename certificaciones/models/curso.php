@@ -10,43 +10,86 @@ class Curso {
         $this->db = $db;
     }
 
-    // Crear un método para crear un curso
-    public function crear($nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones, $user_id) {
-        // Verificar si el usuario existe en la base de datos
-        $stmt = $this->db->prepare('SELECT * FROM cursos.usuarios WHERE id = :user_id');
-        $stmt->execute(['user_id' => $user_id]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$user) {
-            echo '<p>El usuario no existe</p>';
-            return;
-        }
+// Crear un método para crear un curso
+public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento, $desempeno_al_concluir, $user_id) {
+    // Verificar si el usuario existe en la base de datos
+    $stmt = $this->db->prepare('SELECT * FROM cursos.usuarios WHERE id = :user_id');
+    $stmt->execute(['user_id' => $user_id]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$user) {
+        echo '<p>El usuario no existe</p>';
+        return;
+    }
 
-        // Insertar los datos en la base de datos
+    // Insertar los datos en la base de datos y obtener el ID del curso recién creado
+    try {
+        $stmt = $this->db->prepare('INSERT INTO cursos.cursos (nombre_curso, descripcion, tiempo_asignado, inicio_mes, tipo_curso, limite_inscripciones, dias_clase, horario_inicio, horario_fin, nivel_curso, costo, conocimientos_previos, requerimientos_implemento, desempeno_al_concluir, promotor) VALUES (:nombre_curso, :descripcion, :tiempo_asignado, :inicio_mes, :tipo_curso, :limite_inscripciones, :dias_clase, :horario_inicio, :horario_fin, :nivel_curso, :costo, :conocimientos_previos, :requerimientos_implemento, :desempeno_al_concluir, :promotor) RETURNING id_curso');
+        $stmt->execute([
+            'nombre_curso' => $nombre,
+            'descripcion' => $descripcion,
+            'tiempo_asignado' => $tiempo_asignado,
+            'inicio_mes' => $inicio_mes,
+            'tipo_curso' => $tipo_curso,
+            'limite_inscripciones' => $limite_inscripciones,
+            'dias_clase' => $dias_clase,
+            'horario_inicio' => $horario_inicio,
+            'horario_fin' => $horario_fin,
+            'nivel_curso' => $nivel_curso,
+            'costo' => $costo,
+            'conocimientos_previos' => $conocimientos_previos,
+            'requerimientos_implemento' => $requerimientos_implemento,
+            'desempeno_al_concluir' => $desempeno_al_concluir,
+            'promotor' => $user_id
+        ]);
+        $curso_id = $stmt->fetchColumn(); // Obtener el ID del curso recién creado
+        return $curso_id;
+    } catch (PDOException $e) {
+        // Mostrar un mensaje de error al usuario
+        echo '<p>Ha ocurrido un error al crear el curso: ' . $e->getMessage() . '</p>';
+        return null;
+    }
+}
+    public function crearModulo($curso_id, $nombre_modulo, $contenido, $actividad, $instrumento, $numero) {
         try {
-            $stmt = $this->db->prepare('INSERT INTO cursos.cursos (nombre_curso, descripcion, duracion, periodo, modalidad, tipo_evaluacion, tipo_curso, limite_inscripciones, promotor) VALUES (:nombre_curso, :descripcion, :duracion, :periodo, :modalidad, :tipo_evaluacion, :tipo_curso, :limite_inscripciones, :promotor)');
-            // Convertir el booleano de PHP a una representación válida de booleano en PostgreSQL
-            $tipo_evaluacion = $tipo_evaluacion ? 'true' : 'false';
-
-            // Luego, inserta $tipo_evaluacion en la base de datos tal como está
-            $stmt->execute(['nombre_curso' => $nombre, 'descripcion' => $descripcion, 'duracion' => $duracion, 'periodo' => $periodo, 'modalidad' => $modalidad, 'tipo_evaluacion' => $tipo_evaluacion, 'tipo_curso' => $tipo_curso, 'limite_inscripciones' => $limite_inscripciones, 'promotor' => $user_id]);
+            $stmt = $this->db->prepare('INSERT INTO cursos.modulos (id_curso, nombre_modulo, contenido, actividad, instrumento, numero) VALUES (:id_curso, :nombre_modulo, :contenido, :actividad, :instrumento, :numero)');
+            $stmt->execute([
+                'id_curso' => $curso_id,
+                'nombre_modulo' => $nombre_modulo,
+                'contenido' => $contenido,
+                'actividad' => $actividad,
+                'instrumento' => $instrumento,
+                'numero' => $numero
+            ]);
         } catch (PDOException $e) {
             // Mostrar un mensaje de error al usuario
-            echo '<p>Ha ocurrido un error al crear el curso: ' . $e->getMessage() . '</p>';
+            echo '<p>Ha ocurrido un error al crear el módulo: ' . $e->getMessage() . '</p>';
         }
-    }      
+    }
 
-    public function editar($id_curso, $nombre, $descripcion, $duracion, $periodo, $modalidad, $tipo_evaluacion, $tipo_curso, $limite_inscripciones) {
+    public function editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos) {
         // Actualizar los datos en la base de datos
         try {
-            $stmt = $this->db->prepare('UPDATE cursos.cursos SET nombre_curso = :nombre, descripcion = :descripcion, duracion = :duracion, periodo = :periodo, modalidad = :modalidad, tipo_evaluacion = :tipo_evaluacion, tipo_curso = :tipo_curso, limite_inscripciones = :limite_inscripciones WHERE id_curso = :id');
-            // Convertir el booleano de PHP a una representación válida de booleano en PostgreSQL
-            $tipo_evaluacion = $tipo_evaluacion ? 'true' : 'false';
-            $stmt->execute(['nombre' => $nombre, 'descripcion' => $descripcion, 'duracion' => $duracion, 'periodo' => $periodo, 'modalidad' => $modalidad, 'tipo_evaluacion' => $tipo_evaluacion, 'tipo_curso' => $tipo_curso, 'limite_inscripciones' => $limite_inscripciones, 'id' => $id_curso]);
+            $stmt = $this->db->prepare('UPDATE cursos.cursos SET nombre_curso = :nombre_curso, descripcion = :descripcion, tiempo_asignado = :tiempo_asignado, inicio_mes = :inicio_mes, tipo_curso = :tipo_curso, limite_inscripciones = :limite_inscripciones, dias_clase = :dias_clase, horario_inicio = :horario_inicio, horario_fin = :horario_fin, nivel_curso = :nivel_curso, costo = :costo, conocimientos_previos = :conocimientos_previos WHERE id_curso = :id_curso');
+            $stmt->execute([
+                'nombre_curso' => $nombre_curso,
+                'descripcion' => $descripcion,
+                'tiempo_asignado' => $tiempo_asignado,
+                'inicio_mes' => $inicio_mes,
+                'tipo_curso' => $tipo_curso,
+                'limite_inscripciones' => $limite_inscripciones,
+                'dias_clase' => $dias_clase,
+                'horario_inicio' => $horario_inicio,
+                'horario_fin' => $horario_fin,
+                'nivel_curso' => $nivel_curso,
+                'costo' => $costo,
+                'conocimientos_previos' => $conocimientos_previos,
+                'id_curso' => $id_curso
+            ]);
         } catch (PDOException $e) {
             // Mostrar un mensaje de error al usuario
             echo '<p>Ha ocurrido un error al editar el curso: ' . $e->getMessage() . '</p>';
         }
-    }      
+    }
 
     // Crear un método para eliminar un curso
     public function eliminar($id_curso) {
@@ -73,17 +116,25 @@ class Curso {
     }
     
 
-    // Definir el método obtener_contenido
-    public function obtener_contenido($user_id) {
-        // Preparar la consulta SQL para obtener los cursos creados por el usuario
-        $stmt = $this->db->prepare('SELECT * FROM cursos.cursos WHERE promotor = :promotor');
-        // Ejecutar la consulta con el id del usuario
-        $stmt->execute(['promotor' => $user_id]);
-        // Obtener el resultado como un array asociativo
-        $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        // Devolver el array con los datos de los cursos
-        return $cursos;
+// Definir el método obtener_contenido
+public function obtener_contenido($user_id) {
+    // Preparar la consulta SQL para obtener los cursos creados por el usuario
+    $stmt = $this->db->prepare('SELECT * FROM cursos.cursos WHERE promotor = :promotor');
+    // Ejecutar la consulta con el id del usuario
+    $stmt->execute(['promotor' => $user_id]);
+    // Obtener el resultado como un array asociativo
+    $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Para cada curso, obtener los módulos asociados
+    foreach ($cursos as &$curso) {
+        $stmt_modulos = $this->db->prepare('SELECT * FROM cursos.modulos WHERE id_curso = :id_curso');
+        $stmt_modulos->execute(['id_curso' => $curso['id_curso']]);
+        $curso['modulos'] = $stmt_modulos->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    // Devolver el array con los datos de los cursos y sus módulos
+    return $cursos;
+}
 
     // Definir el método obtener_curso
     public function obtener_curso($id_curso) {

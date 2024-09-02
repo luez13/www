@@ -40,7 +40,11 @@ if (isset($_SESSION['nombre'])) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
     <title>Sistema de gestión de cursos y certificaciones</title>
     <?php if ($current_page === 'perfil.php' || $current_page === 'index.php'): ?>
-        <img style="width:100%; height:auto; max-height:150px;" src="../public/assets/img/vector membrete 1-01.png">
+    <div class="container-fluid p-0">
+        <div class="banner" style="position: relative; width: 100%; height: 150px; overflow: hidden;">
+            <img src="../public/assets/img/vector membrete 1-01.png" alt="Banner" style="position: absolute; top: 50%; left: 50%; width: 80%; height: auto; transform: translate(-50%, -50%);">
+        </div>
+    </div>
     <?php endif; ?>
 </head>
 <body class="bg-gradient-light">

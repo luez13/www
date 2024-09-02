@@ -1,4 +1,14 @@
 hola, tengo una base de datos llamada certificaciones_DB en postgres 16, dentro del esquema esta cursos, dentro de cursos estan las siguientes tablas:
+
+auditoria columnas:
+
+id_auditoria: integer, llave primaria.
+usuario: varchar (255).
+accion: varchar (20).
+tabla_afectada: varchar (50).
+fecha: timestamp.
+dato_previo: text.
+dato_modificado: text.
 certificaciones columnas:
 
 id_idcertificacion: integer, llave primaria.
@@ -10,42 +20,45 @@ nota: integer.
 fecha_inscripcion: timestamp.
 cursos columnas:
 
-id_curso: integer.
-promotor: varchar.
-modalidad: varchar.
-nombre_curso: varchar.
+id_curso: integer, llave primaria.
+promotor: varchar (255).
+modalidad: varchar (255).
+nombre_curso: varchar (255).
 descripcion: text.
-duracion: interval.
+duracion: integer.
 periodo: date.
 tipo_evaluacion: boolean.
-tipo_curso: varchar.
-autorizacion: varchar.
+tipo_curso: varchar (255).
+autorizacion: varchar (255).
 limite_inscripciones: integer.
 estado: boolean.
+dias_clase: unknown.
+horario_inicio: time.
+horario_fin time.
+curso_modulos columnas:
+
+id_modulo: integer, llave primaria.
+id_curso: integer, llave foránea curso.curso id_curso.
+nombre_modulo: varchar (255).
+descripcion_modulo: text.
+fecha_inicio: date.
+fecha_fin: date.
 roles columnas:
 
 id_rol: integer, llave primaria.
-nombre_rol: varchar.
+nombre_rol: varchar (100).
 usuarios columnas:
 
 id: integer, llave primaria.
-nombre: varchar.
-apellido: varchar.
-correo: varchar, llave única.
+nombre: varchar (100).
+apellido: varchar (100).
+correo: varchar (100), llave única.
 password: text.
-cedula: varchar, llave única.
+cedula: varchar (100), llave única.
 id_rol: integer, llave foránea curso.roles id_rol.
 token: varchar(255).
 confirmado: boolean.
-auditoria columnas:
 
-id_auditoria: integer.
-usuario: varchar.
-accion: varchar.
-tabla_afectada: varchar.
-fecha: timestamp.
-dato_previo: text.
-dato_modificado: text.
 
 asi esta formada la base de datos.
 

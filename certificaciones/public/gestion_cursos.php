@@ -26,19 +26,8 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
     echo '<input type="hidden" name="action" value="crear">';
     echo '<p>Nombre del curso: <input type="text" name="nombre_curso" required></p>';
     echo '<p>Descripción: <textarea name="descripcion" required></textarea></p>';
-    echo '<p>Duración (en días): <input type="number" name="duracion" min="1" required></p>';
-    echo '<p>Fecha de inicio: <input type="date" name="periodo" min="1" required></p>';
-    echo '<p>Modalidad: <select name="modalidad" required>';
-    echo '<option value="Presencial">Presencial</option>';
-    echo '<option value="Virtual">Virtual</option>';
-    echo '<option value="Mixto">Mixto</option>';
-    echo '</select></p>';
-    echo '<p>Tipo de evaluación: 
-    <input type="radio" id="calificacion" name="tipo_evaluacion" value= true required>
-    <label for="calificacion">Calificacion</label>
-    <input type="radio" id="participacion" name="tipo_evaluacion" value= false required>
-    <label for="participacion">Participacion</label>
-    </p>';
+    echo '<p>Semanas: <input type="number" name="tiempo_asignado" min="1" required></p>';
+    echo '<p>Fecha de inicio: <input type="date" name="inicio_mes" required></p>';
     echo '<p>Tipo de curso: <select name="tipo_curso" required>';
     echo '<option value="seminarios">Seminarios</option>';
     echo '<option value="diplomados">Diplomados</option>';
@@ -47,66 +36,136 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
     echo '<option value="talleres">Talleres</option>';
     echo '</select></p>';
     echo '<p>Límite de inscripciones: <input type="number" name="limite_inscripciones" min="1" required></p>';
+    echo '<p>Días de clase:</p>';
+    echo '<p><input type="checkbox" name="dias_clase[]" value="Lunes"> Lunes</p>';
+    echo '<p><input type="checkbox" name="dias_clase[]" value="Martes"> Martes</p>';
+    echo '<p><input type="checkbox" name="dias_clase[]" value="Miércoles"> Miércoles</p>';
+    echo '<p><input type="checkbox" name="dias_clase[]" value="Jueves"> Jueves</p>';
+    echo '<p><input type="checkbox" name="dias_clase[]" value="Viernes"> Viernes</p>';
+    echo '<p><input type="checkbox" name="dias_clase[]" value="Sábado"> Sábado</p>';
+    echo '<p><input type="checkbox" name="dias_clase[]" value="Domingo"> Domingo</p>';
+    echo '<p>Horario de inicio: <input type="time" name="horario_inicio" required></p>';
+    echo '<p>Horario de fin: <input type="time" name="horario_fin" required></p>';
+    echo '<p>Nivel del curso: <select name="nivel_curso" required>';
+    echo '<option value="introductorio">Introductorio</option>';
+    echo '<option value="medio">Medio</option>';
+    echo '<option value="avanzado">Avanzado</option>';
+    echo '</select></p>';
+    echo '<p>Costo: <input type="number" name="costo" step="0.01" required></p>';
+    echo '<p>Conocimientos previos: <textarea name="conocimientos_previos" required></textarea></p>';
+    echo '<p>Requerimientos e implementos: <textarea name="requerimientos_implementos" required></textarea></p>';
+    echo '<p>Desempeño al concluir: <textarea name="desempeño_al_concluir" required></textarea></p>';
+    echo '<form id="cursoForm" method="post">
+    <!-- Otros campos del curso... -->
+    
+    <p>Número de módulos: <input type="number" id="numero_modulos" name="numero_modulos" min="1" required onblur="addModuleFields()"></p>
+    
+    <div id="moduleContainer">
+        <!-- Los campos de los módulos se agregarán aquí -->
+    </div>';
     echo '<p><input type="submit" value="Crear curso"></p>';
     echo '</form>';
-} elseif (isset($_GET['action']) && $_GET['action'] == 'ver') {
-    // Obtener los cursos creados por el usuario
-    $cursos = $cursoModel->obtener_contenido($user_id);
+}
+elseif (isset($_GET['action']) && $_GET['action'] == 'ver') {
+// Obtener los cursos creados por el usuario
+$cursos = $cursoModel->obtener_contenido($user_id);
 
-    // Mostrar una tabla con los cursos creados por el usuario
-    echo '<h3>Cursos creados por ti</h3>';
-    echo '<table>';
+// Mostrar una tabla con los cursos creados por el usuario
+echo '<h3>Cursos creados por ti</h3>';
+echo '<div class="table-responsive">';
+echo '<table class="table table-striped">';
+echo '<thead class="thead-dark">';
+echo '<tr>';
+echo '<th>Nombre</th>';
+echo '<th>Descripción</th>';
+echo '<th>Semanas</th>';
+echo '<th>Fecha de inicio</th>';
+echo '<th>Tipo de curso</th>';
+echo '<th>Límite de inscripciones</th>';
+echo '<th>Días de clase</th>';
+echo '<th>Horario de inicio</th>';
+echo '<th>Horario de fin</th>';
+echo '<th>Nivel del curso</th>';
+echo '<th>Costo</th>';
+echo '<th>Conocimientos previos</th>';
+echo '<th>Requerimientos e implementos</th>';
+echo '<th>Desempeño al concluir</th>';
+echo '<th>Estado</th>';
+echo '<th>Opciones</th>';
+echo '</tr>';
+echo '</thead>';
+echo '<tbody>';
+
+foreach ($cursos as $curso) {
     echo '<tr>';
-    echo '<th>Nombre</th>';
-    echo '<th>Descripción</th>';
-    echo '<th>Duración</th>';
-    echo '<th>Periodo</th>';
-    echo '<th>Modalidad</th>';
-    echo '<th>Tipo de evaluación</th>';
-    echo '<th>Tipo de curso</th>';
-    echo '<th>Límite de inscripciones</th>';
-    echo '<th>Estado</th>';
-    echo '<th>Opciones</th>';
+    echo '<td>' . $curso['nombre_curso'] . '</td>';
+    echo '<td>' . $curso['descripcion'] . '</td>';
+    echo '<td>' . $curso['tiempo_asignado'] . '</td>';
+    echo '<td>' . $curso['inicio_mes'] . '</td>';
+    echo '<td>' . $curso['tipo_curso'] . '</td>';
+    echo '<td>' . $curso['limite_inscripciones'] . '</td>';
+    echo '<td>' . $curso['dias_clase'] . '</td>';
+    echo '<td>' . $curso['horario_inicio'] . '</td>';
+    echo '<td>' . $curso['horario_fin'] . '</td>';
+    echo '<td>' . $curso['nivel_curso'] . '</td>';
+    echo '<td>' . $curso['costo'] . '</td>';
+    echo '<td>' . $curso['conocimientos_previos'] . '</td>';
+    echo '<td>' . $curso['requerimientos_implemento'] . '</td>';
+    echo '<td>' . $curso['desempeno_al_concluir'] . '</td>';
+    echo '<td>' . ($curso['estado'] ? 'Activo' : 'Finalizado') . '</td>';
+    echo '<td>';
+    echo '<div class="btn-group-vertical" role="group">';
+    echo '<form action="../views/curso_formulario.php" method="get">';
+    echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
+    echo '<input type="submit" value="Editar" class="btn btn-secondary mb-1">';
+    echo '</form>';
+
+    echo '<form action="../public/detalles_curso.php" method="get">';
+    echo '<input type="hidden" name="id" value="' . $curso['id_curso'] . '">';
+    echo '<input type="submit" value="Detalles del curso" class="btn btn-dark mb-1">';
+    echo '</form>';
+
+    $estado = $curso['estado'] ? 'Finalizar' : 'Iniciar';
+    $action = $curso['estado'] ? 'finalizar' : 'iniciar';
+    echo '<button class="btn btn-success mb-1" onclick="cambiarEstadoCurso(' . $curso['id_curso'] . ', \'' . $action . '\')">' . $estado . '</button>';
+
+    // Mostrar el botón de eliminar solo si no hay inscritos o aprobados
+    if (!$cursoModel->tiene_inscritos_o_aprobados($curso['id_curso'])) {
+        echo '<button class="btn btn-danger" onclick="eliminarCurso(' . $curso['id_curso'] . ')">Eliminar</button>';
+    }
+
+    // Botón para mostrar/ocultar módulos
+    echo '<button class="btn btn-info mb-1" data-bs-toggle="collapse" data-bs-target="#modulos-' . $curso['id_curso'] . '">Módulos</button>';
+
+    echo '</div>';
+    echo '</td>';
     echo '</tr>';
 
-    foreach ($cursos as $curso) {
+    // Mostrar los módulos del curso en un contenedor colapsable
+    if (!empty($curso['modulos'])) {
         echo '<tr>';
-        echo '<td>' . $curso['nombre_curso'] . '</td>';
-        echo '<td>' . $curso['descripcion'] . '</td>';
-        echo '<td>' . $curso['duracion'] . ' días</td>';
-        echo '<td>' . $curso['periodo'] . ' días</td>';
-        echo '<td>' . $curso['modalidad'] . '</td>';
-        echo '<td>' . ($curso['tipo_evaluacion'] ? 'Evaluada con ponderación (calificación)' : 'Sin ponderación (calificación)') . '</td>';
-        echo '<td>' . $curso['tipo_curso'] . '</td>';
-        echo '<td>' . $curso['limite_inscripciones'] . '</td>';
-        echo '<td>' . ($curso['estado'] ? 'Activo' : 'Finalizado') . '</td>';
-        echo '<td>';
-
-        // Botones con clases de Bootstrap
-        echo '<form action="../views/curso_formulario.php" method="get" class="d-inline-block">';
-        echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
-        echo '<input type="submit" value="Editar" class="btn btn-secondary">';
-        echo '</form>';
-
-        echo '<form action="../public/detalles_curso.php" method="get" class="d-inline-block">';
-        echo '<input type="hidden" name="id" value="' . $curso['id_curso'] . '">';
-        echo '<input type="submit" value="Detalles del curso" class="btn btn-dark">';
-        echo '</form>';
-
-        $estado = $curso['estado'] ? 'Finalizar' : 'Iniciar';
-        $action = $curso['estado'] ? 'finalizar' : 'iniciar';
-        $autorizado = $curso['autorizacion'] ? 'true' : 'false';
-        echo '<button class="btn btn-success" onclick="cambiarEstadoCurso(' . $curso['id_curso'] . ', \'' . $action . '\')">' . $estado . '</button>';
-
-        // Mostrar el botón de eliminar solo si no hay inscritos o aprobados
-        if (!$cursoModel->tiene_inscritos_o_aprobados($curso['id_curso'])) {
-            echo '<button class="btn btn-danger" onclick="eliminarCurso(' . $curso['id_curso'] . ')">Eliminar</button>';
+        echo '<td colspan="16">';
+        echo '<div id="modulos-' . $curso['id_curso'] . '" class="collapse">';
+        echo '<h4>Módulos del curso</h4>';
+        echo '<ul class="list-group">';
+        foreach ($curso['modulos'] as $modulo) {
+            echo '<li class="list-group-item">';
+            echo '<strong>Modulo' . $modulo['numero'] .  '</strong> <br>';
+            echo '<strong>Nombre:</strong> ' . $modulo['nombre_modulo'] . '<br>';
+            echo '<strong>Contenido:</strong> ' . $modulo['contenido'] . '<br>';
+            echo '<strong>Actividad:</strong> ' . $modulo['actividad'] . '<br>';
+            echo '<strong>Instrumento:</strong> ' . $modulo['instrumento'] . '<br>';
+            echo '</li>';
         }
-
+        echo '</ul>';
+        echo '</div>';
         echo '</td>';
         echo '</tr>';
     }
-    echo '</table>';
+}
+echo '</tbody>';
+echo '</table>';
+echo '</div>';
 }
 
 echo '</div>';
@@ -162,4 +221,47 @@ include '../views/footer.php';
             }
         });
     }
+    function addModuleFields() {
+    var number = document.getElementById("numero_modulos").value;
+    var container = document.getElementById("moduleContainer");
+    container.innerHTML = "";
+    
+    for (var i = 0; i < number; i++) {
+        var moduleDiv = document.createElement("div");
+        moduleDiv.className = "module";
+
+        var moduleTitle = document.createElement("h4");
+        moduleTitle.textContent = "Módulo " + (i + 1);
+        moduleDiv.appendChild(moduleTitle);
+
+        var inputNombreModulo = document.createElement("input");
+        inputNombreModulo.type = "text";
+        inputNombreModulo.name = "nombre_modulo[]";
+        inputNombreModulo.placeholder = "Nombre del módulo";
+        inputNombreModulo.required = true;
+        moduleDiv.appendChild(inputNombreModulo);
+
+        var textareaContenido = document.createElement("textarea");
+        textareaContenido.name = "contenido[]";
+        textareaContenido.placeholder = "Contenido";
+        textareaContenido.required = true;
+        moduleDiv.appendChild(textareaContenido);
+
+        var inputActividad = document.createElement("input");
+        inputActividad.type = "text";
+        inputActividad.name = "actividad[]";
+        inputActividad.placeholder = "Actividad";
+        inputActividad.required = true;
+        moduleDiv.appendChild(inputActividad);
+
+        var inputInstrumento = document.createElement("input");
+        inputInstrumento.type = "text";
+        inputInstrumento.name = "instrumento[]";
+        inputInstrumento.placeholder = "Instrumento";
+        inputInstrumento.required = true;
+        moduleDiv.appendChild(inputInstrumento);
+
+        container.appendChild(moduleDiv);
+    }
+}
 </script>
