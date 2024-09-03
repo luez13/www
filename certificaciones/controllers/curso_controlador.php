@@ -74,33 +74,52 @@ switch ($action) {
             echo 'Los datos del curso son inválidos';
         }
         break;       
-    case 'editar':
-        // Obtener los datos del formulario
-        $id_curso = $_POST['id_curso'];
-        $nombre_curso = $_POST['nombre_curso'];
-        $descripcion = $_POST['descripcion'];
-        $tiempo_asignado = $_POST['tiempo_asignado'];
-        $inicio_mes = $_POST['inicio_mes'];
-        $tipo_curso = $_POST['tipo_curso'];
-        $limite_inscripciones = $_POST['limite_inscripciones'];
-        $dias_clase = $_POST['dias_clase'];
-        $horario_inicio = $_POST['horario_inicio'];
-        $horario_fin = $_POST['horario_fin'];
-        $nivel_curso = $_POST['nivel_curso'];
-        $costo = $_POST['costo'];
-        $conocimientos_previos = $_POST['conocimientos_previos'];
-    
-        // Validar los datos
-        if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos)) {
-            // Editar el curso usando el método de la clase Curso
-            $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos);
-            // Devolver mensaje de éxito
-            echo 'El curso se ha editado correctamente';
-        } else {
-            // Devolver mensaje de error
-            echo 'Los datos del curso son inválidos';
-        }
-        break;
+        case 'editar':
+            // Obtener los datos del formulario
+            $id_curso = $_POST['id_curso'];
+            $nombre_curso = $_POST['nombre_curso'];
+            $descripcion = $_POST['descripcion'];
+            $tiempo_asignado = $_POST['tiempo_asignado'];
+            $inicio_mes = $_POST['inicio_mes'];
+            $tipo_curso = $_POST['tipo_curso'];
+            $limite_inscripciones = $_POST['limite_inscripciones'];
+            $dias_clase = $_POST['dias_clase'];
+            $horario_inicio = $_POST['horario_inicio'];
+            $horario_fin = $_POST['horario_fin'];
+            $nivel_curso = $_POST['nivel_curso'];
+            $costo = $_POST['costo'];
+            $conocimientos_previos = $_POST['conocimientos_previos'];
+        
+            // Obtener los datos de los módulos
+            $modulos = [];
+            for ($i = 0; $i < count($_POST['id_modulo']); $i++) {
+                $modulos[] = [
+                    'id_modulo' => $_POST['id_modulo'][$i],
+                    'nombre_modulo' => $_POST['nombre_modulo'][$i],
+                    'contenido' => $_POST['contenido_modulo'][$i],
+                    'numero' => $_POST['numero_modulo'][$i],
+                    'actividad' => $_POST['actividad_modulo'][$i],
+                    'instrumento' => $_POST['instrumento_modulo'][$i]
+                ];
+            }
+        
+            // Validar los datos
+            if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos)) {
+                // Editar el curso usando el método de la clase Curso
+                $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos);
+                // Devolver mensaje de éxito
+                echo '<script>
+                        alert("El curso se ha editado correctamente");
+                        window.location.href = "../public/perfil.php";
+                      </script>';
+            } else {
+                // Devolver mensaje de error
+                echo '<script>
+                        alert("Los datos del curso son inválidos");
+                        window.location.href = "../public/perfil.php";
+                      </script>';
+            }
+            break;
     case 'eliminar':
         // Obtener el id del curso del formulario
         $id_curso = $_POST['id_curso'];

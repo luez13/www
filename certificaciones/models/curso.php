@@ -66,8 +66,8 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
         }
     }
 
-    public function editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos) {
-        // Actualizar los datos en la base de datos
+    public function editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos) {
+        // Actualizar los datos del curso en la base de datos
         try {
             $stmt = $this->db->prepare('UPDATE cursos.cursos SET nombre_curso = :nombre_curso, descripcion = :descripcion, tiempo_asignado = :tiempo_asignado, inicio_mes = :inicio_mes, tipo_curso = :tipo_curso, limite_inscripciones = :limite_inscripciones, dias_clase = :dias_clase, horario_inicio = :horario_inicio, horario_fin = :horario_fin, nivel_curso = :nivel_curso, costo = :costo, conocimientos_previos = :conocimientos_previos WHERE id_curso = :id_curso');
             $stmt->execute([
@@ -85,6 +85,19 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
                 'conocimientos_previos' => $conocimientos_previos,
                 'id_curso' => $id_curso
             ]);
+    
+            // Actualizar los módulos del curso
+            foreach ($modulos as $modulo) {
+                $stmt = $this->db->prepare('UPDATE cursos.modulos SET nombre_modulo = :nombre_modulo, contenido = :contenido, numero = :numero, actividad = :actividad, instrumento = :instrumento WHERE id_modulo = :id_modulo');
+                $stmt->execute([
+                    'nombre_modulo' => $modulo['nombre_modulo'],
+                    'contenido' => $modulo['contenido'],
+                    'numero' => $modulo['numero'],
+                    'actividad' => $modulo['actividad'],
+                    'instrumento' => $modulo['instrumento'],
+                    'id_modulo' => $modulo['id_modulo']
+                ]);
+            }
         } catch (PDOException $e) {
             // Mostrar un mensaje de error al usuario
             echo '<p>Ha ocurrido un error al editar el curso: ' . $e->getMessage() . '</p>';
