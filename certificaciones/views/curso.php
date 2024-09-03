@@ -66,7 +66,6 @@ foreach ($modulos as $modulo) {
     echo '<p>Contenido: ' . $modulo['contenido'] . '</p>';
     echo '<p>Actividad: ' . $modulo['actividad'] . '</p>';
     echo '<p>Instrumento: ' . $modulo['instrumento'] . '</p>';
-    echo '</div>';
 }
 
 // Consultar si el usuario ya está inscrito en el curso
@@ -84,7 +83,7 @@ if ($_SESSION['id_rol'] != 4) {
         echo '<button type="submit" id="inscribirse-btn">Inscribirse al curso</button>';
         echo '</form>';
     } else {
-            echo '<p>Nota: ' . $inscripcion['nota'] . '</p>';
+        echo '<p>Nota: ' . $inscripcion['nota'] . '</p>';
         // Si el usuario ya está inscrito y el curso no está completado, mostrar el botón de cancelar inscripción
         if (!$inscripcion['completado']) {
             echo '<form method="POST" action="../controllers/curso_acciones.php" onsubmit="return confirmarCancelacion()">';
@@ -116,51 +115,3 @@ if (!$is_ajax) {
     include '../views/footer.php';
 }
 ?>
-<script>
-function drawTextWithBorder(doc, text, x, y) {
-    var offset = 0.5; // Puedes ajustar este valor para cambiar el grosor del borde
-    doc.setTextColor(255, 255, 255); // Color del borde (blanco)
-    for(var i = -offset; i <= offset; i += offset) {
-        for(var j = -offset; j <= offset; j += offset) {
-            doc.text(text, x + i, y + j, { align: 'center' }); // Centra el texto
-        }
-    }
-    doc.setTextColor(0, 0, 0); // Color del texto (negro)
-    doc.text(text, x, y, { align: 'center' }); // Centra el texto
-}
-
-document.addEventListener('DOMContentLoaded', (event) => {
-    var certificadoButton = document.getElementById('ver-certificado');
-    if(certificadoButton) {
-        certificadoButton.addEventListener('click', function() {
-            // Crear una nueva instancia de jsPDF
-            var doc = new jsPDF();
-
-            // Agregar imagen de fondo
-            var imgData = 'data:image/jpeg;base64,<?php echo $base64Image; ?>';
-            doc.addImage(imgData, 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-
-            // Agregar texto al documento
-            doc.setFontSize(36);
-            doc.setFont('helvetica'); // Cambia la familia de fuentes y el estilo
-            drawTextWithBorder(doc, 'Certificado de Formación', doc.internal.pageSize.getWidth() / 2, 60); // Centra el texto
-            doc.setFontSize(20);
-            drawTextWithBorder(doc, 'Nombre del Curso: ' + '<?php echo $curso_contenido['nombre_curso']; ?>', doc.internal.pageSize.getWidth() / 2, 120); // Centra el texto
-            drawTextWithBorder(doc, 'Nombre del Estudiante: ' + '<?php echo $_SESSION['nombre']; ?>', doc.internal.pageSize.getWidth() / 2, 150); // Centra el texto
-            doc.setFontSize(16);
-            drawTextWithBorder(doc, 'Certificamos que el estudiante ha completado el curso.', doc.internal.pageSize.getWidth() / 2, 180); // Centra el texto
-
-            // Abrir el PDF en una nueva pestaña
-            window.open(doc.output('bloburl'), '_blank');
-        });
-    }
-});
-
-function confirmarInscripcion() {
-    return confirm("¿Estás seguro de que deseas inscribirte al curso?");
-}
-
-function confirmarCancelacion() {
-    return confirm("¿Estás seguro de que deseas cancelar la inscripción?");
-}
-</script>
