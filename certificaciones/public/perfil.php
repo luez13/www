@@ -328,6 +328,11 @@ try {
                     </div>
                     <button type="submit" class="btn btn-primary">Guardar cambios</button>
                 </form>
+                <div class="form-group">
+                    <label for="firma_digital">Subir firma digital:</label>
+                    <input type="file" class="form-control-file" id="firma_digital" name="firma_digital">
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="subirFirmaDigital()">Subir firma digital</button>
             </div>
         </div>
     </div>
@@ -478,5 +483,42 @@ function loadHistorial(action) {
             alert('Error al cargar el historial.');
         }
     });
+}
+
+function subirFirmaDigital() {
+    var formData = new FormData();
+    var fileInput = document.getElementById('firma_digital');
+    formData.append('firma_digital', fileInput.files[0]);
+
+    fetch('../controllers/subir_firma.php', {
+        method: 'POST',
+        body: formData
+    }).then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              alert(data.message);
+          } else if (data.file_exists) {
+              if (confirm('El archivo ya existe. ¿Desea sobreescribirlo?')) {
+                  formData.append('overwrite', 'true');
+                  fetch('../controllers/subir_firma.php', {
+                      method: 'POST',
+                      body: formData
+                  }).then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Firma digital sobreescrita exitosamente');
+                        } else {
+                            alert('Error al subir la firma digital: ' + data.message);
+                        }
+                    }).catch(error => {
+                        console.error('Error:', error);
+                    });
+              }
+          } else {
+              alert('Error al subir la firma digital: ' + data.message);
+          }
+      }).catch(error => {
+          console.error('Error:', error);
+      });
 }
 </script>
