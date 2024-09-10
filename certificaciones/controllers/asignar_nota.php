@@ -2,9 +2,6 @@
 // Incluir el archivo model.php en config
 include '../config/model.php';
 
-// Incluir el archivo header.php en views
-include '../views/header.php';
-
 // Crear una instancia de la clase DB
 $db = new DB();
 
@@ -26,19 +23,6 @@ function validar_datos($id_usuario, $id_curso, $nota) {
     return true;
 }
 
-// Crear una función para redirigir al usuario
-function redirigir($url) {
-    // Usar la función header para enviar el encabezado de redirección
-    header('Location: ' . $url);
-    // Terminar la ejecución del script
-    exit();
-}
-
-foreach ($_POST['completado'] as $id_usuario => $completado) {
-    $stmt = $db->prepare('UPDATE cursos.certificaciones SET completado = :completado WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
-    $stmt->execute(['completado' => $completado ? 1 : 0, 'id_usuario' => $id_usuario, 'curso_id' => $id_curso]);
-}
-
 // Obtener los datos del formulario
 $id_usuario = $_POST['id_usuario'];
 $id_curso = $_POST['id_curso'];
@@ -50,20 +34,14 @@ if (validar_datos($id_usuario, $id_curso, $nota)) {
     try {
         $stmt = $db->prepare('UPDATE cursos.certificaciones SET nota = :nota WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
         $stmt->execute(['nota' => $nota, 'id_usuario' => $id_usuario, 'curso_id' => $id_curso]);
-        // Mostrar un mensaje de éxito al usuario
-        echo '<p>La nota se ha asignado correctamente</p>';
+        // Devolver una respuesta JSON de éxito
+        echo json_encode(['status' => 'success', 'message' => 'La nota se ha asignado correctamente']);
     } catch (PDOException $e) {
-        // Mostrar un mensaje de error al usuario
-        echo '<p>Ha ocurrido un error al asignar la nota: ' . $e->getMessage() . '</p>';
+        // Devolver una respuesta JSON de error
+        echo json_encode(['status' => 'error', 'message' => 'Ha ocurrido un error al asignar la nota: ' . $e->getMessage()]);
     }
 } else {
-    // Mostrar un mensaje de error al usuario
-    echo '<p>Los datos son inválidos</p>';
+    // Devolver una respuesta JSON de error
+    echo json_encode(['status' => 'error', 'message' => 'Los datos son inválidos']);
 }
-
-// Redirigir al usuario a la página de gestión de cursos
-header('Location: ../public/detalles_curso.php?id=' . $id_curso);
-
-// Incluir el archivo footer.php en views
-include '../views/footer.php';
 ?>

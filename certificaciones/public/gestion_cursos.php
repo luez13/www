@@ -115,15 +115,9 @@ foreach ($cursos as $curso) {
     echo '<td>' . ($curso['estado'] ? 'Activo' : 'Finalizado') . '</td>';
     echo '<td>';
     echo '<div class="btn-group-vertical" role="group">';
-    echo '<form action="../views/curso_formulario.php" method="get">';
-    echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
-    echo '<input type="submit" value="Editar" class="btn btn-secondary mb-1">';
-    echo '</form>';
+    echo '<button class="btn btn-secondary mb-1" onclick="loadPage(\'../views/curso_formulario.php\', {id_curso: ' . $curso['id_curso'] . '})">Editar</button>';
 
-    echo '<form action="../public/detalles_curso.php" method="get">';
-    echo '<input type="hidden" name="id" value="' . $curso['id_curso'] . '">';
-    echo '<input type="submit" value="Detalles del curso" class="btn btn-dark mb-1">';
-    echo '</form>';
+    echo '<button class="btn btn-dark mb-1" onclick="loadPage(\'../public/detalles_curso.php\', {id: ' . $curso['id_curso'] . '})">Detalles del curso</button>';
 
     $estado = $curso['estado'] ? 'Finalizar' : 'Iniciar';
     $action = $curso['estado'] ? 'finalizar' : 'iniciar';

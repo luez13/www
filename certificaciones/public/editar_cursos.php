@@ -40,7 +40,7 @@ foreach ($cursos as $curso) {
     echo '<p>Limite de inscripcion: <input type="number" name="limite_inscripciones" value="' . $curso['limite_inscripciones'] . '" required></p>';
     echo '<p>Promotor: <select name="promotor">';
     // Obtener todos los promotores
-    $stmt = $db->prepare("SELECT id, nombre FROM cursos.usuarios"); // Asumiendo que el rol 4 corresponde a los promotores
+    $stmt = $db->prepare("SELECT id, nombre FROM cursos.usuarios WHERE id_rol = 3"); // Asumiendo que el rol 3 corresponde a los promotores
     $stmt->execute();
     $promotores = $stmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($promotores as $promotor) {
@@ -54,8 +54,8 @@ foreach ($cursos as $curso) {
         $nombre_autorizador = $stmt->fetch(PDO::FETCH_ASSOC)['nombre'];
         echo '<p>Autorizado por: ID ' . $curso['autorizacion'] . ' Nombre ' . $nombre_autorizador . '</p>';
     } else {
-        echo '<input type="hidden" id="autorizacion" name="autorizacion" value="no">';
-        echo '<p>Autorización: <input type="checkbox" id="autorizacion" name="autorizacion" value="' . $user_id . '"></p>';
+        echo '<input type="hidden" name="autorizacion" value="no">';
+        echo '<p>Autorización: <input type="checkbox" name="autorizacion" value="' . $user_id . '"></p>';
     }
     echo '<p>Días de clase: <textarea name="dias_clase" required>' . $curso['dias_clase'] . '</textarea></p>';
     echo '<p>Horario de inicio: <input type="time" name="horario_inicio" value="' . $curso['horario_inicio'] . '" required></p>';

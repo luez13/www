@@ -89,6 +89,7 @@ switch ($action) {
             $nivel_curso = $_POST['nivel_curso'];
             $costo = $_POST['costo'];
             $conocimientos_previos = $_POST['conocimientos_previos'];
+            $autorizacion = isset($_POST['autorizacion']) ? $_POST['autorizacion'] : 'no';
         
             // Obtener los datos de los módulos
             $modulos = [];
@@ -106,7 +107,7 @@ switch ($action) {
             // Validar los datos
             if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos)) {
                 // Editar el curso usando el método de la clase Curso
-                $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos);
+                $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $autorizacion);
                 // Devolver mensaje de éxito
                 echo '<script>
                         alert("El curso se ha editado correctamente");
@@ -119,7 +120,7 @@ switch ($action) {
                         window.location.href = "../public/perfil.php";
                       </script>';
             }
-            break;
+            break;        
     case 'eliminar':
         // Obtener el id del curso del formulario
         $id_curso = $_POST['id_curso'];

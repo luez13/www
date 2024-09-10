@@ -66,10 +66,10 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
         }
     }
 
-    public function editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos) {
+    public function editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $autorizacion) {
         // Actualizar los datos del curso en la base de datos
         try {
-            $stmt = $this->db->prepare('UPDATE cursos.cursos SET nombre_curso = :nombre_curso, descripcion = :descripcion, tiempo_asignado = :tiempo_asignado, inicio_mes = :inicio_mes, tipo_curso = :tipo_curso, limite_inscripciones = :limite_inscripciones, dias_clase = :dias_clase, horario_inicio = :horario_inicio, horario_fin = :horario_fin, nivel_curso = :nivel_curso, costo = :costo, conocimientos_previos = :conocimientos_previos WHERE id_curso = :id_curso');
+            $stmt = $this->db->prepare('UPDATE cursos.cursos SET nombre_curso = :nombre_curso, descripcion = :descripcion, tiempo_asignado = :tiempo_asignado, inicio_mes = :inicio_mes, tipo_curso = :tipo_curso, limite_inscripciones = :limite_inscripciones, dias_clase = :dias_clase, horario_inicio = :horario_inicio, horario_fin = :horario_fin, nivel_curso = :nivel_curso, costo = :costo, conocimientos_previos = :conocimientos_previos, autorizacion = :autorizacion WHERE id_curso = :id_curso');
             $stmt->execute([
                 'nombre_curso' => $nombre_curso,
                 'descripcion' => $descripcion,
@@ -83,6 +83,7 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
                 'nivel_curso' => $nivel_curso,
                 'costo' => $costo,
                 'conocimientos_previos' => $conocimientos_previos,
+                'autorizacion' => $autorizacion,
                 'id_curso' => $id_curso
             ]);
     
@@ -102,7 +103,7 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
             // Mostrar un mensaje de error al usuario
             echo '<p>Ha ocurrido un error al editar el curso: ' . $e->getMessage() . '</p>';
         }
-    }
+    }    
 
     // Crear un método para eliminar un curso
     public function eliminar($id_curso) {
@@ -149,17 +150,28 @@ public function obtener_contenido($user_id) {
     return $cursos;
 }
 
-    // Definir el método obtener_curso
-    public function obtener_curso($id_curso) {
-        // Preparar la consulta SQL para obtener los detalles del curso
-        $stmt = $this->db->prepare('SELECT * FROM cursos.cursos WHERE id_curso = :id_curso');
-        // Ejecutar la consulta con el id del curso
-        $stmt->execute(['id_curso' => $id_curso]);
-        // Obtener el resultado como un array asociativo
-        $curso = $stmt->fetch(PDO::FETCH_ASSOC);
-        // Devolver el array con los datos del curso
-        return $curso;
-    }
+// Definir el método obtener_curso
+public function obtener_curso($id_curso) {
+    // Preparar la consulta SQL para obtener los detalles del curso
+    $stmt = $this->db->prepare('SELECT * FROM cursos.cursos WHERE id_curso = :id_curso');
+    // Ejecutar la consulta con el id del curso
+    $stmt->execute(['id_curso' => $id_curso]);
+    // Obtener el resultado como un array asociativo
+    $curso = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Preparar la consulta SQL para obtener los módulos del curso
+    $stmt_modulos = $this->db->prepare('SELECT * FROM cursos.modulos WHERE id_curso = :id_curso');
+    // Ejecutar la consulta con el id del curso
+    $stmt_modulos->execute(['id_curso' => $id_curso]);
+    // Obtener los resultados como un array asociativo
+    $modulos = $stmt_modulos->fetchAll(PDO::FETCH_ASSOC);
+
+    // Añadir los módulos al array del curso
+    $curso['modulos'] = $modulos;
+
+    // Devolver el array con los datos del curso y los módulos
+    return $curso;
+}
 
 // Crear una función para obtener los usuarios inscritos en un curso
 public function obtener_estudiantes($id_curso) {

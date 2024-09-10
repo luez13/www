@@ -113,7 +113,7 @@ try {
                 <a class="collapse-item" href="#" onclick="loadPage('gestion_cursos.php?action=crear')">Postular Propuesta</a>
                 <a class="collapse-item" href="#" onclick="loadPage('gestion_cursos.php?action=ver')">Ver Postulaciones</a>
                 <?php endif; ?>
-                <?php if ($_SESSION['id_rol'] == 4): ?>
+                <?php if ($_SESSION['id_rol'] == 4 || $_SESSION['id_rol'] == 3): ?>
                 <h6 class="collapse-header">Administrador</h6>
                 <a class="collapse-item" href="#" onclick="loadPage('editar_cursos.php')">Verificar Postulación</a>
                 <?php endif; ?>
@@ -343,13 +343,14 @@ include '../views/footer.php';
 ?>
 
 <script>
-function loadPage(page) {
+function loadPage(page, params = {}) {
     $.ajax({
         url: page,
         method: 'GET',
+        data: params,
         success: function(data) {
-            $('#page-content').html(data);
-            // Reaplicar eventos de JavaScript
+            $('#page-content').html(data); // Asegúrate de que el ID del contenedor sea correcto
+            // Reaplicar eventos de JavaScript si es necesario
             applySidebarToggle();
         },
         error: function() {

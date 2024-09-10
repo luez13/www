@@ -27,7 +27,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
     $usuarios = $curso->obtener_estudiantes($id_curso);
 
     // Obtener el curso de la base de datos usando el método de la clase Curso
-    $curso_info = $curso->obtener_curso($id_curso); // Aquí se asigna un valor a la variable $curso
+    $curso_info = $curso->obtener_curso($id_curso);
 
     // Verificar que la variable $curso no sea nula
     if (isset($curso_info)) { 
@@ -43,6 +43,8 @@ if (is_numeric($id_curso) && $id_curso > 0) {
         echo '<th>Apellido</th>';
         echo '<th>Cédula</th>';
         echo '<th>Correo</th>';
+        echo '<th>Nota</th>'; // Añadir columna para la nota
+        echo '<th>Completado</th>'; // Añadir columna para el estado de finalización
         echo '</tr>';
         foreach ($usuarios as $usuario) {
             $nota = $curso->obtener_nota($id_curso, $usuario['id']);
@@ -63,19 +65,17 @@ if (is_numeric($id_curso) && $id_curso > 0) {
         $cupos_disponibles = $curso_info['limite_inscripciones'] - count($usuarios);
         echo '<p>Cupos disponibles: ' . $cupos_disponibles . '</p>';
 
-        // Si el curso tiene evaluación, mostrar un formulario para asignar la nota a cada usuario
-        if ($curso_info['tipo_evaluacion']) {
-            echo '<h3>Asignar nota</h3>';
-            foreach ($usuarios as $usuario) {
-                echo '<form action="../controllers/asignar_nota.php" method="post">';
-                echo '<input type="hidden" name="action" value="asignar_nota">';
-                echo '<input type="hidden" name="id_usuario" value="' . $usuario['id'] . '">';
-                echo '<input type="hidden" name="id_curso" value="' . $id_curso . '">';
-                echo '<label for="nota">Nota para ' . $usuario['nombre'] . ':</label>';
-                echo '<input type="number" id="nota" name="nota" min="0" max="100">';
-                echo '<input type="submit" value="Asignar nota">';
-                echo '</form>';
-            }
+        // Mostrar un formulario para asignar la nota a cada usuario
+        echo '<h3>Asignar nota</h3>';
+        foreach ($usuarios as $usuario) {
+            echo '<form action="../controllers/asignar_nota.php" method="post">';
+            echo '<input type="hidden" name="action" value="asignar_nota">';
+            echo '<input type="hidden" name="id_usuario" value="' . $usuario['id'] . '">';
+            echo '<input type="hidden" name="id_curso" value="' . $id_curso . '">';
+            echo '<label for="nota">Nota para ' . $usuario['nombre'] . ':</label>';
+            echo '<input type="number" id="nota" name="nota" min="0" max="100">';
+            echo '<input type="submit" value="Asignar nota">';
+            echo '</form>';
         }
     } else {
         // Si el curso no existe o no fue creado por el usuario, mostrar un mensaje de error
@@ -106,6 +106,27 @@ $(document).ready(function(){
             },
             success: function(response) {
                 console.log(response);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+            }
+        });
+    });
+
+        $('form').submit(function(event) {
+        event.preventDefault(); // Evitar el envío del formulario
+        var form = $(this);
+        $.ajax({
+            url: form.attr('action'),
+            type: form.attr('method'),
+            data: form.serialize(),
+            success: function(response) {
+                var data = JSON.parse(response);
+                if (data.status === 'success') {
+                    alert(data.message);
+                } else {
+                    alert(data.message);
+                }
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log(textStatus, errorThrown);

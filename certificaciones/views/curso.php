@@ -94,7 +94,7 @@ if ($_SESSION['id_rol'] != 4) {
             echo '</form>';
         } else {
             // Si el curso está completado, mostrar el botón de ver certificado
-            echo '<button id="ver-certificado">Ver Certificado</button>';
+            echo '<button id="ver-certificado" onclick="generarCertificado()">Ver Certificado</button>';
         }
     }
 }
@@ -110,8 +110,67 @@ $imageContent = file_get_contents($imagePath);
 // Codifica los contenidos de la imagen a base64
 $base64Image = base64_encode($imageContent);
 
+// Obtener el nombre del estudiante y el título del curso desde la sesión o base de datos
+$nombreEstudiante = $_SESSION['nombre'];
+$nombreCurso = $curso_contenido['nombre_curso'];
+
 if (!$is_ajax) {
     // Incluir el archivo footer.php en views
     include '../views/footer.php';
 }
 ?>
+
+<script>
+function drawTextWithBorder(doc, text, x, y) {
+    var offset = 0.5; // Puedes ajustar este valor para cambiar el grosor del borde
+    doc.setTextColor(255, 255, 255); // Color del borde (blanco)
+    for(var i = -offset; i <= offset; i += offset) {
+        for(var j = -offset; j <= offset; j += offset) {
+            doc.text(text, x + i, y + j, { align: 'center' }); // Centra el texto
+        }
+    }
+    doc.setTextColor(0, 0, 0); // Color del texto (negro)
+    doc.text(text, x, y, { align: 'center' }); // Centra el texto
+}
+
+function generarCertificado() {
+    // Crear una nueva instancia de jsPDF en orientación horizontal
+    var doc = new jsPDF();
+
+    // Agregar imagen de fondo
+    var imgData = 'data:image/jpeg;base64,<?php echo $base64Image; ?>';
+    doc.addImage(imgData, 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+
+    // Agregar texto al documento con los datos correspondientes
+    doc.setFontSize(36);
+    doc.setFont('helvetica');
+    drawTextWithBorder(doc, 'Certificado de Formación', doc.internal.pageSize.getWidth() / 2, 60);
+
+    // Agregar el nombre del curso y el estudiante
+    drawTextWithBorder(doc, 'Nombre del Curso: ' + '<?php echo $curso_contenido['nombre_curso']; ?>', doc.internal.pageSize.getWidth() / 2, 120);
+    drawTextWithBorder(doc, 'Nombre del Estudiante: ' + '<?php $nombreEstudiante?>', doc.internal.pageSize.getWidth() / 2, 150);
+
+    // Agregar el resto de los datos necesarios
+    doc.setFontSize(16);
+    drawTextWithBorder(doc, 'Certificamos que el estudiante ha completado el curso.', doc.internal.pageSize.getWidth() / 2, 180);
+
+    // Agregar información adicional según las especificaciones del certificado
+    drawTextWithBorder(doc, 'Republica Bolivariana de Venezuela', doc.internal.pageSize.getWidth() / 2, 210);
+    drawTextWithBorder(doc, 'Ministerio del Poder Popular para la Educacion Universitaria', doc.internal.pageSize.getWidth() / 2, 225);
+    drawTextWithBorder(doc, 'Universidad Politecnica Territorial Agroindustrial del Estado Tachira', doc.internal.pageSize.getWidth() / 2, 240);
+
+    // Agregar el nombre y fecha de expedición
+    drawTextWithBorder(doc, '(nombre del promotor)', doc.internal.pageSize.getWidth() / 2, 270);
+    drawTextWithBorder(doc, 'Certificado Expediado en la Ciudad de San Cristobal, a las *hora actual y fecha actual*', doc.internal.pageSize.getWidth() / 2, 285);
+
+    // Abrir el PDF en una nueva pestaña
+    window.open(doc.output('bloburl'), '_blank');
+}
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    var certificadoButton = document.getElementById('ver-certificado');
+    if(certificadoButton) {
+        certificadoButton.addEventListener('click', generarCertificado);
+    }
+});
+</script>
