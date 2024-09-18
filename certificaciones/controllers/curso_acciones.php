@@ -66,18 +66,29 @@ switch ($action) {
         // Obtener los datos del formulario
         $id_usuario = $_POST['id_usuario'];
         $curso_id = $_POST['curso_id'];
-        // Generar un hash
-        $valor_unico = hash('sha256', $id_usuario . $curso_id . time());
+
         // Validar los datos
         if (validar_inscripcion($id_usuario, $curso_id)) {
             // Verificar si el usuario ya está inscrito en el curso
             $stmt = $db->prepare('SELECT * FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
             $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
             $inscripcion = $stmt->fetch();
+
             if ($inscripcion) {
                 // Mostrar un mensaje al usuario
                 echo '<p>Ya estás inscrito en este curso.</p>';
             } else {
+                // Generar un hash solo si no hay uno existente
+                $stmt = $db->prepare('SELECT valor_unico FROM cursos.certificaciones WHERE curso_id = :curso_id');
+                $stmt->execute(['curso_id' => $curso_id]);
+                $valor_unico_existente = $stmt->fetchColumn();
+
+                if (!$valor_unico_existente) {
+                    $valor_unico = hash('sha256', $id_usuario . $curso_id . time());
+                } else {
+                    $valor_unico = $valor_unico_existente;
+                }
+
                 // Insertar los datos en la base de datos
                 try {
                     $stmt = $db->prepare('INSERT INTO cursos.certificaciones (id_usuario, curso_id, valor_unico, fecha_inscripcion, completado) VALUES (:id_usuario, :curso_id, :valor_unico, NOW(), false)');
@@ -94,7 +105,7 @@ switch ($action) {
             echo '<p>Los datos de inscripción son inválidos</p>';
         }
         redirigir_perfil();
-        break;         
+        break;        
     case 'cancelar_inscripcion':
         // Obtener los datos del formulario
         $id_usuario = $_POST['id_usuario'];

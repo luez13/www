@@ -234,7 +234,7 @@ Separación de lógica y presentación: Asegúrate de que la lógica de negocio 
 Convenciones de nombres: Usar nombres consistentes y en inglés puede ayudar a mantener la claridad y la coherencia.
 ¿Te gustaría ayuda con algún aspecto específico de la reorganización o tienes alguna otra pregunta?
 
--- Configuraciones iniciales
+-- Configuración inicial
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -247,73 +247,15 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 -- Crear esquema
-CREATE SCHEMA cursos;
-ALTER SCHEMA cursos OWNER TO postgres;
+CREATE SCHEMA cursos AUTHORIZATION CURRENT_USER;
 
--- Crear extensión
+-- Crear extensión para UUID
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
 
--- Crear función de auditoría
-CREATE FUNCTION cursos.cursos_audit() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    accion_texto VARCHAR(10);
-    usuario_sistema INTEGER;
-BEGIN
-    SELECT current_setting('myapp.current_user_id', true)::INTEGER INTO usuario_sistema;
-
-    IF TG_OP = 'DELETE' THEN
-        accion_texto := 'DELETE';
-    ELSIF TG_OP = 'UPDATE' THEN
-        accion_texto := 'UPDATE';
-    ELSE
-        accion_texto := 'INSERT';
-    END IF;
-
-    INSERT INTO cursos.auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
-    VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), OLD::text, NEW::text);
-
-    RETURN NULL;
-END;
-$$;
-ALTER FUNCTION cursos.cursos_audit() OWNER TO postgres;
-
--- Crear función de auditoría pública
-CREATE FUNCTION public.cursos_audit() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    accion_texto VARCHAR(10);
-    usuario_sistema INTEGER;
-BEGIN
-    BEGIN
-        SELECT current_setting('myapp.current_user_id', true)::INTEGER INTO usuario_sistema;
-    EXCEPTION
-        WHEN others THEN
-            usuario_sistema := -1;
-    END;
-
-    IF TG_OP = 'DELETE' THEN
-        accion_texto := 'DELETE';
-    ELSIF TG_OP = 'UPDATE' THEN
-        accion_texto := 'UPDATE';
-    ELSE
-        accion_texto := 'INSERT';
-    END IF;
-
-    INSERT INTO cursos.auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
-    VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), OLD::text, NEW::text);
-
-    RETURN NULL;
-END;
-$$;
-ALTER FUNCTION public.cursos_audit() OWNER TO postgres;
-
 -- Crear tablas y secuencias
 CREATE TABLE cursos.auditoria (
-    id_auditoria integer NOT NULL,
+    id_auditoria serial PRIMARY KEY,
     usuario character varying(255),
     accion character varying(20) NOT NULL,
     tabla_afectada character varying(50) NOT NULL,
@@ -321,42 +263,20 @@ CREATE TABLE cursos.auditoria (
     dato_previo text,
     dato_modificado text
 );
-ALTER TABLE cursos.auditoria OWNER TO postgres;
-
-CREATE SEQUENCE cursos.auditoria_id_auditoria_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE cursos.auditoria_id_auditoria_seq OWNER TO postgres;
-ALTER SEQUENCE cursos.auditoria_id_auditoria_seq OWNED BY cursos.auditoria.id_auditoria;
 
 CREATE TABLE cursos.certificaciones (
-    id_certificacion integer NOT NULL,
+    id_certificacion serial PRIMARY KEY,
     id_usuario integer,
     curso_id integer,
-    valor_unico character varying,
+    valor_unico character varying UNIQUE,
     completado boolean DEFAULT false,
     nota integer,
     fecha_inscripcion timestamp without time zone,
     pago boolean
 );
-ALTER TABLE cursos.certificaciones OWNER TO postgres;
-
-CREATE SEQUENCE cursos.certificaciones_id_certificacion_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE cursos.certificaciones_id_certificacion_seq OWNER TO postgres;
-ALTER SEQUENCE cursos.certificaciones_id_certificacion_seq OWNED BY cursos.certificaciones.id_certificacion;
 
 CREATE TABLE cursos.cursos (
-    id_curso integer NOT NULL,
+    id_curso serial PRIMARY KEY,
     promotor character varying(255),
     nombre_curso character varying(255),
     descripcion text,
@@ -375,20 +295,9 @@ CREATE TABLE cursos.cursos (
     requerimientos_implemento text,
     desempeno_al_concluir text
 );
-ALTER TABLE cursos.cursos OWNER TO postgres;
-
-CREATE SEQUENCE cursos.cursos_id_curso_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE cursos.cursos_id_curso_seq OWNER TO postgres;
-ALTER SEQUENCE cursos.cursos_id_curso_seq OWNED BY cursos.cursos.id_curso;
 
 CREATE TABLE cursos.modulos (
-    id_modulo integer NOT NULL,
+    id_modulo serial PRIMARY KEY,
     id_curso integer,
     nombre_modulo character varying(255),
     contenido text,
@@ -396,125 +305,106 @@ CREATE TABLE cursos.modulos (
     actividad character varying(255),
     instrumento character varying(255)
 );
-ALTER TABLE cursos.modulos OWNER TO postgres;
-
-CREATE SEQUENCE cursos.cursos_modulos_id_modulo_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE cursos.cursos_modulos_id_modulo_seq OWNER TO postgres;
-ALTER SEQUENCE cursos.cursos_modulos_id_modulo_seq OWNED BY cursos.modulos.id_modulo;
 
 CREATE TABLE cursos.roles (
-    id_rol integer NOT NULL,
+    id_rol serial PRIMARY KEY,
     nombre_rol character varying(100)
 );
-ALTER TABLE cursos.roles OWNER TO postgres;
-
-CREATE SEQUENCE cursos.roles_id_rol_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE cursos.roles_id_rol_seq OWNER TO postgres;
-ALTER SEQUENCE cursos.roles_id_rol_seq OWNED BY cursos.roles.id_rol;
 
 CREATE TABLE cursos.usuario_documentos (
-    documento_id integer NOT NULL,
+    documento_id serial PRIMARY KEY,
     usuario_id integer NOT NULL,
     documento_path character varying(255) NOT NULL,
     documento_type character varying(50) NOT NULL
 );
-ALTER TABLE cursos.usuario_documentos OWNER TO postgres;
-
-CREATE SEQUENCE cursos.usuario_documentos_documento_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE cursos.usuario_documentos_documento_id_seq OWNER TO postgres;
-ALTER SEQUENCE cursos.usuario_documentos_documento_id_seq OWNED BY cursos.usuario_documentos.documento_id;
 
 CREATE TABLE cursos.usuarios (
-    id integer NOT NULL,
+    id serial PRIMARY KEY,
     nombre character varying(100),
     apellido character varying(100),
-    correo character varying(100),
+    correo character varying(100) UNIQUE,
     password text,
-    cedula character varying(100),
+    cedula character varying(100) UNIQUE,
     id_rol integer,
     token character varying(255),
     confirmado boolean,
     firma_digital character varying(255)
 );
-ALTER TABLE cursos.usuarios OWNER TO postgres;
 
-CREATE SEQUENCE cursos.usuarios_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE cursos.usuarios_id_seq OWNER TO postgres;
-ALTER SEQUENCE cursos.usuarios_id_seq OWNED BY cursos.usuarios.id;
-
--- Configurar valores predeterminados para las secuencias
-ALTER TABLE ONLY cursos.auditoria ALTER COLUMN id_auditoria SET DEFAULT nextval('cursos.auditoria_id_auditoria_seq'::regclass);
-ALTER TABLE ONLY cursos.certificaciones ALTER COLUMN id_certificacion SET DEFAULT nextval('cursos.certificaciones_id_certificacion_seq'::regclass);
-ALTER TABLE ONLY cursos.cursos ALTER COLUMN id_curso SET DEFAULT nextval('cursos.cursos_id_curso_seq'::regclass);
-ALTER TABLE ONLY cursos.modulos ALTER COLUMN id_modulo SET DEFAULT nextval('cursos.cursos_modulos_id_modulo_seq'::regclass);
-ALTER TABLE ONLY cursos.roles ALTER COLUMN id_rol SET DEFAULT nextval('cursos.roles_id_rol_seq'::regclass);
-ALTER TABLE ONLY cursos.usuario_documentos ALTER COLUMN documento_id SET DEFAULT nextval('cursos.usuario_documentos_documento_id_seq'::regclass);
-ALTER TABLE ONLY cursos.usuarios ALTER COLUMN id SET DEFAULT nextval('cursos.usuarios_id_seq'::regclass);
-
--- Definir llaves primarias y únicas
-ALTER TABLE ONLY cursos.certificaciones ADD CONSTRAINT certificaciones_pkey PRIMARY KEY (id_certificacion);
-ALTER TABLE ONLY cursos.certificaciones ADD CONSTRAINT certificaciones_valor_unico_key UNIQUE (valor_unico);
-ALTER TABLE ONLY cursos.modulos ADD CONSTRAINT cursos_modulos_pkey PRIMARY KEY (id_modulo);
-ALTER TABLE ONLY cursos.cursos ADD CONSTRAINT cursos_pkey PRIMARY KEY (id_curso);
-ALTER TABLE ONLY cursos.roles ADD CONSTRAINT roles_pkey PRIMARY KEY (id_rol);
-ALTER TABLE ONLY cursos.usuario_documentos ADD CONSTRAINT usuario_documentos_pkey PRIMARY KEY (documento_id);
-ALTER TABLE ONLY cursos.usuarios ADD CONSTRAINT usuarios_cedula_key UNIQUE (cedula);
-ALTER TABLE ONLY cursos.usuarios ADD CONSTRAINT usuarios_correo_key UNIQUE (correo);
-ALTER TABLE ONLY cursos.usuarios ADD CONSTRAINT usuarios_pkey PRIMARY KEY (id);
-
--- Crear triggers para auditoría
-CREATE TRIGGER certificaciones_trigger 
-AFTER INSERT OR DELETE OR UPDATE ON cursos.certificaciones 
-FOR EACH ROW EXECUTE FUNCTION cursos.cursos_audit();
-
-CREATE TRIGGER cursos_trigger 
-AFTER INSERT OR DELETE OR UPDATE ON cursos.cursos 
-FOR EACH ROW EXECUTE FUNCTION cursos.cursos_audit();
-
-CREATE TRIGGER roles_trigger 
-AFTER INSERT OR DELETE OR UPDATE ON cursos.roles 
-FOR EACH ROW EXECUTE FUNCTION cursos.cursos_audit();
-
-CREATE TRIGGER usuarios_trigger 
-AFTER INSERT OR DELETE OR UPDATE ON cursos.usuarios 
-FOR EACH ROW EXECUTE FUNCTION cursos.cursos_audit();
-
--- Definir llaves foráneas
-ALTER TABLE ONLY cursos.certificaciones
+-- Crear relaciones
+ALTER TABLE cursos.certificaciones
     ADD CONSTRAINT certificaciones_id_curso_fkey FOREIGN KEY (curso_id) REFERENCES cursos.cursos(id_curso);
-
-ALTER TABLE ONLY cursos.certificaciones
+ALTER TABLE cursos.certificaciones
     ADD CONSTRAINT certificaciones_id_usuario_fkey FOREIGN KEY (id_usuario) REFERENCES cursos.usuarios(id);
-
-ALTER TABLE ONLY cursos.modulos
+ALTER TABLE cursos.modulos
     ADD CONSTRAINT cursos_modulos_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES cursos.cursos(id_curso);
-
-ALTER TABLE ONLY cursos.usuario_documentos
+ALTER TABLE cursos.usuario_documentos
     ADD CONSTRAINT usuario_documentos_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES cursos.usuarios(id);
-
-ALTER TABLE ONLY cursos.usuarios
+ALTER TABLE cursos.usuarios
     ADD CONSTRAINT usuarios_id_rol_fkey FOREIGN KEY (id_rol) REFERENCES cursos.roles(id_rol);
+
+-- Función de auditoría
+CREATE OR REPLACE FUNCTION cursos.cursos_audit() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    accion_texto VARCHAR(10);
+    usuario_sistema INTEGER;
+BEGIN
+    -- Obtener el ID del usuario del sistema desde una variable de configuración
+    BEGIN
+        SELECT current_setting('myapp.current_user_id', true)::INTEGER INTO usuario_sistema;
+    EXCEPTION
+        WHEN others THEN
+            -- Si no se puede obtener el ID del usuario, usar un valor predeterminado
+            usuario_sistema := -1; -- Puedes usar -1 o cualquier otro valor que indique "sin usuario"
+    END;
+
+    IF TG_OP = 'DELETE' THEN
+        accion_texto := 'DELETE';
+        INSERT INTO cursos.auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
+        VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), OLD::text, NULL);
+        RETURN OLD;
+    ELSIF TG_OP = 'UPDATE' THEN
+        accion_texto := 'UPDATE';
+        INSERT INTO cursos.auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
+        VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), OLD::text, NEW::text);
+        RETURN NEW;
+    ELSIF TG_OP = 'INSERT' THEN
+        accion_texto := 'INSERT';
+        INSERT INTO cursos.auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
+        VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), NULL, NEW::text);
+        RETURN NEW;
+    END IF;
+
+    RETURN NULL;
+END;
+$$;
+
+-- Crear triggers
+CREATE TRIGGER certificaciones_trigger AFTER INSERT OR DELETE OR UPDATE ON cursos.certificaciones FOR EACH ROW EXECUTE PROCEDURE cursos.cursos_audit();
+CREATE TRIGGER cursos_trigger AFTER INSERT OR DELETE OR UPDATE ON cursos.cursos FOR EACH ROW EXECUTE PROCEDURE cursos.cursos_audit();
+CREATE TRIGGER roles_trigger AFTER INSERT OR DELETE OR UPDATE ON cursos.roles FOR EACH ROW EXECUTE PROCEDURE cursos.cursos_audit();
+CREATE TRIGGER usuarios_trigger AFTER INSERT OR DELETE OR UPDATE ON cursos.usuarios FOR EACH ROW EXECUTE PROCEDURE cursos.cursos_audit();
+
+-- Otorgar permisos sobre el esquema
+GRANT ALL ON SCHEMA cursos TO uptaivir_certificacion2;
+
+-- Otorgar permisos sobre las tablas
+GRANT ALL ON ALL TABLES IN SCHEMA cursos TO uptaivir_certificacion2;
+
+-- Otorgar permisos sobre las secuencias
+GRANT ALL ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
+
+-- Otorgar permisos sobre las funciones
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA cursos TO uptaivir_certificacion2;
+
+-- Otorgar permisos sobre los triggers
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (SELECT event_object_table FROM information_schema.triggers WHERE trigger_schema = 'cursos') LOOP
+        EXECUTE 'GRANT ALL ON TABLE cursos.' || r.event_object_table || ' TO uptaivir_certificacion2';
+    END LOOP;
+END $$;

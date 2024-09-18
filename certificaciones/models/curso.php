@@ -67,6 +67,9 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
     }
 
     public function editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $autorizacion) {
+        // Convertir arrays a cadenas en formato PostgreSQL
+        $dias_clase_pg = '{' . implode(',', $dias_clase) . '}';
+    
         // Actualizar los datos del curso en la base de datos
         try {
             $stmt = $this->db->prepare('UPDATE cursos.cursos SET nombre_curso = :nombre_curso, descripcion = :descripcion, tiempo_asignado = :tiempo_asignado, inicio_mes = :inicio_mes, tipo_curso = :tipo_curso, limite_inscripciones = :limite_inscripciones, dias_clase = :dias_clase, horario_inicio = :horario_inicio, horario_fin = :horario_fin, nivel_curso = :nivel_curso, costo = :costo, conocimientos_previos = :conocimientos_previos, autorizacion = :autorizacion WHERE id_curso = :id_curso');
@@ -77,7 +80,7 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
                 'inicio_mes' => $inicio_mes,
                 'tipo_curso' => $tipo_curso,
                 'limite_inscripciones' => $limite_inscripciones,
-                'dias_clase' => $dias_clase,
+                'dias_clase' => $dias_clase_pg,
                 'horario_inicio' => $horario_inicio,
                 'horario_fin' => $horario_fin,
                 'nivel_curso' => $nivel_curso,
@@ -101,7 +104,22 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
             }
         } catch (PDOException $e) {
             // Mostrar un mensaje de error al usuario
-            echo '<p>Ha ocurrido un error al editar el curso: ' . $e->getMessage() . '</p>';
+            echo var_dump([
+                'nombre_curso' => $nombre_curso,
+                'descripcion' => $descripcion,
+                'tiempo_asignado' => $tiempo_asignado,
+                'inicio_mes' => $inicio_mes,
+                'tipo_curso' => $tipo_curso,
+                'limite_inscripciones' => $limite_inscripciones,
+                'dias_clase' => $dias_clase_pg,
+                'horario_inicio' => $horario_inicio,
+                'horario_fin' => $horario_fin,
+                'nivel_curso' => $nivel_curso,
+                'costo' => $costo,
+                'conocimientos_previos' => $conocimientos_previos,
+                'autorizacion' => $autorizacion,
+                'id_curso' => $id_curso
+            ]) . '<p>Ha ocurrido un error al editar el curso: ' . $e->getMessage() . '</p>';
         }
     }    
 
@@ -246,6 +264,44 @@ public function tiene_inscritos_o_aprobados($id_curso) {
     $aprobados = $stmt->fetchColumn();
 
     return $inscritos > 0 || $aprobados > 0;
+}
+
+public function obtener_pagado($curso_id, $id_usuario) {
+    $query = "SELECT pago FROM cursos.certificaciones WHERE curso_id = :id_curso AND id_usuario = :id_usuario";
+    $stmt = $this->db->prepare($query);
+    $stmt->bindParam(':id_curso', $curso_id, PDO::PARAM_INT);
+    $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result ? (bool)$result['pago'] : false;
+}
+
+public function actualizar_pagado($id_curso, $id_usuario, $pagado) {
+    $sql = "UPDATE cursos.certificaciones SET pago = :pagado WHERE curso_id = :id_curso AND id_usuario = :id_usuario";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindParam(':pagado', $pagado, PDO::PARAM_BOOL);
+    $stmt->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
+    $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+    return $stmt->execute();
+}
+
+// Método para obtener el curso por valor único en PostgreSQL
+public function obtener_curso_por_valor_unico($valor_unico) {
+    $stmt = $this->db->prepare('
+        SELECT c.nombre_curso, c.descripcion, c.tipo_curso,
+               c.tiempo_asignado, c.inicio_mes,
+               c.estado, c.dias_clase,
+               c.horario_inicio, c.horario_fin,
+               c.nivel_curso, c.costo,
+               c.conocimientos_previos,
+               c.requerimientos_implemento,
+               c.desempeno_al_concluir
+        FROM cursos.cursos AS c
+        JOIN cursos.certificaciones AS cert ON cert.curso_id = c.id_curso
+        WHERE cert.valor_unico = :valor_unico
+    ');
+    $stmt->execute(['valor_unico' => $valor_unico]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 }
 ?>

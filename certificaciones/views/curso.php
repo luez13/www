@@ -20,6 +20,14 @@ $stmt = $db->prepare('SELECT nombre FROM cursos.usuarios WHERE id = :id_promotor
 $stmt->execute(['id_promotor' => $curso_contenido['promotor']]);
 $promotor = $stmt->fetch();
 
+// Obtener el valor único del curso
+$stmt = $db->prepare('SELECT valor_unico FROM cursos.certificaciones WHERE curso_id = :curso_id');
+$stmt->execute(['curso_id' => $id_curso]);
+$valor_unico = $stmt->fetchColumn();
+
+// Definir la base de la URL
+$base_url = 'http://localhost/certificaciones/controllers/generar_certificado.php';
+
 // Verificar si la solicitud es AJAX
 $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
@@ -80,7 +88,7 @@ if ($_SESSION['id_rol'] != 4) {
         echo '<input type="hidden" name="action" value="inscribirse">';
         echo '<input type="hidden" name="id_usuario" value="' . $_SESSION['user_id'] . '">';
         echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
-        echo '<button type="submit" id="inscribirse-btn">Inscribirse al curso</button>';
+        echo '<button type="submit" id="inscribirse-btn" class="btn btn-primary">Inscribirse al curso</button>';
         echo '</form>';
     } else {
         echo '<p>Nota: ' . $inscripcion['nota'] . '</p>';
@@ -90,87 +98,24 @@ if ($_SESSION['id_rol'] != 4) {
             echo '<input type="hidden" name="action" value="cancelar_inscripcion">';
             echo '<input type="hidden" name="id_usuario" value="' . $_SESSION['user_id'] . '">';
             echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
-            echo '<button type="submit" id="cancelar-inscripcion-btn">Cancelar inscripción</button>';
+            echo '<button type="submit" id="cancelar-inscripcion-btn" class="btn btn-danger">Cancelar inscripción</button>';
             echo '</form>';
         } else {
-            // Si el curso está completado, mostrar el botón de ver certificado
-            echo '<button id="ver-certificado" onclick="generarCertificado()">Ver Certificado</button>';
+            // Si el curso está completado, mostrar los botones de ver certificado y ver URL
+            echo '<button class="btn btn-success" type="button" onclick="generarCertificado(\'' . $valor_unico . '\')">Ver Certificado</button>';
+            echo '<button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseURL" aria-expanded="false" aria-controls="collapseURL">Ver URL</button>';
+            echo '<div class="collapse" id="collapseURL">';
+            echo '<div class="card card-body">';
+            echo '<p>Aquí va la URL del curso: <a href="' . $base_url . '?valor_unico=' . $valor_unico . '">https://example.com/curso/' . $valor_unico . '</a></p>';
+            echo '</div>';
         }
     }
 }
 
 echo '</div>';
 
-// Ruta a tu imagen
-$imagePath = '../public/assets/img/IUT.jpg';
-
-// Obtén los contenidos de la imagen
-$imageContent = file_get_contents($imagePath);
-
-// Codifica los contenidos de la imagen a base64
-$base64Image = base64_encode($imageContent);
-
-// Obtener el nombre del estudiante y el título del curso desde la sesión o base de datos
-$nombreEstudiante = $_SESSION['nombre'];
-$nombreCurso = $curso_contenido['nombre_curso'];
-
 if (!$is_ajax) {
     // Incluir el archivo footer.php en views
     include '../views/footer.php';
 }
 ?>
-
-<script>
-function drawTextWithBorder(doc, text, x, y) {
-    var offset = 0.5; // Puedes ajustar este valor para cambiar el grosor del borde
-    doc.setTextColor(255, 255, 255); // Color del borde (blanco)
-    for(var i = -offset; i <= offset; i += offset) {
-        for(var j = -offset; j <= offset; j += offset) {
-            doc.text(text, x + i, y + j, { align: 'center' }); // Centra el texto
-        }
-    }
-    doc.setTextColor(0, 0, 0); // Color del texto (negro)
-    doc.text(text, x, y, { align: 'center' }); // Centra el texto
-}
-
-function generarCertificado() {
-    // Crear una nueva instancia de jsPDF en orientación horizontal
-    var doc = new jsPDF();
-
-    // Agregar imagen de fondo
-    var imgData = 'data:image/jpeg;base64,<?php echo $base64Image; ?>';
-    doc.addImage(imgData, 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-
-    // Agregar texto al documento con los datos correspondientes
-    doc.setFontSize(36);
-    doc.setFont('helvetica');
-    drawTextWithBorder(doc, 'Certificado de Formación', doc.internal.pageSize.getWidth() / 2, 60);
-
-    // Agregar el nombre del curso y el estudiante
-    drawTextWithBorder(doc, 'Nombre del Curso: ' + '<?php echo $curso_contenido['nombre_curso']; ?>', doc.internal.pageSize.getWidth() / 2, 120);
-    drawTextWithBorder(doc, 'Nombre del Estudiante: ' + '<?php $nombreEstudiante?>', doc.internal.pageSize.getWidth() / 2, 150);
-
-    // Agregar el resto de los datos necesarios
-    doc.setFontSize(16);
-    drawTextWithBorder(doc, 'Certificamos que el estudiante ha completado el curso.', doc.internal.pageSize.getWidth() / 2, 180);
-
-    // Agregar información adicional según las especificaciones del certificado
-    drawTextWithBorder(doc, 'Republica Bolivariana de Venezuela', doc.internal.pageSize.getWidth() / 2, 210);
-    drawTextWithBorder(doc, 'Ministerio del Poder Popular para la Educacion Universitaria', doc.internal.pageSize.getWidth() / 2, 225);
-    drawTextWithBorder(doc, 'Universidad Politecnica Territorial Agroindustrial del Estado Tachira', doc.internal.pageSize.getWidth() / 2, 240);
-
-    // Agregar el nombre y fecha de expedición
-    drawTextWithBorder(doc, '(nombre del promotor)', doc.internal.pageSize.getWidth() / 2, 270);
-    drawTextWithBorder(doc, 'Certificado Expediado en la Ciudad de San Cristobal, a las *hora actual y fecha actual*', doc.internal.pageSize.getWidth() / 2, 285);
-
-    // Abrir el PDF en una nueva pestaña
-    window.open(doc.output('bloburl'), '_blank');
-}
-
-document.addEventListener('DOMContentLoaded', (event) => {
-    var certificadoButton = document.getElementById('ver-certificado');
-    if(certificadoButton) {
-        certificadoButton.addEventListener('click', generarCertificado);
-    }
-});
-</script>

@@ -5,7 +5,7 @@
 -- Dumped from database version 16.1
 -- Dumped by pg_dump version 16.1
 
--- Started on 2024-09-03 23:33:08
+-- Started on 2024-09-14 00:39:58
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -652,7 +652,7 @@ ALTER TABLE ONLY cursos.usuarios
     ADD CONSTRAINT usuarios_id_rol_fkey FOREIGN KEY (id_rol) REFERENCES cursos.roles(id_rol);
 
 
--- Completed on 2024-09-03 23:33:09
+-- Completed on 2024-09-14 00:39:58
 
 --
 -- PostgreSQL database dump complete

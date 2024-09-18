@@ -17,21 +17,32 @@ $curso = new Curso($db);
 // Obtener el id del curso del parámetro de la URL
 $id_curso = $_GET['id'];
 
+// Obtener el id del usuario de la sesión
+$user_id = $_SESSION['user_id'];
+
+// Obtener el rol del usuario de la sesión
+$user_role = $_SESSION['id_rol'];
+
+// Obtener el id del promotor del curso
+$curso_info = $curso->obtener_curso($id_curso);
+$promotor_id = $curso_info['promotor'];
+
+// Verificar si el usuario tiene permiso para ver la página
+if (!in_array($user_role, [3, 4]) && $user_id != $promotor_id) {
+    echo '<p>No tienes permiso para ver esta página.</p>';
+    include '../views/footer.php';
+    exit;
+}
+
 echo '<div class="main-content">';
 // Validar el id del curso
 if (is_numeric($id_curso) && $id_curso > 0) {
-    // Obtener el id del usuario de la sesión
-    $user_id = $_SESSION['user_id'];
-
     // Obtener los usuarios inscritos en el curso usando el método de la clase Curso
     $usuarios = $curso->obtener_estudiantes($id_curso);
 
-    // Obtener el curso de la base de datos usando el método de la clase Curso
-    $curso_info = $curso->obtener_curso($id_curso);
-
-    // Verificar que la variable $curso no sea nula
+    // Verificar que la variable $curso_info no sea nula
     if (isset($curso_info)) { 
-        // Aquí puedes acceder a las propiedades del curso, como $curso->nombre_curso, $curso->descripcion, etc.
+        // Aquí puedes acceder a las propiedades del curso, como $curso_info['nombre_curso'], $curso_info['descripcion'], etc.
         echo '<h3>' . $curso_info['nombre_curso'] . '</h3>';
         echo '<p>' . $curso_info['descripcion'] . '</p>';        
 
@@ -45,18 +56,26 @@ if (is_numeric($id_curso) && $id_curso > 0) {
         echo '<th>Correo</th>';
         echo '<th>Nota</th>'; // Añadir columna para la nota
         echo '<th>Completado</th>'; // Añadir columna para el estado de finalización
+        if (in_array($user_role, [3, 4])) {
+            echo '<th>Pagado</th>'; // Añadir columna para el estado de pago
+        }
         echo '</tr>';
         foreach ($usuarios as $usuario) {
             $nota = $curso->obtener_nota($id_curso, $usuario['id']);
             $completado = $curso->obtener_completado($id_curso, $usuario['id']);
+            $pagado = $curso->obtener_pagado($id_curso, $usuario['id']);
             echo '<tr>';
             echo '<td>' . $usuario['nombre'] . '</td>';
             echo '<td>' . $usuario['apellido'] . '</td>';
             echo '<td>' . $usuario['cedula'] . '</td>';
             echo '<td>' . $usuario['correo'] . '</td>';
-            echo '<td>' . $nota . '</td>'; // Mostrar la nota del usuario
+            echo '<td class="nota" data-id-usuario="' . $usuario['id'] . '">' . $nota . '</td>'; // Añadir clase y atributo de datos
             echo '<td><input type="checkbox" class="completado" data-id-curso="' . $id_curso . '" data-id-usuario="' . $usuario['id'] . '"' . ($completado ? ' checked' : '') . '>';
             echo '<span> Si está marcado, el curso está completado. Si no está marcado, el curso no está completado.</span></td>'; // Mostrar el estado de finalización del curso
+            if (in_array($user_role, [3, 4])) {
+                echo '<td><input type="checkbox" class="pagado" data-id-curso="' . $id_curso . '" data-id-usuario="' . $usuario['id'] . '"' . ($pagado ? ' checked' : '') . '>';
+                echo '<span> Si está marcado, el curso está pagado. Si no está marcado, el curso no está pagado.</span></td>'; // Mostrar el estado de pago del curso
+            }
             echo '</tr>';
         }
         echo '</table>';
@@ -68,7 +87,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
         // Mostrar un formulario para asignar la nota a cada usuario
         echo '<h3>Asignar nota</h3>';
         foreach ($usuarios as $usuario) {
-            echo '<form action="../controllers/asignar_nota.php" method="post">';
+            echo '<form class="asignar-nota" data-id-usuario="' . $usuario['id'] . '" action="../controllers/asignar_nota.php" method="post">';
             echo '<input type="hidden" name="action" value="asignar_nota">';
             echo '<input type="hidden" name="id_usuario" value="' . $usuario['id'] . '">';
             echo '<input type="hidden" name="id_curso" value="' . $id_curso . '">';
@@ -113,9 +132,32 @@ $(document).ready(function(){
         });
     });
 
-        $('form').submit(function(event) {
+    $('.pagado').change(function() {
+        var id_curso = $(this).data('id-curso');
+        var id_usuario = $(this).data('id-usuario');
+        var pagado = $(this).is(':checked') ? 1 : 0;
+
+        $.ajax({
+            url: '../controllers/actualizar_estado.php',
+            type: 'POST',
+            data: {
+                id_curso: id_curso,
+                id_usuario: id_usuario,
+                pagado: pagado
+            },
+            success: function(response) {
+                console.log(response);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+            }
+        });
+    });
+
+    $('form.asignar-nota').submit(function(event) {
         event.preventDefault(); // Evitar el envío del formulario
         var form = $(this);
+        var id_usuario = form.data('id-usuario');
         $.ajax({
             url: form.attr('action'),
             type: form.attr('method'),
@@ -124,6 +166,8 @@ $(document).ready(function(){
                 var data = JSON.parse(response);
                 if (data.status === 'success') {
                     alert(data.message);
+                    // Actualizar la celda de la nota
+                    $('td.nota[data-id-usuario="' + id_usuario + '"]').text(form.find('input[name="nota"]').val());
                 } else {
                     alert(data.message);
                 }
