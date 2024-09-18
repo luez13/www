@@ -3,8 +3,11 @@
 if (!defined('DB_HOST')) {
     define('DB_HOST', 'localhost');
 }
+if (!defined('DB_PORT')) {
+    define('DB_PORT', '5433'); // Añadir esta línea para definir el puerto
+}
 if (!defined('DB_NAME')) {
-    define('DB_NAME', 'certificaciones_DB');
+    define('DB_NAME', 'uptaivir_certificaciones');
 }
 if (!defined('DB_USER')) {
     define('DB_USER', 'postgres');
@@ -24,7 +27,7 @@ if (!class_exists('DB')) {
         public function __construct() {
             // Intentar conectar a la base de datos usando PDO
             try {
-                $this->conn = new PDO('pgsql:host=' . DB_HOST . ';dbname=' . DB_NAME, DB_USER, DB_PASS);
+                $this->conn = new PDO('pgsql:host=' . DB_HOST . ';port=' . DB_PORT . ';dbname=' . DB_NAME, DB_USER, DB_PASS);
                 $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
                 // Verificar si la sesión no está iniciada antes de llamar a session_start()

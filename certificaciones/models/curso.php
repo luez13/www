@@ -68,7 +68,12 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
 
     public function editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $autorizacion) {
         // Convertir arrays a cadenas en formato PostgreSQL
-        $dias_clase_pg = '{' . implode(',', $dias_clase) . '}';
+        if (is_array($dias_clase)) {
+            $dias_clase_pg = '{' . implode(',', $dias_clase) . '}';
+        } else {
+            // Manejar el error o convertir $dias_clase a un array
+            $dias_clase_pg = '{' . $dias_clase . '}';
+        }
     
         // Actualizar los datos del curso en la base de datos
         try {
