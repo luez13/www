@@ -1,4 +1,7 @@
 <?php
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 // Crear la clase Curso
 class Curso {
     // Crear una propiedad para guardar la instancia de la clase DB
@@ -23,6 +26,7 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
 
     // Insertar los datos en la base de datos y obtener el ID del curso recién creado
     try {
+       $usuario_s=$_SESSION['user_id'];
         $stmt = $this->db->prepare('INSERT INTO cursos.cursos (nombre_curso, descripcion, tiempo_asignado, inicio_mes, tipo_curso, limite_inscripciones, dias_clase, horario_inicio, horario_fin, nivel_curso, costo, conocimientos_previos, requerimientos_implemento, desempeno_al_concluir, promotor) VALUES (:nombre_curso, :descripcion, :tiempo_asignado, :inicio_mes, :tipo_curso, :limite_inscripciones, :dias_clase, :horario_inicio, :horario_fin, :nivel_curso, :costo, :conocimientos_previos, :requerimientos_implemento, :desempeno_al_concluir, :promotor) RETURNING id_curso');
         $stmt->execute([
             'nombre_curso' => $nombre,
@@ -39,13 +43,13 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
             'conocimientos_previos' => $conocimientos_previos,
             'requerimientos_implemento' => $requerimientos_implemento,
             'desempeno_al_concluir' => $desempeno_al_concluir,
-            'promotor' => $user_id
+            'promotor' => $usuario_s
         ]);
         $curso_id = $stmt->fetchColumn(); // Obtener el ID del curso recién creado
         return $curso_id;
     } catch (PDOException $e) {
         // Mostrar un mensaje de error al usuario
-        echo '<p>Ha ocurrido un error al crear el curso: ' . $e->getMessage() . '</p>';
+         "<p>Ha ocurrido un error al crear el curso:  $nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento, $desempeno_al_concluir, $user_id" . $e->getMessage() . "</p>";
         return null;
     }
 }
@@ -307,6 +311,50 @@ public function obtener_curso_por_valor_unico($valor_unico) {
     ');
     $stmt->execute(['valor_unico' => $valor_unico]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+public function obtener_datos_certificacion($valor_unico) {
+    $stmt = $this->db->prepare('
+        SELECT c.nombre_curso, c.descripcion, c.tipo_curso,
+               c.tiempo_asignado, c.inicio_mes,
+               c.estado, c.dias_clase,
+               c.horario_inicio, c.horario_fin,
+               c.nivel_curso, c.costo,
+               c.conocimientos_previos, c.requerimientos_implemento,
+               c.desempeno_al_concluir,
+               c.promotor,
+               u.nombre AS nombre_estudiante, u.cedula,
+               cert.fecha_inscripcion, cert.tomo, cert.folio,
+               cert.nota, cert.completado -- Agregamos "completado"
+        FROM cursos.cursos AS c
+        JOIN cursos.certificaciones AS cert ON cert.curso_id = c.id_curso
+        JOIN cursos.usuarios AS u ON cert.id_usuario = u.id
+        WHERE cert.valor_unico = :valor_unico
+    ');
+    $stmt->execute(['valor_unico' => $valor_unico]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+public function obtener_tomo($id_curso, $id_usuario) {
+    $stmt = $this->db->prepare("SELECT tomo FROM cursos.certificaciones WHERE curso_id = :id_curso AND id_usuario = :id_usuario");
+    $stmt->execute([':id_curso' => $id_curso, ':id_usuario' => $id_usuario]);
+    return $stmt->fetch(PDO::FETCH_ASSOC)['tomo'];
+}
+
+public function obtener_folio($id_curso, $id_usuario) {
+    $stmt = $this->db->prepare("SELECT folio FROM cursos.certificaciones WHERE curso_id = :id_curso AND id_usuario = :id_usuario");
+    $stmt->execute([':id_curso' => $id_curso, ':id_usuario' => $id_usuario]);
+    return $stmt->fetch(PDO::FETCH_ASSOC)['folio'];
+}
+
+public function actualizar_tomo_folio($id_curso, $id_usuario, $tomo, $folio) {
+    $sql = "UPDATE cursos.certificaciones SET tomo = :tomo, folio = :folio WHERE curso_id = :id_curso AND id_usuario = :id_usuario";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindParam(':tomo', $tomo, PDO::PARAM_INT);
+    $stmt->bindParam(':folio', $folio, PDO::PARAM_INT);
+    $stmt->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
+    $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+    return $stmt->execute();
 }
 }
 ?>

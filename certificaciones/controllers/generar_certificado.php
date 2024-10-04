@@ -11,93 +11,128 @@ $curso = new Curso($db);
 // Obtener el valor único del curso de la URL
 $valor_unico = $_GET['valor_unico'];
 
-// Usar el método de la clase Curso para obtener el contenido del curso usando el valor único
-$curso_contenido = $curso->obtener_curso_por_valor_unico($valor_unico);
+// Mostrar los datos de la certificación
+$datos = $curso->obtener_datos_certificacion($valor_unico);
 
-// Obtener el nombre del estudiante desde la sesión
-$nombreEstudiante = $_SESSION['nombre'];
+// Asignar los datos obtenidos a variables
+$nombreEstudiante = $datos['nombre_estudiante'];
+$cedula = $datos['cedula'];
+$paso = $datos['completado'] ? "aprobado" : "no aprobado";
+$fecha = date('d/m/Y', strtotime($datos['fecha_inscripcion']));
+$tomo = $datos['tomo'];
+$folio = $datos['folio'];
+$nota = $datos['nota'];
+$promotor = $datos['promotor'];
+$nombre_curso = $datos['nombre_curso'];
 
-// Ruta a tu imagen
-$imagePath = '../public/assets/img/IUT.jpg';
+// Rutas a las imágenes
+$imagePath = '../public/assets/img/marca_agua.png';
+$bannerPath = '../public/assets/img/banner_certificado.jpg';
+$footerPath = '../public/assets/img/footer.jpg';
 
-// Codificar la imagen a base64
-$imageContent = file_get_contents($imagePath);
-$base64Image = base64_encode($imageContent);
-
-// Devolver los datos en formato JSON
-echo json_encode([
-    'nombre_curso' => $curso_contenido['nombre_curso'],
-    'nombre_estudiante' => $nombreEstudiante,
-    'base64Image' => $base64Image
-]);
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generar Certificado</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-</head>
-<body>
+    <!-- Incluir los archivos de fuentes convertidas -->
+    <script src="../public/assets/vendor/edwardianscriptitc-normal.js"></script>
+    <script src="../public/assets/vendor/cambria-normal.js"></script>
     <script>
-        function drawTextWithBorder(doc, text, x, y) {
-            var offset = 0.02; // Ajustar el grosor del borde
-            doc.setTextColor(255, 255, 255); // Color del borde (blanco)
-            for(var i = -offset; i <= offset; i += offset) {
-                for(var j = -offset; j <= offset; j += offset) {
-                    doc.text(text, x + i, y + j, { align: 'center' }); // Centra el texto
-                }
-            }
-            doc.setTextColor(0, 0, 0); // Color del texto (negro)
-            doc.text(text, x, y, { align: 'center' }); // Centra el texto
-        }
-
-        function generarCertificado() {
+        document.addEventListener('DOMContentLoaded', function() {
             const { jsPDF } = window.jspdf;
 
-            // Crear una nueva instancia de jsPDF en orientación horizontal con tamaño carta
-            var doc = new jsPDF({
-                orientation: 'landscape',
-                unit: 'in',
-                format: 'letter'
-            });
+            // Registrar fuentes personalizadas
+            jsPDF.API.events.push(['addFonts', function() {
+                this.addFileToVFS('EdwardianScriptITC.ttf', edwardianscriptitcNormal);
+                this.addFont('EdwardianScriptITC.ttf', 'Edwardian', 'normal');
+                this.addFileToVFS('Cambria.ttf', cambriaNormal);
+                this.addFont('Cambria.ttf', 'Cambria', 'normal');
+            }]);
 
-            // Agregar imagen de fondo
-            var imgData = 'data:image/jpeg;base64,<?php echo $base64Image; ?>';
-            doc.addImage(imgData, 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+            // Crear un nuevo documento PDF
+            const pdf = new jsPDF('landscape', 'mm', 'a4');
+
+            // Usar la fuente Cambria para el texto general
+            pdf.setFont('Cambria', 'normal');
+
+            // Agregar imagen del banner como encabezado
+            pdf.addImage('<?php echo $bannerPath; ?>', 'JPEG', 10, 5, pdf.internal.pageSize.width - 20, 0);
+
+            // Agregar imagen de marca de agua en el centro
+            const watermarkWidth = pdf.internal.pageSize.width / 2;
+            const watermarkHeight = pdf.internal.pageSize.height / 2;
+            pdf.addImage('<?php echo $imagePath; ?>', 'PNG', (pdf.internal.pageSize.width - watermarkWidth) / 2, (pdf.internal.pageSize.height - watermarkHeight) / 2, watermarkWidth, watermarkHeight);
 
             // Agregar texto al documento con los datos correspondientes
-            doc.setFontSize(20);
-            doc.setFont('helvetica');
-            drawTextWithBorder(doc, 'Certificado de Formación', doc.internal.pageSize.getWidth() / 2, 2);
+            pdf.setFontSize(20); // Tamaño 20
+            pdf.text('REPÚBLICA BOLIVARIANA DE VENEZUELA', pdf.internal.pageSize.width / 2, 40, { align: 'center' });
+            pdf.text('MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN UNIVERSITARIA', pdf.internal.pageSize.width / 2, 50, { align: 'center' });
+            pdf.text('UNIVERSIDAD POLITÉCNICA TERRITORIAL AGROINDUSTRIAL DEL ESTADO TÁCHIRA', pdf.internal.pageSize.width / 2, 60, { align: 'center' });
 
-            // Agregar el nombre del curso y el estudiante
-            doc.setFontSize(16);
-            drawTextWithBorder(doc, 'Nombre del Curso: ' + '<?php echo $curso_contenido['nombre_curso']; ?>', doc.internal.pageSize.getWidth() / 2, 4);
-            drawTextWithBorder(doc, 'Nombre del Estudiante: ' + '<?php echo $nombreEstudiante; ?>', doc.internal.pageSize.getWidth() / 2, 5);
+            pdf.setFontSize(18); // Tamaño 18
+            pdf.text('Otorga el presente certificado al ciudadano (a):', pdf.internal.pageSize.width / 2, 80, { align: 'center' });
 
-            // Agregar el resto de los datos necesarios
-            doc.setFontSize(12);
-            drawTextWithBorder(doc, 'Certificamos que el estudiante ha completado el curso.', doc.internal.pageSize.getWidth() / 2, 6);
+            // Usar la fuente Edwardian Script ITC para el nombre del estudiante en cursiva y rojo
+            pdf.setFont('Edwardian', 'normal');
+            pdf.setFontSize(50);
+            pdf.setTextColor(255, 0, 0); // Color rojo
+            pdf.text('<?php echo $nombreEstudiante; ?>', pdf.internal.pageSize.width / 2, 95, { align: 'center' });
 
-            // Agregar información adicional según las especificaciones del certificado
-            drawTextWithBorder(doc, 'Republica Bolivariana de Venezuela', doc.internal.pageSize.getWidth() / 2, 7);
-            drawTextWithBorder(doc, 'Ministerio del Poder Popular para la Educacion Universitaria', doc.internal.pageSize.getWidth() / 2, 7.5);
-            drawTextWithBorder(doc, 'Universidad Politecnica Territorial Agroindustrial del Estado Tachira', doc.internal.pageSize.getWidth() / 2, 8);
+            // Regresar a la fuente Cambria y restablecer el color
+            pdf.setFont('Cambria', 'normal');
+            pdf.setFontSize(16);
+            pdf.setTextColor(0, 0, 0); // Color negro
+            pdf.text('C.I. V- <?php echo $cedula; ?>', pdf.internal.pageSize.width / 2, 110, { align: 'center' });
+            pdf.text('Por haber <?php echo $paso; ?> en el curso de <?php echo $nombre_curso; ?>', pdf.internal.pageSize.width / 2, 125, { align: 'center' });
+            pdf.text('Certificación expedida en la Ciudad de San Cristóbal, <?php echo $fecha; ?>', pdf.internal.pageSize.width / 2, 140, { align: 'center' });
 
-            // Agregar el nombre y fecha de expedición
-            drawTextWithBorder(doc, '(nombre del promotor)', doc.internal.pageSize.getWidth() / 2, 9);
-            drawTextWithBorder(doc, 'Certificado Expediado en la Ciudad de San Cristobal, a las ' + new Date().toLocaleString(), doc.internal.pageSize.getWidth() / 2, 9.5);
+            // Agregar el nombre del promotor al lado derecho arriba del footer con poco interlineado
+            const marginRight = pdf.internal.pageSize.width - 20;
+            pdf.text('Ing. Espindola Yoselin', marginRight, pdf.internal.pageSize.height - 50, { align: 'right' });
+            pdf.text('Coord. Formación Permanente', marginRight, pdf.internal.pageSize.height - 45, { align: 'right' });
+
+            // Agregar imagen del pie de página
+            pdf.addImage('<?php echo $footerPath; ?>', 'JPEG', 10, pdf.internal.pageSize.height - 25, pdf.internal.pageSize.width - 20, 0);
+
+            // Agregar segunda página
+            pdf.addPage();
+            pdf.setFont('Arial', 'B', 16);
+
+            // Agregar imagen de marca de agua en el centro de la segunda página
+            pdf.addImage('<?php echo $imagePath; ?>', 'PNG', (pdf.internal.pageSize.width - watermarkWidth) / 2, (pdf.internal.pageSize.height - watermarkHeight) / 2, watermarkWidth, watermarkHeight);
+
+            // Agregar el título "CONTENIDO:" centrado y grande
+            pdf.setFontSize(20);
+            pdf.setFont('Cambria', 'normal');
+            pdf.text('CONTENIDO:', pdf.internal.pageSize.width / 2, 30, { align: 'center' });
+
+            // Lista de módulos dentro de un "cuadrado" centrado
+            pdf.setFontSize(16);
+            const leftMargin = 40; // Margen izquierdo del "cuadrado"
+            pdf.text('•', leftMargin, 50);
+            pdf.text('•', leftMargin, 60);
+            pdf.text('•', leftMargin, 70);
+
+            // Agregar el texto de registro y calificación con poco interlineado
+            pdf.setFontSize(16);
+            pdf.text('Registrado en formación permanente tomo <?php echo $tomo; ?> y folio <?php echo $folio; ?>.', 10, 150);
+            pdf.text('Presentando una calificación final, <?php echo $nota; ?> de una nota máxima (20).', 10, 155);
+            pdf.text('El programa tuvo una duración de horas cronológicas.', 10, 160);
+
+            const marginRight2 = pdf.internal.pageSize.width - 20;
+            pdf.text('promotor', marginRight2, 150, { align: 'right' });
+            pdf.text('Facilitador', marginRight2, 155, { align: 'right' });
 
             // Abrir el PDF en una nueva pestaña
-            window.open(doc.output('bloburl'), '_blank');
-        }
-
-        document.addEventListener('DOMContentLoaded', (event) => {
-            generarCertificado();
+            const pdfOutput = pdf.output('blob');
+            const blobUrl = URL.createObjectURL(pdfOutput);
+            window.location.href = blobUrl; // Navega directamente a la URL del PDF
         });
     </script>
+</head>
+<body>
 </body>
 </html>

@@ -102,11 +102,11 @@ if ($_SESSION['id_rol'] != 4) {
             echo '</form>';
         } else {
             // Si el curso está completado, mostrar los botones de ver certificado y ver URL
-            echo '<button class="btn btn-success" type="button" onclick="generarCertificado(\'' . $valor_unico . '\')">Ver Certificado</button>';
+            echo '<button class="btn btn-success" type="button" onclick="verCertificado(\'' . $valor_unico . '\')">Ver Certificado</button>';
             echo '<button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseURL" aria-expanded="false" aria-controls="collapseURL">Ver URL</button>';
             echo '<div class="collapse" id="collapseURL">';
             echo '<div class="card card-body">';
-            echo '<p>Aquí va la URL del curso: <a href="' . $base_url . '?valor_unico=' . $valor_unico . '">https://example.com/curso/' . $valor_unico . '</a></p>';
+            echo '<p>Aquí va la URL del curso: <a href="' . $base_url . '?valor_unico=' . $valor_unico . '">Certificado</a></p>';
             echo '</div>';
         }
     }
@@ -119,3 +119,9 @@ if (!$is_ajax) {
     include '../views/footer.php';
 }
 ?>
+
+<script>
+    function verCertificado(valorUnico) {
+        window.open('../controllers/generar_certificado.php?valor_unico=' + valorUnico, '_blank');
+    }
+</script>

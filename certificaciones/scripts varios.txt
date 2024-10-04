@@ -408,3 +408,7 @@ BEGIN
         EXECUTE 'GRANT ALL ON TABLE cursos.' || r.event_object_table || ' TO uptaivir_certificacion2';
     END LOOP;
 END $$;
+
+ALTER TABLE cursos.certificaciones
+ADD COLUMN tomo integer,
+ADD COLUMN folio integer;

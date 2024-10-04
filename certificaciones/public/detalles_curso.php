@@ -64,17 +64,25 @@ if (is_numeric($id_curso) && $id_curso > 0) {
             $nota = $curso->obtener_nota($id_curso, $usuario['id']);
             $completado = $curso->obtener_completado($id_curso, $usuario['id']);
             $pagado = $curso->obtener_pagado($id_curso, $usuario['id']);
+            $tomo = $curso->obtener_tomo($id_curso, $usuario['id']);
+            $folio = $curso->obtener_folio($id_curso, $usuario['id']);
             echo '<tr>';
             echo '<td>' . $usuario['nombre'] . '</td>';
             echo '<td>' . $usuario['apellido'] . '</td>';
             echo '<td>' . $usuario['cedula'] . '</td>';
             echo '<td>' . $usuario['correo'] . '</td>';
-            echo '<td class="nota" data-id-usuario="' . $usuario['id'] . '">' . $nota . '</td>'; // Añadir clase y atributo de datos
+            echo '<td class="nota" data-id-usuario="' . $usuario['id'] . '">' . $nota . '</td>';
             echo '<td><input type="checkbox" class="completado" data-id-curso="' . $id_curso . '" data-id-usuario="' . $usuario['id'] . '"' . ($completado ? ' checked' : '') . '>';
-            echo '<span> Si está marcado, el curso está completado. Si no está marcado, el curso no está completado.</span></td>'; // Mostrar el estado de finalización del curso
+            echo '<span> Si está marcado, el curso está completado. Si no está marcado, el curso no está completado.</span></td>';
             if (in_array($user_role, [3, 4])) {
                 echo '<td><input type="checkbox" class="pagado" data-id-curso="' . $id_curso . '" data-id-usuario="' . $usuario['id'] . '"' . ($pagado ? ' checked' : '') . '>';
-                echo '<span> Si está marcado, el curso está pagado. Si no está marcado, el curso no está pagado.</span></td>'; // Mostrar el estado de pago del curso
+                echo '<span> Si está marcado, el curso está pagado. Si no está marcado, el curso no está pagado.</span></td>';
+                echo '<td>';
+                echo '<input type="number" class="tomo" data-id-curso="' . $id_curso . '" data-id-usuario="' . $usuario['id'] . '" value="' . $tomo . '" min="0" placeholder="Tomo">';
+                echo '<button class="asignar-tomo" data-id-curso="' . $id_curso . '" data-id-usuario="' . $usuario['id'] . '">Asignar Tomo</button>';
+                echo '<input type="number" class="folio" data-id-curso="' . $id_curso . '" data-id-usuario="' . $usuario['id'] . '" value="' . $folio . '" min="0" placeholder="Folio">';
+                echo '<button class="asignar-folio" data-id-curso="' . $id_curso . '" data-id-usuario="' . $usuario['id'] . '">Asignar Folio</button>';
+                echo '</td>';
             }
             echo '</tr>';
         }
@@ -155,7 +163,7 @@ $(document).ready(function(){
     });
 
     $('form.asignar-nota').submit(function(event) {
-        event.preventDefault(); // Evitar el envío del formulario
+        event.preventDefault();
         var form = $(this);
         var id_usuario = form.data('id-usuario');
         $.ajax({
@@ -166,7 +174,6 @@ $(document).ready(function(){
                 var data = JSON.parse(response);
                 if (data.status === 'success') {
                     alert(data.message);
-                    // Actualizar la celda de la nota
                     $('td.nota[data-id-usuario="' + id_usuario + '"]').text(form.find('input[name="nota"]').val());
                 } else {
                     alert(data.message);
@@ -174,6 +181,56 @@ $(document).ready(function(){
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log(textStatus, errorThrown);
+            }
+        });
+    });
+
+    $('.asignar-tomo').click(function() {
+        var id_curso = $(this).data('id-curso');
+        var id_usuario = $(this).data('id-usuario');
+        var tomo = $('.tomo[data-id-usuario="' + id_usuario + '"]').val();
+
+        $.ajax({
+            url: '../controllers/actualizar_estado.php',
+            type: 'POST',
+            data: {
+                id_curso: id_curso,
+                id_usuario: id_usuario,
+                tomo: tomo,
+                folio: $('.folio[data-id-usuario="' + id_usuario + '"]').val()
+            },
+            success: function(response) {
+                console.log(response);
+                alert('Tomo y folio actualizados correctamente');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+                alert('Error al actualizar el tomo y folio');
+            }
+        });
+    });
+
+    $('.asignar-folio').click(function() {
+        var id_curso = $(this).data('id-curso');
+        var id_usuario = $(this).data('id-usuario');
+        var folio = $('.folio[data-id-usuario="' + id_usuario + '"]').val();
+
+        $.ajax({
+            url: '../controllers/actualizar_estado.php',
+            type: 'POST',
+            data: {
+                id_curso: id_curso,
+                id_usuario: id_usuario,
+                folio: folio,
+                tomo: $('.tomo[data-id-usuario="' + id_usuario + '"]').val()
+            },
+            success: function(response) {
+                console.log(response);
+                alert('Folio actualizado correctamente');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+                alert('Error al actualizar el folio');
             }
         });
     });
