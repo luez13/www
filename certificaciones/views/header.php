@@ -38,6 +38,18 @@ if (isset($_SESSION['nombre'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <!-- Tus meta etiquetas, títulos, enlaces a CSS -->
+        <script>
+        function confirmarInscripcion() {
+            console.log("Confirmar inscripción llamado"); // Para depuración
+            return confirm("¿Estás seguro de que quieres inscribirte en este curso?");
+        }
+
+        function confirmarCancelacion() {
+            console.log("Confirmar cancelación llamado"); // Para depuración
+            return confirm("¿Estás seguro de que quieres cancelar tu inscripción en este curso?");
+        }
+    </script>
     <title>Sistema de gestión de cursos y certificaciones</title>
     <?php if ($current_page === 'perfil.php' || $current_page === 'index.php'): ?>
     <div class="container-fluid p-0">

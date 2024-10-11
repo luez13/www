@@ -11,7 +11,7 @@ $curso = new Curso($db);
 // Obtener el valor único del curso de la URL
 $valor_unico = $_GET['valor_unico'];
 
-// Mostrar los datos de la certificación
+// Mostrar los datos de la certificación basados en el valor_unico
 $datos = $curso->obtener_datos_certificacion($valor_unico);
 
 // Asignar los datos obtenidos a variables
@@ -22,8 +22,34 @@ $fecha = date('d/m/Y', strtotime($datos['fecha_inscripcion']));
 $tomo = $datos['tomo'];
 $folio = $datos['folio'];
 $nota = $datos['nota'];
-$promotor = $datos['promotor'];
+$promotor_id = $datos['promotor'];
 $nombre_curso = $datos['nombre_curso'];
+
+// Obtener el nombre del promotor y la firma digital
+$stmt = $db->prepare("SELECT nombre, firma_digital FROM cursos.usuarios WHERE id = :id");
+$stmt->bindParam(':id', $promotor_id, PDO::PARAM_INT);
+$stmt->execute();
+$promotor_data = $stmt->fetch(PDO::FETCH_ASSOC);
+$promotor = $promotor_data['nombre'];
+$firma_digital = $promotor_data['firma_digital'];
+
+// Obtener los módulos del curso
+$stmt = $db->prepare("SELECT * FROM cursos.modulos WHERE id_curso = :id_curso ORDER BY numero");
+$stmt->bindParam(':id_curso', $datos['id_curso'], PDO::PARAM_INT);
+$stmt->execute();
+$modulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Calcular la duración total del curso en horas cronológicas
+$inicio = new DateTime($datos['horario_inicio']);
+$fin = new DateTime($datos['horario_fin']);
+$duracionClase = $fin->diff($inicio)->h + ($fin->diff($inicio)->i / 60); // horas + minutos convertidos a horas
+
+// Suponiendo que dias_clase es una cadena de días como "Lunes,Miércoles,Viernes"
+$diasClaseArray = explode(',', $datos['dias_clase']);
+$numeroDiasPorSemana = count($diasClaseArray);
+$numeroDeSemanas = 6; // Esto debería obtenerse de algún lugar si es variable
+
+$duracionTotal = $duracionClase * $numeroDiasPorSemana * $numeroDeSemanas;
 
 // Rutas a las imágenes
 $imagePath = '../public/assets/img/marca_agua.png';
@@ -76,7 +102,7 @@ $footerPath = '../public/assets/img/footer.jpg';
             pdf.text('Otorga el presente certificado al ciudadano (a):', pdf.internal.pageSize.width / 2, 80, { align: 'center' });
 
             // Usar la fuente Edwardian Script ITC para el nombre del estudiante en cursiva y rojo
-            pdf.setFont('Edwardian', 'normal');
+            pdf.setFont('Edwardian', 'italic');
             pdf.setFontSize(50);
             pdf.setTextColor(255, 0, 0); // Color rojo
             pdf.text('<?php echo $nombreEstudiante; ?>', pdf.internal.pageSize.width / 2, 95, { align: 'center' });
@@ -112,24 +138,46 @@ $footerPath = '../public/assets/img/footer.jpg';
             // Lista de módulos dentro de un "cuadrado" centrado
             pdf.setFontSize(16);
             const leftMargin = 40; // Margen izquierdo del "cuadrado"
-            pdf.text('•', leftMargin, 50);
-            pdf.text('•', leftMargin, 60);
-            pdf.text('•', leftMargin, 70);
+
+            // Agregar los módulos al PDF
+            <?php foreach ($modulos as $index => $modulo): ?>
+            {
+                let moduloTexto = <?php echo json_encode(($index + 1) . ". " . $modulo["nombre_modulo"] . ": " . $modulo["contenido"]); ?>;
+                pdf.text(moduloTexto, leftMargin, 50 + <?php echo $index * 10; ?>);
+            }
+            <?php endforeach; ?>
 
             // Agregar el texto de registro y calificación con poco interlineado
             pdf.setFontSize(16);
             pdf.text('Registrado en formación permanente tomo <?php echo $tomo; ?> y folio <?php echo $folio; ?>.', 10, 150);
             pdf.text('Presentando una calificación final, <?php echo $nota; ?> de una nota máxima (20).', 10, 155);
-            pdf.text('El programa tuvo una duración de horas cronológicas.', 10, 160);
+            pdf.text('El programa tuvo una duración de <?php echo $duracionTotal; ?> horas cronológicas.', 10, 160);
 
             const marginRight2 = pdf.internal.pageSize.width - 20;
-            pdf.text('promotor', marginRight2, 150, { align: 'right' });
-            pdf.text('Facilitador', marginRight2, 155, { align: 'right' });
 
-            // Abrir el PDF en una nueva pestaña
-            const pdfOutput = pdf.output('blob');
-            const blobUrl = URL.createObjectURL(pdfOutput);
-            window.location.href = blobUrl; // Navega directamente a la URL del PDF
+            // Agregar la firma digital del promotor si existe
+            if ('<?php echo $firma_digital; ?>') {
+                const img = new Image();
+                img.src = '<?php echo $firma_digital; ?>';
+                img.onload = function () {
+                    pdf.addImage(img, 'PNG', marginRight2 - 40, 130, 30, 30); // Ajusta las coordenadas y el tamaño según sea necesario
+                    pdf.text('<?php echo $promotor; ?>', marginRight2, 170, { align: 'right' });
+                    pdf.text('Facilitador', marginRight2, 175, { align: 'right' });
+
+                    // Generar el PDF y abrir en una nueva pestaña
+                    const pdfOutput = pdf.output('blob');
+                    const blobUrl = URL.createObjectURL(pdfOutput);
+                    window.location.href = blobUrl; // Navega directamente a la URL del PDF
+                };
+            } else {
+                pdf.text('<?php echo $promotor; ?>', marginRight2, 150, { align: 'right' });
+                pdf.text('Facilitador', marginRight2, 155, { align: 'right' });
+
+                // Generar el PDF y abrir en una nueva pestaña
+                const pdfOutput = pdf.output('blob');
+                const blobUrl = URL.createObjectURL(pdfOutput);
+                window.location.href = blobUrl; // Navega directamente a la URL del PDF
+            }
         });
     </script>
 </head>

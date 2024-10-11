@@ -101,12 +101,14 @@ if ($_SESSION['id_rol'] != 4) {
             echo '<button type="submit" id="cancelar-inscripcion-btn" class="btn btn-danger">Cancelar inscripción</button>';
             echo '</form>';
         } else {
+            // Obtener el valor único del curso del usuario actual
+            $valor_unico = $inscripcion['valor_unico'];
             // Si el curso está completado, mostrar los botones de ver certificado y ver URL
             echo '<button class="btn btn-success" type="button" onclick="verCertificado(\'' . $valor_unico . '\')">Ver Certificado</button>';
             echo '<button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseURL" aria-expanded="false" aria-controls="collapseURL">Ver URL</button>';
             echo '<div class="collapse" id="collapseURL">';
             echo '<div class="card card-body">';
-            echo '<p>Aquí va la URL del curso: <a href="' . $base_url . '?valor_unico=' . $valor_unico . '">Certificado</a></p>';
+            echo '<p><a href="' . $base_url . '?valor_unico=' . $valor_unico . '">' . $base_url . '?valor_unico=' . $valor_unico . '</a></p>';
             echo '</div>';
         }
     }

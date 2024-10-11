@@ -350,14 +350,57 @@ function loadPage(page, params = {}) {
         data: params,
         success: function(data) {
             $('#page-content').html(data); // Asegúrate de que el ID del contenedor sea correcto
-            // Reaplicar eventos de JavaScript si es necesario
-            applySidebarToggle();
+
+            // Reaplicar eventos de JavaScript
+            reapplyEvents();
         },
         error: function() {
             alert('Error al cargar la página.');
         }
     });
 }
+
+// Función para reaplicar los eventos después de cargar la nueva página
+function reapplyEvents() {
+    document.querySelectorAll('.editarCursoForm').forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(form);
+
+            fetch(form.action, {
+                method: form.method,
+                body: formData
+            })
+            .then(response => response.text())
+            .then(result => {
+                if (result.includes('El curso se ha editado correctamente')) {
+                    alert('El curso se ha editado correctamente');
+                    // Recargar la página actual con AJAX
+                    var page = document.querySelector('.page-item.active .page-link').dataset.page;
+                    loadPage('editar_cursos.php', { page: page });
+                } else {
+                    alert('Hubo un error al editar el curso: ' + result);
+                }
+            })
+            .catch(error => {
+                alert('Hubo un error al procesar la solicitud: ' + error);
+            });
+        });
+    });
+
+    // Manejar la navegación de la paginación
+    document.querySelectorAll('.page-link-nav').forEach(function(link) {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+            var page = link.dataset.page;
+            loadPage('editar_cursos.php', { page: page });
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    reapplyEvents();
+});
 
 function applySidebarToggle() {
     $('#sidebarToggleTop').off('click').on('click', function() {

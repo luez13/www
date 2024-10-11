@@ -7,6 +7,10 @@ include '../config/model.php';
 
 $db = new DB();
 
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$limit = 10;
+$offset = ($page - 1) * $limit;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil') {
     $id = $_POST['id'];
     $nombre = $_POST['nombre'];
@@ -27,8 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
 
     header('Location: ../public/usuarios.php'); // Redirige de nuevo a la página de usuarios
 } else {
-    // Obtener todos los usuarios y sus roles
-    $stmt = $db->prepare("SELECT usuarios.*, roles.nombre_rol FROM cursos.usuarios INNER JOIN cursos.roles ON usuarios.id_rol = roles.id_rol");
+    // Obtener todos los usuarios y sus roles con límite, desplazamiento y ordenados alfabéticamente
+    $stmt = $db->prepare("SELECT usuarios.*, roles.nombre_rol FROM cursos.usuarios INNER JOIN cursos.roles ON usuarios.id_rol = roles.id_rol ORDER BY usuarios.nombre ASC LIMIT :limit OFFSET :offset");
+    $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
     $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -40,38 +46,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
     $stmt = $db->prepare("SELECT password FROM cursos.usuarios WHERE id = :id");
     $stmt->bindParam(':id', $usuario['id']);
     $stmt->execute();
-    $contrasenaDesdeBD = $stmt->fetchColumn(); // Obtenemos la contraseña desde la base de datos
+    $contrasenaDesdeBD = $stmt->fetchColumn(); // Obtenemos la contraseña desde la base de datos;
 
-    foreach ($usuarios as $usuario) {
-        echo '<div class="main-content">';
-        // Mostrar los datos del usuario en campos de entrada
-        echo '<h3>Editar datos del usuario ' . $usuario['nombre'] . '</h3>';
-        echo '<form action="../controllers/usuarios_controlador.php" method="post">';
+    // Total de usuarios para la paginación
+    $stmt = $db->prepare("SELECT COUNT(*) FROM cursos.usuarios");
+    $stmt->execute();
+    $total_usuarios = $stmt->fetchColumn();
+    $total_pages = ceil($total_usuarios / $limit);
+
+    echo '<div class="accordion" id="accordionUsuarios">';
+    foreach ($usuarios as $index => $usuario) {
+        echo '<div class="accordion-item">';
+        echo '<h2 class="accordion-header" id="heading' . $index . '">';
+        echo '<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' . $index . '" aria-expanded="false" aria-controls="collapse' . $index . '">';
+        echo 'Editar usuario ' . $usuario['nombre'];
+        echo '</button>';
+        echo '</h2>';
+        echo '<div id="collapse' . $index . '" class="accordion-collapse collapse" aria-labelledby="heading' . $index . '" data-bs-parent="#accordionUsuarios">';
+        echo '<div class="accordion-body">';
+        echo '<form id="editarUsuarioForm' . $index . '" class="editar-usuario-form" data-index="' . $index . '" action="../controllers/usuarios_controlador.php" method="post">';
         echo '<input type="hidden" name="action" value="editar_perfil">';
         echo '<input type="hidden" name="id" value="' . $usuario['id'] . '">';
-        echo '<label for="nombre">Nombre:</label>';
-        echo '<input type="text" id="nombre" name="nombre" value="' . $usuario['nombre'] . '">';
-        echo '<label for="apellido">Apellido:</label>';
-        echo '<input type="text" id="apellido" name="apellido" value="' . $usuario['apellido'] . '">';
-        echo '<label for="correo">Correo:</label>';
-        echo '<input type="text" id="correo" name="correo" value="' . $usuario['correo'] . '">';
-        echo '<label for="cedula">Cédula:</label>';
-        echo '<input type="text" id="cedula" name="cedula" value="' . $usuario['cedula'] . '">';
-            // Campo para ingresar una nueva contraseña (visible para el administrador)
+        echo '<div class="mb-3">';
+        echo '<label for="nombre' . $index . '" class="form-label">Nombre</label>';
+        echo '<input type="text" class="form-control" id="nombre' . $index . '" name="nombre" value="' . $usuario['nombre'] . '">';
+        echo '</div>';
+        echo '<div class="mb-3">';
+        echo '<label for="apellido' . $index . '" class="form-label">Apellido</label>';
+        echo '<input type="text" class="form-control" id="apellido' . $index . '" name="apellido" value="' . $usuario['apellido'] . '">';
+        echo '</div>';
+        echo '<div class="mb-3">';
+        echo '<label for="correo' . $index . '" class="form-label">Correo</label>';
+        echo '<input type="text" class="form-control" id="correo' . $index . '" name="correo" value="' . $usuario['correo'] . '">';
+        echo '</div>';
+        echo '<div class="mb-3">';
+        echo '<label for="cedula' . $index . '" class="form-label">Cédula</label>';
+        echo '<input type="text" class="form-control" id="cedula' . $index . '" name="cedula" value="' . $usuario['cedula'] . '">';
+        echo '</div>';
         if ($_SESSION['user_rol'] == 4) {
-            echo '<label for="nueva_contrasena">Nueva Contraseña:</label>';
-            echo '<input type="text" id="nueva_contrasena" name="nueva_contrasena">';
+            echo '<div class="mb-3">';
+            echo '<label for="nueva_contrasena' . $index . '" class="form-label">Nueva Contraseña</label>';
+            echo '<input type="text" class="form-control" id="nueva_contrasena' . $index . '" name="nueva_contrasena">';
+            echo '</div>';
         }
-        echo '<label for="id_rol">Rol:</label>';
-        echo '<select id="id_rol" name="id_rol">'; // Campo de selección para el rol
+        echo '<div class="mb-3">';
+        echo '<label for="id_rol' . $index . '" class="form-label">Rol</label>';
+        echo '<select class="form-select" id="id_rol' . $index . '" name="id_rol">';
         foreach ($roles as $rol) {
             echo '<option value="' . $rol['id_rol'] . '"' . ($usuario['id_rol'] == $rol['id_rol'] ? ' selected' : '') . '>' . $rol['nombre_rol'] . '</option>';
         }
         echo '</select>';
-        echo '<input type="submit" value="Guardar cambios">';
-        echo '</form>';
         echo '</div>';
+        echo '<input type="submit" class="btn btn-primary" value="Guardar cambios">';
+        echo '</form>';
+        echo '</div>'; // Cerrar accordion-body
+        echo '</div>'; // Cerrar accordion-collapse
+        echo '</div>'; // Cerrar accordion-item
     }
+    echo '</div>'; // Cerrar accordion
 }
 
 // Botón para abrir la ventana modal
@@ -99,7 +131,64 @@ $ventanaModal = '
         </div>
     </div>
 ';
+?>
 
+<!-- Paginación -->
+<nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center">
+    <?php if ($page > 1): ?>
+      <li class="page-item">
+        <a class="page-link page-link-nav" href="#" data-page="<?php echo $page - 1; ?>">Anterior</a>
+      </li>
+    <?php endif; ?>
+    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+      <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
+        <a class="page-link page-link-nav" href="#" data-page="<?php echo $i; ?>"><?php echo $i; ?></a>
+      </li>
+    <?php endfor; ?>
+    <?php if ($page < $total_pages): ?>
+      <li class="page-item">
+        <a class="page-link page-link-nav" href="#" data-page="<?php echo $page + 1; ?>">Siguiente</a>
+      </li>
+    <?php endif; ?>
+  </ul>
+</nav>
+
+<?php
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>
+
+<script>
+$(document).ready(function() {
+    $('.editar-usuario-form').submit(function(event) {
+        event.preventDefault();
+        var form = $(this);
+        var index = form.data('index');
+        var formData = form.serialize();
+
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.includes('El usuario se ha editado correctamente')) {
+                    alert('El usuario se ha editado correctamente');
+                } else {
+                    alert('Hubo un error al editar el usuario: ' + response);
+                }
+            },
+            error: function() {
+                alert('Hubo un error al procesar la solicitud.');
+            }
+        });
+    });
+
+    // Manejar la navegación de la paginación
+    $('.page-link-nav').click(function(event) {
+        event.preventDefault();
+        var page = $(this).data('page');
+        loadPage('usuarios.php', { page: page });
+    });
+});
+</script>

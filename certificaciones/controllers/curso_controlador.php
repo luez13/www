@@ -12,9 +12,9 @@ $db = new DB();
 $curso = new Curso($db);
 
 // Crear una función para validar los datos de creación o edición de curso
-function validar_curso($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos) {
+function validar_curso($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implementos, $desempeño_al_concluir, $contenidos) {
     // Verificar que los datos no estén vacíos
-    if (empty($nombre) || empty($descripcion) || empty($tiempo_asignado) || empty($inicio_mes) || empty($tipo_curso) || empty($limite_inscripciones) || empty($dias_clase) || empty($horario_inicio) || empty($horario_fin) || empty($nivel_curso) || empty($costo) || empty($conocimientos_previos)) {
+    if (empty($nombre) || empty($descripcion) || empty($tiempo_asignado) || empty($inicio_mes) || empty($tipo_curso) || empty($limite_inscripciones) || empty($dias_clase) || empty($horario_inicio) || empty($horario_fin) || empty($nivel_curso) || empty($costo) || empty($conocimientos_previos) || empty($requerimientos_implementos) || empty($desempeño_al_concluir) || empty($contenidos)) {
         return false;
     }
     // Verificar que los campos numéricos sean válidos
@@ -56,7 +56,7 @@ switch ($action) {
         $instrumento = $_POST['instrumento'];
     
         // Validar los datos
-        if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implementos, $desempeño_al_concluir)) {
+        if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implementos, $desempeño_al_concluir, $contenido)) {
             // Obtener el id del usuario de la sesión
             $promotor = $_SESSION['user_id'];
             // Crear el curso usando el método de la clase Curso
@@ -89,32 +89,33 @@ switch ($action) {
             $nivel_curso = $_POST['nivel_curso'];
             $costo = $_POST['costo'];
             $conocimientos_previos = $_POST['conocimientos_previos'];
-            $autorizacion = isset($_POST['autorizacion']) ? $_POST['autorizacion'] : null;
+            $requerimientos_implemento = $_POST['requerimientos_implementos'];
+            $desempeno_al_concluir = $_POST['desempeño_al_concluir']; 
         
             // Obtener los datos de los módulos
             $modulos = [];
             for ($i = 0; $i < count($_POST['id_modulo']); $i++) {
                 $modulos[] = [
                     'id_modulo' => $_POST['id_modulo'][$i],
-                    'id_curso' => $_POST['id_curso'],
+                    'id_curso' => $id_curso,
                     'nombre_modulo' => $_POST['nombre_modulo'][$i],
-                    'contenido' => $_POST['contenido_modulo'][$i],
+                    'contenido' => $_POST['contenido'][$i], 
                     'numero' => $_POST['numero_modulo'][$i],
                     'actividad' => $_POST['actividad_modulo'][$i],
                     'instrumento' => $_POST['instrumento_modulo'][$i]
                 ];
             }
         
-        // Validar los datos
-        if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos)) {
-            // Editar el curso usando el método de la clase Curso
-            $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $autorizacion);
-            // Devolver mensaje de éxito
-            echo '<script>
-            alert("El curso se ha editado correctamente");
-            window.location.href = "../public/perfil.php";
-          </script>';
-    } else {
+            // Validar los datos
+            if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento, $desempeno_al_concluir, $modulos)) {
+                // Editar el curso usando el método de la clase Curso
+                $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, null);
+                // Devolver mensaje de éxito
+                echo '<script>
+                        alert("El curso se ha editado correctamente");
+                        window.location.href = "../public/perfil.php";
+                      </script>';
+            } else {
         // Devolver mensaje de error
         echo '<script>
                 alert("Los datos del curso son inválidos");

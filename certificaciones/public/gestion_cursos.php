@@ -20,51 +20,51 @@ $user_id = $_SESSION['user_id'];
 echo '<div class="main-content">';
 
 if (isset($_GET['action']) && $_GET['action'] == 'crear') {
-    // Mostrar un formulario para crear un nuevo curso
-    echo '<h3>Crear un nuevo curso</h3>';
-    echo '<form id="crearCursoForm" method="post">';
-    echo '<input type="hidden" name="action" value="crear">';
-    echo '<p>Nombre del curso: <input type="text" name="nombre_curso" required></p>';
-    echo '<p>Descripción: <textarea name="descripcion" required></textarea></p>';
-    echo '<p>Semanas: <input type="number" name="tiempo_asignado" min="1" required></p>';
-    echo '<p>Fecha de inicio: <input type="date" name="inicio_mes" required></p>';
-    echo '<p>Tipo de curso: <select name="tipo_curso" required>';
-    echo '<option value="seminarios">Seminarios</option>';
-    echo '<option value="diplomados">Diplomados</option>';
-    echo '<option value="congreso">Congreso</option>';
-    echo '<option value="charlas">Charlas</option>';
-    echo '<option value="talleres">Talleres</option>';
-    echo '</select></p>';
-    echo '<p>Límite de inscripciones: <input type="number" name="limite_inscripciones" min="1" required></p>';
-    echo '<p>Días de clase:</p>';
-    echo '<p><input type="checkbox" name="dias_clase[]" value="Lunes"> Lunes</p>';
-    echo '<p><input type="checkbox" name="dias_clase[]" value="Martes"> Martes</p>';
-    echo '<p><input type="checkbox" name="dias_clase[]" value="Miércoles"> Miércoles</p>';
-    echo '<p><input type="checkbox" name="dias_clase[]" value="Jueves"> Jueves</p>';
-    echo '<p><input type="checkbox" name="dias_clase[]" value="Viernes"> Viernes</p>';
-    echo '<p><input type="checkbox" name="dias_clase[]" value="Sábado"> Sábado</p>';
-    echo '<p><input type="checkbox" name="dias_clase[]" value="Domingo"> Domingo</p>';
-    echo '<p>Horario de inicio: <input type="time" name="horario_inicio" required></p>';
-    echo '<p>Horario de fin: <input type="time" name="horario_fin" required></p>';
-    echo '<p>Nivel del curso: <select name="nivel_curso" required>';
-    echo '<option value="introductorio">Introductorio</option>';
-    echo '<option value="medio">Medio</option>';
-    echo '<option value="avanzado">Avanzado</option>';
-    echo '</select></p>';
-    echo '<p>Costo: <input type="number" name="costo" step="0.01" required></p>';
-    echo '<p>Conocimientos previos: <textarea name="conocimientos_previos" required></textarea></p>';
-    echo '<p>Requerimientos e implementos: <textarea name="requerimientos_implementos" required></textarea></p>';
-    echo '<p>Desempeño al concluir: <textarea name="desempeño_al_concluir" required></textarea></p>';
-    echo '<form id="cursoForm" method="post">
-    <!-- Otros campos del curso... -->
-    
-    <p>Número de módulos: <input type="number" id="numero_modulos" name="numero_modulos" min="1" required onblur="addModuleFields()"></p>
-    
-    <div id="moduleContainer">
+// Mostrar formulario para crear un nuevo curso
+echo '<h3>Crear un nuevo curso</h3>';
+echo '<form id="crearCursoForm" method="post">';
+echo '<input type="hidden" name="action" value="crear">';
+echo '<p>Nombre del curso: <input type="text" name="nombre_curso" required></p>';
+echo '<p>Descripción: <textarea name="descripcion" required></textarea></p>';
+echo '<p>Semanas: <input type="number" name="tiempo_asignado" min="1" required></p>';
+echo '<p>Fecha de inicio: <input type="date" name="inicio_mes" required></p>';
+echo '<p>Tipo de curso: <select name="tipo_curso" required>';
+echo '<option value="masterclass">MasterClass</option>';
+echo '<option value="talleres">Talleres</option>';
+echo '<option value="cursos">Cursos</option>';
+echo '<option value="seminarios">Seminarios</option>';
+echo '<option value="diplomados">Diplomados</option>';
+echo '<option value="congreso">Congreso</option>';
+echo '<option value="charla">Charla</option>';
+echo '</select></p>';    
+echo '<p>Límite de inscripciones: <input type="number" name="limite_inscripciones" min="1" required></p>';
+echo '<p>Días de clase:</p>';
+echo '<p><input type="checkbox" name="dias_clase[]" value="Lunes"> Lunes</p>';
+echo '<p><input type="checkbox" name="dias_clase[]" value="Martes"> Martes</p>';
+echo '<p><input type="checkbox" name="dias_clase[]" value="Miércoles"> Miércoles</p>';
+echo '<p><input type="checkbox" name="dias_clase[]" value="Jueves"> Jueves</p>';
+echo '<p><input type="checkbox" name="dias_clase[]" value="Viernes"> Viernes</p>';
+echo '<p><input type="checkbox" name="dias_clase[]" value="Sábado"> Sábado</p>';
+echo '<p><input type="checkbox" name="dias_clase[]" value="Domingo"> Domingo</p>';
+echo '<p>Horario de inicio: <input type="time" name="horario_inicio" required></p>';
+echo '<p>Horario de fin: <input type="time" name="horario_fin" required></p>';
+echo '<p>Nivel del curso: <select name="nivel_curso" required>';
+echo '<option value="introductorio">Introductorio</option>';
+echo '<option value="medio">Medio</option>';
+echo '<option value="avanzado">Avanzado</option>';
+echo '</select></p>';
+echo '<p>Costo: <input type="number" name="costo" step="0.01" required></p>';
+echo '<p>Conocimientos previos: <textarea name="conocimientos_previos" required></textarea></p>';
+echo '<p>Requerimientos e implementos: <textarea name="requerimientos_implementos" required></textarea></p>';
+echo '<p>Desempeño al concluir: <textarea name="desempeño_al_concluir" required></textarea></p>';
+echo '<form id="cursoForm" method="post">';
+echo '<p>Número de módulos: <input type="number" id="numero_modulos" name="numero_modulos" min="1" required onblur="addModuleFields()"></p>';
+
+echo '<div id="moduleContainer">
         <!-- Los campos de los módulos se agregarán aquí -->
     </div>';
-    echo '<p><input type="submit" value="Crear curso"></p>';
-    echo '</form>';
+echo '<p><input type="submit" value="Crear curso"></p>';
+echo '</form>';
 }
 elseif (isset($_GET['action']) && $_GET['action'] == 'ver') {
 // Obtener los cursos creados por el usuario
@@ -169,6 +169,24 @@ include '../views/footer.php';
 <script>
     document.getElementById('crearCursoForm').onsubmit = function(e) {
         e.preventDefault();
+
+        // Combinar contenidos antes de enviar
+        var modules = document.getElementsByClassName('module');
+        for (var i = 0; i < modules.length; i++) {
+            var containerContenido = modules[i].getElementsByClassName('container-contenido')[0];
+            var textareas = containerContenido.getElementsByTagName('textarea');
+            var combinedContent = '';
+            for (var j = 0; j < textareas.length; j++) {
+                combinedContent += '[' + textareas[j].value + ']';
+            }
+            // Reemplazar el contenido combinado en el primer textarea
+            textareas[0].value = combinedContent;
+            // Eliminar los otros textareas
+            for (var j = 1; j < textareas.length; j++) {
+                containerContenido.removeChild(textareas[j]);
+            }
+        }
+
         var formData = new FormData(this);
         $.ajax({
             url: '../controllers/curso_controlador.php',
@@ -215,47 +233,74 @@ include '../views/footer.php';
             }
         });
     }
+
     function addModuleFields() {
-    var number = document.getElementById("numero_modulos").value;
-    var container = document.getElementById("moduleContainer");
-    container.innerHTML = "";
-    
-    for (var i = 0; i < number; i++) {
-        var moduleDiv = document.createElement("div");
-        moduleDiv.className = "module";
+        var number = document.getElementById("numero_modulos").value;
+        var container = document.getElementById("moduleContainer");
+        container.innerHTML = "";
 
-        var moduleTitle = document.createElement("h4");
-        moduleTitle.textContent = "Módulo " + (i + 1);
-        moduleDiv.appendChild(moduleTitle);
+        for (var i = 0; i < number; i++) {
+            var moduleDiv = document.createElement("div");
+            moduleDiv.className = "module";
 
-        var inputNombreModulo = document.createElement("input");
-        inputNombreModulo.type = "text";
-        inputNombreModulo.name = "nombre_modulo[]";
-        inputNombreModulo.placeholder = "Nombre del módulo";
-        inputNombreModulo.required = true;
-        moduleDiv.appendChild(inputNombreModulo);
+            var moduleTitle = document.createElement("h4");
+            moduleTitle.textContent = "Módulo " + (i + 1);
+            moduleDiv.appendChild(moduleTitle);
 
-        var textareaContenido = document.createElement("textarea");
-        textareaContenido.name = "contenido[]";
-        textareaContenido.placeholder = "Contenido";
-        textareaContenido.required = true;
-        moduleDiv.appendChild(textareaContenido);
+            var inputNombreModulo = document.createElement("input");
+            inputNombreModulo.type = "text";
+            inputNombreModulo.name = "nombre_modulo[]";
+            inputNombreModulo.placeholder = "Nombre del módulo";
+            inputNombreModulo.required = true;
+            moduleDiv.appendChild(inputNombreModulo);
 
-        var inputActividad = document.createElement("input");
-        inputActividad.type = "text";
-        inputActividad.name = "actividad[]";
-        inputActividad.placeholder = "Actividad";
-        inputActividad.required = true;
-        moduleDiv.appendChild(inputActividad);
+            var containerContenido = document.createElement("div");
+            containerContenido.className = "container-contenido";
 
-        var inputInstrumento = document.createElement("input");
-        inputInstrumento.type = "text";
-        inputInstrumento.name = "instrumento[]";
-        inputInstrumento.placeholder = "Instrumento";
-        inputInstrumento.required = true;
-        moduleDiv.appendChild(inputInstrumento);
+            var textareaContenido = document.createElement("textarea");
+            textareaContenido.name = "contenido[]";
+            textareaContenido.placeholder = "Contenido";
+            textareaContenido.required = true;
+            containerContenido.appendChild(textareaContenido);
 
-        container.appendChild(moduleDiv);
+            var buttonAgregarContenido = document.createElement("button");
+            buttonAgregarContenido.type = "button";
+            buttonAgregarContenido.textContent = "Agregar contenido";
+            buttonAgregarContenido.onclick = function() {
+                var newTextArea = document.createElement("textarea");
+                newTextArea.name = "contenido[]";
+                newTextArea.placeholder = "Contenido";
+                newTextArea.required = true;
+
+                var buttonQuitarContenido = document.createElement("button");
+                buttonQuitarContenido.type = "button";
+                buttonQuitarContenido.textContent = "Quitar contenido";
+                buttonQuitarContenido.onclick = function() {
+                    containerContenido.removeChild(newTextArea);
+                    containerContenido.removeChild(buttonQuitarContenido);
+                };
+
+                containerContenido.appendChild(newTextArea);
+                containerContenido.appendChild(buttonQuitarContenido);
+            };
+            moduleDiv.appendChild(containerContenido);
+            moduleDiv.appendChild(buttonAgregarContenido);
+
+            var inputActividad = document.createElement("input");
+            inputActividad.type = "text";
+            inputActividad.name = "actividad[]";
+            inputActividad.placeholder = "Actividad";
+            inputActividad.required = true;
+            moduleDiv.appendChild(inputActividad);
+
+            var inputInstrumento = document.createElement("input");
+            inputInstrumento.type = "text";
+            inputInstrumento.name = "instrumento[]";
+            inputInstrumento.placeholder = "Instrumento";
+            inputInstrumento.required = true;
+            moduleDiv.appendChild(inputInstrumento);
+
+            container.appendChild(moduleDiv);
+        }
     }
-}
 </script>

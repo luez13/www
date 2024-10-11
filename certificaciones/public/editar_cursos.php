@@ -14,11 +14,26 @@ if (esPerfil3($user_id) || esPerfil4($user_id)) {
 } else {
     die('No tienes permiso para ver esta página.');
 }
-// Obtener todos los cursos
+
+// Obtener el número de página actual
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$limit = 10;
+$offset = ($page - 1) * $limit;
+
+// Obtener todos los cursos con límite, desplazamiento y ordenados alfabéticamente
 $db = new DB();
-$stmt = $db->prepare("SELECT * FROM cursos.cursos");
+$stmt = $db->prepare("SELECT * FROM cursos.cursos ORDER BY nombre_curso ASC LIMIT :limit OFFSET :offset");
+$stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+$stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Total de cursos para la paginación
+$stmt = $db->prepare("SELECT COUNT(*) FROM cursos.cursos");
+$stmt->execute();
+$total_cursos = $stmt->fetchColumn();
+$total_pages = ceil($total_cursos / $limit);
+
 echo '<div class="accordion" id="accordionCursos">';
 foreach ($cursos as $index => $curso) {
     echo '<div class="accordion-item">';
@@ -166,6 +181,27 @@ echo '</div>'; // Cerrar accordion
 include '../views/footer.php';
 ?>
 
+<!-- Paginación -->
+<nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center">
+    <?php if ($page > 1): ?>
+      <li class="page-item">
+        <a class="page-link page-link-nav" href="#" data-page="<?php echo $page - 1; ?>">Anterior</a>
+      </li>
+    <?php endif; ?>
+    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+      <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
+        <a class="page-link page-link-nav" href="#" data-page="<?php echo $i; ?>"><?php echo $i; ?></a>
+      </li>
+    <?php endfor; ?>
+    <?php if ($page < $total_pages): ?>
+      <li class="page-item">
+        <a class="page-link page-link-nav" href="#" data-page="<?php echo $page + 1; ?>">Siguiente</a>
+      </li>
+    <?php endif; ?>
+  </ul>
+</nav>
+
 <!-- Modal -->
 <?php foreach ($cursos as $index => $curso): ?>
 <div class="modal fade" id="detallesCursoModal<?php echo $index; ?>" tabindex="-1" aria-labelledby="detallesCursoModalLabel<?php echo $index; ?>" aria-hidden="true">
@@ -187,26 +223,40 @@ include '../views/footer.php';
 <?php endforeach; ?>
 
 <script>
-document.getElementById('editarCursoForm').addEventListener('submit', function(event) {
-    event.preventDefault(); // Evitar el envío del formulario
-    var form = event.target;
-    var formData = new FormData(form);
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.editarCursoForm').forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(form);
 
-    fetch(form.action, {
-        method: form.method,
-        body: formData
-    })
-    .then(response => response.text())
-    .then(result => {
-        if (result.includes('El curso se ha editado correctamente')) {
-            alert('El curso se ha editado correctamente');
-            window.location.href = '../public/perfil.php';
-        } else {
-            alert('Hubo un error al editar el curso: ' + result);
-        }
-    })
-    .catch(error => {
-        alert('Hubo un error al procesar la solicitud: ' + error);
+            fetch(form.action, {
+                method: form.method,
+                body: formData
+            })
+            .then(response => response.text())
+            .then(result => {
+                if (result.includes('El curso se ha editado correctamente')) {
+                    alert('El curso se ha editado correctamente');
+                    // Recargar la página actual con AJAX
+                    var page = document.querySelector('.page-item.active .page-link').dataset.page;
+                    loadPage('editar_cursos.php', { page: page });
+                } else {
+                    alert('Hubo un error al editar el curso: ' + result);
+                }
+            })
+            .catch(error => {
+                alert('Hubo un error al procesar la solicitud: ' + error);
+            });
+        });
+    });
+
+    // Manejar la navegación de la paginación
+    document.querySelectorAll('.page-link-nav').forEach(function(link) {
+        link.addEventListener('click', function(event) {
+            event.preventDefault();
+            var page = link.dataset.page;
+            loadPage('editar_cursos.php', { page: page });
+        });
     });
 });
 </script>

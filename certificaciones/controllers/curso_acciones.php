@@ -5,6 +5,12 @@ include '../config/model.php';
 // Crear una instancia de la clase DB
 $db = new DB();
 
+function write_log($message) {
+    $log_file = '../controllers/log.txt';
+    $current_time = date('Y-m-d H:i:s');
+    file_put_contents($log_file, "[$current_time] $message\n", FILE_APPEND);
+}
+
 // Crear una función para validar los datos de inscripción
 function validar_inscripcion($id_usuario, $curso_id) {
     // Verificar que los datos no estén vacíos
@@ -66,43 +72,37 @@ switch ($action) {
         // Obtener los datos del formulario
         $id_usuario = $_POST['id_usuario'];
         $curso_id = $_POST['curso_id'];
-
+    
         // Validar los datos
         if (validar_inscripcion($id_usuario, $curso_id)) {
+    
             // Verificar si el usuario ya está inscrito en el curso
             $stmt = $db->prepare('SELECT * FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
             $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
             $inscripcion = $stmt->fetch();
-
+    
             if ($inscripcion) {
                 // Mostrar un mensaje al usuario
-                echo '<p>Ya estás inscrito en este curso.</p>';
+                echo '<script>alert("Ya estás inscrito en este curso.");</script>';
             } else {
-                // Generar un hash solo si no hay uno existente
-                $stmt = $db->prepare('SELECT valor_unico FROM cursos.certificaciones WHERE curso_id = :curso_id');
-                $stmt->execute(['curso_id' => $curso_id]);
-                $valor_unico_existente = $stmt->fetchColumn();
-
-                if (!$valor_unico_existente) {
-                    $valor_unico = hash('sha256', $id_usuario . $curso_id . time());
-                } else {
-                    $valor_unico = $valor_unico_existente;
-                }
-
+    
+                // Generar siempre un nuevo hash
+                $valor_unico = hash('sha256', $id_usuario . $curso_id . time());
+    
                 // Insertar los datos en la base de datos
                 try {
                     $stmt = $db->prepare('INSERT INTO cursos.certificaciones (id_usuario, curso_id, valor_unico, fecha_inscripcion, completado) VALUES (:id_usuario, :curso_id, :valor_unico, NOW(), false)');
                     $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id, 'valor_unico' => $valor_unico]);
                     // Mostrar un mensaje de éxito al usuario
-                    echo '<p>Te has inscrito correctamente en el curso</p>';
+                    echo '<script>alert("Te has inscrito correctamente en el curso");</script>';
                 } catch (PDOException $e) {
                     // Mostrar un mensaje de error al usuario
-                    echo '<p>Ha ocurrido un error al inscribirte en el curso: ' . $e->getMessage() . '</p>';
+                    echo '<script>alert("Ha ocurrido un error al inscribirte en el curso: ' . $e->getMessage() . '");</script>';
                 }
             }
         } else {
             // Mostrar un mensaje de error al usuario
-            echo '<p>Los datos de inscripción son inválidos</p>';
+            echo '<script>alert("Los datos de inscripción son inválidos");</script>';
         }
         redirigir_perfil();
         break;        

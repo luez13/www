@@ -58,17 +58,31 @@ echo '<p>Desempeño al concluir: <textarea name="desempeño_al_concluir" require
 
 // Mostrar los módulos del curso
 echo '<h4>Módulos del curso</h4>';
+echo '<div id="moduleContainer">';
+
+// Los módulos existentes
 foreach ($curso_editar['modulos'] as $modulo) {
     echo '<div class="module">';
     echo '<input type="hidden" name="id_modulo[]" value="' . htmlspecialchars($modulo['id_modulo']) . '">';
     echo '<input type="hidden" name="id_curso_modulo[]" value="' . htmlspecialchars($id_curso) . '">';
     echo '<p>Nombre del módulo: <input type="text" name="nombre_modulo[]" value="' . htmlspecialchars($modulo['nombre_modulo']) . '" required></p>';
-    echo '<p>Contenido: <textarea name="contenido_modulo[]" required>' . htmlspecialchars($modulo['contenido']) . '</textarea></p>';
+    echo '<div class="container-contenido">';
+    $contenidos = explode('[', trim($modulo['contenido'], '[]'));
+    foreach ($contenidos as $contenido) {
+        echo '<textarea name="contenido[]" required>' . htmlspecialchars($contenido) . '</textarea>';
+    }
+    echo '</div>';
+    echo '<button type="button" onclick="agregarContenido(this)">Agregar contenido</button>';
     echo '<p>Actividad: <input type="text" name="actividad_modulo[]" value="' . htmlspecialchars($modulo['actividad']) . '" required></p>';
     echo '<p>Instrumento: <input type="text" name="instrumento_modulo[]" value="' . htmlspecialchars($modulo['instrumento']) . '" required></p>';
     echo '<p>Número: <input type="number" name="numero_modulo[]" value="' . htmlspecialchars($modulo['numero']) . '" required></p>';
     echo '</div>';
 }
+
+echo '</div>'; // Fin de moduleContainer
+
+// Botón para agregar nuevos módulos
+echo '<button type="button" id="addModuleBtn" class="btn btn-secondary">Agregar Módulo</button>';
 
 echo '<p><input type="submit" value="Editar curso"></p>';
 echo '</form>';
@@ -77,3 +91,67 @@ echo '</div>';
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>
+
+<script>
+    document.getElementById('addModuleBtn').addEventListener('click', addModuleFields);
+
+    function agregarContenido(btn) {
+        var containerContenido = btn.previousElementSibling;
+        var newTextArea = document.createElement('textarea');
+        newTextArea.name = 'contenido[]';
+        newTextArea.placeholder = 'Contenido';
+        newTextArea.required = true;
+
+        var buttonQuitarContenido = document.createElement('button');
+        buttonQuitarContenido.type = 'button';
+        buttonQuitarContenido.textContent = 'Quitar contenido';
+        buttonQuitarContenido.onclick = function() {
+            containerContenido.removeChild(newTextArea);
+            containerContenido.removeChild(buttonQuitarContenido);
+        };
+
+        containerContenido.appendChild(newTextArea);
+        containerContenido.appendChild(buttonQuitarContenido);
+    }
+
+    function addModuleFields() {
+        var container = document.getElementById('moduleContainer');
+        var moduleCount = container.children.length;
+        var moduleDiv = document.createElement('div');
+        moduleDiv.className = 'module';
+        moduleDiv.innerHTML = `
+            <p>Nombre del módulo: <input type="text" name="nombre_modulo[]" required></p>
+            <div class="container-contenido">
+                <textarea name="contenido[]" placeholder="Contenido" required></textarea>
+            </div>
+            <button type="button" onclick="agregarContenido(this)">Agregar contenido</button>
+            <p>Actividad: <input type="text" name="actividad_modulo[]" required></p>
+            <p>Instrumento: <input type="text" name="instrumento_modulo[]" required></p>
+            <p>Número: <input type="number" name="numero_modulo[]" required></p>
+            <input type="hidden" name="id_modulo[]" value="">
+        `;
+        container.appendChild(moduleDiv);
+    }
+
+    document.getElementById('crearCursoForm').onsubmit = function(e) {
+        e.preventDefault();
+
+        // Combinar contenidos antes de enviar
+        var modules = document.getElementsByClassName('module');
+        for (var i = 0; i < modules.length; i++) {
+            var containerContenido = modules[i].getElementsByClassName('container-contenido')[0];
+            var textareas = containerContenido.getElementsByTagName('textarea');
+            var combinedContent = '';
+            for (var j = 0; j < textareas.length; j++) {
+                combinedContent += '[' + textareas[j].value + ']';
+            }
+            // Reemplazar el contenido combinado en el primer textarea
+            textareas[0].value = combinedContent;
+            // Eliminar los otros textareas
+            for (var j = 1; j < textareas.length; j++) {
+                containerContenido.removeChild(textareas[j]);
+            }
+        }
+        this.submit();
+    }
+</script>

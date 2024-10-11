@@ -315,7 +315,7 @@ public function obtener_curso_por_valor_unico($valor_unico) {
 
 public function obtener_datos_certificacion($valor_unico) {
     $stmt = $this->db->prepare('
-        SELECT c.nombre_curso, c.descripcion, c.tipo_curso,
+        SELECT c.id_curso, c.nombre_curso, c.descripcion, c.tipo_curso,
                c.tiempo_asignado, c.inicio_mes,
                c.estado, c.dias_clase,
                c.horario_inicio, c.horario_fin,
@@ -325,7 +325,7 @@ public function obtener_datos_certificacion($valor_unico) {
                c.promotor,
                u.nombre AS nombre_estudiante, u.cedula,
                cert.fecha_inscripcion, cert.tomo, cert.folio,
-               cert.nota, cert.completado -- Agregamos "completado"
+               cert.nota, cert.completado
         FROM cursos.cursos AS c
         JOIN cursos.certificaciones AS cert ON cert.curso_id = c.id_curso
         JOIN cursos.usuarios AS u ON cert.id_usuario = u.id
