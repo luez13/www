@@ -13,12 +13,12 @@ $curso = new Curso($db);
 
 // Crear una función para validar los datos de creación o edición de curso
 function validar_curso($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implementos, $desempeño_al_concluir, $contenidos) {
-    // Verificar que los datos no estén vacíos
-    if (empty($nombre) || empty($descripcion) || empty($tiempo_asignado) || empty($inicio_mes) || empty($tipo_curso) || empty($limite_inscripciones) || empty($dias_clase) || empty($horario_inicio) || empty($horario_fin) || empty($nivel_curso) || empty($costo) || empty($conocimientos_previos) || empty($requerimientos_implementos) || empty($desempeño_al_concluir) || empty($contenidos)) {
+    // Verificar que los datos no estén vacíos, exceptuando el costo
+    if (empty($nombre) || empty($descripcion) || empty($tiempo_asignado) || empty($inicio_mes) || empty($tipo_curso) || empty($limite_inscripciones) || empty($dias_clase) || empty($horario_inicio) || empty($horario_fin) || empty($nivel_curso) || empty($conocimientos_previos) || empty($requerimientos_implementos) || empty($desempeño_al_concluir) || empty($contenidos)) {
         return false;
     }
     // Verificar que los campos numéricos sean válidos
-    if (!is_numeric($tiempo_asignado) || !is_numeric($limite_inscripciones) || !is_numeric($costo)) {
+    if (!is_numeric($tiempo_asignado) || !is_numeric($limite_inscripciones) || (!is_numeric($costo) && $costo !== null) || $costo < 0) {
         return false;
     }
     // Verificar que las fechas y horas sean válidas

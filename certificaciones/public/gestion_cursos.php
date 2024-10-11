@@ -53,7 +53,7 @@ echo '<option value="introductorio">Introductorio</option>';
 echo '<option value="medio">Medio</option>';
 echo '<option value="avanzado">Avanzado</option>';
 echo '</select></p>';
-echo '<p>Costo: <input type="number" name="costo" step="0.01" required></p>';
+echo '<p>Costo: <input type="number" name="costo" step="0.01" min="0"></p>';
 echo '<p>Conocimientos previos: <textarea name="conocimientos_previos" required></textarea></p>';
 echo '<p>Requerimientos e implementos: <textarea name="requerimientos_implementos" required></textarea></p>';
 echo '<p>Desempeño al concluir: <textarea name="desempeño_al_concluir" required></textarea></p>';
