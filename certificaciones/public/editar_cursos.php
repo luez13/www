@@ -126,15 +126,14 @@ foreach ($cursos as $index => $curso) {
     echo '</div>';
     echo '<div class="mb-3">';
     echo '<label for="conocimientos_previos' . $index . '" class="form-label">Conocimientos previos</label>';
-        echo '<textarea class="form-control" id="conocimientos_previos' . $index . '" name="conocimientos_previos" required>' . $curso['conocimientos_previos'] . '</textarea>';
-    echo '</div>';
+    echo '<textarea class="form-control" id="conocimientos_previos' . $index . '" name="conocimientos_previos" required>' . $curso['conocimientos_previos'] . '</textarea>';
     echo '<div class="mb-3">';
     echo '<label for="requerimientos_implemento' . $index . '" class="form-label">Requerimientos de implemento</label>';
-    echo '<textarea class="form-control" id="requerimientos_implemento' . $index . '" name="requerimientos_implemento" required>' . $curso['requerimientos_implemento'] . '</textarea>';
+    echo '<textarea class="form-control" id="requerimientos_implemento' . $index . '" name="requerimientos_implementos" required>' . $curso['requerimientos_implemento'] . '</textarea>';
     echo '</div>';
     echo '<div class="mb-3">';
     echo '<label for="desempeno_al_concluir' . $index . '" class="form-label">Desempeño al concluir</label>';
-    echo '<textarea class="form-control" id="desempeno_al_concluir' . $index . '" name="desempeno_al_concluir" required>' . $curso['desempeno_al_concluir'] . '</textarea>';
+    echo '<textarea class="form-control" id="desempeno_al_concluir' . $index . '" name="desempeño_al_concluir" required>' . $curso['desempeno_al_concluir'] . '</textarea>';
     echo '</div>';
 
     // Obtener y mostrar los módulos del curso

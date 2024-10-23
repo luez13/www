@@ -7,63 +7,68 @@ $db = new DB();
 
 // Crear una función para validar los datos de registro
 function validar_registro($nombre, $apellido, $correo, $password, $confirm_password, $cedula) {
-    // Verificar que los datos no estén vacíos
     if (empty($nombre) || empty($apellido) || empty($correo) || empty($password) || empty($confirm_password) || empty($cedula)) {
         return false;
     }
-    // Verificar que el nombre y el apellido solo contengan letras y espacios
-    if (!preg_match("/^[a-zA-Z ]+$/", $nombre) || !preg_match("/^[a-zA-Z ]+$/", $apellido)) {
+    
+    // Permitir caracteres latinos y espacios en nombre y apellido
+    if (!preg_match("/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/u", $nombre) || !preg_match("/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/u", $apellido)) {
         return false;
     }
-    // Verificar que el correo tenga un formato válido
+    
+    // Validación de correo electrónico mejorada
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+        // Si la validación estándar falla, usamos una expresión regular más permisiva
+        $email_regex = '/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ.!#$%&\'*+-\/=?^_`{|}~]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/';
+        if (!preg_match($email_regex, $correo)) {
+            return false;
+        }
+    }
+    
+    // Permitir caracteres alfanuméricos y guiones en la cédula
+    if (!preg_match("/^[a-zA-Z0-9-]+$/", $cedula)) {
         return false;
     }
-    // Verificar que la cédula solo contenga números
-    if (!is_numeric($cedula)) {
-        return false;
-    }
-    // Verificar que las contraseñas coincidan
+    
     if ($password !== $confirm_password) {
         return false;
     }
-    // Si todo está bien, devolver true
+    
+    // Validación de contraseña (mínimo 8 caracteres)
+    if (strlen($password) < 8) {
+        return false;
+    }
+    
     return true;
 }
 
 // Crear una función para validar los datos de inicio de sesión
 function validar_login($correo, $password) {
-    // Verificar que los datos no estén vacíos
     if (empty($correo) || empty($password)) {
         return false;
     }
-    // Verificar que el correo tenga un formato válido
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
         return false;
     }
-    // Si todo está bien, devolver true
     return true;
 }
 
 // Crear una función para validar los datos de edición
 function validar_edicion($nombre, $apellido, $correo, $cedula) {
-    // Verificar que los datos no estén vacíos
     if (empty($nombre) || empty($apellido) || empty($correo) || empty($cedula)) {
         return false;
     }
-    // Verificar que el nombre y el apellido solo contengan letras y espacios
-    if (!preg_match("/^[a-zA-Z ]+$/", $nombre) || !preg_match("/^[a-zA-Z ]+$/", $apellido)) {
+    // Permitir caracteres latinos y espacios en nombre y apellido
+    if (!preg_match("/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/u", $nombre) || !preg_match("/^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$/u", $apellido)) {
         return false;
     }
-    // Verificar que el correo tenga un formato válido
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
         return false;
     }
-    // Verificar que la cédula solo contenga números
-    if (!is_numeric($cedula)) {
+    // Permitir caracteres no numéricos en la cédula (por ejemplo, para extranjeros)
+    if (!preg_match("/^[a-zA-Z0-9-]+$/", $cedula)) {
         return false;
     }
-    // Si todo está bien, devolver true
     return true;
 }
 

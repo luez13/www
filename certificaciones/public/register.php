@@ -12,7 +12,7 @@ include '../views/header.php';
                     <div class="col-lg-7">
                         <div class="p-5">
                             <div class="text-center">
-                                <img src="../public/assets/img/logo.png" width="50" height="50"/> UPTAIET 
+                                <img src="../public/assets/img/logo.png" width="50" height="50"/> UPTAIET
                                 <h1 class="h4 text-gray-900 mb-4">Regístrate con Nosotros</h1>
                             </div>
                             <form class="user" action="../controllers/autenticacion.php" method="post">
@@ -26,14 +26,14 @@ include '../views/header.php';
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <input type="email" class="form-control form-control-user" name="correo" id="exampleInputEmail" placeholder="Correo Electrónico" required>
+                                    <input type="text" class="form-control form-control-user" name="correo" id="exampleInputEmail" placeholder="Correo Electrónico" required spellcheck="false" autocomplete="off">
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
-                                        <input type="password" class="form-control form-control-user" name="password" id="exampleInputPassword" placeholder="Contraseña" required>
+                                        <input type="password" class="form-control form-control-user" name="password" id="exampleInputPassword" placeholder="Contraseña" required autocomplete="off">
                                     </div>
                                     <div class="col-sm-6">
-                                        <input type="password" class="form-control form-control-user" name="confirm_password" id="exampleRepeatPassword" placeholder="Repite la Contraseña" required>
+                                        <input type="password" class="form-control form-control-user" name="confirm_password" id="exampleRepeatPassword" placeholder="Repite la Contraseña" required autocomplete="off">
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -42,18 +42,8 @@ include '../views/header.php';
                                 <button type="submit" class="btn btn-primary btn-user btn-block">
                                     Regístrate ahora
                                 </button>
-                                <!-- <hr>
-                                <a href="index.html" class="btn btn-google btn-user btn-block">
-                                    <i class="fab fa-google fa-fw"></i> Regístrate con Google
-                                </a>
-                                <a href="index.html" class="btn btn-facebook btn-user btn-block">
-                                    <i class="fab fa-facebook-f fa-fw"></i> Regístrate con Facebook
-                                </a>
                             </form>
-                            <hr> -->
-                            <!-- <div class="text-center">
-                                <a class="small" href="forgot-password.html">¿Olvidaste tu contraseña?</a>
-                            </div> -->
+                            <hr>
                             <div class="text-center">
                                 <a class="small" href="index.php">¿Ya tienes un usuario? Ingresa ahora!</a>
                             </div>
@@ -67,3 +57,13 @@ include '../views/header.php';
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>
+<script>
+    document.querySelector(".user").addEventListener("submit", function(event) {
+        const email = document.querySelector("#exampleInputEmail").value;
+        const regex = /^[a-zA-Z0-9._%+-áéíóúñü]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!regex.test(email)) {
+            alert("Por favor, introduce un correo electrónico válido.");
+            event.preventDefault();
+        }
+    });
+</script>

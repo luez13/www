@@ -1,5 +1,4 @@
 <?php
-// Incluir el archivo header.php
 include '../views/header.php';
 ?>
 
@@ -9,40 +8,41 @@ include '../views/header.php';
             <div class="card o-hidden border-0 shadow-lg my-5">
                 <div class="card-body p-0">
                     <div class="row">
-                        <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
+                        <div class="col-lg-6 d-none d-lg-block bg-login-image">
+                            <!-- Puedes reemplazar esta imagen con una relacionada a certificaciones -->
+                            <!-- <img src="../public/assets/img/IU.jpg" alt="Certificaciones" class="img-fluid h-100 w-100 object-fit-cover"> -->
+                        </div>
                         <div class="col-lg-6">
                             <div class="p-5">
-                                <div class="text-center">
-                                    <img src="../public/assets/img/logo.png" width="50" height="50"> UPTAIET
-                                    <h1 class="h4 text-gray-900 mb-4">Bienvenido</h1>
+                                <div class="text-center mb-4">
+                                    <img src="../public/assets/img/logo.png" width="80" height="80" class="mb-3">
+                                    <h1 class="h4 text-gray-900">Bienvenido a UPTAIET</h1>
+                                    <p class="text-muted">Sistema de Certificaciones</p>
                                 </div>
                                 <form class="user" action="../controllers/autenticacion.php" method="post">
                                     <input type="hidden" name="action" value="login">
-                                    <div class="form-group">
-                                        <input type="email" class="form-control form-control-user" name="correo" id="correo" aria-describedby="emailHelp" placeholder="Ingresa correo electronico" required>
+                                    <div class="form-group mb-3">
+                                        <input type="email" class="form-control form-input" name="correo" id="correo" aria-describedby="emailHelp" placeholder="Ingresa tu correo electrónico" required>
                                     </div>
-                                    <div class="form-group">
-                                        <input type="password" class="form-control form-control-user" name="password" id="password" placeholder="Contraseña" required>
+                                    <div class="form-group mb-3">
+                                        <input type="password" class="form-control form-input" name="password" id="password" placeholder="Contraseña" required>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group mb-3">
                                         <div class="custom-control custom-checkbox small">
                                             <input type="checkbox" class="custom-control-input" id="customCheck">
-                                            <label class="custom-control-label" for="customCheck">Recuerdame</label>
+                                            <label class="custom-control-label" for="customCheck">Recuérdame</label>
                                         </div>
                                     </div>
-                                    <input type="submit" value="Iniciar sesión" class="btn btn-primary btn-user btn-block">
-                                    <hr>
-                                    <!-- <a href="index.html" class="btn btn-google btn-user btn-block">
-                                        <i class="fab fa-google fa-fw"></i> Registrate con Google
-                                    </a>
-                                    <a href="index.html" class="btn btn-facebook btn-user btn-block">Registrate con Facebook</a> -->
+                                    <button type="submit" class="btn btn-primary btn-user btn-block btn-login">
+                                        Iniciar sesión
+                                    </button>
                                 </form>
                                 <hr>
-                                <!--<div class="text-center">
-                                    <a class="small" href="forgot-password.html">¿Olvidaste tu contraseña?</a>
-                                </div> -->
                                 <div class="text-center">
-                                    <a class="small" href="register.php">¡Crea una cuenta!</a>
+                                    <a class="small" href="register.php">¿No tienes una cuenta? ¡Regístrate aquí!</a>
+                                </div>
+                                <div class="text-center">
+                                    <a class="small" href="../controllers/generar_certificado.php">!Mira aqui las certificaciones¡</a>
                                 </div>
                             </div>
                         </div>
@@ -54,6 +54,5 @@ include '../views/header.php';
 </div>
 
 <?php
-// Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>

@@ -55,6 +55,9 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
 }
     public function crearModulo($curso_id, $nombre_modulo, $contenido, $actividad, $instrumento, $numero) {
         try {
+            // Guardar la información del módulo para depuración
+            file_put_contents('debug_modulos_clase.json', json_encode(['curso_id' => $curso_id, 'nombre_modulo' => $nombre_modulo, 'contenido' => $contenido, 'actividad' => $actividad, 'instrumento' => $instrumento, 'numero' => $numero], JSON_PRETTY_PRINT), FILE_APPEND);
+
             $stmt = $this->db->prepare('INSERT INTO cursos.modulos (id_curso, nombre_modulo, contenido, actividad, instrumento, numero) VALUES (:id_curso, :nombre_modulo, :contenido, :actividad, :instrumento, :numero)');
             $stmt->execute([
                 'id_curso' => $curso_id,
@@ -101,10 +104,17 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
     
             // Actualizar los módulos del curso
             foreach ($modulos as $modulo) {
+                $contenido = $modulo['contenido'];
+                // Eliminar dobles corchetes
+                if (strpos($contenido, '[[') !== false) {
+                    $contenido = trim($contenido, '[]');
+                    $contenido = '[' . str_replace('][', '][', $contenido) . ']';
+                }
+
                 $stmt = $this->db->prepare('UPDATE cursos.modulos SET nombre_modulo = :nombre_modulo, contenido = :contenido, numero = :numero, actividad = :actividad, instrumento = :instrumento WHERE id_modulo = :id_modulo');
                 $stmt->execute([
                     'nombre_modulo' => $modulo['nombre_modulo'],
-                    'contenido' => $modulo['contenido'],
+                    'contenido' => $contenido,
                     'numero' => $modulo['numero'],
                     'actividad' => $modulo['actividad'],
                     'instrumento' => $modulo['instrumento'],

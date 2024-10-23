@@ -60,16 +60,20 @@ echo '<p>Desempeño al concluir: <textarea name="desempeño_al_concluir" require
 echo '<h4>Módulos del curso</h4>';
 echo '<div id="moduleContainer">';
 
-// Los módulos existentes
+// Ajuste en el formulario para añadir campos ocultos
 foreach ($curso_editar['modulos'] as $modulo) {
     echo '<div class="module">';
     echo '<input type="hidden" name="id_modulo[]" value="' . htmlspecialchars($modulo['id_modulo']) . '">';
     echo '<input type="hidden" name="id_curso_modulo[]" value="' . htmlspecialchars($id_curso) . '">';
     echo '<p>Nombre del módulo: <input type="text" name="nombre_modulo[]" value="' . htmlspecialchars($modulo['nombre_modulo']) . '" required></p>';
     echo '<div class="container-contenido">';
-    $contenidos = explode('[', trim($modulo['contenido'], '[]'));
+    $contenidos = explode('][', trim($modulo['contenido'], '[]'));
     foreach ($contenidos as $contenido) {
         echo '<textarea name="contenido[]" required>' . htmlspecialchars($contenido) . '</textarea>';
+        // Añadir campo oculto para el número y ID del módulo
+        echo '<input type="hidden" name="numero_modulo_contenido[]" value="' . htmlspecialchars($modulo['numero']) . '">';
+        echo '<input type="hidden" name="id_modulo_contenido[]" value="' . htmlspecialchars($modulo['id_modulo']) . '">';
+        echo '<button type="button" onclick="quitarContenido(this)">Quitar contenido</button>';
     }
     echo '</div>';
     echo '<button type="button" onclick="agregarContenido(this)">Agregar contenido</button>';
@@ -101,7 +105,6 @@ include '../views/footer.php';
         newTextArea.name = 'contenido[]';
         newTextArea.placeholder = 'Contenido';
         newTextArea.required = true;
-
         var buttonQuitarContenido = document.createElement('button');
         buttonQuitarContenido.type = 'button';
         buttonQuitarContenido.textContent = 'Quitar contenido';
@@ -109,7 +112,6 @@ include '../views/footer.php';
             containerContenido.removeChild(newTextArea);
             containerContenido.removeChild(buttonQuitarContenido);
         };
-
         containerContenido.appendChild(newTextArea);
         containerContenido.appendChild(buttonQuitarContenido);
     }
@@ -133,25 +135,41 @@ include '../views/footer.php';
         container.appendChild(moduleDiv);
     }
 
-    document.getElementById('crearCursoForm').onsubmit = function(e) {
-        e.preventDefault();
-
-        // Combinar contenidos antes de enviar
-        var modules = document.getElementsByClassName('module');
-        for (var i = 0; i < modules.length; i++) {
-            var containerContenido = modules[i].getElementsByClassName('container-contenido')[0];
-            var textareas = containerContenido.getElementsByTagName('textarea');
-            var combinedContent = '';
-            for (var j = 0; j < textareas.length; j++) {
-                combinedContent += '[' + textareas[j].value + ']';
-            }
-            // Reemplazar el contenido combinado en el primer textarea
+    function combineContentsBeforeSubmit() {
+    var modules = document.getElementsByClassName('module');
+    for (var i = 0; i < modules.length; i++) {
+        var containerContenido = modules[i].getElementsByClassName('container-contenido')[0];
+        var textareas = containerContenido.getElementsByTagName('textarea');
+        var combinedContent = '';
+        for (var j = 0; j < textareas.length; j++) {
+            combinedContent += '[' + textareas[j].value + ']';
+        }
+        if (textareas.length > 0) {
             textareas[0].value = combinedContent;
-            // Eliminar los otros textareas
-            for (var j = 1; j < textareas.length; j++) {
-                containerContenido.removeChild(textareas[j]);
+            while (textareas.length > 1) {
+                containerContenido.removeChild(textareas[1]);
             }
         }
-        this.submit();
     }
+}
+
+document.getElementById('crearCursoForm').onsubmit = function(e) {
+    e.preventDefault();
+    combineContentsBeforeSubmit(); // Combinar contenidos antes de enviar
+    var formData = new FormData(this);
+    $.ajax({
+        url: '../controllers/curso_controlador.php',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            alert(response);
+            window.location.href = '../public/perfil.php?seccion=ver_postulaciones';
+        },
+        error: function() {
+            alert('Error al crear el curso.');
+        }
+    });
+};
 </script>

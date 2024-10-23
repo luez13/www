@@ -166,28 +166,12 @@ echo '</div>';
 include '../views/footer.php';
 ?>
 
+<script src="../models/module_processing.js"></script>
 <script>
     document.getElementById('crearCursoForm').onsubmit = function(e) {
         e.preventDefault();
-
-        // Combinar contenidos antes de enviar
-        var modules = document.getElementsByClassName('module');
-        for (var i = 0; i < modules.length; i++) {
-            var containerContenido = modules[i].getElementsByClassName('container-contenido')[0];
-            var textareas = containerContenido.getElementsByTagName('textarea');
-            var combinedContent = '';
-            for (var j = 0; j < textareas.length; j++) {
-                combinedContent += '[' + textareas[j].value + ']';
-            }
-            // Reemplazar el contenido combinado en el primer textarea
-            textareas[0].value = combinedContent;
-            // Eliminar los otros textareas
-            for (var j = 1; j < textareas.length; j++) {
-                containerContenido.removeChild(textareas[j]);
-            }
-        }
-
-        var formData = new FormData(this);
+        combineContentsBeforeSubmit(); // Asegurarnos de combinar contenidos antes de enviar
+        const formData = new FormData(this);
         $.ajax({
             url: '../controllers/curso_controlador.php',
             type: 'POST',
@@ -234,73 +218,5 @@ include '../views/footer.php';
         });
     }
 
-    function addModuleFields() {
-        var number = document.getElementById("numero_modulos").value;
-        var container = document.getElementById("moduleContainer");
-        container.innerHTML = "";
-
-        for (var i = 0; i < number; i++) {
-            var moduleDiv = document.createElement("div");
-            moduleDiv.className = "module";
-
-            var moduleTitle = document.createElement("h4");
-            moduleTitle.textContent = "Módulo " + (i + 1);
-            moduleDiv.appendChild(moduleTitle);
-
-            var inputNombreModulo = document.createElement("input");
-            inputNombreModulo.type = "text";
-            inputNombreModulo.name = "nombre_modulo[]";
-            inputNombreModulo.placeholder = "Nombre del módulo";
-            inputNombreModulo.required = true;
-            moduleDiv.appendChild(inputNombreModulo);
-
-            var containerContenido = document.createElement("div");
-            containerContenido.className = "container-contenido";
-
-            var textareaContenido = document.createElement("textarea");
-            textareaContenido.name = "contenido[]";
-            textareaContenido.placeholder = "Contenido";
-            textareaContenido.required = true;
-            containerContenido.appendChild(textareaContenido);
-
-            var buttonAgregarContenido = document.createElement("button");
-            buttonAgregarContenido.type = "button";
-            buttonAgregarContenido.textContent = "Agregar contenido";
-            buttonAgregarContenido.onclick = function() {
-                var newTextArea = document.createElement("textarea");
-                newTextArea.name = "contenido[]";
-                newTextArea.placeholder = "Contenido";
-                newTextArea.required = true;
-
-                var buttonQuitarContenido = document.createElement("button");
-                buttonQuitarContenido.type = "button";
-                buttonQuitarContenido.textContent = "Quitar contenido";
-                buttonQuitarContenido.onclick = function() {
-                    containerContenido.removeChild(newTextArea);
-                    containerContenido.removeChild(buttonQuitarContenido);
-                };
-
-                containerContenido.appendChild(newTextArea);
-                containerContenido.appendChild(buttonQuitarContenido);
-            };
-            moduleDiv.appendChild(containerContenido);
-            moduleDiv.appendChild(buttonAgregarContenido);
-
-            var inputActividad = document.createElement("input");
-            inputActividad.type = "text";
-            inputActividad.name = "actividad[]";
-            inputActividad.placeholder = "Actividad";
-            inputActividad.required = true;
-            moduleDiv.appendChild(inputActividad);
-
-            var inputInstrumento = document.createElement("input");
-            inputInstrumento.type = "text";
-            inputInstrumento.name = "instrumento[]";
-            inputInstrumento.placeholder = "Instrumento";
-            inputInstrumento.required = true;
-            moduleDiv.appendChild(inputInstrumento);
-
-            container.appendChild(moduleDiv);
-        }
-    }
+    document.getElementById('numero_modulos').onblur = addModuleFields;
 </script>

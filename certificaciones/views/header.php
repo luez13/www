@@ -1,78 +1,107 @@
 <?php
-// Incluir autenticacion.php
 require_once '../controllers/autenticacion.php';
-
-// Verificar si la sesión no está iniciada antes de llamar a session_start()
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-
-// Verificar si la página actual es register.php
 $current_page = basename($_SERVER['PHP_SELF']);
-if ($current_page !== 'register.php') {
-    // Llamar a la función verificar_sesion
+if ($current_page !== 'register.php' && $current_page !== 'generar_certificado.php') {
     verificar_sesion();
 }
-
-// Establecer una variable de sesión para indicar si el usuario está logueado o no
-if (isset($_SESSION['nombre'])) {
-    $_SESSION['logueado'] = true;
-} else {
-    $_SESSION['logueado'] = false;
-}
+$_SESSION['logueado'] = isset($_SESSION['nombre']);
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Enlazar el archivo estilo.css -->
-    <link rel="stylesheet" href="../public/assets/css/estilo.css">
-    <!-- Agregar el CDN de Bootstrap 5 -->
+    <title>Sistema de gestión de cursos y certificaciones</title>
+
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Enlazar otros archivos CSS necesarios -->
+    <!-- Font Awesome -->
     <link href="../public/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <!-- Custom styles -->
     <link href="../public/assets/css/sb-admin-2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../public/assets/css/estilo.css">
+
+    <style>
+        body {
+            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+        }
+
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-input {
+            border-radius: 2rem;
+            padding: 1.5rem 1rem;
+        }
+
+        .btn-login {
+            border-radius: 2rem;
+            padding: 0.75rem 1rem;
+            font-weight: bold;
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+
+        .btn-login:hover {
+            background-color: #2e59d9;
+            border-color: #2653d4;
+        }
+
+        .banner-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            background-color: #f8f9fa;
+        }
+
+        .banner-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            max-height: 200px; /* Ajusta esta altura según sea necesario */
+            margin: 0 auto;
+        }
+    </style>
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-        <!-- Tus meta etiquetas, títulos, enlaces a CSS -->
-        <script>
+
+    <script>
         function confirmarInscripcion() {
-            console.log("Confirmar inscripción llamado"); // Para depuración
+            console.log("Confirmar inscripción llamado");
             return confirm("¿Estás seguro de que quieres inscribirte en este curso?");
         }
 
         function confirmarCancelacion() {
-            console.log("Confirmar cancelación llamado"); // Para depuración
+            console.log("Confirmar cancelación llamado");
             return confirm("¿Estás seguro de que quieres cancelar tu inscripción en este curso?");
         }
     </script>
-    <title>Sistema de gestión de cursos y certificaciones</title>
-    <?php if ($current_page === 'perfil.php' || $current_page === 'index.php'): ?>
-    <div class="container-fluid p-0">
-        <div class="banner" style="position: relative; width: 100%; height: 150px; overflow: hidden;">
-            <img src="../public/assets/img/vector membrete 1-01.png" alt="Banner" style="position: absolute; top: 50%; left: 50%; width: 80%; height: auto; transform: translate(-50%, -50%);">
-        </div>
-    </div>
-    <?php endif; ?>
 </head>
-<body class="bg-gradient-light">
-    <?php
-    echo '<style>
-    .navbar-text {
-        margin-right: 4px;
-    }
-    .form-inline {
-        margin-left: 8px;
-    }
-    .form-inline.my-2.my-lg-0 {
-        margin-right: 10px;
-    }
-    .main-content {
-        padding-top: 70px; /* Ajusta este valor según el alto de tu navbar */
-    }
-    </style>';
-    ?>
+
+<body>
+    <?php if ($current_page === 'perfil.php' || $current_page === 'index.php'): ?>
+        <div class="container-fluid p-0">
+            <div class="banner-container">
+                <img src="../public/assets/img/vector membrete 1-01.png" alt="Banner" class="banner-image">
+            </div>
+        </div>
+    <?php endif; ?>
+</body>
+
+</html>

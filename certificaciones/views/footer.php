@@ -1,10 +1,6 @@
-<br>
-<br>
-<br>
-<br>
 <footer class="footer mt-auto py-3 bg-light">
     <div class="container">
-        <span class="text-muted">© 2024 Sistema de gestión de cursos y certificaciones</span>
+        <span class="text-muted">© <?php echo date("Y"); ?> Sistema de gestión de cursos y certificaciones</span>
     </div>
 </footer>
 
@@ -17,5 +13,13 @@
 
 <!-- Custom scripts for all pages-->
 <script src="../public/assets/js/sb-admin-2.min.js"></script>
+
+<script>
+    // Asegurarse de que el contenido principal no sea tapado por el footer
+    $(document).ready(function() {
+        var footerHeight = $('footer').outerHeight();
+        $('body').css('padding-bottom', footerHeight + 'px');
+    });
+</script>
 </body>
 </html>
