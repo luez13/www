@@ -35,37 +35,42 @@ $total_cursos = $stmt->fetchColumn();
 $total_pages = ceil($total_cursos / $limit);
 
 echo '<div class="accordion" id="accordionCursos">';
-foreach ($cursos as $index => $curso) {
+foreach ($cursos as $curso) {
     echo '<div class="accordion-item">';
-    echo '<h2 class="accordion-header" id="heading' . $index . '">';
-    echo '<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' . $index . '" aria-expanded="false" aria-controls="collapse' . $index . '">';
+    echo '<h2 class="accordion-header" id="heading' . $curso['id_curso'] . '">';
+    echo '<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' . $curso['id_curso'] . '" aria-expanded="false" aria-controls="collapse' . $curso['id_curso'] . '">';
     echo 'Editar curso ' . $curso['nombre_curso'];
     echo '</button>';
     echo '</h2>';
-    echo '<div id="collapse' . $index . '" class="accordion-collapse collapse" aria-labelledby="heading' . $index . '" data-bs-parent="#accordionCursos">';
+    echo '<div id="collapse' . $curso['id_curso'] . '" class="accordion-collapse collapse" aria-labelledby="heading' . $curso['id_curso'] . '" data-bs-parent="#accordionCursos">';
     echo '<div class="accordion-body">';
-    echo '<form id="editarCursoForm' . $index . '" action="../controllers/curso_controlador.php" method="post">';
+    echo '<form id="editarCursoForm' . $curso['id_curso'] . '" action="../controllers/curso_controlador.php" method="post">';
     echo '<input type="hidden" name="action" value="editar">';
     echo '<input type="hidden" name="id_curso" value="' . $curso['id_curso'] . '">';
+    
     echo '<div class="mb-3">';
-    echo '<label for="nombre_curso' . $index . '" class="form-label">Nombre del curso</label>';
-    echo '<input type="text" class="form-control" id="nombre_curso' . $index . '" name="nombre_curso" value="' . $curso['nombre_curso'] . '" required>';
+    echo '<label for="nombre_curso' . $curso['id_curso'] . '" class="form-label">Nombre del curso</label>';
+    echo '<input type="text" class="form-control" id="nombre_curso' . $curso['id_curso'] . '" name="nombre_curso" value="' . $curso['nombre_curso'] . '" required>';
     echo '</div>';
+    
     echo '<div class="mb-3">';
-    echo '<label for="descripcion' . $index . '" class="form-label">Descripción</label>';
-    echo '<textarea class="form-control" id="descripcion' . $index . '" name="descripcion" required>' . $curso['descripcion'] . '</textarea>';
+    echo '<label for="descripcion' . $curso['id_curso'] . '" class="form-label">Descripción</label>';
+    echo '<textarea class="form-control" id="descripcion' . $curso['id_curso'] . '" name="descripcion" required>' . $curso['descripcion'] . '</textarea>';
     echo '</div>';
+    
     echo '<div class="mb-3">';
-    echo '<label for="tiempo_asignado' . $index . '" class="form-label">Tiempo asignado (en semanas)</label>';
-    echo '<input type="number" class="form-control" id="tiempo_asignado' . $index . '" name="tiempo_asignado" value="' . $curso['tiempo_asignado'] . '" min="1" required>';
+    echo '<label for="tiempo_asignado' . $curso['id_curso'] . '" class="form-label">Tiempo asignado (en semanas)</label>';
+    echo '<input type="number" class="form-control" id="tiempo_asignado' . $curso['id_curso'] . '" name="tiempo_asignado" value="' . $curso['tiempo_asignado'] . '" min="1" required>';
     echo '</div>';
+    
     echo '<div class="mb-3">';
-    echo '<label for="inicio_mes' . $index . '" class="form-label">Inicio del mes</label>';
-    echo '<input type="date" class="form-control" id="inicio_mes' . $index . '" name="inicio_mes" value="' . $curso['inicio_mes'] . '" required>';
+    echo '<label for="inicio_mes' . $curso['id_curso'] . '" class="form-label">Inicio del mes</label>';
+    echo '<input type="date" class="form-control" id="inicio_mes' . $curso['id_curso'] . '" name="inicio_mes" value="' . $curso['inicio_mes'] . '" required>';
     echo '</div>';
+    
     echo '<div class="mb-3">';
-    echo '<label for="tipo_curso' . $index . '" class="form-label">Tipo de curso</label>';
-    echo '<select class="form-select" id="tipo_curso' . $index . '" name="tipo_curso" required>';
+    echo '<label for="tipo_curso' . $curso['id_curso'] . '" class="form-label">Tipo de curso</label>';
+    echo '<select class="form-select" id="tipo_curso' . $curso['id_curso'] . '" name="tipo_curso" required>';
     echo '<option value="seminarios"' . ($curso['tipo_curso'] == 'seminarios' ? ' selected' : '') . '>Seminarios</option>';
     echo '<option value="diplomados"' . ($curso['tipo_curso'] == 'diplomados' ? ' selected' : '') . '>Diplomados</option>';
     echo '<option value="congreso"' . ($curso['tipo_curso'] == 'congreso' ? ' selected' : '') . '>Congreso</option>';
@@ -73,13 +78,15 @@ foreach ($cursos as $index => $curso) {
     echo '<option value="talleres"' . ($curso['tipo_curso'] == 'talleres' ? ' selected' : '') . '>Talleres</option>';
     echo '</select>';
     echo '</div>';
+    
     echo '<div class="mb-3">';
-    echo '<label for="limite_inscripciones' . $index . '" class="form-label">Límite de inscripción</label>';
-    echo '<input type="number" class="form-control" id="limite_inscripciones' . $index . '" name="limite_inscripciones" value="' . $curso['limite_inscripciones'] . '" required>';
+    echo '<label for="limite_inscripciones' . $curso['id_curso'] . '" class="form-label">Límite de inscripción</label>';
+    echo '<input type="number" class="form-control" id="limite_inscripciones' . $curso['id_curso'] . '" name="limite_inscripciones" value="' . $curso['limite_inscripciones'] . '" required>';
     echo '</div>';
+    
     echo '<div class="mb-3">';
-    echo '<label for="promotor' . $index . '" class="form-label">Promotor</label>';
-    echo '<select class="form-select" id="promotor' . $index . '" name="promotor">';
+    echo '<label for="promotor' . $curso['id_curso'] . '" class="form-label">Promotor</label>';
+    echo '<select class="form-select" id="promotor' . $curso['id_curso'] . '" name="promotor">';
     // Obtener todos los promotores
     $stmt = $db->prepare("SELECT id, nombre FROM cursos.usuarios WHERE id_rol = 2"); // Asumiendo que el rol 2 corresponde a los promotores
     $stmt->execute();
@@ -181,14 +188,14 @@ foreach ($cursos as $index => $curso) {
   }  
 
     echo '<div class="d-flex">';
-    echo '<button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#detallesCursoModal' . $index . '">Ver Detalles del Curso</button>';
+    echo '<button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#detallesCursoModal' . $curso['id_curso'] . '">Ver Detalles del Curso</button>';
     echo '<input type="submit" class="btn btn-primary" value="Guardar cambios">';
     echo '</div>';
     echo '</form>';
     echo '</div>'; // Cerrar accordion-body
     echo '</div>'; // Cerrar accordion-collapse
     echo '</div>'; // Cerrar accordion-item
-}
+  }
 echo '</div>'; // Cerrar accordion
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
@@ -217,15 +224,15 @@ include '../views/footer.php';
 
 <!-- Modal -->
 <?php foreach ($cursos as $index => $curso): ?>
-<div class="modal fade" id="detallesCursoModal<?php echo $index; ?>" tabindex="-1" aria-labelledby="detallesCursoModalLabel<?php echo $index; ?>" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+<div class="modal fade" id="detallesCursoModal<?= $curso['id_curso']; ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl"> <!-- Usar modal-fullscreen para hacer la modal lo más grande posible -->
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="detallesCursoModalLabel<?php echo $index; ?>">Detalles del Curso</h5>
+        <h5 class="modal-title" id="exampleModalLabel">Detalles del Curso</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <iframe src="detalles_curso.php?id=<?php echo $curso['id_curso']; ?>" style="width: 100%; height: 500px;" frameborder="0"></iframe>
+        <iframe src="detalles_curso.php?id=<?php echo $curso['id_curso']; ?>" style="width: 100%; height: 80vh;" frameborder="0"></iframe> <!-- Ajustar altura a 80vh para ocupar el 80% de la altura de la ventana -->
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>

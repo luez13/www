@@ -103,7 +103,12 @@ if (is_numeric($id_curso) && $id_curso > 0) {
             echo '<input type="number" id="nota" name="nota" min="0" max="100">';
             echo '<input type="submit" value="Asignar nota">';
             echo '</form>';
+            echo '<br>';
         }
+        echo '<br>';
+        echo '<br>';
+        echo '<br>';
+        echo '<br>';
     } else {
         // Si el curso no existe o no fue creado por el usuario, mostrar un mensaje de error
         echo '<p>El curso solicitado no existe o no lo has creado tú.</p>';
