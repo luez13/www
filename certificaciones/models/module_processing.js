@@ -79,31 +79,42 @@ document.getElementById('numero_modulos').addEventListener('blur', addModuleFiel
 
 function combineContentsBeforeSubmit() {
     var modules = document.getElementsByClassName('module');
+    var logData = [];
     for (var i = 0; i < modules.length; i++) {
         var containerContenido = modules[i].getElementsByClassName('container-contenido')[0];
         var textareas = containerContenido.getElementsByTagName('textarea');
         var combinedContent = '';
-
         for (var j = 0; j < textareas.length; j++) {
             combinedContent += '[' + textareas[j].value + ']';
+            logData.push(textareas[j].value);  // Agrega cada contenido para el log
         }
-
         if (textareas.length > 0) {
-            // Reemplazar el contenido combinado en el primer textarea
             textareas[0].value = combinedContent;
-
-            // Asegurarnos de eliminar solo los textareas adicionales y no el primero
             while (textareas.length > 1) {
                 containerContenido.removeChild(textareas[1]);
             }
         }
     }
+
+    // Enviar los datos al servidor para que los escriba en un archivo
+    fetch('save_logs.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(logData)
+    })
+    .then(response => response.text())
+    .then(result => console.log(result))
+    .catch(error => console.log('Error:', error));
 }
 
 document.getElementById('crearCursoForm').onsubmit = function(e) {
     e.preventDefault();
     combineContentsBeforeSubmit();
     var formData = new FormData(this);
+    console.log('Form Data:', ...formData.entries()); // Esto imprimirá todos los datos del formulario, incluyendo el contenido combinado
+
     $.ajax({
         url: '../controllers/curso_controlador.php',
         type: 'POST',
@@ -119,3 +130,25 @@ document.getElementById('crearCursoForm').onsubmit = function(e) {
         }
     });
 };
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('button.add-contenido').forEach(button => {
+        button.addEventListener('click', function() {
+            const moduleContainer = this.closest('.module-container');
+            const newContent = document.createElement('textarea');
+            newContent.className = 'form-control';
+            newContent.name = 'contenido_modulo[]';
+            newContent.required = true;
+            moduleContainer.querySelector('.contenidos').appendChild(newContent);
+        });
+    });
+
+    document.querySelectorAll('button.remove-contenido').forEach(button => {
+        button.addEventListener('click', function() {
+            const moduleContainer = this.closest('.module-container');
+            if (moduleContainer.querySelectorAll('textarea').length > 1) {
+                moduleContainer.querySelector('.contenidos').lastChild.remove();
+            }
+        });
+    });
+});

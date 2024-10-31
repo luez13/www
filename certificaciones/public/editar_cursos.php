@@ -141,30 +141,44 @@ foreach ($cursos as $index => $curso) {
     $stmt = $db->prepare("SELECT * FROM cursos.modulos WHERE id_curso = :curso_id");
     $stmt->execute([':curso_id' => $curso['id_curso']]);
     $modulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    foreach ($modulos as $modulo) {
-        echo '<h5>Editar módulo ' . $modulo['nombre_modulo'] . '</h5>';
-        echo '<input type="hidden" name="id_modulo[]" value="' . $modulo['id_modulo'] . '">';
-        echo '<div class="mb-3">';
-        echo '<label for="nombre_modulo' . $index . '" class="form-label">Nombre del módulo</label>';
-        echo '<input type="text" class="form-control" id="nombre_modulo' . $index . '" name="nombre_modulo[]" value="' . $modulo['nombre_modulo'] . '" required>';
-        echo '</div>';
-        echo '<div class="mb-3">';
-        echo '<label for="contenido_modulo' . $index . '" class="form-label">Contenido</label>';
-        echo '<textarea class="form-control" id="contenido_modulo' . $index . '" name="contenido_modulo[]" required>' . $modulo['contenido'] . '</textarea>';
-        echo '</div>';
-        echo '<div class="mb-3">';
-        echo '<label for="numero_modulo' . $index . '" class="form-label">Número del módulo</label>';
-        echo '<input type="number" class="form-control" id="numero_modulo' . $index . '" name="numero_modulo[]" value="' . $modulo['numero'] . '" required>';
-        echo '</div>';
-        echo '<div class="mb-3">';
-        echo '<label for="actividad_modulo' . $index . '" class="form-label">Actividad</label>';
-        echo '<input type="text" class="form-control" id="actividad_modulo' . $index . '" name="actividad_modulo[]" value="' . $modulo['actividad'] . '" required>';
-        echo '</div>';
-        echo '<div class="mb-3">';
-        echo '<label for="instrumento_modulo' . $index . '" class="form-label">Instrumento</label>';
-        echo '<input type="text" class="form-control" id="instrumento_modulo' . $index . '" name="instrumento_modulo[]" value="' . $modulo['instrumento'] . '" required>';
-        echo '</div>';
-    }
+    foreach ($modulos as $index => $modulo) {
+      echo '<h5>Editar módulo ' . $modulo['nombre_modulo'] . '</h5>';
+      echo '<input type="hidden" name="id_modulo[]" value="' . $modulo['id_modulo'] . '">';
+      
+      echo '<div class="mb-3">';
+      echo '<label for="nombre_modulo' . $index . '" class="form-label">Nombre del módulo</label>';
+      echo '<input type="text" class="form-control" id="nombre_modulo' . $index . '" name="nombre_modulo[]" value="' . $modulo['nombre_modulo'] . '" required>';
+      echo '</div>';
+      
+      echo '<div class="mb-3">';
+      echo '<label for="contenido_modulo' . $index . '" class="form-label">Contenido</label>';
+      
+      // Dividir el contenido en partes y crear contenedores separados
+      $contenidos = explode('][', trim($modulo['contenido'], '[]'));
+      foreach ($contenidos as $key => $contenido) {
+        echo '<textarea class="form-control" id="contenido_modulo' . $index . '_' . $key . '" name="contenido_modulo[]" required>' . $contenido . '</textarea>';
+        // Añadir campos ocultos para el número y ID del módulo
+        echo '<input type="hidden" name="numero_modulo_contenido[]" value="' . $modulo['numero'] . '">';
+        echo '<input type="hidden" name="id_modulo_contenido[]" value="' . $modulo['id_modulo'] . '">';
+    }           
+      
+      echo '</div>';
+  
+      echo '<div class="mb-3">';
+      echo '<label for="numero_modulo' . $index . '" class="form-label">Número del módulo</label>';
+      echo '<input type="number" class="form-control" id="numero_modulo' . $index . '" name="numero_modulo[]" value="' . $modulo['numero'] . '" required>';
+      echo '</div>';
+      
+      echo '<div class="mb-3">';
+      echo '<label for="actividad_modulo' . $index . '" class="form-label">Actividad</label>';
+      echo '<input type="text" class="form-control" id="actividad_modulo' . $index . '" name="actividad_modulo[]" value="' . $modulo['actividad'] . '" required>';
+      echo '</div>';
+      
+      echo '<div class="mb-3">';
+      echo '<label for="instrumento_modulo' . $index . '" class="form-label">Instrumento</label>';
+      echo '<input type="text" class="form-control" id="instrumento_modulo' . $index . '" name="instrumento_modulo[]" value="' . $modulo['instrumento'] . '" required>';
+      echo '</div>';
+  }  
 
     echo '<div class="d-flex">';
     echo '<button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#detallesCursoModal' . $index . '">Ver Detalles del Curso</button>';

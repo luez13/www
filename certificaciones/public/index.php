@@ -42,7 +42,7 @@ include '../views/header.php';
                                     <a class="small" href="register.php">¿No tienes una cuenta? ¡Regístrate aquí!</a>
                                 </div>
                                 <div class="text-center">
-                                    <a class="small" href="../controllers/generar_certificado.php">!Mira aqui las certificaciones¡</a>
+                                    <a class="small" href="../views/ver_certificados.php">!Mira aqui tus certificaciones¡</a>
                                 </div>
                             </div>
                         </div>

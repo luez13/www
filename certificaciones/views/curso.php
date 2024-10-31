@@ -25,8 +25,10 @@ $stmt = $db->prepare('SELECT valor_unico FROM cursos.certificaciones WHERE curso
 $stmt->execute(['curso_id' => $id_curso]);
 $valor_unico = $stmt->fetchColumn();
 
-// Definir la base de la URL
-$base_url = 'http://localhost/certificaciones/controllers/generar_certificado.php';
+// Definir la base de la URL dinámicamente
+$host = $_SERVER['HTTP_HOST'];
+$uri = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+$base_url = "http://$host$uri/../controllers/generar_certificado.php";
 
 // Verificar si la solicitud es AJAX
 $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
@@ -59,14 +61,12 @@ $stmt->execute(['curso_id' => $id_curso]);
 $count = $stmt->fetchColumn();
 $cupos_disponibles = $curso_contenido['limite_inscripciones'] - $count;
 echo '<p>Cupos disponibles: ' . $cupos_disponibles . '</p>';
-
 echo '<p>Promotor: ' . $promotor['nombre'] . '</p>';
 
 // Consultar los módulos del curso
 $stmt = $db->prepare('SELECT * FROM cursos.modulos WHERE id_curso = :id_curso ORDER BY numero');
 $stmt->execute(['id_curso' => $id_curso]);
 $modulos = $stmt->fetchAll();
-
 echo '<h3>Módulos del curso</h3>';
 foreach ($modulos as $modulo) {
     echo '<div class="modulo">';
@@ -92,38 +92,51 @@ if ($_SESSION['id_rol'] != 4) {
         echo '</form>';
     } else {
         echo '<p>Nota: ' . $inscripcion['nota'] . '</p>';
-        // Si el usuario ya está inscrito y el curso no está completado, mostrar el botón de cancelar inscripción
-        if (!$inscripcion['completado']) {
+        
+        // Mostrar el botón de cancelar inscripción solo si el curso no está completado
+        if ($inscripcion['completado'] != 1) {
             echo '<form method="POST" action="../controllers/curso_acciones.php" onsubmit="return confirmarCancelacion()">';
             echo '<input type="hidden" name="action" value="cancelar_inscripcion">';
             echo '<input type="hidden" name="id_usuario" value="' . $_SESSION['user_id'] . '">';
             echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
             echo '<button type="submit" id="cancelar-inscripcion-btn" class="btn btn-danger">Cancelar inscripción</button>';
             echo '</form>';
-        } else {
-            // Obtener el valor único del curso del usuario actual
+        }
+        
+        // Mostrar los botones de ver certificado y ver URL solo si el curso está completado y el pago está confirmado
+        if ($inscripcion['completado'] == 1 && $inscripcion['pago'] == 1) {
             $valor_unico = $inscripcion['valor_unico'];
-            // Si el curso está completado, mostrar los botones de ver certificado y ver URL
             echo '<button class="btn btn-success" type="button" onclick="verCertificado(\'' . $valor_unico . '\')">Ver Certificado</button>';
-            echo '<button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseURL" aria-expanded="false" aria-controls="collapseURL">Ver URL</button>';
+            echo '<button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseURL" aria-expanded="false" aria-controls="collapseURL" onclick="obtenerCertificadoURL(\'' . $valor_unico . '\')">Ver URL</button>';
             echo '<div class="collapse" id="collapseURL">';
             echo '<div class="card card-body">';
-            echo '<p><a href="' . $base_url . '?valor_unico=' . $valor_unico . '">' . $base_url . '?valor_unico=' . $valor_unico . '</a></p>';
+            echo '<p id="certificadoUrlContainer"></p>';  // Este es el contenedor donde se mostrará la URL
             echo '</div>';
         }
     }
 }
-
-echo '</div>';
-
 if (!$is_ajax) {
     // Incluir el archivo footer.php en views
     include '../views/footer.php';
 }
 ?>
-
 <script>
-    function verCertificado(valorUnico) {
-        window.open('../controllers/generar_certificado.php?valor_unico=' + valorUnico, '_blank');
-    }
+function verCertificado(valorUnico) {
+    window.open(`../controllers/generar_certificado.php?valor_unico=${valorUnico}`, '_blank');
+}
+
+function obtenerCertificadoURL(valorUnico) {
+    fetch(`../controllers/certificado_endpoint.php?valor_unico=${valorUnico}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
+            } else {
+                console.log(data);  // Verificar que se están obteniendo los datos correctamente
+                const certificadoUrl = `http://${window.location.host}/certificaciones/controllers/generar_certificado.php?valor_unico=${valorUnico}`;
+                document.getElementById('certificadoUrlContainer').innerHTML = `<a href="${certificadoUrl}" target="_blank">${certificadoUrl}</a>`;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
 </script>

@@ -5,6 +5,9 @@ include '../config/model.php';
 // Incluir el archivo curso.php en models
 include '../models/curso.php';
 
+// Incluir el archivo autenticacion.php en controllers
+include '../controllers/autenticacion.php';
+
 // Crear una instancia de la clase DB
 $db = new DB();
 
@@ -128,6 +131,14 @@ switch ($action) {
             $tipo_curso = $_POST['tipo_curso'];
             $limite_inscripciones = $_POST['limite_inscripciones'];
             $dias_clase = isset($_POST['dias_clase']) ? $_POST['dias_clase'] : [];
+            if (!is_array($dias_clase)) {
+                $dias_clase = str_replace(['{', '}'], '', $dias_clase);
+                $dias_clase_array = explode(',', $dias_clase);
+                $dias_clase_array = array_map('trim', $dias_clase_array);
+                $dias_clase_pg = '{' . implode(',', $dias_clase_array) . '}';
+            } else {
+                $dias_clase_pg = '{' . implode(',', $dias_clase) . '}';
+            }
             $horario_inicio = $_POST['horario_inicio'];
             $horario_fin = $_POST['horario_fin'];
             $nivel_curso = $_POST['nivel_curso'];
@@ -137,7 +148,15 @@ switch ($action) {
             $desempeño_al_concluir = isset($_POST['desempeño_al_concluir']) ? $_POST['desempeño_al_concluir'] : null;
             $autorizacion = $_SESSION['user_id']; // Capturando el id del usuario actual para la autorización
         
+            // Definir $is_admin_or_authorizer
+            $user_id = $_SESSION['user_id']; // Asegúrate de que esto se defina antes de su uso
+            $is_admin_or_authorizer = esPerfil3($user_id) || esPerfil4($user_id);
+        
             // Obtener los datos de los módulos
+            if (!isset($_POST['contenido'])) {
+                $_POST['contenido'] = []; // Inicializa como array vacío si no está definido
+            }
+        
             $nombre_modulo = $_POST['nombre_modulo'];
             $contenido = $_POST['contenido'];
             $actividad = $_POST['actividad_modulo'];
@@ -154,7 +173,6 @@ switch ($action) {
             foreach ($id_modulo as $id) {
                 $contenidos_modulo[$id] = [];
             }
-        
             foreach ($contenido as $index => $content) {
                 if (isset($id_modulo_contenido[$index])) {
                     $modulo_id = $id_modulo_contenido[$index];
@@ -162,40 +180,41 @@ switch ($action) {
                 }
             }
         
-            // Convertir contenidos combinados a strings
-            foreach ($contenidos_modulo as $modulo_id => $contents) {
-                $contenidos_modulo[$modulo_id] = '[' . implode('][', $contents) . ']';
-            }
-        
             // Crear los datos de los módulos
             $modulos = [];
             foreach ($id_modulo as $i => $id) {
+                $contenido_completo = isset($contenidos_modulo[$id]) ? implode('][', $contenidos_modulo[$id]) : '';
+                $contenido_completo = '[' . $contenido_completo . ']';
                 $modulos[] = [
                     'id_modulo' => $id,
                     'id_curso' => $id_curso,
                     'nombre_modulo' => $nombre_modulo[$i],
-                    'contenido' => isset($contenidos_modulo[$id]) ? $contenidos_modulo[$id] : '',
+                    'contenido' => $contenido_completo,
                     'numero' => $numero_modulo[$i],
                     'actividad' => $actividad[$i],
                     'instrumento' => $instrumento[$i]
                 ];
             }
         
-            // Add debug statements
-            error_log("Editing Course Data: " . print_r($_POST, true));
-            error_log("Modules Data: " . print_r($modulos, true));
-        
             // Guardar los datos para inspección
             file_put_contents('edit_debug_data.json', json_encode([
                 'course_data' => $_POST,
                 'modules_data' => $modulos,
                 'contenidos_modulo' => $contenidos_modulo
-            ], JSON_PRETTY_PRINT));
+            ], JSON_PRETTY_PRINT), LOCK_EX);
+        
+            // Inicializar variables si no están definidas
+            $modulos = isset($modulos) ? $modulos : [];
+            $desempeño_al_concluir = isset($_POST['desempeño_al_concluir']) ? $_POST['desempeño_al_concluir'] : null;
         
             // Validar los datos
-            if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento, $desempeño_al_concluir, $modulos)) {
+            if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento, $desempeño_al_concluir, $modulos)) {
                 // Editar el curso usando el método de la clase Curso
-                $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $autorizacion);
+                if ($is_admin_or_authorizer) {
+                    $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeño_al_concluir, $_SESSION['user_id']);
+                } else {
+                    $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeño_al_concluir);
+                }
                 // Devolver mensaje de éxito
                 echo '<script>
                         alert("El curso se ha editado correctamente");
@@ -204,17 +223,17 @@ switch ($action) {
             } else {
                 // Devolver mensaje de error con detalles
                 $errorDetails = json_encode($_POST, JSON_HEX_APOS | JSON_HEX_QUOT);
-                file_put_contents('edit_error_data.json', json_encode([
-                    'error' => 'Datos inválidos',
+                file_put_contents('edit_debug_data.json', json_encode([
                     'course_data' => $_POST,
-                ], JSON_PRETTY_PRINT));
-        
+                    'modules_data' => $modulos,
+                    'contenidos_modulo' => $contenidos_modulo
+                ], JSON_PRETTY_PRINT), LOCK_EX);
                 echo '<script>
                         alert("Los datos del curso son inválidos: ' . addslashes($errorDetails) . '");
                         window.location.href = "../public/perfil.php";
                       </script>';
             }
-            break;        
+            break;              
     case 'eliminar':
         // Obtener el id del curso del formulario
         $id_curso = $_POST['id_curso'];

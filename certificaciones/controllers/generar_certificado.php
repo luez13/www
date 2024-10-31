@@ -1,7 +1,6 @@
 <?php
 require_once('../config/model.php');
 require_once('../models/curso.php');
-include '../views/header.php';
 
 // Crear una instancia de la clase DB
 $db = new DB();
@@ -11,7 +10,7 @@ $curso = new Curso($db);
 
 if (isset($_GET['valor_unico'])) {
     $valor_unico = $_GET['valor_unico'];
-    
+    $certificadoUrl = "http://{$_SERVER['HTTP_HOST']}/certificaciones/controllers/generar_certificado.php?valor_unico={$valor_unico}";
     // Mostrar los datos de la certificación basados en el valor_unico
     $datos = $curso->obtener_datos_certificacion($valor_unico);
     
@@ -63,14 +62,10 @@ $imagePath = '../public/assets/img/marca_agua.png';
 $bannerPath = '../public/assets/img/banner_certificado.jpg';
 $footerPath = '../public/assets/img/footer.jpg';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Generar Certificado</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
     <!-- Incluir los archivos de fuentes convertidas -->
     <script src="../public/assets/vendor/3309-font-normal.js "></script>
     <script src="../public/assets/vendor/cambria-normal.js"></script>
@@ -125,19 +120,19 @@ jsPDF.API.events.push(['addFonts', function() {
             // Agregar el nombre del promotor al lado derecho arriba del footer con poco interlineado
             const marginRight = pdf.internal.pageSize.width - 20;
 
-// Ajustar tamaño de las imágenes
-const imageHeight = 65;
-const imageWidth = 67;
+            // Ajustar tamaño de las imágenes
+            const imageHeight = 65;
+            const imageWidth = 67;
 
-// Imagen encima de "Ing. Espindola Yoselin", más abajo y a la izquierda
-pdf.addImage('../public/assets/img/coord.png', 'PNG', marginRight - imageWidth / 2 - 22, pdf.internal.pageSize.height - 92, imageWidth, imageHeight); // Ajustar según sea necesario
+            // Imagen encima de "Ing. Espindola Yoselin", más abajo y a la izquierda
+            pdf.addImage('../public/assets/img/coord.png', 'PNG', marginRight - imageWidth / 2 - 22, pdf.internal.pageSize.height - 92, imageWidth, imageHeight); // Ajustar según sea necesario
 
-// Texto del promotor
-pdf.text('Ing. Espindola Yoselin', marginRight, pdf.internal.pageSize.height - 50, { align: 'right' });
-pdf.text('Coord. Formación Permanente', marginRight, pdf.internal.pageSize.height - 45, { align: 'right' });
+            // Texto del promotor
+            pdf.text('Ing. Espindola Yoselin', marginRight, pdf.internal.pageSize.height - 50, { align: 'right' });
+            pdf.text('Coord. Formación Permanente', marginRight, pdf.internal.pageSize.height - 45, { align: 'right' });
 
-// Imagen a la derecha de "Ing. Espindola Yoselin"
-pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 140, pdf.internal.pageSize.height - 80, imageWidth, imageHeight); // Ajustar según sea necesario
+            // Imagen a la derecha de "Ing. Espindola Yoselin"
+            pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 140, pdf.internal.pageSize.height - 80, imageWidth, imageHeight); // Ajustar según sea necesario
 
 
 
@@ -148,6 +143,17 @@ pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 140, pdf.int
             pdf.addPage();
             pdf.setFont('Arial', 'B', 16);
 
+            // Generar el código QR con la URL del certificado
+            const certificadoUrl = "<?php echo $certificadoUrl; ?>";
+            QRCode.toDataURL(certificadoUrl, { width: 150, margin: 1 }, function(err, url) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+
+                // Agregar el código QR en la parte superior derecha de la segunda página
+                pdf.addImage(url, 'PNG', pdf.internal.pageSize.width - 60, 10, 50, 50); // Ajusta las coordenadas según sea necesario
+            });
             // Agregar imagen de marca de agua en el centro de la segunda página
             pdf.addImage('<?php echo $imagePath; ?>', 'PNG', (pdf.internal.pageSize.width - watermarkWidth) / 2, (pdf.internal.pageSize.height - watermarkHeight) / 2, watermarkWidth, watermarkHeight);
 
@@ -174,7 +180,6 @@ pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 140, pdf.int
             pdf.text(notaTexto, 10, 155);
             pdf.text('Registrado en formación permanente tomo <?php echo $tomo; ?> y folio <?php echo $folio; ?>.', 10, 150);
             pdf.text('El programa tuvo una duración de <?php echo $duracionTotal; ?> horas cronológicas.', 10, 160);
-
             const marginRight2 = pdf.internal.pageSize.width - 20;
 
             // Agregar la firma digital del promotor si existe
@@ -202,76 +207,3 @@ pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 140, pdf.int
             }
         });
     </script>
-</head>
-<body>
-    <div class="container mt-5">
-        <div class="card">
-            <div class="card-body">
-                <h3>Ingresa tu cédula para ver los cursos finalizados</h3>
-                <form method="GET" action="">
-                    <div class="mb-3">
-                        <label for="cedula" class="form-label">Cédula</label>
-                        <input type="text" class="form-control form-input border border-dark" id="cedula" name="cedula" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Ver Cursos</button>
-                </form>
-
-                <?php
-                if (isset($_GET['cedula'])) {
-                    $cedula = $_GET['cedula'];
-                    $stmt = $db->prepare('SELECT c.*, ce.valor_unico, u.nombre FROM cursos.cursos c 
-                                          JOIN cursos.certificaciones ce ON c.id_curso = ce.curso_id 
-                                          JOIN cursos.usuarios u ON ce.id_usuario = u.id 
-                                          WHERE u.cedula = :cedula AND ce.completado = true');
-                    $stmt->execute(['cedula' => $cedula]);
-                    $cursos_finalizados = $stmt->fetchAll();
-
-                    if ($cursos_finalizados) {
-                        echo '<h3 class="mt-4">Cursos que has finalizado</h3>';
-                        echo '<div class="dropdown">';
-                        echo '<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">';
-                        echo 'Selecciona un curso';
-                        echo '</button>';
-                        echo '<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">';
-                        foreach ($cursos_finalizados as $curso) {
-                            echo '<li><a class="dropdown-item" href="?cedula=' . $cedula . '&curso_id=' . $curso['id_curso'] . '">' . $curso['nombre_curso'] . '</a></li>';
-                        }
-                        echo '</ul>';
-                        echo '</div>';
-                    } else {
-                        echo '<div class="alert alert-warning mt-4">No se encontraron cursos finalizados para esta cédula.</div>';
-                    }
-                }
-
-                if (isset($_GET['curso_id'])) {
-                    $curso_id = $_GET['curso_id'];
-                    $stmt = $db->prepare('SELECT c.*, ce.*, u.nombre FROM cursos.cursos c 
-                                          JOIN cursos.certificaciones ce ON c.id_curso = ce.curso_id 
-                                          JOIN cursos.usuarios u ON ce.id_usuario = u.id 
-                                          WHERE c.id_curso = :curso_id AND u.cedula = :cedula');
-                    $stmt->execute(['curso_id' => $curso_id, 'cedula' => $cedula]);
-                    $curso_seleccionado = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                    if ($curso_seleccionado) {
-                        echo '<div class="card mt-4">';
-                        echo '<div class="card-body">';
-                        echo '<h3>Detalles del Curso</h3>';
-                        echo '<p>Nombre del Estudiante: ' . $curso_seleccionado['nombre'] . '</p>';
-                        echo '<p>Nombre del Curso: ' . $curso_seleccionado['nombre_curso'] . '</p>';
-                        echo '<p>Tipo de Curso: ' . $curso_seleccionado['tipo_curso'] . '</p>';
-                        echo '<p>Fecha de Inscripción: ' . date('d/m/Y', strtotime($curso_seleccionado['fecha_inscripcion'])) . '</p>';
-                        echo '<p>Estado: ' . ($curso_seleccionado['completado'] ? "Aprobado" : "No Aprobado") . '</p>';
-                        echo '<p>Valor Único: ' . $curso_seleccionado['valor_unico'] . '</p>';
-                        echo '</div>';
-                        echo '</div>';
-                    } else {
-                        echo '<div class="alert alert-warning mt-4">No se encontraron detalles para este curso.</div>';
-                    }
-                }
-                ?>
-            </div>
-        </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
