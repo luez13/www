@@ -31,6 +31,7 @@ echo '<p>Descripción: <textarea name="descripcion" required>' . htmlspecialchar
 echo '<p>Semanas: <input type="number" name="tiempo_asignado" value="' . htmlspecialchars($curso_editar['tiempo_asignado']) . '" min="1" required></p>';
 echo '<p>Fecha de inicio: <input type="date" name="inicio_mes" value="' . htmlspecialchars($curso_editar['inicio_mes']) . '" required></p>';
 echo '<p>Tipo de curso: <select name="tipo_curso" required>';
+echo '<option value="masterclass"' . ($curso_editar['tipo_curso'] == 'masterclass' ? ' selected' : '') . '>Masterclass</option>';
 echo '<option value="seminarios"' . ($curso_editar['tipo_curso'] == 'seminarios' ? ' selected' : '') . '>Seminarios</option>';
 echo '<option value="diplomados"' . ($curso_editar['tipo_curso'] == 'diplomados' ? ' selected' : '') . '>Diplomados</option>';
 echo '<option value="congreso"' . ($curso_editar['tipo_curso'] == 'congreso' ? ' selected' : '') . '>Congreso</option>';

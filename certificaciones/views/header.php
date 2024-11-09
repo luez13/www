@@ -86,6 +86,8 @@ $_SESSION['logueado'] = isset($_SESSION['nombre']);
 </head>
 <body>
     <div class="container-fluid p-0">
+        <!-- Verificar si el archivo actual es perfil.php -->
+        <?php if ($current_page === 'perfil.php'): ?>
         <div class="banner-container">
             <?php if ($_SESSION['logueado']): ?>
                 <a href="../public/perfil.php" class="banner-link">
@@ -97,6 +99,7 @@ $_SESSION['logueado'] = isset($_SESSION['nombre']);
                 </a>
             <?php endif; ?>
         </div>
+        <?php endif; ?>
     </div>
 </body>
 </html>

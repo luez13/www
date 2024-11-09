@@ -71,6 +71,7 @@ foreach ($cursos as $curso) {
     echo '<div class="mb-3">';
     echo '<label for="tipo_curso' . $curso['id_curso'] . '" class="form-label">Tipo de curso</label>';
     echo '<select class="form-select" id="tipo_curso' . $curso['id_curso'] . '" name="tipo_curso" required>';
+    echo '<option value="masterclass"' . ($curso['tipo_curso'] == 'masterclass' ? ' selected' : '') . '>Masterclass</option>';
     echo '<option value="seminarios"' . ($curso['tipo_curso'] == 'seminarios' ? ' selected' : '') . '>Seminarios</option>';
     echo '<option value="diplomados"' . ($curso['tipo_curso'] == 'diplomados' ? ' selected' : '') . '>Diplomados</option>';
     echo '<option value="congreso"' . ($curso['tipo_curso'] == 'congreso' ? ' selected' : '') . '>Congreso</option>';

@@ -21,3 +21,15 @@
 .sidebar.toggled {
     display: none;
 }
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: rgba(128, 128, 128, 0.5); /* Fondo gris semitransparente */
+    border-radius: 50%; /* Hacer que el fondo sea redondo */
+    padding: 10px; /* Espacio alrededor del icono */
+}
+
+/* Asegurar que el tamaño del icono se mantenga adecuado */
+.carousel-control-prev-icon::before,
+.carousel-control-next-icon::before {
+    font-size: 2rem; /* Aumentar el tamaño del icono si es necesario */
+}
