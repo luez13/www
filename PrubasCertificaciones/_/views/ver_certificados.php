@@ -13,6 +13,13 @@ $db = new DB();
 $curso = new Curso($db);
 ?>
 
+    <div class="container-fluid p-0">
+        <div class="banner-container">
+            <a href="../public/index.php" class="banner-link">
+                <img src="../public/assets/img/vector membrete 1-01.png" alt="Banner" class="banner-image img-fluid mx-auto d-block" style="max-height: 200px;">
+            </a>
+        </div>
+    </div>
     <div class="container mt-5">
         <div class="card">
             <div class="card-body">
@@ -28,9 +35,9 @@ $curso = new Curso($db);
                 if (isset($_GET['cedula'])) {
                     $cedula = $_GET['cedula'];
                     $stmt = $db->prepare('SELECT c.*, ce.valor_unico, u.nombre FROM cursos.cursos c
-                                           JOIN cursos.certificaciones ce ON c.id_curso = ce.curso_id
-                                           JOIN cursos.usuarios u ON ce.id_usuario = u.id
-                                           WHERE u.cedula = :cedula AND ce.completado = true');
+                                        JOIN cursos.certificaciones ce ON c.id_curso = ce.curso_id
+                                        JOIN cursos.usuarios u ON ce.id_usuario = u.id
+                                        WHERE u.cedula = :cedula AND ce.completado = true');
                     $stmt->execute(['cedula' => $cedula]);
                     $cursos_finalizados = $stmt->fetchAll();
                     if ($cursos_finalizados) {
@@ -52,9 +59,9 @@ $curso = new Curso($db);
                 if (isset($_GET['curso_id'])) {
                     $curso_id = $_GET['curso_id'];
                     $stmt = $db->prepare('SELECT c.*, ce.*, u.nombre FROM cursos.cursos c
-                                           JOIN cursos.certificaciones ce ON c.id_curso = ce.curso_id
-                                           JOIN cursos.usuarios u ON ce.id_usuario = u.id
-                                           WHERE c.id_curso = :curso_id AND u.cedula = :cedula');
+                                        JOIN cursos.certificaciones ce ON c.id_curso = ce.curso_id
+                                        JOIN cursos.usuarios u ON ce.id_usuario = u.id
+                                        WHERE c.id_curso = :curso_id AND u.cedula = :cedula');
                     $stmt->execute(['curso_id' => $curso_id, 'cedula' => $cedula]);
                     $curso_seleccionado = $stmt->fetch(PDO::FETCH_ASSOC);
                     if ($curso_seleccionado) {

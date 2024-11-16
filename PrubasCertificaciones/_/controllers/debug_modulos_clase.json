@@ -1,0 +1,36 @@
+{
+    "curso_id": 45,
+    "nombre_modulo": "atun",
+    "contenido": "[atun]",
+    "actividad": "atun",
+    "instrumento": "atun",
+    "numero": 1
+}{
+    "curso_id": 45,
+    "nombre_modulo": "atun",
+    "contenido": "[atun]",
+    "actividad": "atun",
+    "instrumento": "atun",
+    "numero": 2
+}{
+    "curso_id": 5,
+    "nombre_modulo": "Introduccion a primeros auxilios",
+    "contenido": "[\u2022\tLecci\u00f3n 1: Antecedentes de la Atenci\u00f3n Inmediata de las Urgencias M\u00e9dicas\r\n\u2022\tLecci\u00f3n 2: Evaluaci\u00f3n de V\u00edctimas\r\n\u2022\tLecci\u00f3n 3: Obstrucci\u00f3n de la V\u00eda A\u00e9rea por Cuerpo Extra\u00f1o\r\n\u2022\tLecci\u00f3n 4: Manejo Inicial de la V\u00eda A\u00e9rea\r\n\u2022\tLecci\u00f3n 5: Soporte B\u00e1sico de Vida (SBV)\r\n\u2022\tLecci\u00f3n 6: Manejo Inicial de Lesiones\r\n\u2022\tLecci\u00f3n 7: Heridas y Hemorragias\r\n\u2022\tLecci\u00f3n 8: Fracturas, Luxaciones y Esguinces\r\n\u2022\tLecci\u00f3n 9: Vendajes\r\n\u2022\tLecci\u00f3n 10: Estado de Choque\r\n\u2022\tLecci\u00f3n 11: Quemaduras\r\n\u2022\tLecci\u00f3n 12: Movilizaci\u00f3n de V\u00edctimas\r\n\u2022\tLecci\u00f3n 13: Inmovilizaci\u00f3n de V\u00edctimas\r\n\u2022\tLecci\u00f3n 14: Intoxicaciones\r\n\u2022\tLecci\u00f3n 15: Emergencias por Calor y Fr\u00edo\r\n\u2022\tLecci\u00f3n 18: Condiciones M\u00e9dicas que Ponen en Peligro la Vida\r\n\u2022\tLecci\u00f3n 19: Botiqu\u00edn de Primera Respuesta\r\n\u2022\tLecci\u00f3n 20: Aspectos M\u00e9dico-Legales]",
+    "actividad": "ejercicios practicos para los diferentes participantes ",
+    "instrumento": "exposiciones ",
+    "numero": 1
+}{
+    "curso_id": 6,
+    "nombre_modulo": "certificado prueba",
+    "contenido": "[certificado prueba]",
+    "actividad": "certificado prueba",
+    "instrumento": "certificado prueba",
+    "numero": 1
+}{
+    "curso_id": 6,
+    "nombre_modulo": "certificado prueba",
+    "contenido": "[certificado prueba]",
+    "actividad": "certificado prueba",
+    "instrumento": "certificado prueba",
+    "numero": 2
+}
