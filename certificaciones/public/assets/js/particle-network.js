@@ -2,12 +2,12 @@ let particles = [];
 
 function setup() {
     let canvas = createCanvas(windowWidth, windowHeight);
-    canvas.parent('particle-background'); // Añadir el canvas al div con id 'particle-background'
+    canvas.parent('particle-background');
     canvas.style('position', 'absolute');
     canvas.style('top', '0');
     canvas.style('left', '0');
     canvas.style('z-index', '-1'); // Asegura que esté detrás del contenido
-    for (let i = 0; i < 200; i++) { // Aumentar la cantidad de esferas
+    for (let i = 0; i < 200; i++) {
         particles.push(new Particle());
     }
 }
@@ -26,6 +26,10 @@ function draw() {
             particles.push(new Particle(true)); // Añadir una nueva partícula desde abajo
         }
     }
+}
+
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
 }
 
 class Particle {
@@ -48,7 +52,7 @@ class Particle {
     connect(particles) {
         for (let particle of particles) {
             let d = dist(this.pos.x, this.pos.y, particle.pos.x, particle.pos.y);
-            if (d > 10 && d < 200) { // Distancia de conexión entre 10 y 200
+            if (d > 10 && d < 200) {
                 stroke(220, 150);
                 strokeWeight(1); // Líneas más finas
                 line(this.pos.x, this.pos.y, particle.pos.x, particle.pos.y);

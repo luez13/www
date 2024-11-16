@@ -2,11 +2,12 @@
 include '../views/header.php';
 ?>
 
-                <a href="../public/index.php" class="banner-link">
-                    <img src="../public/assets/img/vector membrete 1-01.png" alt="Banner" class="banner-image">
-                </a>
+<div id="particle-background"></div> <!-- Mover esto al inicio del body -->
+
 <div class="container">
-<div id="particle-background"></div>
+    <a href="../public/index.php" class="banner-link">
+        <img src="../public/assets/img/vector membrete 1-01.png" alt="Banner" class="banner-image">
+    </a>
     <div class="row justify-content-center">
         <div class="col-xl-10 col-lg-12 col-md-9">
             <div class="card o-hidden border-0 shadow-lg my-5">
