@@ -73,6 +73,10 @@ $_SESSION['logueado'] = isset($_SESSION['nombre']);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <?php if ($current_page === 'index.php'): ?>
+        <script src="../public/assets/js/particle-network.js" defer></script>
+    <?php endif; ?>
     <script>
         function confirmarInscripcion() {
             console.log("Confirmar inscripción llamado");

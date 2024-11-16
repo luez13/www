@@ -54,6 +54,15 @@ function validar_finalizacion($id_usuario, $curso_id) {
 }
 
 // Crear una función para redirigir al usuario a la página de perfil
+function redirigir_con_mensaje($mensaje, $tipo) {
+    echo "<script>
+        alert('$mensaje');
+        window.location.href = document.referrer;
+    </script>";
+    exit();
+}
+
+// Crear una función para redirigir al usuario a la página de perfil
 function redirigir_perfil() {
     // Usar la función header para enviar el encabezado de redirección
     header('Location: ../public/perfil.php');
@@ -72,40 +81,39 @@ switch ($action) {
         // Obtener los datos del formulario
         $id_usuario = $_POST['id_usuario'];
         $curso_id = $_POST['curso_id'];
-    
+
         // Validar los datos
         if (validar_inscripcion($id_usuario, $curso_id)) {
-    
+
             // Verificar si el usuario ya está inscrito en el curso
             $stmt = $db->prepare('SELECT * FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
             $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
             $inscripcion = $stmt->fetch();
-    
+
             if ($inscripcion) {
                 // Mostrar un mensaje al usuario
-                echo '<script>alert("Ya estás inscrito en este curso.");</script>';
+                redirigir_con_mensaje("Ya estás inscrito en este curso.", "error");
             } else {
-    
+
                 // Generar siempre un nuevo hash
                 $valor_unico = hash('sha256', $id_usuario . $curso_id . time());
-    
+
                 // Insertar los datos en la base de datos
                 try {
                     $stmt = $db->prepare('INSERT INTO cursos.certificaciones (id_usuario, curso_id, valor_unico, fecha_inscripcion, completado) VALUES (:id_usuario, :curso_id, :valor_unico, NOW(), false)');
                     $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id, 'valor_unico' => $valor_unico]);
                     // Mostrar un mensaje de éxito al usuario
-                    echo '<script>alert("Te has inscrito correctamente en el curso");</script>';
+                    redirigir_con_mensaje("Te has inscrito correctamente en el curso", "success");
                 } catch (PDOException $e) {
                     // Mostrar un mensaje de error al usuario
-                    echo '<script>alert("Ha ocurrido un error al inscribirte en el curso: ' . $e->getMessage() . '");</script>';
+                    redirigir_con_mensaje("Ha ocurrido un error al inscribirte en el curso: " . $e->getMessage(), "error");
                 }
             }
         } else {
             // Mostrar un mensaje de error al usuario
-            echo '<script>alert("Los datos de inscripción son inválidos");</script>';
+            redirigir_con_mensaje("Los datos de inscripción son inválidos", "error");
         }
-        redirigir_perfil();
-        break;        
+        break;
     case 'cancelar_inscripcion':
         // Obtener los datos del formulario
         $id_usuario = $_POST['id_usuario'];

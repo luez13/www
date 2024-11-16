@@ -1,35 +1,25 @@
 {
     "missing_fields": [
-        "nombre",
         "descripcion",
-        "tiempo_asignado",
-        "inicio_mes",
-        "tipo_curso",
-        "limite_inscripciones",
-        "dias_clase",
-        "horario_inicio",
-        "horario_fin",
-        "nivel_curso",
-        "conocimientos_previos",
-        "requerimientos_implementos",
-        "desempe\u00f1o_al_concluir",
-        "contenidos"
+        "limite_inscripciones"
     ],
     "course_data": [
+        "prueba2s",
         null,
+        "2",
+        "2024-11-21",
+        "masterclass",
         null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        []
+        "{Lunes,Martes,Mi\u00e9rcoles}",
+        "17:20",
+        "18:20",
+        "introductorio",
+        "0",
+        "prueba2s",
+        "prueba2s",
+        "prueba2s",
+        [
+            "[prueba2s]"
+        ]
     ]
 }

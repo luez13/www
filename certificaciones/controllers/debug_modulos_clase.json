@@ -12,4 +12,11 @@
     "actividad": "atun",
     "instrumento": "atun",
     "numero": 2
+}{
+    "curso_id": 46,
+    "nombre_modulo": "prueba2s",
+    "contenido": "[prueba2s]",
+    "actividad": "prueba2s",
+    "instrumento": "prueba2s",
+    "numero": 1
 }

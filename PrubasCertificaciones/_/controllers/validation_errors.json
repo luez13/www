@@ -1,0 +1,35 @@
+{
+    "missing_fields": [
+        "nombre",
+        "descripcion",
+        "tiempo_asignado",
+        "inicio_mes",
+        "tipo_curso",
+        "limite_inscripciones",
+        "dias_clase",
+        "horario_inicio",
+        "horario_fin",
+        "nivel_curso",
+        "conocimientos_previos",
+        "requerimientos_implementos",
+        "desempe\u00f1o_al_concluir",
+        "contenidos"
+    ],
+    "course_data": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        []
+    ]
+}

@@ -412,3 +412,10 @@ END $$;
 ALTER TABLE cursos.certificaciones
 ADD COLUMN tomo integer,
 ADD COLUMN folio integer;
+
+-- Eliminar la restricción de clave foránea existente
+ALTER TABLE cursos.modulos DROP CONSTRAINT cursos_modulos_id_curso_fkey;
+
+-- Agregar la restricción de clave foránea con ON DELETE CASCADE
+ALTER TABLE cursos.modulos
+    ADD CONSTRAINT cursos_modulos_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES cursos.cursos(id_curso) ON DELETE CASCADE;

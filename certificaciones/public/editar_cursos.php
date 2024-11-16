@@ -149,7 +149,7 @@ foreach ($cursos as $curso) {
     $stmt = $db->prepare("SELECT * FROM cursos.modulos WHERE id_curso = :curso_id");
     $stmt->execute([':curso_id' => $curso['id_curso']]);
     $modulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    foreach ($modulos as $index => $modulo) {
+  foreach ($modulos as $index => $modulo) {
       echo '<h5>Editar módulo ' . $modulo['nombre_modulo'] . '</h5>';
       echo '<input type="hidden" name="id_modulo[]" value="' . $modulo['id_modulo'] . '">';
       
@@ -159,19 +159,18 @@ foreach ($cursos as $curso) {
       echo '</div>';
       
       echo '<div class="mb-3">';
-      echo '<label for="contenido_modulo' . $index . '" class="form-label">Contenido</label>';
+      echo '<label for="contenido' . $index . '" class="form-label">Contenido</label>';
       
       // Dividir el contenido en partes y crear contenedores separados
       $contenidos = explode('][', trim($modulo['contenido'], '[]'));
       foreach ($contenidos as $key => $contenido) {
-        echo '<textarea class="form-control" id="contenido_modulo' . $index . '_' . $key . '" name="contenido_modulo[]" required>' . $contenido . '</textarea>';
-        // Añadir campos ocultos para el número y ID del módulo
-        echo '<input type="hidden" name="numero_modulo_contenido[]" value="' . $modulo['numero'] . '">';
-        echo '<input type="hidden" name="id_modulo_contenido[]" value="' . $modulo['id_modulo'] . '">';
-    }           
-      
+          echo '<textarea class="form-control" id="contenido' . $index . '_' . $key . '" name="contenido[]" required>' . $contenido . '</textarea>';
+          // Añadir campos ocultos para el número y ID del módulo
+          echo '<input type="hidden" name="numero_modulo_contenido[]" value="' . $modulo['numero'] . '">';
+          echo '<input type="hidden" name="id_modulo_contenido[]" value="' . $modulo['id_modulo'] . '">';
+      }        
       echo '</div>';
-  
+
       echo '<div class="mb-3">';
       echo '<label for="numero_modulo' . $index . '" class="form-label">Número del módulo</label>';
       echo '<input type="number" class="form-control" id="numero_modulo' . $index . '" name="numero_modulo[]" value="' . $modulo['numero'] . '" required>';
@@ -186,11 +185,12 @@ foreach ($cursos as $curso) {
       echo '<label for="instrumento_modulo' . $index . '" class="form-label">Instrumento</label>';
       echo '<input type="text" class="form-control" id="instrumento_modulo' . $index . '" name="instrumento_modulo[]" value="' . $modulo['instrumento'] . '" required>';
       echo '</div>';
-  }  
+  }
 
     echo '<div class="d-flex">';
     echo '<button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#detallesCursoModal' . $curso['id_curso'] . '">Ver Detalles del Curso</button>';
-    echo '<input type="submit" class="btn btn-primary" value="Guardar cambios">';
+    echo '<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#agregarUsuarioModal' . $curso['id_curso'] . '">Agregar Usuarios</button>';
+    echo '<input type="submit" class="btn btn-primary" value="Guardar cambios">';    
     echo '</div>';
     echo '</form>';
     echo '</div>'; // Cerrar accordion-body
@@ -237,6 +237,23 @@ include '../views/footer.php';
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endforeach; ?>
+
+<!-- Modal para mostrar usuarios -->
+<?php foreach ($cursos as $index => $curso): ?>
+<div class="modal fade" id="agregarUsuarioModal<?= $curso['id_curso']; ?>" tabindex="-1" aria-labelledby="agregarUsuarioModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="agregarUsuarioModalLabel">Usuarios Registrados</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <iframe src="../controllers/buscar.php?id_curso=<?= $curso['id_curso']; ?>" width="100%" height="500px" frameborder="0"></iframe>
       </div>
     </div>
   </div>

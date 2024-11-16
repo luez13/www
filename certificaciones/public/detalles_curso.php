@@ -2,8 +2,16 @@
 // Incluir el archivo model.php en config
 include '../config/model.php';
 
+// Definir la clase fondo-negro para el fondo negro y el texto blanco 
+echo '<style> .fondo-negro { 
+background-color: #ffffff !important; /* Fondo negro */ color: #000000; /* Texto blanco para contraste */ 
+} </style>';
+
 // Incluir el archivo header.php en views
 include '../views/header.php';
+
+// Aplicar la clase fondo-negro al body 
+echo '<script>document.body.classList.add("fondo-negro");</script>';
 
 // Incluir el archivo curso.php en models
 include '../models/curso.php';
@@ -59,6 +67,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
         if (in_array($user_role, [3, 4])) {
             echo '<th>Pagado</th>'; // Añadir columna para el estado de pago
         }
+        echo '<th><button id="actualizar-tomos-folios" class="btn btn-primary">Actualizar Tomos y Folios</button></th>';
         echo '</tr>';
         foreach ($usuarios as $usuario) {
             $nota = $curso->obtener_nota($id_curso, $usuario['id']);
@@ -79,9 +88,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                 echo '<span> Si está marcado, el curso está pagado. Si no está marcado, el curso no está pagado.</span></td>';
                 echo '<td>';
                 echo '<input type="number" class="tomo" data-id-curso="' . $id_curso . '" data-id-usuario="' . $usuario['id'] . '" value="' . $tomo . '" min="0" placeholder="Tomo">';
-                echo '<button class="asignar-tomo" data-id-curso="' . $id_curso . '" data-id-usuario="' . $usuario['id'] . '">Asignar Tomo</button>';
                 echo '<input type="number" class="folio" data-id-curso="' . $id_curso . '" data-id-usuario="' . $usuario['id'] . '" value="' . $folio . '" min="0" placeholder="Folio">';
-                echo '<button class="asignar-folio" data-id-curso="' . $id_curso . '" data-id-usuario="' . $usuario['id'] . '">Asignar Folio</button>';
                 echo '</td>';
             }
             echo '</tr>';
@@ -190,10 +197,16 @@ $(document).ready(function(){
         });
     });
 
-    $('.asignar-tomo').click(function() {
+$(document).ready(function(){
+$('#actualizar-tomos-folios').click(function() {
+    $('.tomo, .folio').each(function() {
         var id_curso = $(this).data('id-curso');
         var id_usuario = $(this).data('id-usuario');
         var tomo = $('.tomo[data-id-usuario="' + id_usuario + '"]').val();
+        var folio = $('.folio[data-id-usuario="' + id_usuario + '"]').val();
+
+        tomo = tomo !== '' ? tomo : null;
+        folio = folio !== '' ? folio : null;
 
         $.ajax({
             url: '../controllers/actualizar_estado.php',
@@ -202,42 +215,19 @@ $(document).ready(function(){
                 id_curso: id_curso,
                 id_usuario: id_usuario,
                 tomo: tomo,
-                folio: $('.folio[data-id-usuario="' + id_usuario + '"]').val()
+                folio: folio
             },
             success: function(response) {
                 console.log(response);
-                alert('Tomo y folio actualizados correctamente');
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log(textStatus, errorThrown);
-                alert('Error al actualizar el tomo y folio');
             }
         });
     });
 
-    $('.asignar-folio').click(function() {
-        var id_curso = $(this).data('id-curso');
-        var id_usuario = $(this).data('id-usuario');
-        var folio = $('.folio[data-id-usuario="' + id_usuario + '"]').val();
-
-        $.ajax({
-            url: '../controllers/actualizar_estado.php',
-            type: 'POST',
-            data: {
-                id_curso: id_curso,
-                id_usuario: id_usuario,
-                folio: folio,
-                tomo: $('.tomo[data-id-usuario="' + id_usuario + '"]').val()
-            },
-            success: function(response) {
-                console.log(response);
-                alert('Folio actualizado correctamente');
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.log(textStatus, errorThrown);
-                alert('Error al actualizar el folio');
-            }
-        });
-    });
+    alert('Todos los tomos y folios han sido actualizados');
+});
+});
 });
 </script>

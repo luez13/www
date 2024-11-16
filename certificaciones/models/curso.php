@@ -361,11 +361,34 @@ public function obtener_folio($id_curso, $id_usuario) {
 public function actualizar_tomo_folio($id_curso, $id_usuario, $tomo, $folio) {
     $sql = "UPDATE cursos.certificaciones SET tomo = :tomo, folio = :folio WHERE curso_id = :id_curso AND id_usuario = :id_usuario";
     $stmt = $this->db->prepare($sql);
-    $stmt->bindParam(':tomo', $tomo, PDO::PARAM_INT);
-    $stmt->bindParam(':folio', $folio, PDO::PARAM_INT);
+
+    // Verificar y manejar valores vacíos
+    $tomo = !empty($tomo) ? (int)$tomo : null;
+    $folio = !empty($folio) ? (int)$folio : null;
+
+    // Manejar valores null
+    if ($tomo === null) {
+        $stmt->bindValue(':tomo', null, PDO::PARAM_NULL);
+    } else {
+        $stmt->bindValue(':tomo', $tomo, PDO::PARAM_INT);
+    }
+
+    if ($folio === null) {
+        $stmt->bindValue(':folio', null, PDO::PARAM_NULL);
+    } else {
+        $stmt->bindValue(':folio', $folio, PDO::PARAM_INT);
+    }
+
     $stmt->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
     $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
+
     return $stmt->execute();
+}
+
+public function write_log($message) {
+    $log_file = '../controllers/log.txt';
+    $current_time = date('Y-m-d H:i:s');
+    file_put_contents($log_file, "[$current_time] $message\n", FILE_APPEND);
 }
 }
 ?>

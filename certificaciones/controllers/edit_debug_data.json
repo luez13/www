@@ -9,7 +9,6 @@
         "tipo_curso": "masterclass",
         "limite_inscripciones": "23",
         "promotor": "2",
-        "autorizacion": "1",
         "dias_clase": "{Lunes,Mi\u00e9rcoles,Jueves}",
         "horario_inicio": "21:29:00",
         "horario_fin": "13:29:00",
@@ -26,9 +25,9 @@
             "atun",
             "atun"
         ],
-        "contenido_modulo": [
-            "atun",
-            "atuns"
+        "contenido": [
+            "atunss",
+            "atunss"
         ],
         "numero_modulo_contenido": [
             "2",
@@ -47,33 +46,36 @@
             "atun"
         ],
         "instrumento_modulo": [
-            "atun",
+            "atunsss",
             "atun"
-        ],
-        "contenido": []
+        ]
     },
     "modules_data": [
         {
             "id_modulo": "99",
             "id_curso": "45",
             "nombre_modulo": "atun",
-            "contenido": "[]",
+            "contenido": "[atunss]",
             "numero": "2",
             "actividad": "atun",
-            "instrumento": "atun"
+            "instrumento": "atunsss"
         },
         {
             "id_modulo": "98",
             "id_curso": "45",
             "nombre_modulo": "atun",
-            "contenido": "[]",
+            "contenido": "[atunss]",
             "numero": "1",
             "actividad": "atun",
             "instrumento": "atun"
         }
     ],
     "contenidos_modulo": {
-        "99": [],
-        "98": []
+        "99": [
+            "atunss"
+        ],
+        "98": [
+            "atunss"
+        ]
     }
 }

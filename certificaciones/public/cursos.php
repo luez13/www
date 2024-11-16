@@ -26,9 +26,9 @@ try {
     }
     $cursos = $stmt->fetchAll();
 
-    echo '<div class="main-content">';
-    echo '<h3>' . ($tipo_curso ? ucfirst($tipo_curso) : 'Cursos') . ' ' . $estado_texto . '</h3>';
-    echo '<ul>';
+    echo '<div class="container mt-4">';
+    echo '<h3 class="text-center">' . ($tipo_curso ? ucfirst($tipo_curso) : 'Cursos') . ' ' . $estado_texto . '</h3>';
+    echo '<div class="row">';
     foreach ($cursos as $curso) {
         // Consultar si el usuario ya está inscrito en el curso
         $stmt2 = $db->prepare('SELECT * FROM cursos.certificaciones WHERE curso_id = :curso_id AND id_usuario = :id_usuario');
@@ -37,14 +37,24 @@ try {
     
         // Si el usuario no está inscrito en el curso, mostrarlo
         if (!$inscripcion) {
-            echo '<li><a href="#" onclick="loadCourse(' . $curso['id_curso'] . ')">' . $curso['nombre_curso'] . '</a></li>';
+            echo '<div class="col-md-4">';
+            echo '<div class="card mb-4 shadow-sm">';
+            echo '<div class="card-body">';
+            echo '<h5 class="card-title">' . $curso['nombre_curso'] . '</h5>';
+            echo '<p class="card-text">' . substr($curso['descripcion'], 0, 100) . '...</p>';
+            echo '<a href="#" class="btn btn-primary" onclick="loadCourse(' . $curso['id_curso'] . ')">Ver más</a>';
+            echo '</div>';
+            echo '</div>';
+            echo '</div>';
         }
     }    
-    echo '</ul>';
+    echo '</div>';
     echo '</div>';
 } catch (PDOException $e) {
     // Mostrar un mensaje de error al usuario
-    echo '<p>Ha ocurrido un error al obtener los cursos disponibles: ' . $e->getMessage() . '</p>';
+    echo '<div class="alert alert-danger" role="alert">';
+    echo 'Ha ocurrido un error al obtener los cursos disponibles: ' . $e->getMessage();
+    echo '</div>';
 }
 
 // Incluir el archivo footer.php en views
