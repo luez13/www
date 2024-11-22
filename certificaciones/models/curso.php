@@ -334,7 +334,7 @@ public function obtener_datos_certificacion($valor_unico) {
                c.conocimientos_previos, c.requerimientos_implemento,
                c.desempeno_al_concluir,
                c.promotor,
-               u.nombre AS nombre_estudiante, u.cedula,
+               u.nombre AS nombre_estudiante, u.apellido AS apellido_estudiante, u.cedula,
                cert.fecha_inscripcion, cert.tomo, cert.folio,
                cert.nota, cert.completado
         FROM cursos.cursos AS c

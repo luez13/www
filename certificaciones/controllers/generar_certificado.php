@@ -16,6 +16,7 @@ if (isset($_GET['valor_unico'])) {
     
     // Asignar los datos obtenidos a variables
     $nombreEstudiante = $datos['nombre_estudiante'];
+    $apellido_estudiante = $datos['apellido_estudiante'];
     $cedula = $datos['cedula'];
     $paso = $datos['completado'] ? "aprobado" : "no aprobado";
     $fecha = date('d/m/Y', strtotime($datos['fecha_inscripcion']));
@@ -107,7 +108,7 @@ jsPDF.API.events.push(['addFonts', function() {
             pdf.setFont('Font3309', 'italic');
             pdf.setFontSize(50);
             pdf.setTextColor(255, 0, 0); // Color rojo
-            pdf.text('<?php echo $nombreEstudiante; ?>', pdf.internal.pageSize.width / 2, 95, { align: 'center' });
+            pdf.text('<?php echo $nombreEstudiante .' ' . $apellido_estudiante; ?>', pdf.internal.pageSize.width / 2, 95, { align: 'center' });
 
             // Regresar a la fuente Cambria y restablecer el color
             pdf.setFont('Cambria', 'normal');
@@ -124,20 +125,22 @@ jsPDF.API.events.push(['addFonts', function() {
             const imageHeight = 65;
             const imageWidth = 67;
 
+            // Calcular la posición para estar un poco arriba del pie de página
+            const footerPositionY = pdf.internal.pageSize.height - 25;
+            const offsetY = footerPositionY - 45; // Ajuste para estar solo un poco por encima del pie de página
+
             // Imagen encima de "Ing. Espindola Yoselin", más abajo y a la izquierda
-            pdf.addImage('../public/assets/img/coord.png', 'PNG', marginRight - imageWidth / 2 - 22, pdf.internal.pageSize.height - 92, imageWidth, imageHeight); // Ajustar según sea necesario
+            pdf.addImage('../public/assets/img/coord.png', 'PNG', marginRight - imageWidth / 2 - 22, offsetY - imageHeight + 60, imageWidth, imageHeight); // Ajustar según sea necesario
 
             // Texto del promotor
-            pdf.text('Ing. Espindola Yoselin', marginRight, pdf.internal.pageSize.height - 50, { align: 'right' });
-            pdf.text('Coord. Formación Permanente', marginRight, pdf.internal.pageSize.height - 45, { align: 'right' });
+            pdf.text('Ing. Espindola Yoselin', marginRight, offsetY - imageHeight + 105, { align: 'right' });
+            pdf.text('Coord. Formación Permanente', marginRight, offsetY - imageHeight + 100, { align: 'right' });
 
             // Imagen a la derecha de "Ing. Espindola Yoselin"
-            pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 140, pdf.internal.pageSize.height - 80, imageWidth, imageHeight); // Ajustar según sea necesario
-
-
+            pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 140, offsetY - imageHeight + 60, imageWidth, imageHeight); // Ajustar según sea necesario
 
             // Agregar imagen del pie de página
-            pdf.addImage('<?php echo $footerPath; ?>', 'JPEG', 10, pdf.internal.pageSize.height - 25, pdf.internal.pageSize.width - 20, 0);
+            pdf.addImage('<?php echo $footerPath; ?>', 'JPEG', 10, footerPositionY, pdf.internal.pageSize.width - 20, 0);
 
             // Agregar segunda página
             pdf.addPage();
@@ -177,9 +180,9 @@ jsPDF.API.events.push(['addFonts', function() {
             // Agregar el texto de registro y calificación con poco interlineado
             pdf.setFontSize(16);
             const notaTexto = <?php echo is_null($nota) || $nota == 0 ? '"Presentando una calificación final de aprobado"' : '"Presentando una calificación final, ' . $nota . ' de una nota máxima (20)."' ?>;
-            pdf.text(notaTexto, 10, 155);
-            pdf.text('Registrado en formación permanente tomo <?php echo $tomo; ?> y folio <?php echo $folio; ?>.', 10, 150);
-            pdf.text('El programa tuvo una duración de <?php echo $duracionTotal; ?> horas cronológicas.', 10, 160);
+            pdf.text(notaTexto, 10, 200);
+            pdf.text('Registrado en formación permanente tomo <?php echo $tomo; ?> y folio <?php echo $folio; ?>.', 10, 190);
+            pdf.text('El programa tuvo una duración de <?php echo $duracionTotal; ?> horas cronológicas.', 10, 195);
             const marginRight2 = pdf.internal.pageSize.width - 20;
 
             // Agregar la firma digital del promotor si existe

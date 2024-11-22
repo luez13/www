@@ -7,7 +7,7 @@ function setup() {
     canvas.style('top', '0');
     canvas.style('left', '0');
     canvas.style('z-index', '-1'); // Asegura que esté detrás del contenido
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 50; i++) {
         particles.push(new Particle());
     }
 }
