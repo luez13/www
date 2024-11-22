@@ -190,9 +190,9 @@ jsPDF.API.events.push(['addFonts', function() {
                 const img = new Image();
                 img.src = '<?php echo $firma_digital; ?>';
                 img.onload = function () {
-                    pdf.addImage(img, 'PNG', marginRight2 - 40, 130, 30, 30); // Ajusta las coordenadas y el tamaño según sea necesario
-                    pdf.text('<?php echo $promotor; ?>', marginRight2, 170, { align: 'right' });
-                    pdf.text('Facilitador', marginRight2, 175, { align: 'right' });
+                    pdf.addImage(img, 'PNG', marginRight2 - 30, 160, 30, 30); // Ajusta las coordenadas y el tamaño según sea necesario
+                    pdf.text('<?php echo $promotor; ?>', marginRight2, 190, { align: 'right' });
+                    pdf.text('Facilitador', marginRight2, 200, { align: 'right' });
 
                     // Generar el PDF y abrir en una nueva pestaña
                     const pdfOutput = pdf.output('blob');
