@@ -200,8 +200,8 @@ jsPDF.API.events.push(['addFonts', function() {
                     window.location.href = blobUrl; // Navega directamente a la URL del PDF
                 };
             } else {
-                pdf.text('<?php echo $promotor; ?>', marginRight2, 150, { align: 'right' });
-                pdf.text('Facilitador', marginRight2, 155, { align: 'right' });
+                pdf.text('<?php echo $promotor; ?>', marginRight2, 190, { align: 'right' });
+                pdf.text('Facilitador', marginRight2, 200, { align: 'right' });
 
                 // Generar el PDF y abrir en una nueva pestaña
                 const pdfOutput = pdf.output('blob');
