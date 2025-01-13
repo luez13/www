@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
     $apellido = $_POST['apellido'];
     $correo = $_POST['correo'];
     $cedula = $_POST['cedula'];
-    $id_rol = $_POST['id_rol']; // Obtener el id del rol seleccionado
+    $id_rol = $_POST['id_rol'];
 
     // Actualizar los datos del usuario
     $stmt = $db->prepare("UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula, id_rol = :id_rol WHERE id = :id");
@@ -25,11 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
     $stmt->bindParam(':apellido', $apellido);
     $stmt->bindParam(':correo', $correo);
     $stmt->bindParam(':cedula', $cedula);
-    $stmt->bindParam(':id_rol', $id_rol); // Actualizar el rol del usuario
+    $stmt->bindParam(':id_rol', $id_rol);
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
-    header('Location: ../public/usuarios.php'); // Redirige de nuevo a la página de usuarios
+    header('Location: ../public/usuarios.php');
 } else {
     // Obtener todos los usuarios y sus roles con límite, desplazamiento y ordenados alfabéticamente
     $stmt = $db->prepare("SELECT usuarios.*, roles.nombre_rol FROM cursos.usuarios INNER JOIN cursos.roles ON usuarios.id_rol = roles.id_rol ORDER BY usuarios.nombre ASC LIMIT :limit OFFSET :offset");
@@ -53,6 +53,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
     $stmt->execute();
     $total_usuarios = $stmt->fetchColumn();
     $total_pages = ceil($total_usuarios / $limit);
+    $pagination_html = '';
+
+    // Calculate start and end pages for display
+    $start_page = ($page <= 4) ? 1 : max(1, $page - 2);
+    $end_page = ($page >= $total_pages - 2) ? $total_pages : min($total_pages, $page + 2);
+
+    // Generate pagination links
+    if ($total_pages > 0) {
+        if ($page > 1) {
+            $pagination_html .= '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="1">Primera</a></li>';
+            $pagination_html .= '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="' . ($page - 1) . '">Anterior</a></li>';
+        }
+
+        for ($i = $start_page; $i <= $end_page; $i++) {
+            $active_class = ($i == $page) ? 'active' : '';
+            $pagination_html .= '<li class="page-item ' . $active_class . '"><a class="page-link page-link-nav" href="#" data-page="' . $i . '">' . $i . '</a></li>';
+        }
+
+        if ($page < $total_pages) {
+            $pagination_html .= '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="' . ($page + 1) . '">Siguiente</a></li>';
+            $pagination_html .= '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="' . $total_pages . '">Última</a></li>';
+        }
+    }
 
     echo '<div class="accordion" id="accordionUsuarios">';
     foreach ($usuarios as $index => $usuario) {
@@ -136,21 +159,9 @@ $ventanaModal = '
 <!-- Paginación -->
 <nav aria-label="Page navigation example">
   <ul class="pagination justify-content-center">
-    <?php if ($page > 1): ?>
-      <li class="page-item">
-        <a class="page-link page-link-nav" href="#" data-page="<?php echo $page - 1; ?>">Anterior</a>
-      </li>
-    <?php endif; ?>
-    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-      <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
-        <a class="page-link page-link-nav" href="#" data-page="<?php echo $i; ?>"><?php echo $i; ?></a>
-      </li>
-    <?php endfor; ?>
-    <?php if ($page < $total_pages): ?>
-      <li class="page-item">
-        <a class="page-link page-link-nav" href="#" data-page="<?php echo $page + 1; ?>">Siguiente</a>
-      </li>
-    <?php endif; ?>
+    <?php if ($total_pages > 1) {
+        echo $pagination_html;
+    }?>
   </ul>
 </nav>
 
@@ -158,37 +169,3 @@ $ventanaModal = '
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>
-
-<script>
-$(document).ready(function() {
-    $('.editar-usuario-form').submit(function(event) {
-        event.preventDefault();
-        var form = $(this);
-        var index = form.data('index');
-        var formData = form.serialize();
-
-        $.ajax({
-            url: form.attr('action'),
-            type: 'POST',
-            data: formData,
-            success: function(response) {
-                if (response.includes('El usuario se ha editado correctamente')) {
-                    alert('El usuario se ha editado correctamente');
-                } else {
-                    alert('Hubo un error al editar el usuario: ' + response);
-                }
-            },
-            error: function() {
-                alert('Hubo un error al procesar la solicitud.');
-            }
-        });
-    });
-
-    // Manejar la navegación de la paginación
-    $('.page-link-nav').click(function(event) {
-        event.preventDefault();
-        var page = $(this).data('page');
-        loadPage('usuarios.php', { page: page });
-    });
-});
-</script>

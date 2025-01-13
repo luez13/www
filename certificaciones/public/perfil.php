@@ -123,16 +123,22 @@ try {
 </li>
 <?php endif; ?>
 
-    <!-- Nav Item - Verificación Usuarios -->
-    <?php if ($_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4): ?>
-    <hr class="sidebar-divider">
-    <li class="nav-item">
-        <a class="nav-link" href="#" onclick="loadPage('usuarios.php')">
-            <i class="fas fa-users"></i>
-            <span>Verificación Usuarios</span>
-        </a>
-    </li>
-    <?php endif; ?>
+<!-- Nav Item - Menú de Usuarios -->
+<?php if ($_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4): ?>
+<hr class="sidebar-divider">
+<li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUsuarios" aria-expanded="true" aria-controls="collapseUsuarios">
+        <i class="fas fa-users"></i>
+        <span>Usuarios</span>
+    </a>
+    <div id="collapseUsuarios" class="collapse" aria-labelledby="headingUsuarios" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <a class="collapse-item" href="#" onclick="loadPage('usuarios.php')">Verificación Usuarios</a>
+        </div>
+    </div>
+</li>
+<?php endif; ?>
+</ul>
 </ul>
 <!-- End of Sidebar -->
 
@@ -344,59 +350,156 @@ include '../views/footer.php';
 
 <script>
 function loadPage(page, params = {}) {
+    console.log('Loading page:', page, 'with params:', params); // Para depuración
+
     $.ajax({
         url: page,
         method: 'GET',
         data: params,
         success: function(data) {
             $('#page-content').html(data); // Asegúrate de que el ID del contenedor sea correcto
-
-            // Reaplicar eventos de JavaScript
-            reapplyEvents();
+            reapplyEvents(); // Si necesitas reaplicar eventos de JavaScript
         },
-        error: function() {
+        error: function(xhr, status, error) {
+            console.error('Error loading page:', page, error);
             alert('Error al cargar la página.');
         }
     });
 }
 
-// Función para reaplicar los eventos después de cargar la nueva página
-function reapplyEvents() {
-    document.querySelectorAll('.editarCursoForm').forEach(function(form) {
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            var formData = new FormData(form);
+let selectedUsers = new Set(); // Usar un Set para almacenar los IDs de usuarios seleccionados
 
-            fetch(form.action, {
-                method: form.method,
-                body: formData
-            })
-            .then(response => response.text())
-            .then(result => {
-                if (result.includes('El curso se ha editado correctamente')) {
-                    alert('El curso se ha editado correctamente');
-                    // Recargar la página actual con AJAX
-                    var page = document.querySelector('.page-item.active .page-link').dataset.page;
-                    loadPage('editar_cursos.php', { page: page });
-                } else {
-                    alert('Hubo un error al editar el curso: ' + result);
-                }
-            })
-            .catch(error => {
-                alert('Hubo un error al procesar la solicitud: ' + error);
-            });
+function reapplyEvents() {
+    // Remove previous event listeners
+    $('.editarCursoForm').off('submit');
+    $('.page-link-nav').off('click');
+    $('#busqueda-input').off('input');
+    $(document).off('click', '.pagination-link');
+    $('.usuario-checkbox').off('change');
+    $('#inscribir-usuarios-btn').off('click');
+
+    // Add new event listeners
+    $('.editarCursoForm').on('submit', function(event) {
+        event.preventDefault();
+        var form = this;
+        var formData = new FormData(form);
+        fetch(form.action, {
+            method: form.method,
+            body: formData
+        })
+        .then(response => response.text())
+        .then(result => {
+            if (result.includes('El curso se ha editado correctamente')) {
+                alert('El curso se ha editado correctamente');
+                var page = document.querySelector('.page-item.active .page-link').dataset.page;
+                loadPage('editar_cursos.php', { page: page });
+            } else {
+                alert('Hubo un error al editar el curso: ' + result);
+            }
+        })
+        .catch(error => {
+            alert('Hubo un error al procesar la solicitud: ' + error);
         });
     });
 
-    // Manejar la navegación de la paginación
-    document.querySelectorAll('.page-link-nav').forEach(function(link) {
-        link.addEventListener('click', function(event) {
-            event.preventDefault();
-            var page = link.dataset.page;
-            loadPage('editar_cursos.php', { page: page });
+    $('.page-link-nav').on('click', function(event) {
+        event.preventDefault();
+        var page = $(this).data('page');
+        loadPage('usuarios.php', { page: page });
+    });
+
+    $('#busqueda-input').on('input', function() {
+        var inputField = $(this);
+        var busqueda = inputField.val().replace(/%/g, ''); // Eliminar caracteres %
+        inputField.val(busqueda); // Actualizar el valor del campo para reflejar el cambio
+        if (inputField.length > 0 && typeof inputField[0].setSelectionRange === 'function') {
+            setTimeout(() => {
+                inputField[0].setSelectionRange(busqueda.length, busqueda.length); // Mantener el cursor al final del texto
+            }, 0);
+        }
+        loadPage('../controllers/usuarios_controlador.php', { action: 'buscar', busqueda: busqueda });
+    });
+
+    $(document).on('click', '.pagination-link', function(event) {
+        event.preventDefault();
+        var page = $(this).data('page');
+        var busqueda = $('#busqueda-input').val();
+        loadPage('../controllers/usuarios_controlador.php', { page: page, busqueda: busqueda });
+    });
+
+    $('.usuario-checkbox').on('change', function() {
+        var userId = $(this).data('id');
+        if ($(this).is(':checked')) {
+            selectedUsers.add(userId); // Agregar el usuario al conjunto de seleccionados
+        } else {
+            selectedUsers.delete(userId); // Eliminar el usuario del conjunto de seleccionados
+        }
+    });
+
+    // Restaurar la selección de usuarios al recargar la página
+    $('.usuario-checkbox').each(function() {
+        var userId = $(this).data('id');
+        if (selectedUsers.has(userId)) {
+            $(this).prop('checked', true);
+        }
+    });
+
+    // Manejar el botón de acción con usuarios seleccionados
+    $('#inscribir-usuarios-btn').on('click', function() {
+        if (selectedUsers.size > 0) {
+            var cursoId = $('#curso-id').val(); // Obtener el ID del curso seleccionado
+            var usuariosArray = Array.from(selectedUsers); // Convertir el conjunto a un array
+            $.ajax({
+                url: '../controllers/usuarios_controlador.php',
+                method: 'POST',
+                data: {
+                    action: 'inscribir_usuarios',
+                    usuarios: usuariosArray,
+                    curso_id: cursoId
+                },
+                success: function(response) {
+                    alert('Usuarios registrados correctamente en el curso.');
+                    location.reload(); // Recargar la página para reflejar los cambios
+                },
+                error: function() {
+                    alert('Hubo un error al registrar los usuarios en el curso.');
+                }
+            });
+        } else {
+            alert('No hay usuarios seleccionados.');
+        }
+    });
+
+    // Add event listeners for inscripcion forms
+    $('form[id^="inscripcionForm"]').on('submit', function(event) {
+        event.preventDefault();
+        var form = this;
+        var formData = new FormData(form);
+
+        fetch(form.action, {
+            method: form.method,
+            body: formData
+        })
+        .then(response => response.text())
+        .then(result => {
+            if (result.includes('Te has inscrito correctamente en el curso')) {
+                alert('Usuario inscrito correctamente.');
+                var idCurso = form.querySelector('input[name="curso_id"]').value;
+                loadPage('buscar.php', { id_curso: idCurso });
+            } else {
+                alert('Hubo un error al inscribir al usuario: ' + result);
+            }
+        })
+        .catch(error => {
+            alert('Hubo un error al procesar la solicitud: ' + error);
         });
     });
 }
+
+// Call reapplyEvents when the document is ready
+$(document).ready(function() {
+    reapplyEvents();
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     reapplyEvents();
@@ -408,10 +511,10 @@ function applySidebarToggle() {
     });
 }
 
-// Aplicar eventos de JavaScript al cargar la página
 $(document).ready(function() {
     applySidebarToggle();
 });
+
 function loadProfile() {
     $.ajax({
         url: '../public/perfil.php',
@@ -466,11 +569,9 @@ $(document).ready(function() {
                 alert(response);
                 $('#editUserModal').modal('hide');
 
-                // Actualizar los datos en la interfaz de usuario
                 $('#userDropdown span').text($('#nombre').val());
-                $('#userDropdown img').attr('src', '../public/assets/img/undraw_profile.svg'); // Actualiza la imagen si es necesario
+                $('#userDropdown img').attr('src', '../public/assets/img/undraw_profile.svg');
 
-                // Actualizar los datos en la página de perfil
                 $('.user-info').each(function() {
                     var field = $(this).find('strong').text().toLowerCase();
                     if (field.includes('nombre')) {
@@ -564,5 +665,51 @@ function subirFirmaDigital() {
       }).catch(error => {
           console.error('Error:', error);
       });
+}
+function inscribirUsuario(userId) {
+    var form = document.getElementById('inscripcionForm-' + userId);
+    var formData = new FormData(form);
+
+    var actionUrl = form.getAttribute('action');
+    var idCursoElement = form.querySelector('input[name="curso_id"]');
+    var currentPageElement = form.querySelector('input[name="page"]');
+    var idCurso = idCursoElement ? idCursoElement.value : null;
+    var currentPage = currentPageElement ? currentPageElement.value : 1; // Asume página 1 si no se encuentra
+
+    if (!idCurso) {
+        console.error('Error: id_curso is null.');
+        alert('Error: No se pudo determinar el curso.');
+        return;
+    }
+
+    fetch(actionUrl, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(result => {
+        console.log('Result:', result); // Imprimir el resultado completo para depuración
+
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = result;
+
+        var alertElement = tempDiv.querySelector('.alert');
+        var alertMessage = alertElement ? alertElement.innerText.trim() : 'Solicitud procesada correctamente.';
+
+        if (alertMessage.includes('correctamente')) {
+            alert(alertMessage); // Mostrar solo el mensaje sin HTML
+            loadPage('../controllers/buscar.php', { id_curso: idCurso, page: currentPage });
+        } else if (alertMessage.includes('Ha ocurrido un error') || alertMessage.includes('Datos de inscripción inválidos')) {
+            alert('Hubo un error al procesar la solicitud: ' + alertMessage);
+        } else {
+            // Manejar respuestas que no sean errores explícitos
+            alert(alertMessage);
+            loadPage('../controllers/buscar.php', { id_curso: idCurso, page: currentPage });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Hubo un error al procesar la solicitud: ' + error);
+    });
 }
 </script>

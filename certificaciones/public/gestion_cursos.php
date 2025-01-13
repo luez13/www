@@ -31,7 +31,7 @@ echo '<p>Fecha de inicio: <input type="date" name="inicio_mes" required></p>';
 echo '<p>Tipo de curso: <select name="tipo_curso" required>';
 echo '<option value="masterclass">MasterClass</option>';
 echo '<option value="talleres">Talleres</option>';
-echo '<option value="cursos">Cursos</option>';
+echo '<option value="curso">Cursos</option>';
 echo '<option value="seminarios">Seminarios</option>';
 echo '<option value="diplomados">Diplomados</option>';
 echo '<option value="congreso">Congreso</option>';
@@ -124,9 +124,9 @@ foreach ($cursos as $curso) {
     echo '<button class="btn btn-success mb-1" onclick="cambiarEstadoCurso(' . $curso['id_curso'] . ', \'' . $action . '\')">' . $estado . '</button>';
 
     // Mostrar el botón de eliminar solo si no hay inscritos o aprobados
-    if (!$cursoModel->tiene_inscritos_o_aprobados($curso['id_curso'])) {
+
         echo '<button class="btn btn-danger" onclick="eliminarCurso(' . $curso['id_curso'] . ')">Eliminar</button>';
-    }
+
 
     // Botón para mostrar/ocultar módulos
     echo '<button class="btn btn-info mb-1" data-bs-toggle="collapse" data-bs-target="#modulos-' . $curso['id_curso'] . '">Módulos</button>';
@@ -168,6 +168,30 @@ include '../views/footer.php';
 
 <script src="../models/module_processing.js"></script>
 <script>
+    function eliminarCurso(id_curso) {
+        // Primera confirmación
+        const primeraConfirmacion = confirm("¿Estás seguro de que deseas eliminar este curso?");
+        if (primeraConfirmacion) {
+            // Segunda confirmación
+            const segundaConfirmacion = confirm("Esta acción no se puede deshacer. ¿Estás realmente seguro?");
+            if (segundaConfirmacion) {
+                // Proceder con la eliminación si ambas confirmaciones son positivas
+                $.ajax({
+                    url: '../controllers/curso_controlador.php',
+                    type: 'POST',
+                    data: { id_curso: id_curso, action: 'eliminar' },
+                    success: function(response) {
+                        alert(response);
+                        window.location.href = '../public/perfil.php?seccion=ver_postulaciones';
+                    },
+                    error: function() {
+                        alert('Error al eliminar el curso.');
+                    }
+                });
+            }
+        }
+    }
+
     document.getElementById('crearCursoForm').onsubmit = function(e) {
         e.preventDefault();
         combineContentsBeforeSubmit(); // Asegurarnos de combinar contenidos antes de enviar
@@ -199,21 +223,6 @@ include '../views/footer.php';
             },
             error: function() {
                 alert('Error al cambiar el estado del curso.');
-            }
-        });
-    }
-
-    function eliminarCurso(id_curso) {
-        $.ajax({
-            url: '../controllers/curso_controlador.php',
-            type: 'POST',
-            data: { id_curso: id_curso, action: 'eliminar' },
-            success: function(response) {
-                alert(response);
-                window.location.href = '../public/perfil.php?seccion=ver_postulaciones';
-            },
-            error: function() {
-                alert('Error al eliminar el curso.');
             }
         });
     }

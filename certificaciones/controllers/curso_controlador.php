@@ -234,20 +234,14 @@ switch ($action) {
                       </script>';
             }
             break;              
-    case 'eliminar':
-        // Obtener el id del curso del formulario
-        $id_curso = $_POST['id_curso'];
-        // Verificar si hay usuarios inscritos o que hayan aprobado el curso
-        if (!$curso->tiene_inscritos_o_aprobados($id_curso)) {
-            // Eliminar el curso
+        case 'eliminar':
+            // Obtener el id del curso del formulario
+            $id_curso = $_POST['id_curso'];
+            // Eliminar el curso sin importar si hay usuarios inscritos o aprobados
             $curso->eliminar($id_curso);
             // Devolver mensaje de éxito
-            echo 'El curso se ha eliminado correctamente';
-        } else {
-            // Devolver mensaje de error
-            echo 'No se puede eliminar el curso porque hay usuarios inscritos o que han aprobado el curso';
-        }
-        break;
+            echo 'El curso se ha eliminado correctamente';            
+    break;
     case 'finalizar':
         // Obtener el id del curso del formulario
         $id_curso = $_POST['id_curso'];

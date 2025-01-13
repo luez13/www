@@ -327,39 +327,50 @@ const fechaFinEnLetras = convertirFechaSimplificada(fechaFinObj);
 
             const marginRight2 = pdf.internal.pageSize.width - 20;
 
-            // Agregar la firma digital del promotor si existe
-            if ('<?php echo $firma_digital; ?>') {
-                const img = new Image();
-                img.src = '<?php echo $firma_digital; ?>';
-                img.onload = function () {
-                    pdf.addImage(img, 'PNG', marginRight2 - 30, 160, 30, 30); // Ajusta las coordenadas y el tamaño según sea necesario
-                    // Desplazar un poco a la izquierda
-                    const adjustedMarginRight2 = marginRight2 - 20;
+// Agregar la firma digital del promotor si existe
+if ('<?php echo $firma_digital; ?>') {
+    const img = new Image();
+    img.src = '<?php echo $firma_digital; ?>';
+    img.onload = function () {
+        // Obtener el nombre del promotor
+        const promotorText = '<?php echo $promotor; ?>';
+        const facilitadorText = 'Facilitador';
 
-                    // Obtener el ancho del texto del promotor
-                    const promotorText = '<?php echo $promotor; ?>';
-                    const promotorTextWidth = pdf.getTextWidth(promotorText);
-                    const facilitadorText = 'Facilitador';
-                    const facilitadorTextWidth = pdf.getTextWidth(facilitadorText);
+        // Calcular el ancho del texto del promotor
+        const promotorTextWidth = pdf.getTextWidth(promotorText);
 
-                    // Calcular la posición X centrada
-                    const maxTextWidth = Math.max(promotorTextWidth, facilitadorTextWidth);
-                    const centeredXPosition = (pdf.internal.pageSize.width - maxTextWidth) / 2;
+        // Calcular la posición X ajustada en relación al margen ajustado
+        const adjustedMarginRight2 = marginRight2 - 5; // Ajusta este valor para mover más a la derecha
+        const adjustedPromotorXPosition = adjustedMarginRight2 + 5; // Añadir 5 unidades adicionales de espacio horizontal
 
-                    // Añadir 5 unidades adicionales de espacio horizontal al nombre del promotor
-                    const adjustedPromotorXPosition = centeredXPosition + 5;
+        // Ajustar la posición del promotor para que se desplace si es más largo
+        const promotorXPosition = Math.min(adjustedPromotorXPosition, adjustedMarginRight2);
 
-                    // Texto del promotor centrado con 5 unidades de espacio adicional
-                    pdf.text(promotorText, adjustedPromotorXPosition, 190, { align: 'center' });
+        // Centrar la posición del promotor
+        const centerXPromotor = promotorXPosition - (promotorTextWidth / 2);
 
-                    // Texto de "Facilitador" centrado en relación al nombre del promotor
-                    pdf.text(facilitadorText, centeredXPosition, 200, { align: 'center' });
+        // Calcular la posición de la firma para centrarla con respecto al texto del promotor
+        const firmaWidth = 30; // Ancho de la imagen de la firma
+        const centerXFirma = centerXPromotor - (firmaWidth / 2);
 
-                    // Generar el PDF y abrir en una nueva pestaña
-                    const pdfOutput = pdf.output('blob');
-                    const blobUrl = URL.createObjectURL(pdfOutput);
-                    window.location.href = blobUrl; // Navega directamente a la URL del PDF
-                };
+        // Mover la imagen de la firma 10 unidades hacia arriba
+        pdf.addImage(img, 'PNG', centerXFirma, 146, 30, 30); // Ajusta las coordenadas y el tamaño según sea necesario
+
+        // Hacer que el texto del promotor sea negrita
+        pdf.setFont('Cambria', 'bold');
+        pdf.text(promotorText, centerXPromotor, 172, { align: 'center' }); // Mantener la posición actual del texto
+
+        // Hacer que el texto de "Facilitador" sea negrita
+        pdf.text(facilitadorText, centerXPromotor, 180, { align: 'center' }); // Mantener la posición actual del texto
+
+        // Volver a la fuente normal para el resto del documento si es necesario
+        pdf.setFont('Cambria', 'normal');
+
+        // Generar el PDF y abrir en una nueva pestaña
+        const pdfOutput = pdf.output('blob');
+        const blobUrl = URL.createObjectURL(pdfOutput);
+        window.location.href = blobUrl; // Navega directamente a la URL del PDF
+    };
             } else {
                     // Desplazar más a la derecha
                     const adjustedMarginRight2 = marginRight2 - 5; // Ajusta este valor para mover más a la derecha

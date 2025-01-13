@@ -33,7 +33,6 @@ $stmt = $db->prepare("SELECT COUNT(*) FROM cursos.cursos");
 $stmt->execute();
 $total_cursos = $stmt->fetchColumn();
 $total_pages = ceil($total_cursos / $limit);
-
 echo '<div class="accordion" id="accordionCursos">';
 foreach ($cursos as $curso) {
     echo '<div class="accordion-item">';
@@ -77,6 +76,7 @@ foreach ($cursos as $curso) {
     echo '<option value="congreso"' . ($curso['tipo_curso'] == 'congreso' ? ' selected' : '') . '>Congreso</option>';
     echo '<option value="charlas"' . ($curso['tipo_curso'] == 'charlas' ? ' selected' : '') . '>Charlas</option>';
     echo '<option value="talleres"' . ($curso['tipo_curso'] == 'talleres' ? ' selected' : '') . '>Talleres</option>';
+    echo '<option value="curso"' . ($curso['tipo_curso'] == 'curso' ? ' selected' : '') . '>Curso</option>';
     echo '</select>';
     echo '</div>';
     
@@ -135,6 +135,7 @@ foreach ($cursos as $curso) {
     echo '<div class="mb-3">';
     echo '<label for="conocimientos_previos' . $index . '" class="form-label">Conocimientos previos</label>';
     echo '<textarea class="form-control" id="conocimientos_previos' . $index . '" name="conocimientos_previos" required>' . $curso['conocimientos_previos'] . '</textarea>';
+    echo '</div>';
     echo '<div class="mb-3">';
     echo '<label for="requerimientos_implemento' . $index . '" class="form-label">Requerimientos de implemento</label>';
     echo '<textarea class="form-control" id="requerimientos_implemento' . $index . '" name="requerimientos_implementos" required>' . $curso['requerimientos_implemento'] . '</textarea>';
@@ -149,85 +150,111 @@ foreach ($cursos as $curso) {
     $stmt = $db->prepare("SELECT * FROM cursos.modulos WHERE id_curso = :curso_id");
     $stmt->execute([':curso_id' => $curso['id_curso']]);
     $modulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-  foreach ($modulos as $index => $modulo) {
-      echo '<h5>Editar módulo ' . $modulo['nombre_modulo'] . '</h5>';
-      echo '<input type="hidden" name="id_modulo[]" value="' . $modulo['id_modulo'] . '">';
-      
-      echo '<div class="mb-3">';
-      echo '<label for="nombre_modulo' . $index . '" class="form-label">Nombre del módulo</label>';
-      echo '<input type="text" class="form-control" id="nombre_modulo' . $index . '" name="nombre_modulo[]" value="' . $modulo['nombre_modulo'] . '" required>';
-      echo '</div>';
-      
-      echo '<div class="mb-3">';
-      echo '<label for="contenido' . $index . '" class="form-label">Contenido</label>';
-      
-      // Dividir el contenido en partes y crear contenedores separados
-      $contenidos = explode('][', trim($modulo['contenido'], '[]'));
-      foreach ($contenidos as $key => $contenido) {
-          echo '<textarea class="form-control" id="contenido' . $index . '_' . $key . '" name="contenido[]" required>' . $contenido . '</textarea>';
-          // Añadir campos ocultos para el número y ID del módulo
-          echo '<input type="hidden" name="numero_modulo_contenido[]" value="' . $modulo['numero'] . '">';
-          echo '<input type="hidden" name="id_modulo_contenido[]" value="' . $modulo['id_modulo'] . '">';
-      }        
-      echo '</div>';
+    foreach ($modulos as $index => $modulo) {
+        echo '<h5>Editar módulo ' . $modulo['nombre_modulo'] . '</h5>';
+        echo '<input type="hidden" name="id_modulo[]" value="' . $modulo['id_modulo'] . '">';
+        
+        echo '<div class="mb-3">';
+        echo '<label for="nombre_modulo' . $index . '" class="form-label">Nombre del módulo</label>';
+        echo '<input type="text" class="form-control" id="nombre_modulo' . $index . '" name="nombre_modulo[]" value="' . $modulo['nombre_modulo'] . '" required>';
+        echo '</div>';
+        
+        echo '<div class="mb-3">';
+        echo '<label for="contenido' . $index . '" class="form-label">Contenido</label>';
+        // Dividir el contenido en partes y crear contenedores separados
+        $contenidos = explode('][', trim($modulo['contenido'], '[]'));
+        foreach ($contenidos as $key => $contenido) {
+            echo '<textarea class="form-control" id="contenido' . $index . '_' . $key . '" name="contenido[]" required>' . $contenido . '</textarea>';
+            // Añadir campos ocultos para el número y ID del módulo
+            echo '<input type="hidden" name="numero_modulo_contenido[]" value="' . $modulo['numero'] . '">';
+            echo '<input type="hidden" name="id_modulo_contenido[]" value="' . $modulo['id_modulo'] . '">';
+        }        
+        echo '</div>';
 
-      echo '<div class="mb-3">';
-      echo '<label for="numero_modulo' . $index . '" class="form-label">Número del módulo</label>';
-      echo '<input type="number" class="form-control" id="numero_modulo' . $index . '" name="numero_modulo[]" value="' . $modulo['numero'] . '" required>';
-      echo '</div>';
-      
-      echo '<div class="mb-3">';
-      echo '<label for="actividad_modulo' . $index . '" class="form-label">Actividad</label>';
-      echo '<input type="text" class="form-control" id="actividad_modulo' . $index . '" name="actividad_modulo[]" value="' . $modulo['actividad'] . '" required>';
-      echo '</div>';
-      
-      echo '<div class="mb-3">';
-      echo '<label for="instrumento_modulo' . $index . '" class="form-label">Instrumento</label>';
-      echo '<input type="text" class="form-control" id="instrumento_modulo' . $index . '" name="instrumento_modulo[]" value="' . $modulo['instrumento'] . '" required>';
-      echo '</div>';
-  }
+        echo '<div class="mb-3">';
+        echo '<label for="numero_modulo' . $index . '" class="form-label">Número del módulo</label>';
+        echo '<input type="number" class="form-control" id="numero_modulo' . $index . '" name="numero_modulo[]" value="' . $modulo['numero'] . '" required>';
+        echo '</div>';
+        
+        echo '<div class="mb-3">';
+        echo '<label for="actividad_modulo' . $index . '" class="form-label">Actividad</label>';
+        echo '<input type="text" class="form-control" id="actividad_modulo' . $index . '" name="actividad_modulo[]" value="' . $modulo['actividad'] . '" required>';
+        echo '</div>';
+        
+        echo '<div class="mb-3">';
+        echo '<label for="instrumento_modulo' . $index . '" class="form-label">Instrumento</label>';
+        echo '<input type="text" class="form-control" id="instrumento_modulo' . $index . '" name="instrumento_modulo[]" value="' . $modulo['instrumento'] . '" required>';
+        echo '</div>';
+    }
 
     echo '<div class="d-flex">';
     echo '<button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#detallesCursoModal' . $curso['id_curso'] . '">Ver Detalles del Curso</button>';
-    echo '<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#agregarUsuarioModal' . $curso['id_curso'] . '">Agregar Usuarios</button>';
+    echo '<button type="button" class="btn btn-success" onclick="loadPage(\'../controllers/buscar.php\', { id_curso: ' . $curso['id_curso'] . ' })">Agregar Usuarios</button>';
     echo '<input type="submit" class="btn btn-primary" value="Guardar cambios">';    
     echo '</div>';
     echo '</form>';
     echo '</div>'; // Cerrar accordion-body
     echo '</div>'; // Cerrar accordion-collapse
     echo '</div>'; // Cerrar accordion-item
-  }
+}
 echo '</div>'; // Cerrar accordion
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
-?>
 
-<!-- Paginación -->
-<nav aria-label="Page navigation example">
-  <ul class="pagination justify-content-center">
-    <?php if ($page > 1): ?>
-      <li class="page-item">
-        <a class="page-link page-link-nav" href="#" data-page="<?php echo $page - 1; ?>">Anterior</a>
-      </li>
-    <?php endif; ?>
-    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-      <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
-        <a class="page-link page-link-nav" href="#" data-page="<?php echo $i; ?>"><?php echo $i; ?></a>
-      </li>
-    <?php endfor; ?>
-    <?php if ($page < $total_pages): ?>
-      <li class="page-item">
-        <a class="page-link page-link-nav" href="#" data-page="<?php echo $page + 1; ?>">Siguiente</a>
-      </li>
-    <?php endif; ?>
-  </ul>
-</nav>
+// Paginación con límite de 7 números
+$max_page_links = 7;
+$half_links = floor($max_page_links / 2);
+
+echo '<nav aria-label="Page navigation example">';
+echo '<ul class="pagination justify-content-center">';
+
+// Botón "Anterior"
+if ($page > 1) {
+    echo '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="' . ($page - 1) . '">Anterior</a></li>';
+}
+
+// Calcular el rango de páginas a mostrar
+$start_page = max(1, $page - $half_links);
+$end_page = min($total_pages, $page + $half_links);
+
+// Ajustar el rango si se sale de los límites
+if ($end_page - $start_page < $max_page_links - 1) {
+    if ($start_page > 1) {
+        $start_page = $total_pages - $max_page_links + 1;
+    } else {
+        $end_page = $max_page_links;
+    }
+}
+
+// Limitar el número de enlaces a mostrar según el total de páginas
+if ($total_pages <= $max_page_links) {
+    $start_page = 1;
+    $end_page = $total_pages;
+}
+
+// Generar los enlaces de las páginas
+for ($i = $start_page; $i <= $end_page; $i++) {
+    echo '<li class="page-item ' . ($i == $page ? 'active' : '') . '"><a class="page-link page-link-nav" href="#" data-page="' . $i . '">' . $i . '</a></li>';
+}
+
+// Botón "Siguiente"
+if ($page < $total_pages) {
+    echo '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="' . ($page + 1) . '">Siguiente</a></li>';
+    // Botón "Última" si estamos lejos del final
+    if ($end_page < $total_pages) {
+        echo '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="' . $total_pages . '">Última</a></li>';
+    }
+}
+
+echo '</ul>';
+echo '</nav>';
+?>
 
 <!-- Modal -->
 <?php foreach ($cursos as $index => $curso): ?>
 <div class="modal fade" id="detallesCursoModal<?= $curso['id_curso']; ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl"> <!-- Usar modal-fullscreen para hacer la modal lo más grande posible -->
-    <div class="modal-content">
+  <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel">Detalles del Curso</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
