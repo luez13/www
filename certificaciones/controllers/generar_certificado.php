@@ -10,7 +10,7 @@ $curso = new Curso($db);
 
 if (isset($_GET['valor_unico'])) {
     $valor_unico = $_GET['valor_unico'];
-    $certificadoUrl = "http://{$_SERVER['HTTP_HOST']}/certificaciones/controllers/generar_certificado.php?valor_unico={$valor_unico}";
+    $certificadoUrl = "http://{$_SERVER['HTTP_HOST']}/certifuptaisarec/controllers/generar_certificado.php?valor_unico={$valor_unico}";
     // Mostrar los datos de la certificación basados en el valor_unico
     $datos = $curso->obtener_datos_certificacion($valor_unico);
     
@@ -30,11 +30,13 @@ if (isset($_GET['valor_unico'])) {
     $numeroDeSemanas = $datos['tiempo_asignado'];
     
     // Obtener el nombre del promotor y la firma digital
-    $stmt = $db->prepare("SELECT nombre, firma_digital FROM cursos.usuarios WHERE id = :id");
+    $stmt = $db->prepare("SELECT nombre, apellido, firma_digital FROM cursos.usuarios WHERE id = :id");
     $stmt->bindParam(':id', $promotor_id, PDO::PARAM_INT);
     $stmt->execute();
     $promotor_data = $stmt->fetch(PDO::FETCH_ASSOC);
-    $promotor = $promotor_data['nombre'];
+    $promotor_nombre = $promotor_data['nombre'];
+    $promotor_apellido = $promotor_data['apellido'];
+    $promotor = $promotor_nombre . ' ' . $promotor_apellido; // Concatenar nombre y apellido
     $firma_digital = $promotor_data['firma_digital'];
     
     // Obtener los módulos del curso
@@ -83,20 +85,20 @@ $footerPath = '../public/assets/img/footer.jpg';
                 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
                 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
             ];
-            
+
             // Extraer solo la parte de la fecha antes del espacio
             const fechaSolo = fecha.split(' ')[0];
-            
+
             // Crear un objeto de fecha y ajustar a la hora local
             const fechaObj = new Date(fechaSolo + 'T00:00:00');
-            
+
             // Verificar si la fecha es válida
             if (isNaN(fechaObj.getTime())) {
                 console.error(`Fecha inválida: ${fecha}`);
                 return `Fecha inválida: ${fecha}`;
             }
 
-            const dia = fechaObj.getDate() + 1; // Ajustar el día si es necesario
+            const dia = fechaObj.getDate(); // No ajustar el día
             const mes = meses[fechaObj.getMonth()];
             const ano = fechaObj.getFullYear();
 
@@ -159,16 +161,27 @@ $footerPath = '../public/assets/img/footer.jpg';
             }
         }]);
 
+            // Función para capitalizar la primera letra de cada palabra
+            function capitalizeWords(str) {
+                return str.replace(/\b\w/g, function (char) {
+                    return char.toUpperCase();
+                });
+            }
+
             // Crear un nuevo documento PDF
             const pdf = new jsPDF('landscape', 'mm', 'a4');
+
             // Usar la fuente Cambria para el texto general
             pdf.setFont('Cambria', 'normal');
+
             // Agregar imagen del banner como encabezado
             pdf.addImage('<?php echo $bannerPath; ?>', 'JPEG', 10, 5, pdf.internal.pageSize.width - 20, 0);
+
             // Agregar imagen de marca de agua en el centro
             const watermarkWidth = pdf.internal.pageSize.width / 2;
             const watermarkHeight = pdf.internal.pageSize.height / 2;
             pdf.addImage('<?php echo $imagePath; ?>', 'PNG', (pdf.internal.pageSize.width - watermarkWidth) / 2, (pdf.internal.pageSize.height - watermarkHeight) / 2, watermarkWidth, watermarkHeight);
+
             // Agregar texto al documento con los datos correspondientes
             pdf.setFontSize(20); // Tamaño 20
             pdf.text('REPÚBLICA BOLIVARIANA DE VENEZUELA', pdf.internal.pageSize.width / 2, 40, { align: 'center' });
@@ -176,12 +189,16 @@ $footerPath = '../public/assets/img/footer.jpg';
             pdf.text('UNIVERSIDAD POLITÉCNICA TERRITORIAL AGROINDUSTRIAL DEL ESTADO TÁCHIRA', pdf.internal.pageSize.width / 2, 60, { align: 'center' });
             pdf.setFontSize(18); // Tamaño 18
             pdf.text('Otorga el presente certificado al ciudadano (a):', pdf.internal.pageSize.width / 2, 80, { align: 'center' });
-            
+
+            // Usar la función capitalizeWords para capitalizar el nombre del estudiante
+            const nombreCompleto = '<?php echo $nombreEstudiante .' ' . $apellido_estudiante; ?>';
+            const nombreCapitalizado = capitalizeWords(nombreCompleto);
+
             // Usar la fuente EdwardianScript para el nombre del estudiante en cursiva y rojo
             pdf.setFont('EdwardianScript', 'normal');
             pdf.setFontSize(50);
             pdf.setTextColor(255, 0, 0); // Color rojo
-            pdf.text('<?php echo $nombreEstudiante .' ' . $apellido_estudiante; ?>', pdf.internal.pageSize.width / 2, 95, { align: 'center' });
+            pdf.text(nombreCapitalizado, pdf.internal.pageSize.width / 2, 95, { align: 'center' });
 
             // Regresar a la fuente Cambria y restablecer el color
             pdf.setFont('Cambria', 'normal');
@@ -189,14 +206,12 @@ $footerPath = '../public/assets/img/footer.jpg';
             pdf.setTextColor(0, 0, 0); // Color negro
             pdf.text('C.I. V- <?php echo $cedula; ?>', pdf.internal.pageSize.width / 2, 110, { align: 'center' });
 
-            // Convertir $paso y $nombre_curso a mayúsculas
-            const pasoUppercase = '<?php echo strtoupper($paso); ?>';
-            const nombreCursoUppercase = '<?php echo strtoupper($nombre_curso); ?>';
-
-            // Dividir el texto en segmentos
-            const textoAntesDePaso = 'Por haber ';
+            // Verificar si el curso está aprobado y si tiene nota
+            const textoAntesDePaso = '<?php echo ($paso === "aprobado" && is_null($nota)) ? "Por su " : "Por haber "; ?>';
             const textoAntesDeCurso = ' en <?php echo $articulo_tipo_curso; ?> <?php echo $tipo_curso; ?> de ';
             const textoDespuesDeCurso = '.';
+            const pasoUppercase = '<?php echo strtoupper($paso === "aprobado" && is_null($nota) ? "PARTICIPACION" : $paso); ?>';
+            const nombreCursoUppercase = '<?php echo strtoupper($nombre_curso); ?>';
 
             // Calcular el ancho de cada segmento de texto
             const anchoTextoAntesDePaso = pdf.getTextWidth(textoAntesDePaso);
@@ -242,8 +257,7 @@ $footerPath = '../public/assets/img/footer.jpg';
             const offsetY = footerPositionY - 45; // Ajuste para estar solo un poco por encima del pie de página
 
             // Imagen encima de "Ing. Espindola Yoselin", más abajo y a la izquierda
-            pdf.addImage('../public/assets/img/coord.png', 'PNG', marginRight - imageWidth / 2 - 22, offsetY - imageHeight + 60, imageWidth, imageHeight); // Ajustar según sea necesario
-
+            pdf.addImage('../public/assets/img/coord.png', 'PNG', marginRight - imageWidth / 2 - 33, offsetY - imageHeight + 60, imageWidth, imageHeight); // Ajustar según sea necesario
             // Hacer el texto del promotor en negritas
             pdf.setFont('Cambria', 'bold');
             pdf.text('Ing. Espindola Yoselin', marginRight, offsetY - imageHeight + 105, { align: 'right' });
@@ -253,7 +267,7 @@ $footerPath = '../public/assets/img/footer.jpg';
             pdf.setFont('Cambria', 'normal');
 
             // Imagen a la derecha de "Ing. Espindola Yoselin"
-            pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 140, offsetY - imageHeight + 60, imageWidth, imageHeight); // Ajustar según sea necesario
+            pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 150, offsetY - imageHeight + 60, imageWidth, imageHeight); // Ajustar según sea necesario
 
             // Agregar imagen del pie de página
             pdf.addImage('<?php echo $footerPath; ?>', 'JPEG', 10, footerPositionY, pdf.internal.pageSize.width - 20, 0);
@@ -297,7 +311,7 @@ $footerPath = '../public/assets/img/footer.jpg';
             pdf.setFontSize(15); // Reducido en 1
 
             // Dividir en varias líneas si es necesario
-            const notaTexto = <?php echo is_null($nota) || $nota == 0 ? '"Presentando una calificación final de aprobado por su participación"' : '"Presentando una calificación final de aprobado, ' . $nota . ' de una nota máxima (20)."' ?>;
+            const notaTexto = <?php echo is_null($nota) || $nota == 0 ? '"Presentando  aprobado por su participación"' : '"Presentando una calificación final de aprobado, ' . $nota . ' de una nota máxima (20)."' ?>;
             const notaTextoLineas = pdf.splitTextToSize(notaTexto, 180);
 
             const registroTexto = 'Registrado en formación permanente tomo <?php echo $tomo; ?> y folio <?php echo $folio; ?>.';
@@ -306,7 +320,8 @@ $footerPath = '../public/assets/img/footer.jpg';
             const duracionTexto = 'El programa tuvo una duración de <?php echo $duracionTotal; ?> horas cronológicas.';
             const duracionTextoLineas = pdf.splitTextToSize(duracionTexto, 180);
 
-            const cursoTexto = 'Curso desarrollándose entre el ' + fechaInicioEnLetras + ' y el ' + fechaFinEnLetras;
+            // Verificar si el curso es taller para mostrar solo la fecha de inicio
+            const cursoTexto = `Curso desarrollado ${'<?php echo $tipo_curso; ?>' === 'taller' ? 'el ' + fechaInicioEnLetras : 'entre el ' + fechaInicioEnLetras + ' y el ' + fechaFinEnLetras}`;
             const cursoTextoLineas = pdf.splitTextToSize(cursoTexto, 180);
 
             // Imprimir las líneas ajustadas con interlineado
@@ -359,10 +374,10 @@ if ('<?php echo $firma_digital; ?>') {
 
         // Hacer que el texto del promotor sea negrita
         pdf.setFont('Cambria', 'bold');
-        pdf.text(promotorText, centerXPromotor, 172, { align: 'center' }); // Mantener la posición actual del texto
+        pdf.text(promotorText, centerXPromotor, 172, { align: 'center' });
 
         // Hacer que el texto de "Facilitador" sea negrita
-        pdf.text(facilitadorText, centerXPromotor, 180, { align: 'center' }); // Mantener la posición actual del texto
+        pdf.text(facilitadorText, centerXPromotor, 180, { align: 'center' });
 
         // Volver a la fuente normal para el resto del documento si es necesario
         pdf.setFont('Cambria', 'normal');

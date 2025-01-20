@@ -5,6 +5,8 @@ include '../config/model.php';
 // Crear una instancia de la clase DB
 $db = new DB();
 
+$pagina_actual = 'buscar_cursos.php'; // Definir la página actual
+
 // Definir la función validar_inscripcion
 function validar_inscripcion($id_usuario, $curso_id) {
     if (empty($id_usuario) || empty($curso_id)) {
@@ -18,7 +20,6 @@ function validar_inscripcion($id_usuario, $curso_id) {
 
 $message = '';
 $type = '';
-
 // Manejar la solicitud POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_usuario = isset($_POST['id_usuario']) ? $_POST['id_usuario'] : null;
@@ -97,20 +98,20 @@ try {
     die();
 }
 
-// Función para renderizar la paginación
-function renderPagination($total_pages, $current_page) {
+// En la función `renderPagination`:
+function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso) {
     $html = '<nav><ul class="pagination">';
-    
+
     // Botón para la primera página
     if ($current_page > 1) {
-        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'../controllers/buscar.php\', { page: 1 }); return false;">Primera</a></li>';
-        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'../controllers/buscar.php\', { page: ' . ($current_page - 1) . ' }); return false;">&laquo; Anterior</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: 1, id_curso: ' . $id_curso . ' }); return false;">Primera</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page - 1) . ', id_curso: ' . $id_curso . ' }); return false;">&laquo; Anterior</a></li>';
     }
-    
+
     // Determinar el rango de páginas a mostrar
     $start_page = max(1, $current_page - 2);
     $end_page = min($total_pages, $current_page + 2);
-    
+
     // Ajustar si estamos cerca del principio o final
     if ($current_page <= 3) {
         $end_page = min(5, $total_pages);
@@ -118,19 +119,19 @@ function renderPagination($total_pages, $current_page) {
     if ($current_page >= $total_pages - 2) {
         $start_page = max(1, $total_pages - 4);
     }
-    
+
     // Páginas numéricas
     for ($i = $start_page; $i <= $end_page; $i++) {
         $active = $i == $current_page ? 'active' : '';
-        $html .= '<li class="page-item ' . $active . '"><a class="page-link" href="#" onclick="loadPage(\'../controllers/buscar.php\', { page: ' . $i . ' }); return false;">' . $i . '</a></li>';
+        $html .= '<li class="page-item ' . $active . '"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . $i . ', id_curso: ' . $id_curso . ' }); return false;">' . $i . '</a></li>';
     }
-    
+
     // Botón para la última página
     if ($current_page < $total_pages) {
-        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'../controllers/buscar.php\', { page: ' . ($current_page + 1) . ' }); return false;">Siguiente &raquo;</a></li>';
-        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'../controllers/buscar.php\', { page: ' . $total_pages . ' }); return false;">Última</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page + 1) . ', id_curso: ' . $id_curso . ' }); return false;">Siguiente &raquo;</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . $total_pages . ', id_curso: ' . $id_curso . ' }); return false;">Última</a></li>';
     }
-    
+
     $html .= '</ul></nav>';
     return $html;
 }
@@ -185,8 +186,10 @@ function renderPagination($total_pages, $current_page) {
             </div>
         <?php endforeach; ?>
         </div>
-        <!-- Renderizar la paginación -->
-        <?= renderPagination($total_pages, $page); ?>
+        <?php
+        // Asegúrate de que `$id_curso` se pase en cada enlace de paginación
+        echo renderPagination($total_pages, $page, 'buscar.php', $id_curso);
+        ?>
     </div>
 </div>
 <script>

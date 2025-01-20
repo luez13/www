@@ -133,7 +133,7 @@ function obtenerCertificadoURL(valorUnico) {
                 console.error(data.error);
             } else {
                 console.log(data);  // Verificar que se están obteniendo los datos correctamente
-                const certificadoUrl = `http://${window.location.host}/certificaciones/controllers/generar_certificado.php?valor_unico=${valorUnico}`;
+                const certificadoUrl = `https://${window.location.host}/certifuptaisarec/controllers/generar_certificado.php?valor_unico=${valorUnico}`;
                 document.getElementById('certificadoUrlContainer').innerHTML = `<a href="${certificadoUrl}" target="_blank">${certificadoUrl}</a>`;
             }
         })

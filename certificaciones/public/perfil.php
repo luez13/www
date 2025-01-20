@@ -58,16 +58,16 @@ try {
             <div class="bg-white py-2 collapse-inner rounded">
                 <h6 class="collapse-header">Rutas Activas:</h6>
                 <a class="collapse-item" href="#" onclick="loadCategory('masterclass', true)">MasterClass</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('talleres', true)">Talleres</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('cursos', true)">Cursos</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('taller', true)">taller</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('curso', true)">Cursos</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('seminarios', true)">Seminarios</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('diplomados', true)">Diplomados</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('congreso', true)">Congreso</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('charla', true)">Charla</a>
                 <h6 class="collapse-header">Rutas Cerradas:</h6>
                 <a class="collapse-item" href="#" onclick="loadCategory('masterclass', false)">MasterClass</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('talleres', false)">Talleres</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('cursos', false)">Cursos</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('taller', false)">taller</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('curso', false)">Cursos</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('seminarios', false)">Seminarios</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('diplomados', false)">Diplomados</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('congreso', false)">Congreso</a>
@@ -349,11 +349,18 @@ include '../views/footer.php';
 ?>
 
 <script>
+let selectedUsers = new Set(); // Asegúrate de que esto solo se declare una vez en el ámbito global
+
 function loadPage(page, params = {}) {
     console.log('Loading page:', page, 'with params:', params); // Para depuración
 
+    let url = page;
+    if (page === 'buscar.php') {
+        url = '../controllers/' + page;
+    }
+
     $.ajax({
-        url: page,
+        url: url,
         method: 'GET',
         data: params,
         success: function(data) {
@@ -367,7 +374,37 @@ function loadPage(page, params = {}) {
     });
 }
 
-let selectedUsers = new Set(); // Usar un Set para almacenar los IDs de usuarios seleccionados
+$(document).ready(function() {
+    reapplyEvents();
+    $('#inscribir-usuarios-btn').on('click', function() {
+        if (selectedUsers.size > 0) {
+            var cursoId = $('#curso-id').val(); // Obtener el ID del curso seleccionado
+            var usuariosArray = Array.from(selectedUsers); // Convertir el conjunto a un array
+            $.ajax({
+                url: '../controllers/usuarios_controlador.php',
+                method: 'POST',
+                data: {
+                    action: 'inscribir_usuarios',
+                    usuarios: usuariosArray,
+                    curso_id: cursoId
+                },
+                success: function(response) {
+                    alert('Usuarios registrados correctamente en el curso.');
+                    location.reload(); // Recargar la página para reflejar los cambios
+                },
+                error: function() {
+                    alert('Hubo un error al registrar los usuarios en el curso.');
+                }
+            });
+        } else {
+            alert('No hay usuarios seleccionados.');
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    reapplyEvents();
+});
 
 function reapplyEvents() {
     // Remove previous event listeners
@@ -405,7 +442,8 @@ function reapplyEvents() {
     $('.page-link-nav').on('click', function(event) {
         event.preventDefault();
         var page = $(this).data('page');
-        loadPage('usuarios.php', { page: page });
+        var idCurso = $(this).closest('.pagination').data('id-curso'); // Asegúrate de pasar id_curso correctamente
+        loadPage('../controllers/buscar.php', { page: page, id_curso: idCurso });
     });
 
     $('#busqueda-input').on('input', function() {
@@ -485,7 +523,7 @@ function reapplyEvents() {
             if (result.includes('Te has inscrito correctamente en el curso')) {
                 alert('Usuario inscrito correctamente.');
                 var idCurso = form.querySelector('input[name="curso_id"]').value;
-                loadPage('buscar.php', { id_curso: idCurso });
+                loadPage('../controllers/buscar.php', { id_curso: idCurso });
             } else {
                 alert('Hubo un error al inscribir al usuario: ' + result);
             }
@@ -496,14 +534,52 @@ function reapplyEvents() {
     });
 }
 
-// Call reapplyEvents when the document is ready
-$(document).ready(function() {
-    reapplyEvents();
-});
+function inscribirUsuario(userId) {
+    var form = document.getElementById('inscripcionForm-' + userId);
+    var formData = new FormData(form);
 
-document.addEventListener('DOMContentLoaded', function() {
-    reapplyEvents();
-});
+    var actionUrl = form.getAttribute('action');
+    var idCursoElement = form.querySelector('input[name="curso_id"]');
+    var currentPageElement = form.querySelector('input[name="page"]');
+    var idCurso = idCursoElement ? idCursoElement.value : null;
+    var currentPage = currentPageElement ? currentPageElement.value : 1; // Asume página 1 si no se encuentra
+
+    if (!idCurso) {
+        console.error('Error: id_curso is null.');
+        alert('Error: No se pudo determinar el curso.');
+        return;
+    }
+
+    fetch(actionUrl, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(result => {
+        console.log('Result:', result); // Imprimir el resultado completo para depuración
+
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = result;
+
+        var alertElement = tempDiv.querySelector('.alert');
+        var alertMessage = alertElement ? alertElement.innerText.trim() : 'Solicitud procesada correctamente.';
+
+        if (alertMessage.includes('correctamente')) {
+            alert(alertMessage); // Mostrar solo el mensaje sin HTML
+            loadPage('../controllers/buscar.php', { id_curso: idCurso, page: currentPage });
+        } else if (alertMessage.includes('Ha ocurrido un error') || alertMessage.includes('Datos de inscripción inválidos')) {
+            alert('Hubo un error al procesar la solicitud: ' + alertMessage);
+        } else {
+            // Manejar respuestas que no sean errores explícitos
+            alert(alertMessage);
+            loadPage('../controllers/buscar.php', { id_curso: idCurso, page: currentPage });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Hubo un error al procesar la solicitud: ' + error);
+    });
+}
 
 function applySidebarToggle() {
     $('#sidebarToggleTop').off('click').on('click', function() {
@@ -513,6 +589,16 @@ function applySidebarToggle() {
 
 $(document).ready(function() {
     applySidebarToggle();
+    reapplyEvents();
+});
+
+// Call reapplyEvents when the document is ready
+$(document).ready(function() {
+    reapplyEvents();
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    reapplyEvents();
 });
 
 function loadProfile() {
@@ -665,51 +751,5 @@ function subirFirmaDigital() {
       }).catch(error => {
           console.error('Error:', error);
       });
-}
-function inscribirUsuario(userId) {
-    var form = document.getElementById('inscripcionForm-' + userId);
-    var formData = new FormData(form);
-
-    var actionUrl = form.getAttribute('action');
-    var idCursoElement = form.querySelector('input[name="curso_id"]');
-    var currentPageElement = form.querySelector('input[name="page"]');
-    var idCurso = idCursoElement ? idCursoElement.value : null;
-    var currentPage = currentPageElement ? currentPageElement.value : 1; // Asume página 1 si no se encuentra
-
-    if (!idCurso) {
-        console.error('Error: id_curso is null.');
-        alert('Error: No se pudo determinar el curso.');
-        return;
-    }
-
-    fetch(actionUrl, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.text())
-    .then(result => {
-        console.log('Result:', result); // Imprimir el resultado completo para depuración
-
-        var tempDiv = document.createElement('div');
-        tempDiv.innerHTML = result;
-
-        var alertElement = tempDiv.querySelector('.alert');
-        var alertMessage = alertElement ? alertElement.innerText.trim() : 'Solicitud procesada correctamente.';
-
-        if (alertMessage.includes('correctamente')) {
-            alert(alertMessage); // Mostrar solo el mensaje sin HTML
-            loadPage('../controllers/buscar.php', { id_curso: idCurso, page: currentPage });
-        } else if (alertMessage.includes('Ha ocurrido un error') || alertMessage.includes('Datos de inscripción inválidos')) {
-            alert('Hubo un error al procesar la solicitud: ' + alertMessage);
-        } else {
-            // Manejar respuestas que no sean errores explícitos
-            alert(alertMessage);
-            loadPage('../controllers/buscar.php', { id_curso: idCurso, page: currentPage });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Hubo un error al procesar la solicitud: ' + error);
-    });
 }
 </script>

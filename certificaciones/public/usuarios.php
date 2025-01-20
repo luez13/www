@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
     $apellido = $_POST['apellido'];
     $correo = $_POST['correo'];
     $cedula = $_POST['cedula'];
-    $id_rol = $_POST['id_rol'];
+    $id_rol = $_POST['id_rol']; // Obtener el id del rol seleccionado
 
     // Actualizar los datos del usuario
     $stmt = $db->prepare("UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula, id_rol = :id_rol WHERE id = :id");
@@ -25,11 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
     $stmt->bindParam(':apellido', $apellido);
     $stmt->bindParam(':correo', $correo);
     $stmt->bindParam(':cedula', $cedula);
-    $stmt->bindParam(':id_rol', $id_rol);
+    $stmt->bindParam(':id_rol', $id_rol); // Actualizar el rol del usuario
     $stmt->bindParam(':id', $id);
     $stmt->execute();
 
-    header('Location: ../public/usuarios.php');
+    header('Location: ../public/usuarios.php'); // Redirige de nuevo a la página de usuarios
 } else {
     // Obtener todos los usuarios y sus roles con límite, desplazamiento y ordenados alfabéticamente
     $stmt = $db->prepare("SELECT usuarios.*, roles.nombre_rol FROM cursos.usuarios INNER JOIN cursos.roles ON usuarios.id_rol = roles.id_rol ORDER BY usuarios.nombre ASC LIMIT :limit OFFSET :offset");
@@ -53,29 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
     $stmt->execute();
     $total_usuarios = $stmt->fetchColumn();
     $total_pages = ceil($total_usuarios / $limit);
-    $pagination_html = '';
-
-    // Calculate start and end pages for display
-    $start_page = ($page <= 4) ? 1 : max(1, $page - 2);
-    $end_page = ($page >= $total_pages - 2) ? $total_pages : min($total_pages, $page + 2);
-
-    // Generate pagination links
-    if ($total_pages > 0) {
-        if ($page > 1) {
-            $pagination_html .= '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="1">Primera</a></li>';
-            $pagination_html .= '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="' . ($page - 1) . '">Anterior</a></li>';
-        }
-
-        for ($i = $start_page; $i <= $end_page; $i++) {
-            $active_class = ($i == $page) ? 'active' : '';
-            $pagination_html .= '<li class="page-item ' . $active_class . '"><a class="page-link page-link-nav" href="#" data-page="' . $i . '">' . $i . '</a></li>';
-        }
-
-        if ($page < $total_pages) {
-            $pagination_html .= '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="' . ($page + 1) . '">Siguiente</a></li>';
-            $pagination_html .= '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="' . $total_pages . '">Última</a></li>';
-        }
-    }
 
     echo '<div class="accordion" id="accordionUsuarios">';
     foreach ($usuarios as $index => $usuario) {
@@ -129,6 +106,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
     echo '</div>'; // Cerrar accordion
 }
 
+// Agregar la función de paginación al inicio del archivo
+function renderPagination($total_pages, $current_page, $pagina_actual) {
+    $html = '<nav><ul class="pagination">';
+    
+    // Botón para la primera página
+    if ($current_page > 1) {
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: 1 }); return false;">Primera</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page - 1) . ' }); return false;">&laquo; Anterior</a></li>';
+    }
+    
+    // Determinar el rango de páginas a mostrar
+    $start_page = max(1, $current_page - 2);
+    $end_page = min($total_pages, $current_page + 2);
+    
+    // Ajustar si estamos cerca del principio o final
+    if ($current_page <= 3) {
+        $end_page = min(5, $total_pages);
+    }
+    if ($current_page >= $total_pages - 2) {
+        $start_page = max(1, $total_pages - 4);
+    }
+    
+    // Páginas numéricas
+    for ($i = $start_page; $i <= $end_page; $i++) {
+        $active = $i == $current_page ? 'active' : '';
+        $html .= '<li class="page-item ' . $active . '"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . $i . ' }); return false;">' . $i . '</a></li>';
+    }
+    
+    // Botón para la última página
+    if ($current_page < $total_pages) {
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page + 1) . ' }); return false;">Siguiente &raquo;</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . $total_pages . ' }); return false;">Última</a></li>';
+    }
+    
+    $html .= '</ul></nav>';
+    return $html;
+}
+
 // Botón para abrir la ventana modal
 $botonVerContrasena = '
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalContrasena">
@@ -154,18 +169,50 @@ $ventanaModal = '
         </div>
     </div>
 ';
-?>
 
-<!-- Paginación -->
-<nav aria-label="Page navigation example">
-  <ul class="pagination justify-content-center">
-    <?php if ($total_pages > 1) {
-        echo $pagination_html;
-    }?>
-  </ul>
-</nav>
+// Total de usuarios para la paginación
+$stmt = $db->prepare("SELECT COUNT(*) FROM cursos.usuarios");
+$stmt->execute();
+$total_usuarios = $stmt->fetchColumn();
+$total_pages = ceil($total_usuarios / $limit);
 
-<?php
+// Renderizar la paginación
+echo renderPagination($total_pages, $page, 'usuarios.php');
+
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
 ?>
+
+<script>
+$(document).ready(function() {
+    $('.editar-usuario-form').submit(function(event) {
+        event.preventDefault();
+        var form = $(this);
+        var index = form.data('index');
+        var formData = form.serialize();
+
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.includes('El usuario se ha editado correctamente')) {
+                    alert('El usuario se ha editado correctamente');
+                } else {
+                    alert('Hubo un error al editar el usuario: ' + response);
+                }
+            },
+            error: function() {
+                alert('Hubo un error al procesar la solicitud.');
+            }
+        });
+    });
+
+    // Manejar la navegación de la paginación
+    $('.page-link-nav').click(function(event) {
+        event.preventDefault();
+        var page = $(this).data('page');
+        loadPage('usuarios.php', { page: page });
+    });
+});
+</script>

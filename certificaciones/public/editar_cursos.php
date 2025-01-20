@@ -6,6 +6,7 @@ include '../views/header.php';
 include '../config/model.php';
 
 $user_id = $_SESSION['user_id'];
+$pagina_actual = 'editar_cursos.php'; // Definir la página actual 
 
 // Verificar si el usuario es administrador
 require_once '../controllers/autenticacion.php';
@@ -33,6 +34,44 @@ $stmt = $db->prepare("SELECT COUNT(*) FROM cursos.cursos");
 $stmt->execute();
 $total_cursos = $stmt->fetchColumn();
 $total_pages = ceil($total_cursos / $limit);
+
+function renderPagination($total_pages, $current_page, $pagina_actual) {
+    $html = '<nav><ul class="pagination">';
+    
+    // Botón para la primera página
+    if ($current_page > 1) {
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: 1 }); return false;">Primera</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page - 1) . ' }); return false;">&laquo; Anterior</a></li>';
+    }
+    
+    // Determinar el rango de páginas a mostrar
+    $start_page = max(1, $current_page - 2);
+    $end_page = min($total_pages, $current_page + 2);
+    
+    // Ajustar si estamos cerca del principio o final
+    if ($current_page <= 3) {
+        $end_page = min(5, $total_pages);
+    }
+    if ($current_page >= $total_pages - 2) {
+        $start_page = max(1, $total_pages - 4);
+    }
+    
+    // Páginas numéricas
+    for ($i = $start_page; $i <= $end_page; $i++) {
+        $active = $i == $current_page ? 'active' : '';
+        $html .= '<li class="page-item ' . $active . '"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . $i . ' }); return false;">' . $i . '</a></li>';
+    }
+    
+    // Botón para la última página
+    if ($current_page < $total_pages) {
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page + 1) . ' }); return false;">Siguiente &raquo;</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . $total_pages . ' }); return false;">Última</a></li>';
+    }
+    
+    $html .= '</ul></nav>';
+    return $html;
+}
+
 echo '<div class="accordion" id="accordionCursos">';
 foreach ($cursos as $curso) {
     echo '<div class="accordion-item">';
@@ -75,7 +114,7 @@ foreach ($cursos as $curso) {
     echo '<option value="diplomados"' . ($curso['tipo_curso'] == 'diplomados' ? ' selected' : '') . '>Diplomados</option>';
     echo '<option value="congreso"' . ($curso['tipo_curso'] == 'congreso' ? ' selected' : '') . '>Congreso</option>';
     echo '<option value="charlas"' . ($curso['tipo_curso'] == 'charlas' ? ' selected' : '') . '>Charlas</option>';
-    echo '<option value="talleres"' . ($curso['tipo_curso'] == 'talleres' ? ' selected' : '') . '>Talleres</option>';
+    echo '<option value="taller"' . ($curso['tipo_curso'] == 'taller' ? ' selected' : '') . '>taller</option>';
     echo '<option value="curso"' . ($curso['tipo_curso'] == 'curso' ? ' selected' : '') . '>Curso</option>';
     echo '</select>';
     echo '</div>';
@@ -198,56 +237,12 @@ foreach ($cursos as $curso) {
     echo '</div>'; // Cerrar accordion-item
 }
 echo '</div>'; // Cerrar accordion
+
+// Renderizar la paginación
+echo renderPagination($total_pages, $page, $pagina_actual);
+
 // Incluir el archivo footer.php en views
 include '../views/footer.php';
-
-// Paginación con límite de 7 números
-$max_page_links = 7;
-$half_links = floor($max_page_links / 2);
-
-echo '<nav aria-label="Page navigation example">';
-echo '<ul class="pagination justify-content-center">';
-
-// Botón "Anterior"
-if ($page > 1) {
-    echo '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="' . ($page - 1) . '">Anterior</a></li>';
-}
-
-// Calcular el rango de páginas a mostrar
-$start_page = max(1, $page - $half_links);
-$end_page = min($total_pages, $page + $half_links);
-
-// Ajustar el rango si se sale de los límites
-if ($end_page - $start_page < $max_page_links - 1) {
-    if ($start_page > 1) {
-        $start_page = $total_pages - $max_page_links + 1;
-    } else {
-        $end_page = $max_page_links;
-    }
-}
-
-// Limitar el número de enlaces a mostrar según el total de páginas
-if ($total_pages <= $max_page_links) {
-    $start_page = 1;
-    $end_page = $total_pages;
-}
-
-// Generar los enlaces de las páginas
-for ($i = $start_page; $i <= $end_page; $i++) {
-    echo '<li class="page-item ' . ($i == $page ? 'active' : '') . '"><a class="page-link page-link-nav" href="#" data-page="' . $i . '">' . $i . '</a></li>';
-}
-
-// Botón "Siguiente"
-if ($page < $total_pages) {
-    echo '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="' . ($page + 1) . '">Siguiente</a></li>';
-    // Botón "Última" si estamos lejos del final
-    if ($end_page < $total_pages) {
-        echo '<li class="page-item"><a class="page-link page-link-nav" href="#" data-page="' . $total_pages . '">Última</a></li>';
-    }
-}
-
-echo '</ul>';
-echo '</nav>';
 ?>
 
 <!-- Modal -->

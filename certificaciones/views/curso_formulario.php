@@ -36,7 +36,7 @@ echo '<option value="seminarios"' . ($curso_editar['tipo_curso'] == 'seminarios'
 echo '<option value="diplomados"' . ($curso_editar['tipo_curso'] == 'diplomados' ? ' selected' : '') . '>Diplomados</option>';
 echo '<option value="congreso"' . ($curso_editar['tipo_curso'] == 'congreso' ? ' selected' : '') . '>Congreso</option>';
 echo '<option value="charla"' . ($curso_editar['tipo_curso'] == 'charla' ? ' selected' : '') . '>Charla</option>';
-echo '<option value="talleres"' . ($curso_editar['tipo_curso'] == 'talleres' ? ' selected' : '') . '>Talleres</option>';
+echo '<option value="taller"' . ($curso_editar['tipo_curso'] == 'taller' ? ' selected' : '') . '>taller</option>';
 echo '<option value="curso"' . ($curso_editar['tipo_curso'] == 'curso' ? ' selected' : '') . '>Curso</option>';
 echo '</select></p>';
 echo '<p>Límite de inscripciones: <input type="number" name="limite_inscripciones" value="' . htmlspecialchars($curso_editar['limite_inscripciones']) . '" min="1" required></p>';
