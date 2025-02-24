@@ -100,20 +100,35 @@ foreach ($cursos as $curso) {
     echo '<label for="tiempo_asignado' . $curso['id_curso'] . '" class="form-label">Tiempo asignado (en semanas)</label>';
     echo '<input type="number" class="form-control" id="tiempo_asignado' . $curso['id_curso'] . '" name="tiempo_asignado" value="' . $curso['tiempo_asignado'] . '" min="1" required>';
     echo '</div>';
-    
+
     echo '<div class="mb-3">';
     echo '<label for="inicio_mes' . $curso['id_curso'] . '" class="form-label">Inicio del mes</label>';
     echo '<input type="date" class="form-control" id="inicio_mes' . $curso['id_curso'] . '" name="inicio_mes" value="' . $curso['inicio_mes'] . '" required>';
     echo '</div>';
+
+    echo '<div class="mb-3">';
+    echo '<label for="horas_cronologicas' . $curso['id_curso'] . '" class="form-label">Horas cronológicas</label>';
+    echo '<input type="number" class="form-control" id="horas_cronologicas' . $curso['id_curso'] . '" name="horas_cronologicas" value="' . $curso['horas_cronologicas'] . '" step="0.1" required>';
+    echo '</div>';
+
+    // echo '<div class="mb-3">';
+    // echo '<label for="fecha_finalizacion' . $curso['id_curso'] . '" class="form-label">Fecha de finalización</label>';
+    // echo '<input type="datetime-local" class="form-control" id="fecha_finalizacion' . $curso['id_curso'] . '" name="fecha_finalizacion" value="' . $curso['fecha_finalizacion'] . '" required>';
+    // echo '</div>';
+
+    echo '<div class="mb-3 d-flex align-items-center">';
+    echo '<input type="checkbox" class="form-check-input me-2" id="firma_digital' . $curso['id_curso'] . '" name="firma_digital" ' . ($curso['firma_digital'] ? 'checked' : '') . '>';
+    echo '<label for="firma_digital' . $curso['id_curso'] . '" class="form-check-label">Firma digital</label>';
+    echo '</div>';    
     
     echo '<div class="mb-3">';
     echo '<label for="tipo_curso' . $curso['id_curso'] . '" class="form-label">Tipo de curso</label>';
     echo '<select class="form-select" id="tipo_curso' . $curso['id_curso'] . '" name="tipo_curso" required>';
     echo '<option value="masterclass"' . ($curso['tipo_curso'] == 'masterclass' ? ' selected' : '') . '>Masterclass</option>';
-    echo '<option value="seminarios"' . ($curso['tipo_curso'] == 'seminarios' ? ' selected' : '') . '>Seminarios</option>';
-    echo '<option value="diplomados"' . ($curso['tipo_curso'] == 'diplomados' ? ' selected' : '') . '>Diplomados</option>';
+    echo '<option value="seminario"' . ($curso['tipo_curso'] == 'seminario' ? ' selected' : '') . '>Seminarios</option>';
+    echo '<option value="diplomado"' . ($curso['tipo_curso'] == 'diplomado' ? ' selected' : '') . '>Diplomados</option>';
     echo '<option value="congreso"' . ($curso['tipo_curso'] == 'congreso' ? ' selected' : '') . '>Congreso</option>';
-    echo '<option value="charlas"' . ($curso['tipo_curso'] == 'charlas' ? ' selected' : '') . '>Charlas</option>';
+    echo '<option value="charla"' . ($curso['tipo_curso'] == 'charla' ? ' selected' : '') . '>Charlas</option>';
     echo '<option value="taller"' . ($curso['tipo_curso'] == 'taller' ? ' selected' : '') . '>taller</option>';
     echo '<option value="curso"' . ($curso['tipo_curso'] == 'curso' ? ' selected' : '') . '>Curso</option>';
     echo '</select>';

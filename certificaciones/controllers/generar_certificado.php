@@ -21,6 +21,7 @@ if (isset($_GET['valor_unico'])) {
     $paso = $datos['completado'] ? "aprobado" : "no aprobado";
     $fecha = $datos['fecha_inscripcion']; // Mantener formato original para la conversión en JS
     $inicio_mes = $datos['inicio_mes']; // Fecha de inicio del curso
+/*    $fechaFinalizacion = $datos['fecha_finalizacion']; // Fecha de finalización del curso*/
     $tomo = $datos['tomo'];
     $folio = $datos['folio'];
     $nota = $datos['nota'];
@@ -28,7 +29,9 @@ if (isset($_GET['valor_unico'])) {
     $tipo_curso = $datos['tipo_curso'];
     $nombre_curso = $datos['nombre_curso'];
     $numeroDeSemanas = $datos['tiempo_asignado'];
-    
+    $firma_digital_curso = $datos['firma_digital'];
+    $horas_cronologicas = $datos['horas_cronologicas'];
+
     // Obtener el nombre del promotor y la firma digital
     $stmt = $db->prepare("SELECT nombre, apellido, firma_digital FROM cursos.usuarios WHERE id = :id");
     $stmt->bindParam(':id', $promotor_id, PDO::PARAM_INT);
@@ -57,7 +60,7 @@ if (isset($_GET['valor_unico'])) {
         $numeroDeSemanas = $datos['tiempo_asignado'];
         $duracionTotal = $duracionClase * $numeroDiasPorSemana * $numeroDeSemanas;
     }
-    
+
     // Definir el artículo basado en el tipo de curso
     $articulo_tipo_curso = ($tipo_curso === "charla" || $tipo_curso === "masterclass") ? "la" : "el";
 }
@@ -132,6 +135,39 @@ $footerPath = '../public/assets/img/footer.jpg';
             fechaInicioObj.setDate(fechaInicioObj.getDate() - 1); // Ajustar por el último día adicional
             return fechaInicioObj.toISOString().slice(0, 10);  // Devolver en formato ISO
         }
+        // Función personalizada para convertir a mayúsculas incluyendo caracteres especiales
+        function toUpperCaseSpecial(str) {
+        const specialMap = {
+            'á': 'Á',
+            'é': 'É',
+            'í': 'Í',
+            'ó': 'Ó',
+            'ú': 'Ú',
+            'ñ': 'Ñ',
+            // Agregar más caracteres especiales según sea necesario
+        };
+        return str.split('').map(char => specialMap[char] || char.toUpperCase()).join('');
+        }
+
+        // Función para dividir el texto en líneas si excede el ancho permitido
+        function splitTextIntoLines(text, maxWidth, pdf) {
+        let words = text.split(' ');
+        let lines = [];
+        let currentLine = words[0];
+
+        for (let i = 1; i < words.length; i++) {
+            let word = words[i];
+            let width = pdf.getTextWidth(currentLine + ' ' + word);
+            if (width < maxWidth) {
+            currentLine += ' ' + word;
+            } else {
+            lines.push(currentLine);
+            currentLine = word;
+            }
+        }
+        lines.push(currentLine);
+        return lines;
+        }
 
         // Usar la función con la fecha de la base de datos
         const fechaBaseDatos = '<?php echo $fecha; ?>';
@@ -163,11 +199,12 @@ $footerPath = '../public/assets/img/footer.jpg';
 
             // Función para capitalizar la primera letra de cada palabra
             function capitalizeWords(str) {
-                return str.replace(/\b\w/g, function (char) {
+                return str.replace(/(?:^|\s)\S/g, function (char) {
                     return char.toUpperCase();
                 });
             }
-
+            const firmaDigitalCurso = <?php echo json_encode($firma_digital_curso); ?>;
+            
             // Crear un nuevo documento PDF
             const pdf = new jsPDF('landscape', 'mm', 'a4');
 
@@ -207,43 +244,95 @@ $footerPath = '../public/assets/img/footer.jpg';
             pdf.text('C.I. V- <?php echo $cedula; ?>', pdf.internal.pageSize.width / 2, 110, { align: 'center' });
 
             // Verificar si el curso está aprobado y si tiene nota
+            const esAprobado = '<?php echo ($paso === "aprobado" && is_null($nota)) ? false : true; ?>';
             const textoAntesDePaso = '<?php echo ($paso === "aprobado" && is_null($nota)) ? "Por su " : "Por haber "; ?>';
-            const textoAntesDeCurso = ' en <?php echo $articulo_tipo_curso; ?> <?php echo $tipo_curso; ?> de ';
+            const textoAntesDeCurso = '  en <?php echo $articulo_tipo_curso; ?> <?php echo $tipo_curso; ?> de ';
             const textoDespuesDeCurso = '.';
-            const pasoUppercase = '<?php echo strtoupper($paso === "aprobado" && is_null($nota) ? "PARTICIPACION" : $paso); ?>';
-            const nombreCursoUppercase = '<?php echo strtoupper($nombre_curso); ?>';
+            const pasoUppercase = '<?php echo mb_strtoupper($paso === "aprobado" && is_null($nota) ? "PARTICIPACION" : $paso); ?>';
+            const nombreCursoUppercase = '<?php echo mb_strtoupper($nombre_curso); ?>';
 
             // Calcular el ancho de cada segmento de texto
-            const anchoTextoAntesDePaso = pdf.getTextWidth(textoAntesDePaso);
-            const anchoPasoUppercase = pdf.getTextWidth(pasoUppercase) + 6; // Añadir un pequeño ajuste
-            const anchoTextoAntesDeCurso = pdf.getTextWidth(textoAntesDeCurso) + 2; // Añadir un pequeño ajuste
-            const anchoNombreCursoUppercase = pdf.getTextWidth(nombreCursoUppercase) + 6; // Añadir un pequeño ajuste
-            const anchoTextoDespuesDeCurso = pdf.getTextWidth(textoDespuesDeCurso);
+            const textoCompleto = `${textoAntesDePaso}${pasoUppercase}${textoAntesDeCurso}${nombreCursoUppercase}${textoDespuesDeCurso}`;
+            const maxWidth = pdf.internal.pageSize.width - 40; // Dejar un margen de 20 unidades a cada lado
+            const lines = splitTextIntoLines(textoCompleto, maxWidth, pdf);
 
-            // Calcular la posición inicial del texto
-            let xPos = (pdf.internal.pageSize.width - (anchoTextoAntesDePaso + anchoPasoUppercase + anchoTextoAntesDeCurso + anchoNombreCursoUppercase + anchoTextoDespuesDeCurso)) / 2;
+            let startY = 125; // Posición inicial en Y
 
-            // Dibujar cada segmento de texto en la posición calculada
-            pdf.text(textoAntesDePaso, xPos, 125);
-            xPos += anchoTextoAntesDePaso;
+            lines.forEach(line => {
+            let lineWidth = pdf.getTextWidth(line);
+            let xPos = (pdf.internal.pageSize.width - lineWidth) / 2;
+            let remainingLine = line;
+            
+            // Mantener un indicador de negrita al moverse por las líneas
+            let boldNameCurso = false;
 
-            pdf.setFont('Cambria', 'bold');
-            pdf.text(pasoUppercase, xPos, 125);
-            xPos += anchoPasoUppercase;
+            while (remainingLine.includes(pasoUppercase) || remainingLine.includes(nombreCursoUppercase)) {
+                const indexPaso = remainingLine.indexOf(pasoUppercase);
+                const indexCurso = remainingLine.indexOf(nombreCursoUppercase);
+                let partText;
+                let isBold = false;
 
-            pdf.setFont('Cambria', 'normal');
-            pdf.text(textoAntesDeCurso, xPos, 125);
-            xPos += anchoTextoAntesDeCurso;
+                if (indexPaso !== -1 && (indexCurso === -1 || indexPaso < indexCurso)) {
+                partText = pasoUppercase;
+                isBold = true;
+                } else if (indexCurso !== -1) {
+                partText = nombreCursoUppercase;
+                isBold = true;
+                boldNameCurso = true; // Marcar que estamos procesando el nombre del curso
+                }
 
-            pdf.setFont('Cambria', 'bold');
-            pdf.text(nombreCursoUppercase, xPos, 125);
-            xPos += anchoNombreCursoUppercase;
+                if (isBold) {
+                const [before, after] = remainingLine.split(partText, 2);
+                pdf.setFont('Cambria', 'normal');
+                pdf.text(before, xPos, startY);
+                xPos += pdf.getTextWidth(before);
 
-            pdf.setFont('Cambria', 'normal');
-            pdf.text(textoDespuesDeCurso, xPos, 125);
+                pdf.setFont('Cambria', 'bold');
+                const partWidth = pdf.getTextWidth(partText);
+                const availableWidth = pdf.internal.pageSize.width - xPos;
+
+                if (partWidth > availableWidth) {
+                    const splitIndex = Math.ceil(availableWidth / partWidth * partText.length);
+                    const firstPart = partText.substring(0, splitIndex);
+                    const secondPart = partText.substring(splitIndex);
+
+                    console.log("Splitting course name:", firstPart, secondPart);
+
+                    pdf.text(firstPart, xPos, startY);
+                    startY += 10;
+                    xPos = (pdf.internal.pageSize.width - pdf.getTextWidth(secondPart)) / 2;
+                    pdf.text(secondPart, xPos, startY);
+                    remainingLine = secondPart + after;
+                } else {
+                    pdf.text(partText, xPos, startY);
+                    xPos += partWidth;
+                    remainingLine = after;
+                }
+                } else {
+                pdf.setFont('Cambria', 'normal');
+                pdf.text(remainingLine, xPos, startY);
+                remainingLine = ""; // Asegúrate de salir del bucle mientras
+                }
+            }
+
+            if (remainingLine) {
+                if (boldNameCurso) {
+                pdf.setFont('Cambria', 'bold');
+                boldNameCurso = false;
+                } else {
+                pdf.setFont('Cambria', 'normal');
+                }
+                pdf.text(remainingLine, xPos, startY);
+            }
+
+            startY += 10; // Espacio entre líneas
+            // Imprimir línea procesada en la consola
+            console.log("Processed line:", line);
+            });
 
             // Continuar con el resto del texto
-            pdf.text(`Certificación expedida en la Ciudad de San Cristóbal, ${fechaEnLetras}`, pdf.internal.pageSize.width / 2, 140, { align: 'center' });
+            pdf.setFont('Cambria', 'normal');
+            pdf.text(`Certificación expedida en la Ciudad de San Cristóbal, ${fechaEnLetras}`, pdf.internal.pageSize.width / 2, startY + 10, { align: 'center' });
 
             // Agregar el nombre del promotor al lado derecho arriba del footer con poco interlineado
             const marginRight = pdf.internal.pageSize.width - 20;
@@ -257,7 +346,9 @@ $footerPath = '../public/assets/img/footer.jpg';
             const offsetY = footerPositionY - 45; // Ajuste para estar solo un poco por encima del pie de página
 
             // Imagen encima de "Ing. Espindola Yoselin", más abajo y a la izquierda
-            pdf.addImage('../public/assets/img/coord.png', 'PNG', marginRight - imageWidth / 2 - 33, offsetY - imageHeight + 60, imageWidth, imageHeight); // Ajustar según sea necesario
+            if (firmaDigitalCurso) {
+                pdf.addImage('../public/assets/img/coord.png', 'PNG', marginRight - imageWidth / 2 - 33, offsetY - imageHeight + 60, imageWidth, imageHeight); // Ajustar según sea necesario
+            }
             // Hacer el texto del promotor en negritas
             pdf.setFont('Cambria', 'bold');
             pdf.text('Ing. Espindola Yoselin', marginRight, offsetY - imageHeight + 105, { align: 'right' });
@@ -310,14 +401,19 @@ $footerPath = '../public/assets/img/footer.jpg';
             // Reducir el tamaño de la fuente en 1, ajustar el interlineado y subir todo el texto
             pdf.setFontSize(15); // Reducido en 1
 
-            // Dividir en varias líneas si es necesario
-            const notaTexto = <?php echo is_null($nota) || $nota == 0 ? '"Presentando  aprobado por su participación"' : '"Presentando una calificación final de aprobado, ' . $nota . ' de una nota máxima (20)."' ?>;
-            const notaTextoLineas = pdf.splitTextToSize(notaTexto, 180);
-
             const registroTexto = 'Registrado en formación permanente tomo <?php echo $tomo; ?> y folio <?php echo $folio; ?>.';
             const registroTextoLineas = pdf.splitTextToSize(registroTexto, 180);
 
-            const duracionTexto = 'El programa tuvo una duración de <?php echo $duracionTotal; ?> horas cronológicas.';
+            // Verificar si hay nota
+            const notaTexto = <?php echo is_null($nota) || $nota == 0 ? '""' : '"Presentando una calificación final de ' . $nota . ' de una nota máxima (20)."' ?>;
+            const notaTextoLineas = notaTexto !== '' ? pdf.splitTextToSize(notaTexto, 180) : [];
+
+            // Si hay líneas de texto, agregar el texto al PDF
+            if (notaTextoLineas.length > 0) {
+                // Código para agregar las líneas de texto al PDF
+            }
+
+            const duracionTexto = 'El programa tuvo una duración de <?php echo $horas_cronologicas; ?> horas cronológicas.';
             const duracionTextoLineas = pdf.splitTextToSize(duracionTexto, 180);
 
             // Verificar si el curso es taller para mostrar solo la fecha de inicio
@@ -332,19 +428,24 @@ $footerPath = '../public/assets/img/footer.jpg';
             pdf.text(registroTextoLineas, 10, yPos);
             yPos += (registroTextoLineas.length * interlineado);
 
+            // Imprimir las notas primero
+            if (notaTextoLineas.length > 0) {
+                pdf.text(notaTextoLineas, 10, yPos);
+                yPos += (notaTextoLineas.length * interlineado);
+            }
+
+            // Luego imprimir la duración del programa
             pdf.text(duracionTextoLineas, 10, yPos);
             yPos += (duracionTextoLineas.length * interlineado);
 
-            pdf.text(notaTextoLineas, 10, yPos);
-            yPos += (notaTextoLineas.length * interlineado);
-
+            // Imprimir la información del curso
             pdf.text(cursoTextoLineas, 10, yPos);
             yPos += (cursoTextoLineas.length * interlineado);
 
             const marginRight2 = pdf.internal.pageSize.width - 20;
 
-// Agregar la firma digital del promotor si existe
-if ('<?php echo $firma_digital; ?>') {
+// Agregar la firma digital del promotor si existe y firmaDigitalCurso es true
+if (firmaDigitalCurso && '<?php echo $firma_digital; ?>') {
     const img = new Image();
     img.src = '<?php echo $firma_digital; ?>';
     img.onload = function () {

@@ -32,8 +32,8 @@ echo '<p>Semanas: <input type="number" name="tiempo_asignado" value="' . htmlspe
 echo '<p>Fecha de inicio: <input type="date" name="inicio_mes" value="' . htmlspecialchars($curso_editar['inicio_mes']) . '" required></p>';
 echo '<p>Tipo de curso: <select name="tipo_curso" required>';
 echo '<option value="masterclass"' . ($curso_editar['tipo_curso'] == 'masterclass' ? ' selected' : '') . '>Masterclass</option>';
-echo '<option value="seminarios"' . ($curso_editar['tipo_curso'] == 'seminarios' ? ' selected' : '') . '>Seminarios</option>';
-echo '<option value="diplomados"' . ($curso_editar['tipo_curso'] == 'diplomados' ? ' selected' : '') . '>Diplomados</option>';
+echo '<option value="seminario"' . ($curso_editar['tipo_curso'] == 'seminario' ? ' selected' : '') . '>Seminario</option>';
+echo '<option value="diplomado"' . ($curso_editar['tipo_curso'] == 'diplomado' ? ' selected' : '') . '>Diplomado</option>';
 echo '<option value="congreso"' . ($curso_editar['tipo_curso'] == 'congreso' ? ' selected' : '') . '>Congreso</option>';
 echo '<option value="charla"' . ($curso_editar['tipo_curso'] == 'charla' ? ' selected' : '') . '>Charla</option>';
 echo '<option value="taller"' . ($curso_editar['tipo_curso'] == 'taller' ? ' selected' : '') . '>taller</option>';

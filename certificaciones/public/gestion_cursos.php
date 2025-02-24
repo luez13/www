@@ -30,10 +30,10 @@ echo '<p>Semanas: <input type="number" name="tiempo_asignado" min="1" required><
 echo '<p>Fecha de inicio: <input type="date" name="inicio_mes" required></p>';
 echo '<p>Tipo de curso: <select name="tipo_curso" required>';
 echo '<option value="masterclass">MasterClass</option>';
-echo '<option value="talleres">Talleres</option>';
-echo '<option value="curso">Cursos</option>';
-echo '<option value="seminarios">Seminarios</option>';
-echo '<option value="diplomados">Diplomados</option>';
+echo '<option value="taller">Taller</option>';
+echo '<option value="curso">Curso</option>';
+echo '<option value="seminario">Seminario</option>';
+echo '<option value="diplomado">Diplomado</option>';
 echo '<option value="congreso">Congreso</option>';
 echo '<option value="charla">Charla</option>';
 echo '</select></p>';    

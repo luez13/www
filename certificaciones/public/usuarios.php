@@ -1,8 +1,6 @@
 <?php
 // Incluir el archivo header.php en views
 include '../views/header.php';
-
-// Incluir el archivo model.php en config
 include '../config/model.php';
 
 $db = new DB();
@@ -10,6 +8,14 @@ $db = new DB();
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = 10;
 $offset = ($page - 1) * $limit;
+
+// Campo de búsqueda y botón
+echo '<div class="input-group mb-3">';
+echo '<input type="text" id="searchInput" class="form-control" placeholder="Buscar por cédula, nombre o apellido">';
+echo '<button class="btn btn-primary" type="button" onclick="searchUsers()">Buscar</button>';
+echo '</div>';
+// Contenedor para los resultados de la búsqueda
+echo '<div id="searchResults" class="accordion" id="accordionUsuarios"></div>';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil') {
     $id = $_POST['id'];
@@ -56,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
 
     echo '<div class="accordion" id="accordionUsuarios">';
     foreach ($usuarios as $index => $usuario) {
-        echo '<div class="accordion-item">';
+        echo '<div class="accordion-item list-group-item">'; // Añadir la clase list-group-item aquí
         echo '<h2 class="accordion-header" id="heading' . $index . '">';
         echo '<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' . $index . '" aria-expanded="false" aria-controls="collapse' . $index . '">';
         echo 'Editar usuario ' . $usuario['nombre'];
@@ -103,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
         echo '</div>'; // Cerrar accordion-collapse
         echo '</div>'; // Cerrar accordion-item
     }
-    echo '</div>'; // Cerrar accordion
+    echo '</div>'; // Cerrar accordion    
 }
 
 // Agregar la función de paginación al inicio del archivo
@@ -184,11 +190,11 @@ include '../views/footer.php';
 ?>
 
 <script>
-$(document).ready(function() {
+// Función para manejar el envío de formularios
+function handleFormSubmission() {
     $('.editar-usuario-form').submit(function(event) {
         event.preventDefault();
         var form = $(this);
-        var index = form.data('index');
         var formData = form.serialize();
 
         $.ajax({
@@ -207,12 +213,29 @@ $(document).ready(function() {
             }
         });
     });
+}
 
-    // Manejar la navegación de la paginación
-    $('.page-link-nav').click(function(event) {
-        event.preventDefault();
-        var page = $(this).data('page');
-        loadPage('usuarios.php', { page: page });
+// Script para búsqueda en el servidor
+function searchUsers() {
+    var input = document.getElementById('searchInput').value.toLowerCase();
+    console.log("Buscando: " + input);  // Agregar esta línea para depuración
+
+    $.ajax({
+        url: '../controllers/buscarUsuarios.php',
+        type: 'POST',
+        data: { search: input },
+        success: function(response) {
+            console.log("Resultados: " + response);  // Agregar esta línea para depuración
+            document.getElementById('searchResults').innerHTML = response;
+            reapplyEvents(); // Reaplicar eventos de JavaScript
+        },
+        error: function() {
+            alert('Hubo un error al realizar la búsqueda.');
+        }
     });
+}
+
+$(document).ready(function() {
+    handleFormSubmission(); // Inicializa el manejo de formularios en la carga de la página
 });
 </script>

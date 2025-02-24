@@ -1,81 +1,63 @@
 {
     "course_data": {
         "action": "editar",
-        "id_curso": "45",
-        "nombre_curso": "atun",
-        "descripcion": "atun",
+        "id_curso": "44",
+        "nombre_curso": "Impresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3D",
+        "descripcion": "masterclass de impresiones en 3D de protesis dentales",
         "tiempo_asignado": "2",
-        "inicio_mes": "2024-11-08",
+        "inicio_mes": "2024-10-27",
+        "horas_cronologicas": "22",
+        "firma_digital": "on",
         "tipo_curso": "masterclass",
-        "limite_inscripciones": "23",
-        "promotor": "2",
-        "dias_clase": "{Lunes,Mi\u00e9rcoles,Jueves}",
-        "horario_inicio": "21:29:00",
-        "horario_fin": "13:29:00",
-        "nivel_curso": "introductorio",
-        "costo": "2.00",
-        "conocimientos_previos": "atun",
-        "requerimientos_implementos": "atun",
-        "desempe\u00f1o_al_concluir": "atun",
+        "limite_inscripciones": "20",
+        "promotor": "15",
+        "dias_clase": "{Martes}",
+        "horario_inicio": "11:11:00",
+        "horario_fin": "05:11:00",
+        "nivel_curso": "medio",
+        "costo": "20.00",
+        "conocimientos_previos": "conocimientos basicos en cuanto a tecnologias",
+        "requerimientos_implementos": "ninguno",
+        "desempe\u00f1o_al_concluir": "capacitacion en protesis dentales",
         "id_modulo": [
-            "99",
-            "98"
+            "97"
         ],
         "nombre_modulo": [
-            "atun",
-            "atun"
+            "impresion 3D"
         ],
         "contenido": [
-            "atunss",
-            "atunss"
+            "impresion 3D"
         ],
         "numero_modulo_contenido": [
-            "2",
             "1"
         ],
         "id_modulo_contenido": [
-            "99",
-            "98"
+            "97"
         ],
         "numero_modulo": [
-            "2",
             "1"
         ],
         "actividad_modulo": [
-            "atun",
-            "atun"
+            "participacion"
         ],
         "instrumento_modulo": [
-            "atunsss",
-            "atun"
+            "participacion"
         ]
     },
     "modules_data": [
         {
-            "id_modulo": "99",
-            "id_curso": "45",
-            "nombre_modulo": "atun",
-            "contenido": "[atunss]",
-            "numero": "2",
-            "actividad": "atun",
-            "instrumento": "atunsss"
-        },
-        {
-            "id_modulo": "98",
-            "id_curso": "45",
-            "nombre_modulo": "atun",
-            "contenido": "[atunss]",
+            "id_modulo": "97",
+            "id_curso": "44",
+            "nombre_modulo": "impresion 3D",
+            "contenido": "[impresion 3D]",
             "numero": "1",
-            "actividad": "atun",
-            "instrumento": "atun"
+            "actividad": "participacion",
+            "instrumento": "participacion"
         }
     ],
     "contenidos_modulo": {
-        "99": [
-            "atunss"
-        ],
-        "98": [
-            "atunss"
+        "97": [
+            "impresion 3D"
         ]
     }
 }

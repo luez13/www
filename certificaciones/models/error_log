@@ -1,0 +1,2 @@
+[18-Sep-2024 13:31:15 America/Caracas] PHP Parse error:  syntax error, unexpected 'echo' (T_ECHO), expecting function (T_FUNCTION) in /home/uptaivir/public_html/certificaciones.uptaivirtualsarec.com/certifuptaisarec/models/curso.php on line 12
+[18-Sep-2024 13:32:10 America/Caracas] PHP Notice:  Undefined variable: _SESSION in /home/uptaivir/public_html/certificaciones.uptaivirtualsarec.com/certifuptaisarec/models/curso.php on line 312

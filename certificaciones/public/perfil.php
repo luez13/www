@@ -60,16 +60,16 @@ try {
                 <a class="collapse-item" href="#" onclick="loadCategory('masterclass', true)">MasterClass</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('taller', true)">taller</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('curso', true)">Cursos</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('seminarios', true)">Seminarios</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('diplomados', true)">Diplomados</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('seminario', true)">Seminario</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('diplomado', true)">Diplomado</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('congreso', true)">Congreso</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('charla', true)">Charla</a>
                 <h6 class="collapse-header">Rutas Cerradas:</h6>
                 <a class="collapse-item" href="#" onclick="loadCategory('masterclass', false)">MasterClass</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('taller', false)">taller</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('curso', false)">Cursos</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('seminarios', false)">Seminarios</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('diplomados', false)">Diplomados</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('seminario', false)">Seminario</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('diplomado', false)">Diplomado</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('congreso', false)">Congreso</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('charla', false)">Charla</a>
             </div>
@@ -402,6 +402,15 @@ $(document).ready(function() {
     });
 });
 
+$(document).ready(function() {
+    $('#busquedaForm').submit(function(event) {
+        event.preventDefault();
+        var busqueda = $('#busqueda').val();
+        var id_curso = $('#id_curso').val();
+        loadPage('buscar.php', { busqueda: busqueda, id_curso: id_curso, page: 1 });
+    });
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     reapplyEvents();
 });
@@ -414,6 +423,7 @@ function reapplyEvents() {
     $(document).off('click', '.pagination-link');
     $('.usuario-checkbox').off('change');
     $('#inscribir-usuarios-btn').off('click');
+    $('.editar-usuario-form').off('submit');
 
     // Add new event listeners
     $('.editarCursoForm').on('submit', function(event) {
@@ -526,6 +536,30 @@ function reapplyEvents() {
                 loadPage('../controllers/buscar.php', { id_curso: idCurso });
             } else {
                 alert('Hubo un error al inscribir al usuario: ' + result);
+            }
+        })
+        .catch(error => {
+            alert('Hubo un error al procesar la solicitud: ' + error);
+        });
+    });
+
+        // Add new event listeners
+        $('.editar-usuario-form').on('submit', function(event) {
+        event.preventDefault();
+        var form = this;
+        var formData = new FormData(form);
+        fetch(form.action, {
+            method: form.method,
+            body: formData
+        })
+        .then(response => response.text())
+        .then(result => {
+            if (result.includes('El usuario se ha editado correctamente')) {
+                alert('El usuario se ha editado correctamente');
+                var page = document.querySelector('.page-item.active .page-link').dataset.page;
+                loadPage('usuarios.php', { page: page });
+            } else {
+                alert('Hubo un error al editar el usuario: ' + result);
             }
         })
         .catch(error => {

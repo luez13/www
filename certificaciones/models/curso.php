@@ -73,9 +73,12 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
         }
     }
 
-    public function editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeno_al_concluir, $autorizacion = null) {
+    public function editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeno_al_concluir, $horas_cronologicas, /*$fecha_finalizacion,*/ $firma_digital, $autorizacion = null) {
         try {
-            $sql = 'UPDATE cursos.cursos SET nombre_curso = :nombre_curso, descripcion = :descripcion, tiempo_asignado = :tiempo_asignado, inicio_mes = :inicio_mes, tipo_curso = :tipo_curso, limite_inscripciones = :limite_inscripciones, dias_clase = :dias_clase, horario_inicio = :horario_inicio, horario_fin = :horario_fin, nivel_curso = :nivel_curso, costo = :costo, conocimientos_previos = :conocimientos_previos, requerimientos_implemento = :requerimientos_implemento, desempeno_al_concluir = :desempeno_al_concluir';
+            // Convertir firma_digital a una representación adecuada para SQL
+            $firma_digital = $firma_digital ? 'true' : 'false';
+    
+            $sql = 'UPDATE cursos.cursos SET nombre_curso = :nombre_curso, descripcion = :descripcion, tiempo_asignado = :tiempo_asignado, inicio_mes = :inicio_mes, tipo_curso = :tipo_curso, limite_inscripciones = :limite_inscripciones, dias_clase = :dias_clase, horario_inicio = :horario_inicio, horario_fin = :horario_fin, nivel_curso = :nivel_curso, costo = :costo, conocimientos_previos = :conocimientos_previos, requerimientos_implemento = :requerimientos_implemento, desempeno_al_concluir = :desempeno_al_concluir, horas_cronologicas = :horas_cronologicas, /*fecha_finalizacion = :fecha_finalizacion,*/ firma_digital = :firma_digital';
             $params = [
                 'nombre_curso' => $nombre_curso,
                 'descripcion' => $descripcion,
@@ -91,6 +94,9 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
                 'conocimientos_previos' => $conocimientos_previos,
                 'requerimientos_implemento' => $requerimientos_implemento,
                 'desempeno_al_concluir' => $desempeno_al_concluir,
+                'horas_cronologicas' => $horas_cronologicas,
+                /*'fecha_finalizacion' => $fecha_finalizacion,*/
+                'firma_digital' => $firma_digital,
                 'id_curso' => $id_curso
             ];
     
@@ -120,7 +126,7 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
                     'instrumento' => $modulo['instrumento'],
                     'id_modulo' => $modulo['id_modulo']
                 ]);
-            }            
+            }
         } catch (PDOException $e) {
             echo var_dump([
                 'nombre_curso' => $nombre_curso,
@@ -137,6 +143,9 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
                 'conocimientos_previos' => $conocimientos_previos,
                 'requerimientos_implemento' => $requerimientos_implemento,
                 'desempeno_al_concluir' => $desempeno_al_concluir,
+                'horas_cronologicas' => $horas_cronologicas,
+                /*'fecha_finalizacion' => $fecha_finalizacion,*/
+                'firma_digital' => $firma_digital,
                 'id_curso' => $id_curso,
                 'autorizacion' => $autorizacion
             ]) . '<p>Ha ocurrido un error al editar el curso: ' . $e->getMessage() . '</p>';
@@ -332,7 +341,7 @@ public function obtener_datos_certificacion($valor_unico) {
                c.horario_inicio, c.horario_fin,
                c.nivel_curso, c.costo,
                c.conocimientos_previos, c.requerimientos_implemento,
-               c.desempeno_al_concluir,
+               c.desempeno_al_concluir, c.horas_cronologicas, c.firma_digital,
                c.promotor,
                u.nombre AS nombre_estudiante, u.apellido AS apellido_estudiante, u.cedula,
                cert.fecha_inscripcion, cert.tomo, cert.folio,

@@ -1,86 +1,189 @@
 {
     "course_data": {
         "action": "editar",
-        "id_curso": "6",
-        "nombre_curso": "certificado prueba",
-        "descripcion": "certificado prueba",
-        "tiempo_asignado": "1",
-        "inicio_mes": "2024-11-28",
-        "tipo_curso": "masterclass",
-        "limite_inscripciones": "20",
-        "dias_clase": [
-            "Jueves"
-        ],
-        "horario_inicio": "19:11:00",
-        "horario_fin": "20:14:00",
+        "id_curso": "25",
+        "nombre_curso": "Introducci\u00f3n a Arduino",
+        "descripcion": "Curso sobre la Tecnolog\u00eda Arduino",
+        "tiempo_asignado": "2",
+        "inicio_mes": "2025-01-14",
+        "tipo_curso": "curso",
+        "limite_inscripciones": "15",
+        "promotor": "218",
+        "dias_clase": "{Viernes,S\u00e1bado}",
+        "horario_inicio": "08:00:00",
+        "horario_fin": "16:00",
         "nivel_curso": "introductorio",
-        "costo": "0.00",
-        "conocimientos_previos": "certificado prueba",
-        "requerimientos_implementos": "certificado prueba",
-        "desempe\u00f1o_al_concluir": "certificado prueba",
+        "costo": "240000.00",
+        "conocimientos_previos": "\u2022\tSistemas Electr\u00f3nicos Digitales I, Programaci\u00f3n B\u00e1sica",
+        "requerimientos_implementos": "Laboratorio con Computadores",
+        "desempe\u00f1o_al_concluir": "Capacidad para dise\u00f1ar y desarrollar proyectos m\u00e1s complejos.\r\nCreaci\u00f3n de sistemas automatizados.\r\nRob\u00f3tica b\u00e1sica o proyectos de Internet.",
         "id_modulo": [
-            "22",
-            "23"
-        ],
-        "id_curso_modulo": [
-            "6",
-            "6"
+            "110",
+            "111",
+            "112",
+            "113",
+            "114"
         ],
         "nombre_modulo": [
-            "certificado prueba",
-            "certificado prueba"
+            "Introducci\u00f3n a la Tecnolog\u00eda Arduino",
+            "El Hardware de Arduino",
+            "Programando Arduino",
+            "Conexi\u00f3n con el mundo f\u00edsico",
+            "Proyecto"
         ],
         "contenido": [
-            "certificado prueba",
-            "certificado prueba"
+            "Rese\u00f1a Hist\u00f3rica de Arduino",
+            "Definici\u00f3n de Arduino",
+            "Microcontroladores",
+            "Placas de Arduino",
+            "Aspectos f\u00edsicos del Arduino (Hardware).",
+            "\u00bfPor qu\u00e9 usar Arduino?",
+            "Descarga e Instalaci\u00f3n del Software Arduino IDE",
+            "Entorno de programaci\u00f3n.",
+            "Instrucciones b\u00e1sicas.",
+            "Variables, Operadores y Estructuras de control.",
+            "Archivos Hex.",
+            "Entradas\/Salidas.",
+            "Digitales y Anal\u00f3gicas.",
+            "Sensores y M\u00f3dulos.",
+            "Comunicaci\u00f3n Serial.",
+            "Display 7 segmentos y Teclado Matricial.",
+            "aplicaci\u00f3n de lo aprendido"
         ],
         "numero_modulo_contenido": [
             "1",
-            "2"
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "3",
+            "3",
+            "3",
+            "3",
+            "3",
+            "4",
+            "4",
+            "4",
+            "4",
+            "4",
+            "5"
         ],
         "id_modulo_contenido": [
-            "22",
-            "23"
-        ],
-        "actividad_modulo": [
-            "certificado prueba",
-            "certificado prueba"
-        ],
-        "instrumento_modulo": [
-            "certificado prueba",
-            "certificado prueba"
+            "110",
+            "110",
+            "111",
+            "111",
+            "111",
+            "111",
+            "112",
+            "112",
+            "112",
+            "112",
+            "112",
+            "113",
+            "113",
+            "113",
+            "113",
+            "113",
+            "114"
         ],
         "numero_modulo": [
             "1",
-            "2"
+            "2",
+            "3",
+            "4",
+            "5"
+        ],
+        "actividad_modulo": [
+            "Simulaci\u00f3n",
+            "Simulaci\u00f3n",
+            "Simulaci\u00f3n",
+            "Simulaci\u00f3n",
+            "Simulaci\u00f3n"
+        ],
+        "instrumento_modulo": [
+            "Montaje del circuito",
+            "Montaje del circuito",
+            "Montaje del circuito",
+            "Montaje del circuito",
+            "Montaje del circuito"
         ]
     },
     "modules_data": [
         {
-            "id_modulo": "22",
-            "id_curso": "6",
-            "nombre_modulo": "certificado prueba",
-            "contenido": "[certificado prueba]",
+            "id_modulo": "110",
+            "id_curso": "25",
+            "nombre_modulo": "Introducci\u00f3n a la Tecnolog\u00eda Arduino",
+            "contenido": "[Rese\u00f1a Hist\u00f3rica de Arduino][Definici\u00f3n de Arduino]",
             "numero": "1",
-            "actividad": "certificado prueba",
-            "instrumento": "certificado prueba"
+            "actividad": "Simulaci\u00f3n",
+            "instrumento": "Montaje del circuito"
         },
         {
-            "id_modulo": "23",
-            "id_curso": "6",
-            "nombre_modulo": "certificado prueba",
-            "contenido": "[certificado prueba]",
+            "id_modulo": "111",
+            "id_curso": "25",
+            "nombre_modulo": "El Hardware de Arduino",
+            "contenido": "[Microcontroladores][Placas de Arduino][Aspectos f\u00edsicos del Arduino (Hardware).][\u00bfPor qu\u00e9 usar Arduino?]",
             "numero": "2",
-            "actividad": "certificado prueba",
-            "instrumento": "certificado prueba"
+            "actividad": "Simulaci\u00f3n",
+            "instrumento": "Montaje del circuito"
+        },
+        {
+            "id_modulo": "112",
+            "id_curso": "25",
+            "nombre_modulo": "Programando Arduino",
+            "contenido": "[Descarga e Instalaci\u00f3n del Software Arduino IDE][Entorno de programaci\u00f3n.][Instrucciones b\u00e1sicas.][Variables, Operadores y Estructuras de control.][Archivos Hex.]",
+            "numero": "3",
+            "actividad": "Simulaci\u00f3n",
+            "instrumento": "Montaje del circuito"
+        },
+        {
+            "id_modulo": "113",
+            "id_curso": "25",
+            "nombre_modulo": "Conexi\u00f3n con el mundo f\u00edsico",
+            "contenido": "[Entradas\/Salidas.][Digitales y Anal\u00f3gicas.][Sensores y M\u00f3dulos.][Comunicaci\u00f3n Serial.][Display 7 segmentos y Teclado Matricial.]",
+            "numero": "4",
+            "actividad": "Simulaci\u00f3n",
+            "instrumento": "Montaje del circuito"
+        },
+        {
+            "id_modulo": "114",
+            "id_curso": "25",
+            "nombre_modulo": "Proyecto",
+            "contenido": "[aplicaci\u00f3n de lo aprendido]",
+            "numero": "5",
+            "actividad": "Simulaci\u00f3n",
+            "instrumento": "Montaje del circuito"
         }
     ],
     "contenidos_modulo": {
-        "22": [
-            "certificado prueba"
+        "110": [
+            "Rese\u00f1a Hist\u00f3rica de Arduino",
+            "Definici\u00f3n de Arduino"
         ],
-        "23": [
-            "certificado prueba"
+        "111": [
+            "Microcontroladores",
+            "Placas de Arduino",
+            "Aspectos f\u00edsicos del Arduino (Hardware).",
+            "\u00bfPor qu\u00e9 usar Arduino?"
+        ],
+        "112": [
+            "Descarga e Instalaci\u00f3n del Software Arduino IDE",
+            "Entorno de programaci\u00f3n.",
+            "Instrucciones b\u00e1sicas.",
+            "Variables, Operadores y Estructuras de control.",
+            "Archivos Hex."
+        ],
+        "113": [
+            "Entradas\/Salidas.",
+            "Digitales y Anal\u00f3gicas.",
+            "Sensores y M\u00f3dulos.",
+            "Comunicaci\u00f3n Serial.",
+            "Display 7 segmentos y Teclado Matricial."
+        ],
+        "114": [
+            "aplicaci\u00f3n de lo aprendido"
         ]
     }
 }

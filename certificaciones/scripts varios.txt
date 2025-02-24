@@ -413,9 +413,118 @@ ALTER TABLE cursos.certificaciones
 ADD COLUMN tomo integer,
 ADD COLUMN folio integer;
 
+-- Seleccionar el esquema 'cursos'
+SET search_path TO cursos;
+
 -- Eliminar la restricción de clave foránea existente
-ALTER TABLE cursos.modulos DROP CONSTRAINT cursos_modulos_id_curso_fkey;
+ALTER TABLE cursos.modulos DROP CONSTRAINT IF EXISTS cursos_modulos_id_curso_fkey;
 
 -- Agregar la restricción de clave foránea con ON DELETE CASCADE
 ALTER TABLE cursos.modulos
-    ADD CONSTRAINT cursos_modulos_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES cursos.cursos(id_curso) ON DELETE CASCADE;
+    ADD CONSTRAINT cursos_modulos_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES cursos(id_curso) ON DELETE CASCADE;
+
+-- Eliminar las columnas firma_digital y fecha_finalizacion de la tabla certificaciones
+ALTER TABLE certificaciones
+DROP COLUMN IF EXISTS firma_digital,
+DROP COLUMN IF NOT EXISTS fecha_finalizacion;
+
+-- Crear/Modificar tablas
+CREATE TABLE IF NOT EXISTS usuarios (
+    id serial PRIMARY KEY,
+    nombre character varying(100),
+    apellido character varying(100),
+    correo character varying(100) UNIQUE,
+    password text,
+    cedula character varying(100) UNIQUE,
+    id_rol integer,
+    token character varying(255),
+    confirmado boolean,
+    firma_digital character varying(255) -- Ruta a la imagen de firma digital
+);
+
+CREATE TABLE IF NOT EXISTS cursos (
+    id_curso serial PRIMARY KEY,
+    promotor character varying(255),
+    nombre_curso character varying(255),
+    descripcion text,
+    tiempo_asignado integer,
+    inicio_mes date,
+    tipo_curso character varying(255),
+    autorizacion character varying(255),
+    limite_inscripciones integer,
+    estado boolean,
+    dias_clase text[],
+    horario_inicio time without time zone,
+    horario_fin time without time zone,
+    nivel_curso character varying(255),
+    costo numeric(10,2),
+    conocimientos_previos text,
+    requerimientos_implemento text,
+    desempeno_al_concluir text,
+    horas_cronologicas integer, -- Duración en horas del curso
+    firma_digital boolean DEFAULT false, -- Indicador de firma digital en curso
+    fecha_finalizacion timestamp without time zone -- Fecha de finalización del curso
+);
+
+CREATE TABLE IF NOT EXISTS certificaciones (
+    id_certificacion serial PRIMARY KEY,
+    id_usuario integer,
+    curso_id integer,
+    valor_unico character varying UNIQUE,
+    completado boolean DEFAULT false,
+    nota integer,
+    fecha_inscripcion timestamp without time zone,
+    pago boolean,
+    tomo integer,
+    folio integer
+);
+
+CREATE TABLE IF NOT EXISTS buzon_sugerencias (
+    id serial PRIMARY KEY,
+    nombre character varying(100),
+    apellido character varying(100),
+    correo character varying(100),
+    cedula character varying(100),
+    sugerencia text,
+    fecha_envio timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    id_usuario integer,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id)
+);
+
+CREATE TABLE IF NOT EXISTS cargos (
+    id_cargo serial PRIMARY KEY,
+    nombre_cargo character varying(100) NOT NULL,
+    nombre character varying(100),
+    apellido character varying(100),
+    titulo character varying(50),
+    firma_digital character varying(255),
+    id_usuario integer,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id)
+);
+
+-- Modificar tabla 'usuarios' para agregar nuevos campos
+ALTER TABLE usuarios 
+ADD COLUMN IF NOT EXISTS titulo character varying(50),
+ADD COLUMN IF NOT EXISTS cargo character varying(100);
+
+-- Otorgar permisos sobre el esquema
+GRANT ALL ON SCHEMA cursos TO uptaivir_certificacion2;
+
+-- Otorgar permisos sobre las tablas existentes y nuevas
+GRANT ALL ON ALL TABLES IN SCHEMA cursos TO uptaivir_certificacion2;
+
+-- Otorgar permisos sobre las secuencias
+GRANT ALL ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
+
+-- Otorgar permisos sobre las funciones
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA cursos TO uptaivir_certificacion2;
+
+-- Otorgar permisos sobre los triggers
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (SELECT event_object_table FROM information_schema.triggers WHERE trigger_schema = 'cursos') LOOP
+        EXECUTE 'GRANT ALL ON TABLE cursos.' || r.event_object_table || ' TO uptaivir_certificacion2';
+    END LOOP;
+END $$;

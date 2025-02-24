@@ -20,12 +20,14 @@ class Usuario {
         return $stmt->fetchColumn();
     }
 
-    public function buscarUsuarios($busqueda, $limit = 0, $offset = 0) {
-        $stmt = $this->db->prepare('SELECT id, nombre, cedula, correo, apellido, id_rol FROM cursos.usuarios WHERE nombre LIKE :busqueda OR correo LIKE :busqueda OR apellido LIKE :busqueda OR cedula LIKE :busqueda');
+    public function buscarUsuarios($busqueda, $limit, $offset) {
+        $stmt = $this->db->prepare('SELECT id, nombre, cedula, correo FROM cursos.usuarios WHERE nombre LIKE :busqueda OR correo LIKE :busqueda LIMIT :limit OFFSET :offset');
         $busqueda = "%$busqueda%";
         $stmt->bindParam(':busqueda', $busqueda, PDO::PARAM_STR);
+        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }      
+    }
 }
 ?>

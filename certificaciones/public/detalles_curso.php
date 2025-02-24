@@ -68,6 +68,10 @@ if (is_numeric($id_curso) && $id_curso > 0) {
             echo '<th>Pagado</th>'; // Añadir columna para el estado de pago
         }
         echo '<th><button id="actualizar-tomos-folios" class="btn btn-primary">Actualizar Tomos y Folios</button></th>';
+        echo '<th><button id="marcar-todas" class="btn btn-primary">Marcar/Desmarcar Todas las Casillas</button></th>';
+        echo '<div class="main-content">';
+        // Aquí va el contenido existente
+    echo '<button id="mostrar-bd-info" class="btn btn-primary">Mostrar Info de Base de Datos</button>';
         echo '</tr>';
         foreach ($usuarios as $usuario) {
             $nota = $curso->obtener_nota($id_curso, $usuario['id']);
@@ -197,37 +201,78 @@ $(document).ready(function(){
         });
     });
 
-$(document).ready(function(){
-$('#actualizar-tomos-folios').click(function() {
-    $('.tomo, .folio').each(function() {
-        var id_curso = $(this).data('id-curso');
-        var id_usuario = $(this).data('id-usuario');
-        var tomo = $('.tomo[data-id-usuario="' + id_usuario + '"]').val();
-        var folio = $('.folio[data-id-usuario="' + id_usuario + '"]').val();
+    $('#actualizar-tomos-folios').click(function() {
+        $('.tomo, .folio').each(function() {
+            var id_curso = $(this).data('id-curso');
+            var id_usuario = $(this).data('id-usuario');
+            var tomo = $('.tomo[data-id-usuario="' + id_usuario + '"]').val();
+            var folio = $('.folio[data-id-usuario="' + id_usuario + '"]').val();
 
-        tomo = tomo !== '' ? tomo : null;
-        folio = folio !== '' ? folio : null;
+            tomo = tomo !== '' ? tomo : null;
+            folio = folio !== '' ? folio : null;
 
-        $.ajax({
-            url: '../controllers/actualizar_estado.php',
-            type: 'POST',
-            data: {
-                id_curso: id_curso,
-                id_usuario: id_usuario,
-                tomo: tomo,
-                folio: folio
-            },
-            success: function(response) {
-                console.log(response);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.log(textStatus, errorThrown);
-            }
+            $.ajax({
+                url: '../controllers/actualizar_estado.php',
+                type: 'POST',
+                data: {
+                    id_curso: id_curso,
+                    id_usuario: id_usuario,
+                    tomo: tomo,
+                    folio: folio
+                },
+                success: function(response) {
+                    console.log(response);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown);
+                }
+            });
+        });
+
+        alert('Todos los tomos y folios han sido actualizados');
+    });
+
+    $('#marcar-todas').click(function() {
+        var allChecked = $('.completado').length === $('.completado:checked').length;
+        $('.completado, .pagado').prop('checked', !allChecked);
+
+        $('.completado, .pagado').each(function() {
+            var id_curso = $(this).data('id-curso');
+            var id_usuario = $(this).data('id-usuario');
+            var field = $(this).hasClass('completado') ? 'completado' : 'pagado';
+            var value = $(this).is(':checked') ? 1 : 0;
+
+            $.ajax({
+                url: '../controllers/actualizar_estado.php',
+                type: 'POST',
+                data: {
+                    id_curso: id_curso,
+                    id_usuario: id_usuario,
+                    [field]: value
+                },
+                success: function(response) {
+                    console.log(response);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown);
+                }
+            });
         });
     });
 
-    alert('Todos los tomos y folios han sido actualizados');
-});
-});
+    $('#mostrar-bd-info').click(function() {
+        $.ajax({
+            url: '../controllers/mostrar_bd_info.php',
+            type: 'GET',
+            dataType: 'json', // Asegúrate de que el tipo de dato esperado es 'json'
+            success: function(response) {
+                console.log('Información de la base de datos:');
+                console.log(response);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log('Error:', textStatus, errorThrown);
+            }
+        });
+    });
 });
 </script>

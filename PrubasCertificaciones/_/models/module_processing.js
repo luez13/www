@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const moduleContainer = this.closest('.module-container');
             const newContent = document.createElement('textarea');
             newContent.className = 'form-control';
-            newContent.name = 'contenido_modulo[]';
+            newContent.name = 'contenido[]';
             newContent.required = true;
             moduleContainer.querySelector('.contenidos').appendChild(newContent);
         });
