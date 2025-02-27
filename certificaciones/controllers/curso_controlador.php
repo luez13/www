@@ -14,7 +14,7 @@ $db = new DB();
 // Crear una instancia de la clase Curso
 $curso = new Curso($db);
 
-function validar_curso($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implementos, $desempeño_al_concluir, $contenidos, $horas_cronologicas, /*$fecha_finalizacion,*/ $firma_digital) {
+function validar_curso($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implementos, $desempeño_al_concluir, $contenidos) {
     $campos_vacios = [];
     if (empty($nombre)) $campos_vacios[] = 'nombre';
     if (empty($descripcion)) $campos_vacios[] = 'descripcion';
@@ -30,8 +30,6 @@ function validar_curso($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $ti
     if (empty($requerimientos_implementos)) $campos_vacios[] = 'requerimientos_implementos';
     if (empty($desempeño_al_concluir)) $campos_vacios[] = 'desempeño_al_concluir';
     if (empty($contenidos)) $campos_vacios[] = 'contenidos';
-    if (empty($horas_cronologicas)) $campos_vacios[] = 'horas_cronologicas';
-    /*if (empty($fecha_finalizacion)) $campos_vacios[] = 'fecha_finalizacion';*/
 
     if (!empty($campos_vacios)) {
         file_put_contents('validation_errors.json', json_encode([
@@ -40,6 +38,7 @@ function validar_curso($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $ti
         ], JSON_PRETTY_PRINT));
         return false;
     }
+    return true;
 
     $invalid_fields = [];
 
