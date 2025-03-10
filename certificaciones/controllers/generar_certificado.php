@@ -82,7 +82,7 @@ $footerPath = '../public/assets/img/footer.jpg';
     document.addEventListener('DOMContentLoaded', function() {
         const { jsPDF } = window.jspdf;
 
-        // Función para convertir una fecha en letras
+        // Función para convertir una fecha en el formato deseado
         function convertirFechaSimplificada(fecha) {
             const meses = [
                 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
@@ -101,11 +101,12 @@ $footerPath = '../public/assets/img/footer.jpg';
                 return `Fecha inválida: ${fecha}`;
             }
 
-            const dia = fechaObj.getDate(); // No ajustar el día
-            const mes = meses[fechaObj.getMonth()];
-            const ano = fechaObj.getFullYear();
+            const dia = fechaObj.getDate(); // Día de la fecha
+            const mes = meses[fechaObj.getMonth()]; // Nombre del mes
+            const ano = fechaObj.getFullYear(); // Año
 
-            return `${dia} de ${mes} de ${ano}`;
+            // Devolver el nuevo formato
+            return `a los ${dia} días del mes de ${mes} de ${ano}`;
         }
 
         // Función para calcular la fecha de fin del curso
@@ -351,7 +352,7 @@ $footerPath = '../public/assets/img/footer.jpg';
             }
             // Hacer el texto del promotor en negritas
             pdf.setFont('Cambria', 'bold');
-            pdf.text('Ing. Espindola Yoselin', marginRight, offsetY - imageHeight + 105, { align: 'right' });
+            pdf.text('Ing. Espindola Yoselin', marginRight - 10, offsetY - imageHeight + 105, { align: 'right' });
             pdf.text('Coord. Formación Permanente', marginRight, offsetY - imageHeight + 100, { align: 'right' });
 
             // Volver a la fuente normal si es necesario para otros textos posteriores
@@ -416,8 +417,12 @@ $footerPath = '../public/assets/img/footer.jpg';
             const duracionTexto = 'El programa tuvo una duración de <?php echo $horas_cronologicas; ?> horas cronológicas.';
             const duracionTextoLineas = pdf.splitTextToSize(duracionTexto, 180);
 
-            // Verificar si el curso es taller para mostrar solo la fecha de inicio
-            const cursoTexto = `Curso desarrollado ${'<?php echo $tipo_curso; ?>' === 'taller' ? 'el ' + fechaInicioEnLetras : 'entre el ' + fechaInicioEnLetras + ' y el ' + fechaFinEnLetras}`;
+            // Verificar si el curso es masterclass para mostrar solo la fecha de inicio
+            const cursoTexto = `Curso desarrollado ${
+                '<?php echo $tipo_curso; ?>' === 'masterclass' 
+                    ? 'el ' + fechaInicioEnLetras 
+                    : 'entre el ' + fechaInicioEnLetras + ' y el ' + fechaFinEnLetras
+            }`;
             const cursoTextoLineas = pdf.splitTextToSize(cursoTexto, 180);
 
             // Imprimir las líneas ajustadas con interlineado
