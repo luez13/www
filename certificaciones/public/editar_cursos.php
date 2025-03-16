@@ -125,14 +125,21 @@ foreach ($cursos as $curso) {
     echo '<label for="tipo_curso' . $curso['id_curso'] . '" class="form-label">Tipo de curso</label>';
     echo '<select class="form-select" id="tipo_curso' . $curso['id_curso'] . '" name="tipo_curso" required>';
     echo '<option value="masterclass"' . ($curso['tipo_curso'] == 'masterclass' ? ' selected' : '') . '>Masterclass</option>';
-    echo '<option value="seminario"' . ($curso['tipo_curso'] == 'seminario' ? ' selected' : '') . '>Seminarios</option>';
-    echo '<option value="diplomado"' . ($curso['tipo_curso'] == 'diplomado' ? ' selected' : '') . '>Diplomados</option>';
+    echo '<option value="seminario"' . ($curso['tipo_curso'] == 'seminario' ? ' selected' : '') . '>Seminario</option>';
+    echo '<option value="diplomado"' . ($curso['tipo_curso'] == 'diplomado' ? ' selected' : '') . '>Diplomado</option>';
     echo '<option value="congreso"' . ($curso['tipo_curso'] == 'congreso' ? ' selected' : '') . '>Congreso</option>';
-    echo '<option value="charla"' . ($curso['tipo_curso'] == 'charla' ? ' selected' : '') . '>Charlas</option>';
-    echo '<option value="taller"' . ($curso['tipo_curso'] == 'taller' ? ' selected' : '') . '>taller</option>';
+    echo '<option value="charla"' . ($curso['tipo_curso'] == 'charla' ? ' selected' : '') . '>Charla</option>';
+    echo '<option value="taller"' . ($curso['tipo_curso'] == 'taller' ? ' selected' : '') . '>Taller</option>';
     echo '<option value="curso"' . ($curso['tipo_curso'] == 'curso' ? ' selected' : '') . '>Curso</option>';
+    echo '<option value="masterclass_rectoria"' . ($curso['tipo_curso'] == 'masterclass_rectoria' ? ' selected' : '') . '>Masterclass Rectoría</option>';
+    echo '<option value="seminario_rectoria"' . ($curso['tipo_curso'] == 'seminario_rectoria' ? ' selected' : '') . '>Seminario Rectoría</option>';
+    echo '<option value="diplomado_rectoria"' . ($curso['tipo_curso'] == 'diplomado_rectoria' ? ' selected' : '') . '>Diplomado Rectoría</option>';
+    echo '<option value="congreso_rectoria"' . ($curso['tipo_curso'] == 'congreso_rectoria' ? ' selected' : '') . '>Congreso Rectoría</option>';
+    echo '<option value="charla_rectoria"' . ($curso['tipo_curso'] == 'charla_rectoria' ? ' selected' : '') . '>Charla Rectoría</option>';
+    echo '<option value="taller_rectoria"' . ($curso['tipo_curso'] == 'taller_rectoria' ? ' selected' : '') . '>Taller Rectoría</option>';
+    echo '<option value="curso_rectoria"' . ($curso['tipo_curso'] == 'curso_rectoria' ? ' selected' : '') . '>Curso Rectoría</option>';
     echo '</select>';
-    echo '</div>';
+    echo '</div>';    
     
     echo '<div class="mb-3">';
     echo '<label for="limite_inscripciones' . $curso['id_curso'] . '" class="form-label">Límite de inscripción</label>';

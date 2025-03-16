@@ -18,12 +18,22 @@ $estado_texto = $estado ? 'Abiertos' : 'Cerrados';
 // Consultar la base de datos para obtener los cursos disponibles
 try {
     if ($tipo_curso && $estado !== null) {
-        $stmt = $db->prepare('SELECT * FROM cursos.cursos WHERE tipo_curso = :tipo_curso AND estado = :estado');
-        $stmt->execute(['tipo_curso' => $tipo_curso, 'estado' => $estado]);
+        // Crear una lista de opciones con la variante "_rectoría"
+        $tipo_cursos = [$tipo_curso, $tipo_curso . '_rectoria'];
+
+        // Ajustar la consulta SQL para incluir ambas opciones
+        $stmt = $db->prepare('SELECT * FROM cursos.cursos WHERE tipo_curso IN (:tipo_curso1, :tipo_curso2) AND estado = :estado');
+        $stmt->execute([
+            'tipo_curso1' => $tipo_cursos[0], 
+            'tipo_curso2' => $tipo_cursos[1], 
+            'estado' => $estado
+        ]);
     } else {
+        // Si no se especifica un tipo de curso, filtrar solo por estado
         $stmt = $db->prepare('SELECT * FROM cursos.cursos WHERE estado = :estado');
         $stmt->execute(['estado' => true]);
     }
+
     $cursos = $stmt->fetchAll();
 
     echo '<div class="container mt-4">';

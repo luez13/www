@@ -64,14 +64,14 @@ try {
                 <a class="collapse-item" href="#" onclick="loadCategory('diplomado', true)">Diplomado</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('congreso', true)">Congreso</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('charla', true)">Charla</a>
-                <h6 class="collapse-header">Rutas Cerradas:</h6>
+                <!-- <h6 class="collapse-header">Rutas Cerradas:</h6>
                 <a class="collapse-item" href="#" onclick="loadCategory('masterclass', false)">MasterClass</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('taller', false)">taller</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('curso', false)">Cursos</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('seminario', false)">Seminario</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('diplomado', false)">Diplomado</a>
                 <a class="collapse-item" href="#" onclick="loadCategory('congreso', false)">Congreso</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('charla', false)">Charla</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('charla', false)">Charla</a> -->
             </div>
         </div>
     </li>

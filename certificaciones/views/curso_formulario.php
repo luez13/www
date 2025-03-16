@@ -38,6 +38,13 @@ echo '<option value="congreso"' . ($curso_editar['tipo_curso'] == 'congreso' ? '
 echo '<option value="charla"' . ($curso_editar['tipo_curso'] == 'charla' ? ' selected' : '') . '>Charla</option>';
 echo '<option value="taller"' . ($curso_editar['tipo_curso'] == 'taller' ? ' selected' : '') . '>taller</option>';
 echo '<option value="curso"' . ($curso_editar['tipo_curso'] == 'curso' ? ' selected' : '') . '>Curso</option>';
+echo '<option value="masterclass_rectoria"' . ($curso_editar['tipo_curso'] == 'masterclass_rectoria' ? ' selected' : '') . '>Masterclass Rectoría</option>';
+echo '<option value="seminario_rectoria"' . ($curso_editar['tipo_curso'] == 'seminario_rectoria' ? ' selected' : '') . '>Seminario Rectoría</option>';
+echo '<option value="diplomado_rectoria"' . ($curso_editar['tipo_curso'] == 'diplomado_rectoria' ? ' selected' : '') . '>Diplomado Rectoría</option>';
+echo '<option value="congreso_rectoria"' . ($curso_editar['tipo_curso'] == 'congreso_rectoria' ? ' selected' : '') . '>Congreso Rectoría</option>';
+echo '<option value="charla_rectoria"' . ($curso_editar['tipo_curso'] == 'charla_rectoria' ? ' selected' : '') . '>Charla Rectoría</option>';
+echo '<option value="taller_rectoria"' . ($curso_editar['tipo_curso'] == 'taller_rectoria' ? ' selected' : '') . '>Taller Rectoría</option>';
+echo '<option value="curso_rectoria"' . ($curso_editar['tipo_curso'] == 'curso_rectoria' ? ' selected' : '') . '>Curso Rectoría</option>';
 echo '</select></p>';
 echo '<p>Límite de inscripciones: <input type="number" name="limite_inscripciones" value="' . htmlspecialchars($curso_editar['limite_inscripciones']) . '" min="1" required></p>';
 echo '<p>Días de clase:</p>';
