@@ -248,7 +248,7 @@ $footerPath = '../public/assets/img/footer.jpg';
             // Verificar si el curso está aprobado y si tiene nota
             const esAprobado = '<?php echo ($paso === "aprobado" && is_null($nota)) ? false : true; ?>';
             const textoAntesDePaso = '<?php echo ($paso === "aprobado" && is_null($nota)) ? "Por su " : "Por haber "; ?>';
-            const textoAntesDeCurso = '  en <?php echo $articulo_tipo_curso; ?> <?php echo $tipo_curso; ?> de ';
+            const textoAntesDeCurso = '  en <?php echo $articulo_tipo_curso; ?> <?php echo str_replace("_rectoria", "", $tipo_curso); ?> de '; // Ajuste realizado
             const textoDespuesDeCurso = '.';
             const pasoUppercase = '<?php echo mb_strtoupper($paso === "aprobado" && is_null($nota) ? "PARTICIPACION" : $paso); ?>';
             const nombreCursoUppercase = '<?php echo mb_strtoupper($nombre_curso); ?>';
@@ -350,25 +350,22 @@ $footerPath = '../public/assets/img/footer.jpg';
             const offsetY = footerPositionY - 45; // Ajuste para estar solo un poco por encima del pie de página
 
             if (tipoCurso.includes('_rectoria')) {
-                // Caso "_rectoría": rector y secretario
+                // Caso "_rectoría": facilitador y coordinador
                 if (firmaDigitalCurso) {
-                    // Mostrar la firma digital si firmaDigitalCurso es verdadero
-                    pdf.addImage('../public/assets/img/secretario.png', 'PNG', marginLeft + 20, offsetY - imageHeight + 60, imageWidth, imageHeight);
+                    pdf.addImage('../public/assets/img/coord.png', 'PNG', marginRight - imageWidth / 2 - 33, offsetY - imageHeight + 60, imageWidth, imageHeight);
+                                // Imagen adicional (sello) a la derecha con su tamaño original
+                                pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 150, offsetY - imageHeight + 60, imageWidth, imageHeight); // Sello original
                 }
                 pdf.setFont('Cambria', 'bold');
-                pdf.text('Secretaría General', marginLeft + 30, offsetY - imageHeight + 100, { align: 'left' }); // Texto del secretario
-                pdf.text('Secretario Juan Gómez', marginLeft + 25, offsetY - imageHeight + 105, { align: 'left' });
+                pdf.text('Coord. Formación Permanente', marginRight, offsetY - imageHeight + 100, { align: 'right' }); // Texto de la coordinadora
+                pdf.text('Ing. Espindola Yoselin', marginRight - 10, offsetY - imageHeight + 105, { align: 'right' });
 
-                if (firmaDigitalCurso) {
-                    pdf.addImage('../public/assets/img/rector.png', 'PNG', marginRight - imageWidth / 2 - 38, offsetY - imageHeight + 60, imageWidth, imageHeight);
-                }
-                pdf.setFont('Cambria', 'bold');
-                pdf.text('Rectoría General', marginRight - 20, offsetY - imageHeight + 100, { align: 'right' }); // Texto del rector
-                pdf.text('Rector Richard Perez', marginRight - 15, offsetY - imageHeight + 105, { align: 'right' });
             } else {
                 // Caso estándar para la coordinadora
                 if (firmaDigitalCurso) {
                     pdf.addImage('../public/assets/img/coord.png', 'PNG', marginRight - imageWidth / 2 - 33, offsetY - imageHeight + 60, imageWidth, imageHeight);
+                                // Imagen adicional (sello) a la derecha con su tamaño original
+                                pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 150, offsetY - imageHeight + 60, imageWidth, imageHeight); // Sello original
                 }
                 pdf.setFont('Cambria', 'bold');
                 pdf.text('Coord. Formación Permanente', marginRight, offsetY - imageHeight + 100, { align: 'right' }); // Texto de la coordinadora
@@ -377,9 +374,6 @@ $footerPath = '../public/assets/img/footer.jpg';
 
             // Volver a la fuente normal si es necesario para otros textos posteriores
             pdf.setFont('Cambria', 'normal');
-
-            // Imagen adicional (sello) a la derecha con su tamaño original
-            pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 150, offsetY - imageHeight + 60, imageWidth, imageHeight); // Sello original
 
             // Agregar imagen del pie de página
             pdf.addImage('<?php echo $footerPath; ?>', 'JPEG', 10, footerPositionY, pdf.internal.pageSize.width - 20, 0);
@@ -449,7 +443,7 @@ $footerPath = '../public/assets/img/footer.jpg';
             const interlineado = 5; // Ajustar el interlineado a su valor original
 
             // Ajustar la posición de inicio del texto para subirlo 10 unidades
-            let yPos = 164;
+            let yPos = 152;
             pdf.text(registroTextoLineas, 10, yPos);
             yPos += (registroTextoLineas.length * interlineado);
 
@@ -476,8 +470,8 @@ const tieneFirmaDigital = firmaDigitalCurso && '<?php echo $firma_digital; ?>';
 let yPosCoordinadora = esRectoria ? pdf.internal.pageSize.height - 80 : 172;
 let yPosPromotor = esRectoria ? pdf.internal.pageSize.height - 80 : 172;
 
-const coordinadoraText = 'Ing. Espindola Yoselin';
-const coordinadoraCargoText = 'Coord. Formación Permanente';
+const coordinadoraText = 'Msc. Emilio Losada';
+const coordinadoraCargoText = 'Director de PNF en electrónica';
 const promotorText = '<?php echo $promotor; ?>';
 const promotorCargoText = 'Facilitador';
 
@@ -492,14 +486,14 @@ if (esRectoria && tieneFirmaDigital) {
     const img = new Image();
     img.src = '<?php echo $firma_digital; ?>';
     img.onload = function () {
-        pdf.addImage('../public/assets/img/coord.png', 'PNG', marginRight - imageWidth / 2 - 73, offsetY - imageHeight + 85, imageWidth, imageHeight);
-        pdf.addImage(img, 'PNG', centerXPromotor - 15, yPosPromotor + 48, 30, 30); // Firma promotor
+        pdf.addImage('../public/assets/img/EmilioLozada.png', 'PNG', marginRight - 80, offsetY + 34, 30, 30); // Cambiado a 30x30
+        pdf.addImage(img, 'PNG', centerXPromotor - 15, yPosPromotor + 44, 30, 30); // Firma promotor
 
         pdf.setFont('Cambria', 'bold');
-        pdf.text(coordinadoraText, centerXCoordinadora, yPosCoordinadora +72, { align: 'center' });
-        pdf.text(coordinadoraCargoText, centerXCoordinadora, yPosCoordinadora + 76, { align: 'center' });
-        pdf.text(promotorText, centerXPromotor, yPosPromotor +72, { align: 'center' });
-        pdf.text(promotorCargoText, centerXPromotor, yPosPromotor + 76, { align: 'center' });
+        pdf.text(coordinadoraText, centerXCoordinadora, yPosCoordinadora +68, { align: 'center' });
+        pdf.text(coordinadoraCargoText, centerXCoordinadora, yPosCoordinadora + 72, { align: 'center' });
+        pdf.text(promotorText, centerXPromotor, yPosPromotor +68, { align: 'center' });
+        pdf.text(promotorCargoText, centerXPromotor, yPosPromotor + 72, { align: 'center' });
 
         const pdfOutput = pdf.output('blob');
         const blobUrl = URL.createObjectURL(pdfOutput);
@@ -508,10 +502,10 @@ if (esRectoria && tieneFirmaDigital) {
 } else if (esRectoria && !tieneFirmaDigital) {
     // Rectoría sin Firma Digital
     pdf.setFont('Cambria', 'bold');
-    pdf.text(coordinadoraText, centerXCoordinadora, yPosCoordinadora +72, { align: 'center' });
-    pdf.text(coordinadoraCargoText, centerXCoordinadora, yPosCoordinadora + 76, { align: 'center' });
-    pdf.text(promotorText, centerXPromotor, yPosPromotor +72, { align: 'center' });
-    pdf.text(promotorCargoText, centerXPromotor, yPosPromotor + 76, { align: 'center' });
+    pdf.text(coordinadoraText, centerXCoordinadora, yPosCoordinadora +68, { align: 'center' });
+    pdf.text(coordinadoraCargoText, centerXCoordinadora, yPosCoordinadora + 72, { align: 'center' });
+    pdf.text(promotorText, centerXPromotor, yPosPromotor +68, { align: 'center' });
+    pdf.text(promotorCargoText, centerXPromotor, yPosPromotor + 72, { align: 'center' });
 
     const pdfOutput = pdf.output('blob');
     const blobUrl = URL.createObjectURL(pdfOutput);
