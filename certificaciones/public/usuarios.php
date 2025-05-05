@@ -9,11 +9,11 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = 10;
 $offset = ($page - 1) * $limit;
 
-// Campo de búsqueda y botón
-echo '<div class="input-group mb-3">';
-echo '<input type="text" id="searchInput" class="form-control" placeholder="Buscar por cédula, nombre o apellido">';
-echo '<button class="btn btn-primary" type="button" onclick="searchUsers()">Buscar</button>';
-echo '</div>';
+// // Campo de búsqueda y botón
+// echo '<div class="input-group mb-3">';
+// echo '<input type="text" id="searchInput" class="form-control" placeholder="Buscar por cédula, nombre o apellido">';
+// echo '<button class="btn btn-primary" type="button" onclick="searchUsers()">Buscar</button>';
+// echo '</div>';
 // Contenedor para los resultados de la búsqueda
 echo '<div id="searchResults" class="accordion" id="accordionUsuarios"></div>';
 
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
         echo '<div class="accordion-item list-group-item">'; // Añadir la clase list-group-item aquí
         echo '<h2 class="accordion-header" id="heading' . $index . '">';
         echo '<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' . $index . '" aria-expanded="false" aria-controls="collapse' . $index . '">';
-        echo 'Editar usuario ' . $usuario['nombre'];
+        echo 'Editar usuario ' . $usuario['nombre'] . ' ' . $usuario['cedula'];
         echo '</button>';
         echo '</h2>';
         echo '<div id="collapse' . $index . '" class="accordion-collapse collapse" aria-labelledby="heading' . $index . '" data-bs-parent="#accordionUsuarios">';
@@ -103,7 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'editar_perfil
         }
         echo '</select>';
         echo '</div>';
-        echo '<input type="submit" class="btn btn-primary" value="Guardar cambios">';
+        echo '<button type="submit" class="btn btn-primary" name="action" value="editar_perfil">Editar perfil</button>';
+        echo '<button type="submit" class="btn btn-danger" name="action" value="eliminar_usuario">Eliminar usuario</button>';                
         echo '</form>';
         echo '</div>'; // Cerrar accordion-body
         echo '</div>'; // Cerrar accordion-collapse
@@ -192,20 +193,41 @@ include '../views/footer.php';
 <script>
 // Función para manejar el envío de formularios
 function handleFormSubmission() {
-    $('.editar-usuario-form').submit(function(event) {
+    $('.editar-usuario-form button[type="submit"]').click(function(event) {
         event.preventDefault();
-        var form = $(this);
-        var formData = form.serialize();
+        var form = $(this).closest('form'); // Encuentra el formulario
+        var actionValue = $(this).val(); // Obtiene el valor del botón
+
+        // Si el usuario quiere eliminar, mostrar la confirmación
+        if (actionValue === 'eliminar_usuario') {
+            var confirmacion = confirm("¿Desea eliminar? Esta acción no tiene vuelta atrás.");
+            if (!confirmacion) {
+                return; // Si el usuario cancela, no se envía el formulario
+            }
+        }
+
+        // Agregar un campo oculto para asegurar que 'action' se envíe correctamente
+        var hiddenField = $('<input>').attr({
+            type: 'hidden',
+            name: 'action',
+            value: actionValue
+        });
+
+        form.append(hiddenField); // Se añade al formulario
+
+        var formData = form.serialize(); // Serializa correctamente incluyendo 'action'
 
         $.ajax({
             url: form.attr('action'),
             type: 'POST',
             data: formData,
             success: function(response) {
-                if (response.includes('El usuario se ha editado correctamente')) {
+                if (actionValue === 'editar_perfil' && response.includes('El usuario se ha editado correctamente')) {
                     alert('El usuario se ha editado correctamente');
+                } else if (actionValue === 'eliminar_usuario' && response.includes('El usuario se ha eliminado correctamente')) {
+                    alert('El usuario se ha eliminado correctamente');
                 } else {
-                    alert('Hubo un error al editar el usuario: ' + response);
+                    alert('Hubo un error: ' + response);
                 }
             },
             error: function() {

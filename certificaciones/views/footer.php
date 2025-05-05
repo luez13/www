@@ -1,5 +1,5 @@
 <!-- Formulario flotante de sugerencias -->
-<div class="suggestion-form-container position-fixed bottom-0 end-0 m-3">
+<div class="suggestion-form-container position-fixed bottom-0 end-0 m-3" style="z-index: 1050;">
     <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#suggestionFormContainer" aria-expanded="false" aria-controls="suggestionFormContainer">
         Sugerencias
     </button>
@@ -34,6 +34,11 @@
         </div>
     </div>
 </div>
+<footer class="footer mt-auto py-3 bg-light">
+    <div class="container" bis_skin_checked="1">
+        <span class="text-muted">© 2025 Sistema de gestión de cursos y certificaciones</span>
+    </div>
+</footer>
 
 <!-- Bootstrap core JavaScript-->
 <script src="../public/assets/vendor/jquery/jquery.min.js"></script>

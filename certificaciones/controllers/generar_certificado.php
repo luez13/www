@@ -21,7 +21,7 @@ if (isset($_GET['valor_unico'])) {
     $paso = $datos['completado'] ? "aprobado" : "no aprobado";
     $fecha = $datos['fecha_inscripcion']; // Mantener formato original para la conversión en JS
     $inicio_mes = $datos['inicio_mes']; // Fecha de inicio del curso
-/*    $fechaFinalizacion = $datos['fecha_finalizacion']; // Fecha de finalización del curso*/
+    $fechaFinalizacion = $datos['fecha_finalizacion']; // Fecha de finalización del curso
     $tomo = $datos['tomo'];
     $folio = $datos['folio'];
     $nota = $datos['nota'];
@@ -107,7 +107,7 @@ $footerPath = '../public/assets/img/footer.jpg';
             const ano = fechaObj.getFullYear(); // Año
 
             // Devolver el nuevo formato
-            return `a los ${dia} días del mes de ${mes} de ${ano}`;
+            return `los ${dia} días del mes de ${mes} de ${ano}`;
         }
 
         // Función para calcular la fecha de fin del curso
@@ -183,9 +183,8 @@ $footerPath = '../public/assets/img/footer.jpg';
         const tiempoAsignado = '<?php echo $numeroDeSemanas; ?>';
 
         // Calcular la fecha de fin del curso
-        const fechaFinObj = calcularFechaFin('<?php echo $inicio_mes; ?>', tiempoAsignado, diasClaseArray);
         const fechaInicioEnLetras = convertirFechaSimplificada('<?php echo $inicio_mes; ?>');
-        const fechaFinEnLetras = convertirFechaSimplificada(fechaFinObj);
+        const fechaFinEnLetras = convertirFechaSimplificada('<?php echo $fechaFinalizacion; ?>');
 
         // Registrar fuentes personalizadas
         jsPDF.API.events.push(['addFonts', function() {
@@ -201,9 +200,7 @@ $footerPath = '../public/assets/img/footer.jpg';
 
             // Función para capitalizar la primera letra de cada palabra
             function capitalizeWords(str) {
-                return str.replace(/(?:^|\s)\S/g, function (char) {
-                    return char.toUpperCase();
-                });
+                return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
             }
             const firmaDigitalCurso = <?php echo json_encode($firma_digital_curso); ?>;
             
@@ -230,7 +227,7 @@ $footerPath = '../public/assets/img/footer.jpg';
             pdf.text('Otorga el presente certificado al ciudadano (a):', pdf.internal.pageSize.width / 2, 80, { align: 'center' });
 
             // Usar la función capitalizeWords para capitalizar el nombre del estudiante
-            const nombreCompleto = '<?php echo $nombreEstudiante .' ' . $apellido_estudiante; ?>';
+            const nombreCompleto = "<?php echo $nombreEstudiante . " " . $apellido_estudiante; ?>";
             const nombreCapitalizado = capitalizeWords(nombreCompleto);
 
             // Usar la fuente EdwardianScript para el nombre del estudiante en cursiva y rojo
@@ -435,7 +432,7 @@ $footerPath = '../public/assets/img/footer.jpg';
             const cursoTexto = `Curso desarrollado ${
                 '<?php echo $tipo_curso; ?>' === 'masterclass' 
                     ? 'el ' + fechaInicioEnLetras 
-                    : 'entre el ' + fechaInicioEnLetras + ' y el ' + fechaFinEnLetras
+                    : 'entre ' + fechaInicioEnLetras + ' y ' + fechaFinEnLetras
             }`;
             const cursoTextoLineas = pdf.splitTextToSize(cursoTexto, 180);
 

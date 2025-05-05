@@ -111,10 +111,10 @@ foreach ($cursos as $curso) {
     echo '<input type="number" class="form-control" id="horas_cronologicas' . $curso['id_curso'] . '" name="horas_cronologicas" value="' . $curso['horas_cronologicas'] . '" step="0.1" required>';
     echo '</div>';
 
-    // echo '<div class="mb-3">';
-    // echo '<label for="fecha_finalizacion' . $curso['id_curso'] . '" class="form-label">Fecha de finalización</label>';
-    // echo '<input type="datetime-local" class="form-control" id="fecha_finalizacion' . $curso['id_curso'] . '" name="fecha_finalizacion" value="' . $curso['fecha_finalizacion'] . '" required>';
-    // echo '</div>';
+    echo '<div class="mb-3">';
+    echo '<label for="fecha_finalizacion' . $curso['id_curso'] . '" class="form-label">Fecha de finalización</label>';
+    echo '<input type="datetime-local" class="form-control" id="fecha_finalizacion' . $curso['id_curso'] . '" name="fecha_finalizacion" value="' . $curso['fecha_finalizacion'] . '" required>';
+    echo '</div>';
 
     echo '<div class="mb-3 d-flex align-items-center">';
     echo '<input type="checkbox" class="form-check-input me-2" id="firma_digital' . $curso['id_curso'] . '" name="firma_digital" ' . ($curso['firma_digital'] ? 'checked' : '') . '>';

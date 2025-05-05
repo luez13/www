@@ -123,22 +123,23 @@ foreach ($cursos as $curso) {
     echo '<td>';
     echo '<div class="btn-group-vertical" role="group">';
     echo '<button class="btn btn-secondary mb-1" onclick="loadPage(\'../views/curso_formulario.php\', {id_curso: ' . $curso['id_curso'] . '})">Editar</button>';
-
+    
     echo '<button class="btn btn-dark mb-1" onclick="loadPage(\'../public/detalles_curso.php\', {id: ' . $curso['id_curso'] . '})">Detalles del curso</button>';
-
+    
     $estado = $curso['estado'] ? 'Finalizar' : 'Iniciar';
     $action = $curso['estado'] ? 'finalizar' : 'iniciar';
     echo '<button class="btn btn-success mb-1" onclick="cambiarEstadoCurso(' . $curso['id_curso'] . ', \'' . $action . '\')">' . $estado . '</button>';
-
+    
     // Mostrar el botón de eliminar solo si no hay inscritos o aprobados
-
-        echo '<button class="btn btn-danger" onclick="eliminarCurso(' . $curso['id_curso'] . ')">Eliminar</button>';
-
-
+    echo '<button class="btn btn-danger" onclick="eliminarCurso(' . $curso['id_curso'] . ')">Eliminar</button>';
+    
     // Botón para mostrar/ocultar módulos
     echo '<button class="btn btn-info mb-1" data-bs-toggle="collapse" data-bs-target="#modulos-' . $curso['id_curso'] . '">Módulos</button>';
-
-    echo '</div>';
+    
+    // Botón para generar constancia
+    echo '<button class="btn btn-warning mb-1" onclick="generarConstancia(' . $curso['id_curso'] . ')">Generar constancia</button>';
+    
+    echo '</div>';    
     echo '</td>';
     echo '</tr>';
 
@@ -219,6 +220,9 @@ include '../views/footer.php';
         });
     };
 
+function generarConstancia(idCurso) {
+    window.open(`../controllers/generar_constancia.php?id_curso=${idCurso}`, '_blank');
+}
     function cambiarEstadoCurso(id_curso, action) {
         $.ajax({
             url: '../controllers/curso_controlador.php',

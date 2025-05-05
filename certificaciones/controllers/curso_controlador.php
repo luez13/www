@@ -150,7 +150,7 @@ switch ($action) {
             $requerimientos_implemento = isset($_POST['requerimientos_implementos']) ? $_POST['requerimientos_implementos'] : null;
             $desempeño_al_concluir = isset($_POST['desempeño_al_concluir']) ? $_POST['desempeño_al_concluir'] : null;
             $horas_cronologicas = $_POST['horas_cronologicas'];
-           /* $fecha_finalizacion = $_POST['fecha_finalizacion'];*/
+            $fecha_finalizacion = $_POST['fecha_finalizacion'];
             $firma_digital = isset($_POST['firma_digital']) ? true : false;
             $autorizacion = $_SESSION['user_id']; // Capturando el id del usuario actual para la autorización        
         

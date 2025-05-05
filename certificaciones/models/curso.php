@@ -342,7 +342,7 @@ public function obtener_datos_certificacion($valor_unico) {
                c.nivel_curso, c.costo,
                c.conocimientos_previos, c.requerimientos_implemento,
                c.desempeno_al_concluir, c.horas_cronologicas, c.firma_digital,
-               c.promotor,
+               c.promotor, c.fecha_finalizacion,
                u.nombre AS nombre_estudiante, u.apellido AS apellido_estudiante, u.cedula,
                cert.fecha_inscripcion, cert.tomo, cert.folio,
                cert.nota, cert.completado
@@ -353,6 +353,25 @@ public function obtener_datos_certificacion($valor_unico) {
     ');
     $stmt->execute(['valor_unico' => $valor_unico]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+public function obtener_datos_constancia_por_curso($id_curso) {
+    $stmt = $this->db->prepare('
+        SELECT c.id_curso, c.nombre_curso, c.descripcion, c.tipo_curso,
+               c.tiempo_asignado, c.inicio_mes, c.estado, c.dias_clase,
+               c.horario_inicio, c.horario_fin, c.nivel_curso, c.costo,
+               c.conocimientos_previos, c.requerimientos_implemento,
+               c.desempeno_al_concluir, c.horas_cronologicas, c.fecha_finalizacion, c.firma_digital,
+               c.promotor,
+               u.nombre AS nombre_promotor, u.apellido AS apellido_promotor, u.correo, u.cedula,
+               m.id_modulo, m.nombre_modulo
+        FROM cursos.cursos AS c
+        JOIN cursos.usuarios AS u ON c.promotor = u.id
+        LEFT JOIN cursos.modulos AS m ON c.id_curso = m.id_curso
+        WHERE c.id_curso = :id_curso
+    ');
+    $stmt->execute(['id_curso' => $id_curso]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 public function obtener_tomo($id_curso, $id_usuario) {
