@@ -88,7 +88,18 @@ try {
     $total = $stmt->fetchColumn();
     $total_pages = ceil($total / $limit);
 
-    $stmt = $db->prepare('SELECT id, nombre, cedula, correo FROM cursos.usuarios LIMIT :limit OFFSET :offset');
+    // Nueva consulta que ordena primero los inscritos en el curso
+    $stmt = $db->prepare("
+        SELECT u.id, u.nombre, u.cedula, u.correo, 
+               CASE WHEN c.id_usuario IS NOT NULL THEN 1 ELSE 0 END AS inscrito
+        FROM cursos.usuarios u
+        LEFT JOIN cursos.certificaciones c 
+            ON u.id = c.id_usuario AND c.curso_id = :id_curso
+        ORDER BY inscrito DESC, u.nombre ASC
+        LIMIT :limit OFFSET :offset
+    ");
+    
+    $stmt->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
     $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
@@ -116,7 +127,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso
     if ($current_page <= 3) {
         $end_page = min(5, $total_pages);
     }
-    if ($current_page >= $total_pages - 2) {
+    if ($current_page >= $total_pages - 2) { 
         $start_page = max(1, $total_pages - 4);
     }
 
@@ -139,16 +150,16 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso
 
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <title>Usuarios Registrados</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-</head>
 <body>
 <div class="container mt-4" id="page-content">
     <h3>Usuarios Registrados para el curso: <?php echo htmlspecialchars($curso['nombre_curso']) . " (ID: " . htmlspecialchars($id_curso) . ")"; ?></h3>
+    
+    <?php if (!empty($usuarios)): ?>
+    <button type="button" class="btn btn-info" onclick="loadPage('../controllers/generar_certificados_lote.php', { curso_id: <?= htmlspecialchars($id_curso); ?> })">
+        Ver/Descargar Todos los Certificados
+    </button>
+    <?php endif; ?>
+
     <?php if ($message): ?>
         <div class="alert alert-<?= $type; ?>" role="alert">
             <?= $message; ?>
@@ -165,15 +176,23 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso
                 $stmt = $db->prepare('SELECT * FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
                 $stmt->execute(['id_usuario' => $usuario['id'], 'curso_id' => $id_curso]);
                 $inscripcion = $stmt->fetch();
+
+                $stmt = $db->prepare('SELECT valor_unico FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
+                $stmt->execute(['id_usuario' => $usuario['id'], 'curso_id' => $id_curso]);
+                $certificado = $stmt->fetch(PDO::FETCH_ASSOC);
+
                 ?>
                 <?php if ($inscripcion): ?>
                     <form id="inscripcionForm-<?= htmlspecialchars($usuario['id']); ?>" action="../controllers/buscar.php" method="post">
-                    <input type="hidden" name="action" value="cancelar_inscripcion">
+                        <input type="hidden" name="action" value="cancelar_inscripcion">
                         <input type="hidden" name="id_usuario" value="<?= htmlspecialchars($usuario['id']); ?>">
                         <input type="hidden" name="curso_id" value="<?= htmlspecialchars($id_curso); ?>">
                         <input type="hidden" name="page" value="<?= htmlspecialchars($page); ?>">
                         <button type="button" class="btn btn-danger" onclick="inscribirUsuario(<?= htmlspecialchars($usuario['id']); ?>)">Cancelar Inscripción</button>
                     </form>
+                    <?php if ($certificado): ?>
+                        <a href="../controllers/generar_certificado.php?valor_unico=<?= htmlspecialchars($certificado['valor_unico']); ?>" class="btn btn-success" target="_blank">Ver Certificado Digital</a>
+                    <?php endif; ?>
                 <?php else: ?>
                     <form id="inscripcionForm-<?= htmlspecialchars($usuario['id']); ?>" action="../controllers/buscar.php" method="post">
                         <input type="hidden" name="action" value="inscribirse">
@@ -183,6 +202,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso
                         <button type="button" class="btn btn-primary" onclick="inscribirUsuario(<?= htmlspecialchars($usuario['id']); ?>)">Agregar al Curso</button>
                     </form>
                 <?php endif; ?>
+
             </div>
         <?php endforeach; ?>
         </div>

@@ -73,12 +73,12 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
         }
     }
 
-    public function editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeno_al_concluir, $horas_cronologicas, /*$fecha_finalizacion,*/ $firma_digital, $autorizacion = null) {
+    public function editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeno_al_concluir, $horas_cronologicas, $fecha_finalizacion, $firma_digital, $autorizacion = null) {
         try {
             // Convertir firma_digital a una representación adecuada para SQL
             $firma_digital = $firma_digital ? 'true' : 'false';
     
-            $sql = 'UPDATE cursos.cursos SET nombre_curso = :nombre_curso, descripcion = :descripcion, tiempo_asignado = :tiempo_asignado, inicio_mes = :inicio_mes, tipo_curso = :tipo_curso, limite_inscripciones = :limite_inscripciones, dias_clase = :dias_clase, horario_inicio = :horario_inicio, horario_fin = :horario_fin, nivel_curso = :nivel_curso, costo = :costo, conocimientos_previos = :conocimientos_previos, requerimientos_implemento = :requerimientos_implemento, desempeno_al_concluir = :desempeno_al_concluir, horas_cronologicas = :horas_cronologicas, /*fecha_finalizacion = :fecha_finalizacion,*/ firma_digital = :firma_digital';
+            $sql = 'UPDATE cursos.cursos SET nombre_curso = :nombre_curso, descripcion = :descripcion, tiempo_asignado = :tiempo_asignado, inicio_mes = :inicio_mes, tipo_curso = :tipo_curso, limite_inscripciones = :limite_inscripciones, dias_clase = :dias_clase, horario_inicio = :horario_inicio, horario_fin = :horario_fin, nivel_curso = :nivel_curso, costo = :costo, conocimientos_previos = :conocimientos_previos, requerimientos_implemento = :requerimientos_implemento, desempeno_al_concluir = :desempeno_al_concluir, horas_cronologicas = :horas_cronologicas, fecha_finalizacion = :fecha_finalizacion, firma_digital = :firma_digital';
             $params = [
                 'nombre_curso' => $nombre_curso,
                 'descripcion' => $descripcion,
@@ -95,7 +95,7 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
                 'requerimientos_implemento' => $requerimientos_implemento,
                 'desempeno_al_concluir' => $desempeno_al_concluir,
                 'horas_cronologicas' => $horas_cronologicas,
-                /*'fecha_finalizacion' => $fecha_finalizacion,*/
+                'fecha_finalizacion' => $fecha_finalizacion,
                 'firma_digital' => $firma_digital,
                 'id_curso' => $id_curso
             ];
@@ -144,7 +144,7 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
                 'requerimientos_implemento' => $requerimientos_implemento,
                 'desempeno_al_concluir' => $desempeno_al_concluir,
                 'horas_cronologicas' => $horas_cronologicas,
-                /*'fecha_finalizacion' => $fecha_finalizacion,*/
+                'fecha_finalizacion' => $fecha_finalizacion,
                 'firma_digital' => $firma_digital,
                 'id_curso' => $id_curso,
                 'autorizacion' => $autorizacion

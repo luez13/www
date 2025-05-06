@@ -250,7 +250,7 @@ foreach ($cursos as $curso) {
 
     echo '<div class="d-flex">';
     echo '<button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#detallesCursoModal' . $curso['id_curso'] . '">Ver Detalles del Curso</button>';
-    echo '<button type="button" class="btn btn-success" onclick="loadPage(\'../controllers/buscar.php\', { id_curso: ' . $curso['id_curso'] . ' })">Agregar Usuarios</button>';
+    echo '<button type="button" class="btn btn-success" onclick="loadPage(\'../controllers/buscar.php\', { id_curso: ' . $curso['id_curso'] . ' })">Agregar usuarios y ver certificados del curso</button>';
     echo '<input type="submit" class="btn btn-primary" value="Guardar cambios">';    
     echo '</div>';
     echo '</form>';

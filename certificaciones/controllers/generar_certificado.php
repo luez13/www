@@ -518,9 +518,12 @@ if (esRectoria && tieneFirmaDigital) {
         pdf.text(promotorText, centerXPromotor + 35, yPosPromotor, { align: 'center' });
         pdf.text(promotorCargoText, centerXPromotor + 35, yPosPromotor + 8, { align: 'center' });
 
-        const pdfOutput = pdf.output('blob');
+        // Generar el PDF en blob y crear un URL temporal
+        const pdfOutput = pdf.output("blob");
         const blobUrl = URL.createObjectURL(pdfOutput);
-        window.location.href = blobUrl;
+
+        // Insertar el PDF dentro de un iframe y hacer que ocupe toda la pantalla
+        document.body.innerHTML = `<iframe src="${blobUrl}" style="width: 100vw; height: 100vh; border: none;"></iframe>`;
     };
 } else {
     // No Rectoría sin Firma Digital

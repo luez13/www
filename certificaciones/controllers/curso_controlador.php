@@ -61,7 +61,7 @@ function validar_curso($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $ti
     if (!preg_match("/^\d{4}-\d{2}-\d{2}$/", $inicio_mes)) $invalid_format['inicio_mes'] = $inicio_mes;
     if (!preg_match("/^\d{2}:\d{2}(:\d{2})?$/", $horario_inicio)) $invalid_format['horario_inicio'] = $horario_inicio;
     if (!preg_match("/^\d{2}:\d{2}(:\d{2})?$/", $horario_fin)) $invalid_format['horario_fin'] = $horario_fin;
-    /*if (!preg_match("/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/", $fecha_finalizacion)) $invalid_format['fecha_finalizacion'] = $fecha_finalizacion;*/
+    if (!preg_match("/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/", $fecha_finalizacion)) $invalid_format['fecha_finalizacion'] = $fecha_finalizacion;
 
     if (!empty($invalid_format)) {
         file_put_contents('validation_errors.json', json_encode([
@@ -222,12 +222,12 @@ switch ($action) {
             $desempeño_al_concluir = isset($_POST['desempeño_al_concluir']) ? $_POST['desempeño_al_concluir'] : null;
 
             // Validar los datos
-            if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento, $desempeño_al_concluir, $modulos, $horas_cronologicas, /*$fecha_finalizacion,*/ $firma_digital)) {
+            if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento, $desempeño_al_concluir, $modulos, $horas_cronologicas, $fecha_finalizacion,$firma_digital)) {
                 // Editar el curso usando el método de la clase Curso
                 if ($is_admin_or_authorizer) {
-                    $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeño_al_concluir, $horas_cronologicas, /*$fecha_finalizacion,*/ $firma_digital, $_SESSION['user_id']);
+                    $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeño_al_concluir, $horas_cronologicas, $fecha_finalizacion, $firma_digital, $_SESSION['user_id']);
                 } else {
-                    $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeño_al_concluir, $horas_cronologicas, /*$fecha_finalizacion,*/ $firma_digital);
+                    $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeño_al_concluir, $horas_cronologicas, $fecha_finalizacion, $firma_digital);
                 }
                 // Devolver mensaje de éxito
                 echo '<script>
