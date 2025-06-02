@@ -200,12 +200,17 @@ $footerPath = '../public/assets/img/footer.jpg';
 
             // Función para capitalizar la primera letra de cada palabra
             function capitalizeWords(str) {
-                return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+                return str
+                    .toLocaleLowerCase('es-ES')
+                    .split(' ')
+                    .map(word => word.charAt(0).toLocaleUpperCase('es-ES') + word.slice(1))
+                    .join(' ');
             }
+            
             const firmaDigitalCurso = <?php echo json_encode($firma_digital_curso); ?>;
             
             // Crear un nuevo documento PDF
-            const pdf = new jsPDF('landscape', 'mm', 'a4');
+            const pdf = new jsPDF('landscape', 'mm', 'letter');
 
             // Usar la fuente Cambria para el texto general
             pdf.setFont('Cambria', 'normal');
@@ -219,10 +224,20 @@ $footerPath = '../public/assets/img/footer.jpg';
             pdf.addImage('<?php echo $imagePath; ?>', 'PNG', (pdf.internal.pageSize.width - watermarkWidth) / 2, (pdf.internal.pageSize.height - watermarkHeight) / 2, watermarkWidth, watermarkHeight);
 
             // Agregar texto al documento con los datos correspondientes
-            pdf.setFontSize(20); // Tamaño 20
-            pdf.text('REPÚBLICA BOLIVARIANA DE VENEZUELA', pdf.internal.pageSize.width / 2, 40, { align: 'center' });
-            pdf.text('MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN UNIVERSITARIA', pdf.internal.pageSize.width / 2, 50, { align: 'center' });
-            pdf.text('UNIVERSIDAD POLITÉCNICA TERRITORIAL AGROINDUSTRIAL DEL ESTADO TÁCHIRA', pdf.internal.pageSize.width / 2, 60, { align: 'center' });
+            function printWithDynamicSpacing(text, x, y, scaleFactor) {
+                let currentX = x;
+                for (let char of text) {
+                    let charWidth = pdf.getTextWidth(char) * scaleFactor; // Escala el ancho
+                    pdf.text(char, currentX, y);
+                    currentX += charWidth; // Ajusta la posición según el ancho real de la letra
+                }
+            }
+
+            pdf.setFontSize(16);
+            printWithDynamicSpacing('REPÚBLICA BOLIVARIANA DE VENEZUELA', pdf.internal.pageSize.width / 2 - 52, 40, 0.9);
+            printWithDynamicSpacing('MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN UNIVERSITARIA', pdf.internal.pageSize.width / 2 - 84, 46, 0.85);
+            printWithDynamicSpacing('UNIVERSIDAD POLITÉCNICA TERRITORIAL AGROINDUSTRIAL DEL ESTADO TÁCHIRA', pdf.internal.pageSize.width / 2 - 98, 52, 0.85);
+
             pdf.setFontSize(18); // Tamaño 18
             pdf.text('Otorga el presente certificado al ciudadano (a):', pdf.internal.pageSize.width / 2, 80, { align: 'center' });
 
@@ -233,14 +248,21 @@ $footerPath = '../public/assets/img/footer.jpg';
             // Usar la fuente EdwardianScript para el nombre del estudiante en cursiva y rojo
             pdf.setFont('EdwardianScript', 'normal');
             pdf.setFontSize(50);
-            pdf.setTextColor(255, 0, 0); // Color rojo
+            pdf.setTextColor(173, 4, 4); // Color rojo
             pdf.text(nombreCapitalizado, pdf.internal.pageSize.width / 2, 95, { align: 'center' });
 
+            pdf.setFont('EdwardianScript');
+            pdf.setFontSize(50);
+            pdf.setTextColor(173, 4, 4);
+
+            pdf.text(nombreCapitalizado, pdf.internal.pageSize.width / 2, 95, { align: 'center' });
+            pdf.text(nombreCapitalizado, pdf.internal.pageSize.width / 2 + 0.1, 95, { align: 'center' }); // Ligeramente desplazado
+
             // Regresar a la fuente Cambria y restablecer el color
-            pdf.setFont('Cambria', 'normal');
+            pdf.setFont('Cambria', 'bold');
             pdf.setFontSize(16);
             pdf.setTextColor(0, 0, 0); // Color negro
-            pdf.text('C.I. V- <?php echo $cedula; ?>', pdf.internal.pageSize.width / 2, 110, { align: 'center' });
+            pdf.text('C.I. V- <?php echo $cedula; ?>', pdf.internal.pageSize.width / 2 - 6, 110, { align: 'center' }); // Ajusta la posición
 
             // Verificar si el curso está aprobado y si tiene nota
             const esAprobado = '<?php echo ($paso === "aprobado" && is_null($nota)) ? false : true; ?>';
@@ -351,7 +373,7 @@ $footerPath = '../public/assets/img/footer.jpg';
                 if (firmaDigitalCurso) {
                     pdf.addImage('../public/assets/img/coord.png', 'PNG', marginRight - imageWidth / 2 - 33, offsetY - imageHeight + 60, imageWidth, imageHeight);
                                 // Imagen adicional (sello) a la derecha con su tamaño original
-                                pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 150, offsetY - imageHeight + 60, imageWidth, imageHeight); // Sello original
+                                /*pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 150, offsetY - imageHeight + 60, imageWidth, imageHeight); // Sello original*/
                 }
                 pdf.setFont('Cambria', 'bold');
                 pdf.text('Coord. Formación Permanente', marginRight, offsetY - imageHeight + 100, { align: 'right' }); // Texto de la coordinadora
@@ -362,7 +384,7 @@ $footerPath = '../public/assets/img/footer.jpg';
                 if (firmaDigitalCurso) {
                     pdf.addImage('../public/assets/img/coord.png', 'PNG', marginRight - imageWidth / 2 - 33, offsetY - imageHeight + 60, imageWidth, imageHeight);
                                 // Imagen adicional (sello) a la derecha con su tamaño original
-                                pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 150, offsetY - imageHeight + 60, imageWidth, imageHeight); // Sello original
+                                /*pdf.addImage('../public/assets/img/sello.png', 'PNG', marginRight - 150, offsetY - imageHeight + 60, imageWidth, imageHeight); // Sello original*/
                 }
                 pdf.setFont('Cambria', 'bold');
                 pdf.text('Coord. Formación Permanente', marginRight, offsetY - imageHeight + 100, { align: 'right' }); // Texto de la coordinadora
@@ -395,10 +417,11 @@ $footerPath = '../public/assets/img/footer.jpg';
 
             // Agregar el título "CONTENIDO:" centrado y grande
             pdf.setFontSize(20);
-            pdf.setFont('Cambria', 'normal');
+            pdf.setFont('Cambria', 'bold');
             pdf.text('CONTENIDO:', pdf.internal.pageSize.width / 2, 30, { align: 'center' });
 
             // Lista de módulos dentro de un "cuadrado" centrado
+            pdf.setFont('Cambria', 'normal');
             pdf.setFontSize(16);
             const leftMargin = 40; // Margen izquierdo del "cuadrado"
 
@@ -465,7 +488,7 @@ const esRectoria = '<?php echo $tipo_curso; ?>'.includes('_rectoria');
 const tieneFirmaDigital = firmaDigitalCurso && '<?php echo $firma_digital; ?>';
 
 let yPosCoordinadora = esRectoria ? pdf.internal.pageSize.height - 80 : 172;
-let yPosPromotor = esRectoria ? pdf.internal.pageSize.height - 80 : 172;
+let yPosPromotor = esRectoria ? pdf.internal.pageSize.height - 80 : 192;
 
 const coordinadoraText = 'Msc. Emilio Losada';
 const coordinadoraCargoText = 'Director de PNF en electrónica';
@@ -476,7 +499,7 @@ const promotorCargoText = 'Facilitador';
 const centerXCoordinadora = marginRight - 50 - (pdf.getTextWidth(coordinadoraText) / 2);
 const centerXPromotor = esRectoria
     ? marginLeft + 50 - (pdf.getTextWidth(promotorText) / 2) // En rectoría, promotor a la izquierda
-    : marginRight - 50 - (pdf.getTextWidth(promotorText) / 2); // Sin rectoría, promotor a la derecha
+    : marginRight - 35 - (pdf.getTextWidth(promotorText) / 2); // Sin rectoría, promotor a la derecha
 
 if (esRectoria && tieneFirmaDigital) {
     // Rectoría y Firma Digital

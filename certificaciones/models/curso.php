@@ -152,17 +152,21 @@ public function crear($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tip
         }
     }    
 
-    // Crear un método para eliminar un curso
     public function eliminar($id_curso) {
-        // Eliminar los datos de la base de datos
         try {
+            // Primero eliminar referencias en certificaciones
+            $stmt = $this->db->prepare('DELETE FROM cursos.certificaciones WHERE curso_id = :id');
+            $stmt->execute(['id' => $id_curso]);
+    
+            // Luego eliminar el curso
             $stmt = $this->db->prepare('DELETE FROM cursos.cursos WHERE id_curso = :id');
             $stmt->execute(['id' => $id_curso]);
+    
+            echo '<p>Curso eliminado correctamente.</p>';
         } catch (PDOException $e) {
-            // Mostrar un mensaje de error al usuario
-            echo '<p>Ha ocurrido un error al eliminar el curso: ' . $e->getMessage() . '</p>';
+            echo '<p>Error al eliminar el curso: ' . $e->getMessage() . '</p>';
         }
-    }
+    }    
 
     // Crear un método para finalizar un curso
     public function finalizar($id_curso) {

@@ -26,7 +26,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $curso_id = isset($_POST['curso_id']) ? $_POST['curso_id'] : null;
     $action = isset($_POST['action']) ? $_POST['action'] : '';
 
-    if ($action === 'inscribirse' && validar_inscripcion($id_usuario, $curso_id)) {
+        if ($action === 'actualizar_fecha' && validar_inscripcion($id_usuario, $curso_id)) {
+        $fecha_inscripcion = isset($_POST['fecha_inscripcion']) ? $_POST['fecha_inscripcion'] : null;
+        if ($fecha_inscripcion) {
+            try {
+                $stmt = $db->prepare('UPDATE cursos.certificaciones SET fecha_inscripcion = :fecha_inscripcion WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
+                $stmt->execute(['fecha_inscripcion' => $fecha_inscripcion, 'id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
+                $message = "Fecha de inscripción actualizada correctamente.";
+                $type = "success";
+            } catch (PDOException $e) {
+                $message = "Ha ocurrido un error al actualizar la fecha de inscripción: " . $e->getMessage();
+                $type = "danger";
+            }
+        } else {
+            $message = "La fecha de inscripción no puede estar vacía.";
+            $type = "warning";
+        }
+    }
+    elseif ($action === 'inscribirse' && validar_inscripcion($id_usuario, $curso_id)) {
         $stmt = $db->prepare('SELECT * FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
         $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
         $inscripcion = $stmt->fetch();
@@ -177,10 +194,17 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso
                 $stmt->execute(['id_usuario' => $usuario['id'], 'curso_id' => $id_curso]);
                 $inscripcion = $stmt->fetch();
 
-                $stmt = $db->prepare('SELECT valor_unico FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
-                $stmt->execute(['id_usuario' => $usuario['id'], 'curso_id' => $id_curso]);
-                $certificado = $stmt->fetch(PDO::FETCH_ASSOC);
-
+                // Nueva consulta para obtener la fecha de inscripción
+                $stmt_fecha = $db->prepare('SELECT fecha_inscripcion, valor_unico FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
+                $stmt_fecha->execute(['id_usuario' => $usuario['id'], 'curso_id' => $id_curso]);
+                $fecha_info = $stmt_fecha->fetch(PDO::FETCH_ASSOC);
+                $fecha_inscripcion_db = $fecha_info ? $fecha_info['fecha_inscripcion'] : '';
+                $fecha_para_input = '';
+                if ($fecha_inscripcion_db) {
+                    // Tomamos solo la parte de la fecha (los primeros 10 caracteres)
+                    $fecha_para_input = substr($fecha_inscripcion_db, 0, 10);
+                }
+                $valor_unico = $fecha_info ? htmlspecialchars($fecha_info['valor_unico']) : '';
                 ?>
                 <?php if ($inscripcion): ?>
                     <form id="inscripcionForm-<?= htmlspecialchars($usuario['id']); ?>" action="../controllers/buscar.php" method="post">
@@ -190,8 +214,20 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso
                         <input type="hidden" name="page" value="<?= htmlspecialchars($page); ?>">
                         <button type="button" class="btn btn-danger" onclick="inscribirUsuario(<?= htmlspecialchars($usuario['id']); ?>)">Cancelar Inscripción</button>
                     </form>
-                    <?php if ($certificado): ?>
-                        <a href="../controllers/generar_certificado.php?valor_unico=<?= htmlspecialchars($certificado['valor_unico']); ?>" class="btn btn-success" target="_blank">Ver Certificado Digital</a>
+                        <form action="" method="post" class="mt-2">
+                            <input type="hidden" name="action" value="actualizar_fecha">
+                            <input type="hidden" name="id_usuario" value="<?= htmlspecialchars($usuario['id']); ?>">
+                            <input type="hidden" name="curso_id" value="<?= htmlspecialchars($id_curso); ?>">
+                            <input type="hidden" name="page" value="<?= htmlspecialchars($page); ?>">
+                            <div class="input-group">
+                                <input type="date" class="form-control form-control-sm" name="fecha_inscripcion" value="<?= htmlspecialchars($fecha_para_input) ?>">
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-secondary btn-sm">Guardar Fecha</button>
+                                </div>
+                            </div>
+                        </form>
+                    <?php if ($valor_unico): ?>
+                        <a href="../controllers/generar_certificado.php?valor_unico=<?= $valor_unico ?>" class="btn btn-success mt-2" target="_blank">Ver Certificado Digital</a>
                     <?php endif; ?>
                 <?php else: ?>
                     <form id="inscripcionForm-<?= htmlspecialchars($usuario['id']); ?>" action="../controllers/buscar.php" method="post">
@@ -202,7 +238,6 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso
                         <button type="button" class="btn btn-primary" onclick="inscribirUsuario(<?= htmlspecialchars($usuario['id']); ?>)">Agregar al Curso</button>
                     </form>
                 <?php endif; ?>
-
             </div>
         <?php endforeach; ?>
         </div>

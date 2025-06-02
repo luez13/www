@@ -20,12 +20,16 @@ if (isset($_GET['id_curso'])) {
 $modulos = [];
 foreach ($datos as $modulo) {
     if (!empty($modulo['nombre_modulo'])) {
-        $modulos[] = addslashes($modulo['nombre_modulo']); // Evitar problemas con comillas
+        // Limpiar el nombre del módulo eliminando caracteres no alfanuméricos al inicio y al final
+        $nombre_limpio = trim($modulo['nombre_modulo'], " \t\n\r\0\x0B!@#$%^&*()-_=+[]{};:'\",.<>?/\\|");
+        $modulos[] = addslashes($nombre_limpio);
     }
 }
 
 // Convertir los módulos en una lista separada por comas
 $nombre_modulo = implode(", ", $modulos);
+
+$nombre_curso_capitalizado = ucwords(strtolower($nombre_curso));
 
 if (!isset($datos['fecha_finalizacion']) || empty($datos['fecha_finalizacion'])) {
     $fecha_finalizacion = "Fecha no disponible";
@@ -59,41 +63,33 @@ if (!isset($datos['fecha_finalizacion']) || empty($datos['fecha_finalizacion']))
 
 }
 
-$piePagina ='..\public\assets\img\piePagina.jpg';
-$encabezado ='..\public\assets\img\encabezado.jpg';
+$piePagina ='../public/assets/img/piePagina.jpg';
+$encabezado ='../public/assets/img/encabezado.jpg';
 ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 <script>
 
-        const nombre_curso = "<?php echo addslashes($nombre_curso); ?>";
-        const piePagina = "data:image/jpeg;base64,<?php echo base64_encode(file_get_contents($piePagina)); ?>";
-        const encabezado = "data:image/jpeg;base64,<?php echo base64_encode(file_get_contents($encabezado)); ?>";
-
+    const piePagina = "data:image/jpeg;base64,<?php echo base64_encode(file_get_contents($piePagina)); ?>";
+    const encabezado = "data:image/jpeg;base64,<?php echo base64_encode(file_get_contents($encabezado)); ?>";
 document.addEventListener("DOMContentLoaded", function () {
     const generarConstancia = (datos) => {
         const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('a4');
+        const pdf = new jsPDF('portrait', 'mm', 'letter');
 
-        // Configuración de márgenes y fuente
-        pdf.setFont("helvetica", "normal");
+        pdf.setFont("century", "normal");
         pdf.setFontSize(12);
 
         // Título centrado
-        pdf.setFont("helvetica", "normal");
         pdf.setFontSize(13);
-        pdf.text("CONSTANCIA", 105, 50, { align: "center" });
+        pdf.text("CONSTANCIA", 105, 45, { align: "center" });
 
-        // Obtener la fecha actual en formato "San Cristóbal, DD de MM de AAAA"
         const obtenerFechaActual = () => {
             const fecha = new Date();
-            const meses = [
-                "enero", "febrero", "marzo", "abril", "mayo", "junio",
-                "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
-            ];
-            const dia = fecha.getDate();
-            const mes = meses[fecha.getMonth()];
-            const anio = fecha.getFullYear();
-            return `San Cristóbal, ${dia} de ${mes} de ${anio}`;
+            const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
+                           "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+            return `${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`;
         };
 
         const pageWidth = pdf.internal.pageSize.getWidth(); // Ancho total de la página
@@ -109,71 +105,95 @@ document.addEventListener("DOMContentLoaded", function () {
         const xEncabezado = 0; // Márgen izquierdo
         const yEncabezado = 0; // Colocar la imagen en la parte superior
 
-        // Incorporar la función al texto de fecha
-        const textoFecha = obtenerFechaActual();
-        const textWidth = pdf.getTextWidth(textoFecha);
-        const xPosition = pageWidth - textWidth - 20;
-        pdf.text(textoFecha, xPosition, 70);
-
-        
         // Agregar el encabezado al inicio de la página
-        pdf.addImage(encabezado, 'JPEG', xEncabezado, yEncabezado, imgWidthEncabezado, imgHeightEncabezado);
-        
-        // A quien corresponda
-        pdf.setFont("helvetica", "normal");
-        pdf.text("A quien corresponda:", 20, 80);
+        pdf.addImage('<?php echo $encabezado; ?>', 'JPEG', xEncabezado, yEncabezado, imgWidthEncabezado, imgHeightEncabezado);
 
-        // Obtener la fecha actual desde la función en JavaScript
         const fechaInicio = obtenerFechaActual();
 
-        // Cuerpo del texto
-        const contenido = `
-            Por medio de la presente, hacemos constar que <?php echo $nombre_promotor; ?>, con cédula de identidad <?php echo $cedula; ?>, ha participado satisfactoriamente como facilitador en el curso titulado "${nombre_curso}", el cual fue organizado por la Coordinación de Formación Permanente de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira.
+        // **Marcar el nombre del curso con "**" para que se detecte como negrita**
+        let contenido = `
+            Por medio de la presente, hacemos constar que el ciudadano **${datos.nombre_promotor}**, titular de la cédula de identidad N° V-**${datos.cedula}**, participó satisfactoriamente como facilitador en la ponencia titulada **${datos.nombre_curso}**, el cual fue organizado por la **Coordinación de Formación Permanente** de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira.
             
-            El curso se llevó a cabo en la fecha ${fechaInicio} al <?php echo $fecha_finalizacion; ?>, teniendo una duración de <?php echo $horas_cronologicas; ?> horas, y tuvo lugar en la sede UPTAIET. Durante el mismo, el facilitador impartió conocimientos y habilidades relevantes sobre <?php echo $nombre_modulo; ?>.
+            La ponencia se realizó el día ${fechaInicio} la misma se desarrolló en la sede de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira. Durante su desarrollo, el facilitador impartió conocimientos y habilidades relevantes de ${datos.nombre_modulo}.
             
-            Agradecemos su participación y compromiso con la formación continua de nuestros participantes.`;
-
-        pdf.text(contenido, 20, 90, { maxWidth: 170, align: "justify" });
-
-        const atent = `
-        Atentamente,
-
-
-
-
-
-
-
-        _____________________________
-        ing. Espindola Yoselin
-        coordinación de Formación Permanente
-        Universidad Politécnica Territorial Agroindustrial del Estado Táchira
-        0426-5108012
-        techo.uptai@gmail.com
+            Agradecemos su participación y compromiso con la formación continua de nuestros participantes.
         `;
 
+        const startX = 30;
+        let startY = 50;
+        const fontSize = 13;
+        const lineSpacing = 7;
+
+        const regex = /(\*{2})+/g;
+        const textoSinMarcas = contenido.replace(regex, '');
+        let textoDividido = pdf.splitTextToSize(textoSinMarcas, 150);
+
+        let charsMapLength = 0;
+        let position = 0;
+        let isBold = false;
+
+        let textRows = textoDividido.map((row, i) => {
+            const charsMap = row.split('');
+            const chars = charsMap.map((char, j) => {
+                position = charsMapLength + j + i;
+                let currentChar = contenido.charAt(position);
+
+                if (currentChar === "*") {
+                    const spyNextChar = contenido.charAt(position + 1);
+                    if (spyNextChar === "*") {
+                        isBold = !isBold;
+                        currentChar = contenido.charAt(position + 2);
+
+                        let removeMarks = contenido.split('');
+                        removeMarks.splice(position, 2);
+                        contenido = removeMarks.join('');
+                    }
+                }
+
+                return { char: currentChar, bold: isBold };
+            });
+
+            charsMapLength += charsMap.length;
+            return { ...chars };
+        });
+
+        printCharacters(pdf, textRows, startY, startX, fontSize, lineSpacing);
+
+        const atent = `Atentamente,\n\n\n\n\nIng. Espindola Yoselin\nCoordinación de Formación Permanente`;
         pdf.text(atent, 100, 180, { align: "center" });
 
-            // Agregar la imagen centrada
-            pdf.addImage(piePagina, 'JPEG', x, y, imgWidth, imgHeight);
+        const correo = `Correo: techo.uptai@gmail.com\nTeléfono: 0426-5108012\nUniversidad Politécnica Territorial Agroindustrial del Estado Táchira`;
+        pdf.text(correo, 20, pdf.internal.pageSize.getHeight() - 45, { maxWidth: 150, align: "left" });
 
-        // Footer
-        pdf.setFontSize(10);
-        pdf.setFont("helvetica", "italic");
-        pdf.text("Certificación emitida por [Nombre del Promotor]", 100, 310, { align: "center" });
+        // Agregar la imagen centrada
+        pdf.addImage('<?php echo $piePagina; ?>', 'JPEG', x, y, imgWidth, imgHeight);
 
-        // Convertir el PDF a un blob
+        // Convertir y abrir el PDF
         const pdfOutput = pdf.output('blob');
-
-        // Crear una URL temporal para el blob
         const blobUrl = URL.createObjectURL(pdfOutput);
-
-        // Abrir el PDF en la misma pestaña
         window.location.href = blobUrl;
     };
 
+    const printCharacters = (doc, textObject, startY, startX, fontSize, lineSpacing) => {
+        const startXCached = startX;
+        textObject.map(row => {
+            Object.entries(row).map(([key, value]) => {
+                doc.setFont("century", value.bold ? "bold" : "normal");
+                doc.text(value.char, startX, startY);
+                startX += doc.getStringUnitWidth(value.char) * fontSize * 0.38;
+            });
+
+            startX = startXCached;
+            startY += lineSpacing;
+        });
+    };
+
     // Generar la constancia
-    generarConstancia();
+    generarConstancia({
+        nombre_promotor: "<?php echo addslashes($nombre_promotor); ?>",
+        cedula: "<?php echo $cedula; ?>",
+        nombre_curso: "<?php echo addslashes($nombre_curso_capitalizado); ?>",
+        nombre_modulo: "<?php echo addslashes($nombre_modulo); ?>"
+    });
 });
 </script>

@@ -176,29 +176,6 @@ include '../views/footer.php';
 
 <script src="../models/module_processing.js"></script>
 <script>
-    function eliminarCurso(id_curso) {
-        // Primera confirmación
-        const primeraConfirmacion = confirm("¿Estás seguro de que deseas eliminar este curso?");
-        if (primeraConfirmacion) {
-            // Segunda confirmación
-            const segundaConfirmacion = confirm("Esta acción no se puede deshacer. ¿Estás realmente seguro?");
-            if (segundaConfirmacion) {
-                // Proceder con la eliminación si ambas confirmaciones son positivas
-                $.ajax({
-                    url: '../controllers/curso_controlador.php',
-                    type: 'POST',
-                    data: { id_curso: id_curso, action: 'eliminar' },
-                    success: function(response) {
-                        alert(response);
-                        window.location.href = '../public/perfil.php?seccion=ver_postulaciones';
-                    },
-                    error: function() {
-                        alert('Error al eliminar el curso.');
-                    }
-                });
-            }
-        }
-    }
 
     document.getElementById('crearCursoForm').onsubmit = function(e) {
         e.preventDefault();
