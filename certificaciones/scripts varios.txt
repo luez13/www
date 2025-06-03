@@ -528,3 +528,95 @@ BEGIN
         EXECUTE 'GRANT ALL ON TABLE cursos.' || r.event_object_table || ' TO uptaivir_certificacion2';
     END LOOP;
 END $$;
+
+--------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE cursos.posiciones_firma (
+    id_posicion SERIAL PRIMARY KEY,
+    codigo_posicion VARCHAR(25) UNIQUE NOT NULL, -- Ej: "P1_INF_IZQ", "P1_INF_DER", etc.
+    descripcion_posicion VARCHAR(100) NOT NULL,  -- Ej: "Página 1, Inferior Izquierda"
+    pagina SMALLINT NOT NULL                     -- Ej: 1 o 2
+);
+
+COMMENT ON TABLE cursos.posiciones_firma IS 'Define las posiciones predeterminadas donde pueden ir las firmas en los certificados.';
+COMMENT ON COLUMN cursos.posiciones_firma.codigo_posicion IS 'Código único para la posición, usado internamente por la aplicación.';
+COMMENT ON COLUMN cursos.posiciones_firma.descripcion_posicion IS 'Descripción legible para el administrador.';
+COMMENT ON COLUMN cursos.posiciones_firma.pagina IS 'Número de página donde se ubica esta posición de firma.';
+
+-- Insertar las 5 posiciones definidas:
+INSERT INTO cursos.posiciones_firma (codigo_posicion, descripcion_posicion, pagina) VALUES
+('P1_INF_IZQ', 'Página 1, Inferior Izquierda', 1),
+('P1_INF_DER', 'Página 1, Inferior Derecha', 1),
+('P1_INF_CEN', 'Página 1, Inferior Centro', 1),
+('P2_INF_IZQ', 'Página 2, Inferior Izquierda', 2),
+('P2_INF_DER', 'Página 2, Inferior Derecha', 2);
+
+
+CREATE TABLE cursos.cursos_config_firmas (
+    id_config SERIAL PRIMARY KEY,
+    id_curso INTEGER NOT NULL,
+    id_posicion INTEGER NOT NULL,
+    id_cargo_firmante INTEGER NULL, -- Puede ser NULL si firma el promotor
+    usar_promotor_curso BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT fk_curso
+        FOREIGN KEY(id_curso) 
+        REFERENCES cursos.cursos(id_curso)
+        ON DELETE CASCADE, -- Si se borra un curso, se borran sus configs de firma
+    CONSTRAINT fk_posicion
+        FOREIGN KEY(id_posicion)
+        REFERENCES cursos.posiciones_firma(id_posicion)
+        ON DELETE RESTRICT, -- No permitir borrar una posición si está en uso
+    CONSTRAINT fk_cargo_firmante
+        FOREIGN KEY(id_cargo_firmante)
+        REFERENCES cursos.cargos(id_cargo)
+        ON DELETE SET NULL, -- Si se borra un cargo, esta referencia se vuelve NULL (la firma desaparecería del certificado)
+
+    CONSTRAINT chk_firmante_exclusivo
+        CHECK (
+            (id_cargo_firmante IS NOT NULL AND usar_promotor_curso = FALSE) OR -- Firma alguien de cargos
+            (id_cargo_firmante IS NULL AND usar_promotor_curso = TRUE) OR      -- Firma el promotor
+            (id_cargo_firmante IS NULL AND usar_promotor_curso = FALSE)        -- Nadie firma (slot vacío, aunque podrías optar por no insertar la fila)
+        ),
+    CONSTRAINT unq_curso_posicion UNIQUE (id_curso, id_posicion) -- Solo un firmante por posición en un curso
+);
+
+COMMENT ON TABLE cursos.cursos_config_firmas IS 'Configuración de qué firmantes aparecen en qué posiciones para cada curso.';
+COMMENT ON COLUMN cursos.cursos_config_firmas.id_cargo_firmante IS 'Referencia a la tabla cargos si el firmante es una autoridad oficial.';
+COMMENT ON COLUMN cursos.cursos_config_firmas.usar_promotor_curso IS 'TRUE si el promotor del curso firma en esta posición.';
+
+
+CREATE TABLE cursos.config_sistema (
+    clave_config VARCHAR(100) PRIMARY KEY,
+    valor_config VARCHAR(255) NOT NULL,
+    descripcion_config TEXT NULL,
+    fecha_modificacion TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE cursos.config_sistema IS 'Almacena configuraciones globales del sistema.';
+COMMENT ON COLUMN cursos.config_sistema.clave_config IS 'Clave única para la configuración (ej: ID_CARGO_COORD_FP_POR_DEFECTO).';
+COMMENT ON COLUMN cursos.config_sistema.valor_config IS 'Valor de la configuración.';
+
+-- Ejemplo de cómo insertar el ID del coordinador por defecto (supongamos que el id_cargo de Yoselin es 5)
+-- Deberás hacer esto una vez que sepas el id_cargo correcto.
+-- INSERT INTO cursos.config_sistema (clave_config, valor_config, descripcion_config) VALUES
+-- ('ID_CARGO_COORD_FP_POR_DEFECTO', '5', 'ID del cargo correspondiente al Coordinador de Formación Permanente por defecto para plantillas.');
+
+
+ALTER TABLE cursos.cargos
+ADD COLUMN activo BOOLEAN NOT NULL DEFAULT TRUE;
+
+COMMENT ON COLUMN cursos.cargos.activo IS 'Indica si la persona en este cargo está actualmente activa para firmar o ser seleccionada.';
+
+
+-- Otorgar permisos sobre el esquema
+GRANT ALL ON SCHEMA cursos TO uptaivir_certificacion2;
+
+-- Otorgar permisos sobre las tablas existentes y nuevas
+GRANT ALL ON ALL TABLES IN SCHEMA cursos TO uptaivir_certificacion2;
+
+-- Otorgar permisos sobre las secuencias
+GRANT ALL ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
+
+-- Otorgar permisos sobre las funciones
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA cursos TO uptaivir_certificacion2;

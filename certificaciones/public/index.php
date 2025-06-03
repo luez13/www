@@ -53,9 +53,16 @@ include '../views/header.php';
                                     <div class="form-group mb-3">
                                         <input type="email" class="form-control form-input" name="correo" id="correo" aria-describedby="emailHelp" placeholder="Ingresa tu correo electrónico" required>
                                     </div>
-                                    <div class="form-group mb-3">
-                                        <input type="password" class="form-control form-input" name="password" id="password" placeholder="Contraseña" required>
-                                    </div>
+                                        <div class="form-group mb-3">
+                                            <label for="password" class="sr-only">Contraseña</label> <div class="input-group">
+                                                <input type="password" class="form-control form-input" name="password" id="password" placeholder="Contraseña" required>
+                                                <div class="input-group-append">
+                                                    <button class="btn btn-outline-secondary" type="button" id="togglePasswordVisibility" aria-label="Mostrar u ocultar contraseña">
+                                                        <i class="fas fa-eye" id="eyeIcon"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     <div class="form-group mb-3">
                                         <div class="custom-control custom-checkbox small">
                                             <input type="checkbox" class="custom-control-input" id="customCheck">
@@ -81,6 +88,25 @@ include '../views/header.php';
         </div>
     </div>
 </div>
+
+<script>
+    $(document).ready(function() {
+        $('#togglePasswordVisibility').on('click', function() {
+            const passwordInput = $('#password');
+            const eyeIcon = $('#eyeIcon');
+            const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
+            
+            passwordInput.attr('type', type);
+            
+            // Cambiar el ícono
+            if (type === 'password') {
+                eyeIcon.removeClass('fa-eye-slash').addClass('fa-eye');
+            } else {
+                eyeIcon.removeClass('fa-eye').addClass('fa-eye-slash');
+            }
+        });
+    });
+</script>
 
 <?php
 include '../views/footer.php';

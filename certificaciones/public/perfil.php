@@ -125,19 +125,30 @@ try {
 
 <!-- Nav Item - Menú de Usuarios -->
 <?php if ($_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4): ?>
-<hr class="sidebar-divider">
-<li class="nav-item">
-    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUsuarios" aria-expanded="true" aria-controls="collapseUsuarios">
-        <i class="fas fa-users"></i>
-        <span>Usuarios</span>
-    </a>
-    <div id="collapseUsuarios" class="collapse" aria-labelledby="headingUsuarios" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-            <a class="collapse-item" href="#" onclick="loadPage('usuarios.php')">Verificación Usuarios</a>
+    <hr class="sidebar-divider">
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUsuarios" aria-expanded="true" aria-controls="collapseUsuarios">
+            <i class="fas fa-users"></i>
+            <span>Usuarios</span>
+        </a>
+        <div id="collapseUsuarios" class="collapse" aria-labelledby="headingUsuarios" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <a class="collapse-item" href="#" onclick="loadPage('../views/usuarios.php')">Verificación Usuarios</a>
+            </div>
         </div>
-    </div>
-</li>
-<?php endif; ?>
+    </li>
+    <?php endif; ?>
+
+    <?php if (in_array($_SESSION['id_rol'], [3, 4])): // Solo para Autorizador (3) y Administrador (4) ?>
+    <hr class="sidebar-divider">
+    <li class="nav-item">
+        <a class="nav-link" href="#" onclick="loadPage('../views/gestionar_cargos.php')"> 
+            <i class="fas fa-id-badge"></i> 
+            <span>Gestionar Cargos</span>
+        </a>
+    </li>
+    <?php endif; ?>
+
 </ul>
 </ul>
 <!-- End of Sidebar -->
