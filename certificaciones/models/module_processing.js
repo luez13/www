@@ -75,7 +75,7 @@ function agregarContenido(containerContenido) {
     containerContenido.appendChild(buttonQuitarContenido);
 }
 
-document.getElementById('numero_modulos').addEventListener('blur', addModuleFields);
+document.getElementById('numero_modulos').addEventListener('input', addModuleFields);
 
 function combineContentsBeforeSubmit() {
     var modules = document.getElementsByClassName('module');
@@ -107,6 +107,30 @@ function combineContentsBeforeSubmit() {
     .then(response => response.text())
     .then(result => console.log(result))
     .catch(error => console.log('Error:', error));
+}
+
+function eliminarCurso(id_curso) {
+    // Primera confirmación
+    const primeraConfirmacion = confirm("¿Estás seguro de que deseas eliminar este curso?");
+    if (primeraConfirmacion) {
+        // Segunda confirmación
+        const segundaConfirmacion = confirm("Esta acción no se puede deshacer. ¿Estás realmente seguro?");
+        if (segundaConfirmacion) {
+            // Proceder con la eliminación si ambas confirmaciones son positivas
+            $.ajax({
+                url: '../controllers/curso_controlador.php',
+                type: 'POST',
+                data: { id_curso: id_curso, action: 'eliminar' },
+                success: function(response) {
+                    alert(response);
+                    window.location.href = '../public/perfil.php?seccion=ver_postulaciones';
+                },
+                error: function() {
+                    alert('Error al eliminar el curso.');
+                }
+            });
+        }
+    }
 }
 
 document.getElementById('crearCursoForm').onsubmit = function(e) {
