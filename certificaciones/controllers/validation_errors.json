@@ -1,35 +1,36 @@
 {
     "missing_fields": [
-        "fecha_finalizacion"
+        "contenidos"
     ],
     "course_data": [
-        "Impresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3D",
-        "masterclass de impresiones en 3D de protesis dentales",
+        "prueba",
+        "prueba",
+        "3",
         "2",
-        "2024-10-27",
-        "masterclass",
-        "20",
-        "{Martes}",
-        "11:11:00",
-        "05:11:00",
-        "medio",
-        "20.00",
-        "conocimientos basicos en cuanto a tecnologias",
-        "ninguno",
-        "capacitacion en protesis dentales",
+        "2025-05-14",
+        "seminario_rectoria",
+        "23",
+        "{lunes,martes,viernes}",
+        "11:01:00",
+        "17:01:00",
+        "introductorio",
+        "23.00",
+        "prueba",
+        "prueba",
+        "prueba",
         [
             {
-                "id_modulo": "97",
-                "id_curso": "44",
-                "nombre_modulo": "impresion 3D",
-                "contenido": "[impresion 3D]",
+                "id_modulo": "8",
+                "id_curso": "8",
+                "nombre_modulo": "pruebas.",
+                "contenido": "[pruebasprueba]",
                 "numero": "1",
-                "actividad": "participacion",
-                "instrumento": "participacion"
+                "actividad": "prueba",
+                "instrumento": "prueba"
             }
         ],
-        "23",
-        null,
-        true
+        "20",
+        "2025-06-02T09:15",
+        false
     ]
 }

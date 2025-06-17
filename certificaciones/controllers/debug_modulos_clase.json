@@ -5,4 +5,53 @@
     "actividad": "arg",
     "instrumento": "arg",
     "numero": 1
+}{
+    "curso_id": 5,
+    "nombre_modulo": "prueba",
+    "contenido": "[prueba]",
+    "actividad": "prueba",
+    "instrumento": "prueba",
+    "numero": 1
+}{
+    "curso_id": 5,
+    "nombre_modulo": "prueba",
+    "contenido": "[prueba]",
+    "actividad": "prueba",
+    "instrumento": "prueba",
+    "numero": 2
+}{
+    "curso_id": 6,
+    "nombre_modulo": "Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica",
+    "contenido": "[Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica]",
+    "actividad": "Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica",
+    "instrumento": "Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica",
+    "numero": 1
+}{
+    "curso_id": 6,
+    "nombre_modulo": "Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica",
+    "contenido": "[Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica]",
+    "actividad": "Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica",
+    "instrumento": "Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica",
+    "numero": 2
+}{
+    "curso_id": 7,
+    "nombre_modulo": "ninguno",
+    "contenido": "[ninguno]",
+    "actividad": "ninguno",
+    "instrumento": "ninguno",
+    "numero": 1
+}{
+    "curso_id": 7,
+    "nombre_modulo": "ninguno",
+    "contenido": "[ninguno][ninguno]",
+    "actividad": "ninguno",
+    "instrumento": "ninguno",
+    "numero": 2
+}{
+    "curso_id": 8,
+    "nombre_modulo": "prueba",
+    "contenido": "[prueba][prueba]",
+    "actividad": "prueba",
+    "instrumento": "prueba",
+    "numero": 1
 }

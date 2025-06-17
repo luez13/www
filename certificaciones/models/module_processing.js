@@ -97,7 +97,7 @@ function combineContentsBeforeSubmit() {
     }
 
     // Enviar los datos al servidor para que los escriba en un archivo
-    fetch('save_logs.php', {
+    fetch('../controllers/save_logs.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

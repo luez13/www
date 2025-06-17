@@ -1,63 +1,103 @@
 {
     "course_data": {
         "action": "editar",
-        "id_curso": "44",
-        "nombre_curso": "Impresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3D",
-        "descripcion": "masterclass de impresiones en 3D de protesis dentales",
-        "tiempo_asignado": "2",
-        "inicio_mes": "2024-10-27",
-        "horas_cronologicas": "22",
-        "firma_digital": "on",
+        "id_curso": "12",
+        "nombre_curso": "algoaqui",
+        "descripcion": "algoaqui",
         "tipo_curso": "masterclass",
+        "nivel_curso": "introductorio",
+        "inicio_mes": "2025-06-16",
+        "fecha_finalizacion": "2025-06-17T15:11",
+        "tiempo_asignado": "2",
+        "horario_inicio": "11:43:00",
+        "horario_fin": "17:43:00",
+        "dias_clase": [
+            "martes",
+            "jueves"
+        ],
+        "costo": "50.00",
+        "horas_cronologicas": "20",
         "limite_inscripciones": "20",
-        "promotor": "15",
-        "dias_clase": "{Martes}",
-        "horario_inicio": "11:11:00",
-        "horario_fin": "05:11:00",
-        "nivel_curso": "medio",
-        "costo": "20.00",
-        "conocimientos_previos": "conocimientos basicos en cuanto a tecnologias",
-        "requerimientos_implementos": "ninguno",
-        "desempe\u00f1o_al_concluir": "capacitacion en protesis dentales",
+        "conocimientos_previos": "algoaqui",
+        "requerimientos_implementos": "algoaqui",
+        "desempe\u00f1o_al_concluir": "algoaqui",
+        "promotor": "2",
         "id_modulo": [
-            "97"
+            "15",
+            "16"
         ],
         "nombre_modulo": [
-            "impresion 3D"
-        ],
-        "contenido": [
-            "impresion 3D"
-        ],
-        "numero_modulo_contenido": [
-            "1"
-        ],
-        "id_modulo_contenido": [
-            "97"
+            "algoaquisss",
+            "algoaqui"
         ],
         "numero_modulo": [
-            "1"
+            "1",
+            "2"
+        ],
+        "contenido": [
+            "algoaqui",
+            "algoaqui",
+            "algoaqui"
+        ],
+        "id_modulo_contenido": [
+            "15",
+            "15",
+            "16"
         ],
         "actividad_modulo": [
-            "participacion"
+            "ninguna",
+            "ninguna"
         ],
         "instrumento_modulo": [
-            "participacion"
-        ]
+            "ninguno",
+            "ninguno"
+        ],
+        "config_firmas": {
+            "1": {
+                "id_cargo_firmante": ""
+            },
+            "2": {
+                "id_cargo_firmante": "2"
+            },
+            "3": {
+                "id_cargo_firmante": ""
+            },
+            "4": {
+                "id_cargo_firmante": ""
+            },
+            "5": {
+                "id_cargo_firmante": "",
+                "usar_promotor_curso": "1"
+            }
+        }
     },
     "modules_data": [
         {
-            "id_modulo": "97",
-            "id_curso": "44",
-            "nombre_modulo": "impresion 3D",
-            "contenido": "[impresion 3D]",
+            "id_modulo": "15",
+            "id_curso": "12",
+            "nombre_modulo": "algoaquisss",
+            "contenido": "[algoaqui][algoaqui]",
             "numero": "1",
-            "actividad": "participacion",
-            "instrumento": "participacion"
+            "actividad": "ninguna",
+            "instrumento": "ninguno"
+        },
+        {
+            "id_modulo": "16",
+            "id_curso": "12",
+            "nombre_modulo": "algoaqui",
+            "contenido": "[algoaqui]",
+            "numero": "2",
+            "actividad": "ninguna",
+            "instrumento": "ninguno"
         }
     ],
     "contenidos_modulo": {
-        "97": [
-            "impresion 3D"
+        "15": [
+            "algoaqui",
+            "algoaqui"
+        ],
+        "16": [
+            "algoaqui"
         ]
     }
 }
