@@ -2,7 +2,7 @@
 include '../views/header.php';
 ?>
 
-<div id="particle-background"></div> <!-- Mover esto al inicio del body -->
+<div id="particle-background"></div>
 
 <div class="container">
     <a href="../public/index.php" class="banner-link">
@@ -19,18 +19,26 @@ include '../views/header.php';
                                     <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
                                     <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
                                     <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
-                                </ol>
+                                    <li data-target="#carouselExampleIndicators" data-slide-to="3"></li>
+                                    <li data-target="#carouselExampleIndicators" data-slide-to="4"></li>
+                                    </ol>
                                 <div class="carousel-inner">
                                     <div class="carousel-item active">
-                                        <img class="d-block w-100" src="../public/assets/img/curso1.jfif" alt="First slide">
+                                        <img class="d-block w-100" src="../public/assets/img/curso1.jpg" alt="First slide">
                                     </div>
                                     <div class="carousel-item">
-                                        <img class="d-block w-100" src="../public/assets/img/curso2.jfif" alt="Second slide">
+                                        <img class="d-block w-100" src="../public/assets/img/curso2.jpg" alt="Second slide">
                                     </div>
                                     <div class="carousel-item">
-                                        <img class="d-block w-100" src="../public/assets/img/curso3.jfif" alt="Third slide">
+                                        <img class="d-block w-100" src="../public/assets/img/curso3.jpg" alt="Third slide">
                                     </div>
-                                </div>
+                                    <div class="carousel-item">
+                                        <img class="d-block w-100" src="../public/assets/img/curso4.jpg" alt="Fourth slide">
+                                    </div>
+                                    <div class="carousel-item">
+                                        <img class="d-block w-100" src="../public/assets/img/curso5.jpg" alt="Fifth slide">
+                                    </div>
+                                    </div>
                                 <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
                                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                                     <span class="sr-only">Previous</span>

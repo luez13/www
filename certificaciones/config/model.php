@@ -48,6 +48,10 @@ if (!class_exists('DB')) {
             // Usar el método prepare de PDO y devolver el resultado
             return $this->conn->prepare($sql);
         }
+
+            public function getConn() {
+            return $this->conn;
+        }
     }
 }
 ?>

@@ -14,63 +14,66 @@ $db = new DB();
 // Crear una instancia de la clase Curso
 $curso = new Curso($db);
 
-function validar_curso($nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implementos, $desempeño_al_concluir, $contenidos) {
+function validar_curso(
+    $nombre_curso, $descripcion, $promotor, $tiempo_asignado, $inicio_mes, 
+    $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, 
+    $horario_fin, $nivel_curso, $costo, $conocimientos_previos, 
+    $requerimientos_implemento, $desempeno_al_concluir, $modulos, 
+    $horas_cronologicas, $fecha_finalizacion, $firma_digital
+) {
+    
+    // --- Bloque 1: Validación de campos vacíos ---
     $campos_vacios = [];
-    if (empty($nombre)) $campos_vacios[] = 'nombre';
+    if (empty($nombre_curso)) $campos_vacios[] = 'nombre_curso';
     if (empty($descripcion)) $campos_vacios[] = 'descripcion';
+    if (empty($promotor)) $campos_vacios[] = 'promotor';
     if (empty($tiempo_asignado)) $campos_vacios[] = 'tiempo_asignado';
     if (empty($inicio_mes)) $campos_vacios[] = 'inicio_mes';
     if (empty($tipo_curso)) $campos_vacios[] = 'tipo_curso';
     if (empty($limite_inscripciones)) $campos_vacios[] = 'limite_inscripciones';
-    if (empty($dias_clase)) $campos_vacios[] = 'dias_clase';
+    if ($dias_clase === '{}') $campos_vacios[] = 'dias_clase';
     if (empty($horario_inicio)) $campos_vacios[] = 'horario_inicio';
     if (empty($horario_fin)) $campos_vacios[] = 'horario_fin';
     if (empty($nivel_curso)) $campos_vacios[] = 'nivel_curso';
     if (empty($conocimientos_previos)) $campos_vacios[] = 'conocimientos_previos';
-    if (empty($requerimientos_implementos)) $campos_vacios[] = 'requerimientos_implementos';
-    if (empty($desempeño_al_concluir)) $campos_vacios[] = 'desempeño_al_concluir';
-    if (empty($contenidos)) $campos_vacios[] = 'contenidos';
+    if (empty($requerimientos_implemento)) $campos_vacios[] = 'requerimientos_implemento';
+    if (empty($desempeno_al_concluir)) $campos_vacios[] = 'desempeno_al_concluir';
+    if (empty($modulos)) $campos_vacios[] = 'modulos';
 
     if (!empty($campos_vacios)) {
-        file_put_contents('validation_errors.json', json_encode([
-            'missing_fields' => $campos_vacios,
-            'course_data' => func_get_args()
-        ], JSON_PRETTY_PRINT));
+        error_log("Validación fallida por campos vacíos: " . implode(', ', $campos_vacios));
         return false;
     }
-    return true;
 
+    // --- Bloque 2: Validación de campos numéricos ---
     $invalid_fields = [];
-
     if (!is_numeric($tiempo_asignado)) $invalid_fields['tiempo_asignado'] = $tiempo_asignado;
     if (!is_numeric($limite_inscripciones)) $invalid_fields['limite_inscripciones'] = $limite_inscripciones;
     if (!is_numeric($costo) && $costo !== null) $invalid_fields['costo'] = $costo;
-    if ($costo < 0) $invalid_fields['costo_negative'] = $costo;
+    if ($costo < 0) $invalid_fields['costo_negativo'] = $costo;
     if (!is_numeric($horas_cronologicas)) $invalid_fields['horas_cronologicas'] = $horas_cronologicas;
 
     if (!empty($invalid_fields)) {
-        file_put_contents('validation_errors.json', json_encode([
-            'invalid_numeric' => $invalid_fields,
-            'course_data' => func_get_args()
-        ], JSON_PRETTY_PRINT));
+        error_log("Validación fallida por campos no numéricos: " . json_encode($invalid_fields));
         return false;
     }
 
+    // --- Bloque 3: Validación de formatos de fecha y hora ---
     $invalid_format = [];
-
     if (!preg_match("/^\d{4}-\d{2}-\d{2}$/", $inicio_mes)) $invalid_format['inicio_mes'] = $inicio_mes;
     if (!preg_match("/^\d{2}:\d{2}(:\d{2})?$/", $horario_inicio)) $invalid_format['horario_inicio'] = $horario_inicio;
     if (!preg_match("/^\d{2}:\d{2}(:\d{2})?$/", $horario_fin)) $invalid_format['horario_fin'] = $horario_fin;
-    if (!preg_match("/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/", $fecha_finalizacion)) $invalid_format['fecha_finalizacion'] = $fecha_finalizacion;
+    // La fecha de finalización viene con formato de datetime-local
+    if (!preg_match("/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/", $fecha_finalizacion) && !preg_match("/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/", $fecha_finalizacion)) {
+        $invalid_format['fecha_finalizacion'] = $fecha_finalizacion;
+    }
 
     if (!empty($invalid_format)) {
-        file_put_contents('validation_errors.json', json_encode([
-            'invalid_format' => $invalid_format,
-            'course_data' => func_get_args()
-        ], JSON_PRETTY_PRINT));
+        error_log("Validación fallida por formato inválido: " . json_encode($invalid_format));
         return false;
     }
 
+    // ✅ CORRECCIÓN ESTRUCTURAL: Si pasamos todas las validaciones anteriores, devolvemos true al final.
     return true;
 }
 
@@ -83,50 +86,67 @@ $action = $_POST['action'];
 
 // Ejecutar la acción correspondiente
 switch ($action) {
-    case 'crear':
-        // Obtener los datos del formulario
-        $nombre_curso = $_POST['nombre_curso'];
-        $descripcion = $_POST['descripcion'];
-        $tiempo_asignado = $_POST['tiempo_asignado'];
-        $inicio_mes = $_POST['inicio_mes'];
-        $tipo_curso = $_POST['tipo_curso'];
-        $limite_inscripciones = $_POST['limite_inscripciones'];
-        $dias_clase = isset($_POST['dias_clase']) ? '{' . implode(',', $_POST['dias_clase']) . '}' : '{}';
-        $horario_inicio = $_POST['horario_inicio'];
-        $horario_fin = $_POST['horario_fin'];
-        $nivel_curso = $_POST['nivel_curso'];
-        $costo = $_POST['costo'];
-        $conocimientos_previos = $_POST['conocimientos_previos'];
-        $requerimientos_implementos = $_POST['requerimientos_implementos'];
-        $desempeño_al_concluir = $_POST['desempeño_al_concluir'];
-        $nombre_modulo = $_POST['nombre_modulo'];
-        $contenido = $_POST['contenido'];
-        $actividad = $_POST['actividad'];
-        $instrumento = $_POST['instrumento'];
+case 'crear':
+    $nombre_curso = $_POST['nombre_curso'] ?? '';
+    $descripcion = $_POST['descripcion'] ?? '';
+    $tiempo_asignado = $_POST['tiempo_asignado'] ?? '';
+    $inicio_mes = $_POST['inicio_mes'] ?? '';
+    $tipo_curso = $_POST['tipo_curso'] ?? '';
+    $limite_inscripciones = $_POST['limite_inscripciones'] ?? '';
+    $dias_clase_array = $_POST['dias_clase'] ?? [];
+    $dias_clase_pg = '{' . implode(',', $dias_clase_array) . '}';
+    $horario_inicio = $_POST['horario_inicio'] ?? '';
+    $horario_fin = $_POST['horario_fin'] ?? '';
+    $nivel_curso = $_POST['nivel_curso'] ?? '';
+    $costo = $_POST['costo'] ?? 0;
+    $conocimientos_previos = $_POST['conocimientos_previos'] ?? '';
+    $requerimientos_implemento = $_POST['requerimientos_implementos'] ?? '';
+    $desempeno_al_concluir = $_POST['desempeño_al_concluir'] ?? '';
+    
+    $configuracion_firmas = $_POST['config_firmas'] ?? [];
 
-        // Validar los datos
-        if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implementos, $desempeño_al_concluir, $contenido)) {
-            // Obtener el id del usuario de la sesión
-            $promotor = $_SESSION['user_id'];
-            // Crear el curso usando el método de la clase Curso
-            $curso_id = $curso->crear($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implementos, $desempeño_al_concluir, $promotor);
+    $nombres_modulos = $_POST['nombre_modulo'] ?? [];
+    $contenidos_modulos = $_POST['contenido'] ?? [];
+    $actividades_modulos = $_POST['actividad'] ?? [];
+    $instrumentos_modulos = $_POST['instrumento'] ?? [];
+    
+    $modulos_a_crear = [];
+    foreach ($nombres_modulos as $i => $nombre) {
+        $modulos_a_crear[] = [
+            'nombre_modulo' => $nombre,
+            'contenido' => $contenidos_modulos[$i] ?? '',
+            'actividad' => $actividades_modulos[$i] ?? '',
+            'instrumento' => $instrumentos_modulos[$i] ?? '',
+            'numero' => $i + 1
+        ];
+    }
 
-            // Insertar los módulos
-            foreach ($nombre_modulo as $i => $nombre) {
-                $contenidos_comb = $contenido[$i]; // Usar el contenido combinado con la referencia del índice
-                $curso->crearModulo($curso_id, $nombre, $contenidos_comb, $actividad[$i], $instrumento[$i], $i + 1);
-            }                                                                                    
+        $promotor_id = $_SESSION['user_id'];
+        
+        $resultado = $curso->crearCursoCompleto(
+            $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, 
+            $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, 
+            $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento, 
+            $desempeno_al_concluir, $promotor_id, $modulos_a_crear, $configuracion_firmas
+        );
 
-            // Devolver mensaje de éxito
-            echo 'El curso y los módulos se han creado correctamente';
+        if ($resultado) {
+            echo '<script>
+                alert("La propuesta de curso se ha creado correctamente.");
+                window.location.href = "../public/perfil.php";
+            </script>';
         } else {
-            // Devolver mensaje de error
-            echo 'Los datos del curso son inválidos';
+            echo '<script>
+                alert("Ha ocurrido un error al crear la propuesta.");
+                window.history.back();
+            </script>';
         }
-        break;       
+        break;
         case 'editar':
             // Obtener los datos del formulario
             $id_curso = $_POST['id_curso'];
+            $promotor = $_POST['promotor'];
+            $configuracion_firmas = $_POST['config_firmas'] ?? [];
             $nombre_curso = $_POST['nombre_curso'];
             $descripcion = $_POST['descripcion'];
             $tiempo_asignado = $_POST['tiempo_asignado'];
@@ -222,12 +242,12 @@ switch ($action) {
             $desempeño_al_concluir = isset($_POST['desempeño_al_concluir']) ? $_POST['desempeño_al_concluir'] : null;
 
             // Validar los datos
-            if (validar_curso($nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento, $desempeño_al_concluir, $modulos, $horas_cronologicas, $fecha_finalizacion,$firma_digital)) {
+            if (validar_curso($nombre_curso, $descripcion, $promotor, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento, $desempeño_al_concluir, $modulos,$horas_cronologicas, $fecha_finalizacion, $firma_digital)) {
                 // Editar el curso usando el método de la clase Curso
                 if ($is_admin_or_authorizer) {
-                    $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeño_al_concluir, $horas_cronologicas, $fecha_finalizacion, $firma_digital, $_SESSION['user_id']);
+                    $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $promotor, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeño_al_concluir, $horas_cronologicas, $fecha_finalizacion, $firma_digital, $_SESSION['user_id'], $configuracion_firmas);
                 } else {
-                    $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeño_al_concluir, $horas_cronologicas, $fecha_finalizacion, $firma_digital);
+                    $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $promotor, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeño_al_concluir, $horas_cronologicas, $fecha_finalizacion, $firma_digital, $configuracion_firmas);
                 }
                 // Devolver mensaje de éxito
                 echo '<script>
@@ -255,7 +275,7 @@ switch ($action) {
             $curso->eliminar($id_curso);
             // Devolver mensaje de éxito
             echo 'El curso se ha eliminado correctamente';            
-    break;
+        break;
     case 'finalizar':
         // Obtener el id del curso del formulario
         $id_curso = $_POST['id_curso'];

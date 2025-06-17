@@ -148,6 +148,28 @@ try {
         </a>
     </li>
     <?php endif; ?>
+    <?php if ($_SESSION['id_rol'] == 4): // Solo para Administrador ?>
+    <hr class="sidebar-divider">
+
+    <div class="sidebar-heading">
+        Configuración
+    </div>
+
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAjustes" aria-expanded="true" aria-controls="collapseAjustes">
+            <i class="fas fa-fw fa-cogs"></i>
+            <span>Ajustes</span>
+        </a>
+        <div id="collapseAjustes" class="collapse" aria-labelledby="headingAjustes" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Administración:</h6>
+                <a class="collapse-item" href="#" onclick="loadPage('../views/gestionar_cargos.php')">Gestionar Firmantes</a>
+                <a class="collapse-item" href="#" onclick="loadPage('../views/ajustes_sistema.php')">Ajustes Generales</a>
+            </div>
+        </div>
+    </li>
+    <?php endif; ?>
+    </ul>
 
 </ul>
 </ul>
@@ -209,26 +231,26 @@ try {
                 </li>
                 <div class="topbar-divider d-none d-sm-block"></div>
 
-<!-- Nav Item - Usuario sup izq-->
-<li class="nav-item dropdown no-arrow">
-    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?= htmlspecialchars($_SESSION['nombre']) ?></span>
-        <img class="img-profile rounded-circle" src="../public/assets/img/undraw_profile.svg">
-    </a>
-    <!-- Editar Inf -->
-    <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#editUserModal">
-            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-            Editar Datos
-        </a>
-        <div class="dropdown-divider"></div>
-        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
-            <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-            Cerrar
-        </a>
-    </div>
-</li>
+                    <!-- Nav Item - Usuario sup izq-->
+                    <li class="nav-item dropdown no-arrow">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?= htmlspecialchars($_SESSION['nombre']) ?></span>
+                            <img class="img-profile rounded-circle" src="../public/assets/img/undraw_profile.svg">
+                        </a>
+                        <!-- Editar Inf -->
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#editUserModal">
+                                <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Editar Datos
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Cerrar
+                            </a>
+                        </div>
+                    </li>
                 </li>
 
             </ul>
@@ -436,27 +458,37 @@ function reapplyEvents() {
     $('#inscribir-usuarios-btn').off('click');
     $('.editar-usuario-form').off('submit');
 
-    // Add new event listeners
+    // EN PERFIL.PHP - REEMPLÁZALO CON ESTE CÓDIGO (DESPUÉS)
     $('.editarCursoForm').on('submit', function(event) {
         event.preventDefault();
         var form = this;
         var formData = new FormData(form);
-        fetch(form.action, {
+
+        // La URL del formulario. Usamos getAttribute('action') para obtener la URL correcta.
+        const url = form.getAttribute('action');
+
+        fetch(url, { // <-- Aquí aplicamos la corrección
             method: form.method,
             body: formData
         })
-        .then(response => response.text())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Respuesta del servidor no fue OK: ' + response.statusText);
+            }
+            return response.text();
+        })
         .then(result => {
             if (result.includes('El curso se ha editado correctamente')) {
-                alert('El curso se ha editado correctamente');
-                var page = document.querySelector('.page-item.active .page-link').dataset.page;
-                loadPage('editar_cursos.php', { page: page });
+                alert('¡Éxito! El curso se ha actualizado correctamente.');
+                // Recargamos la página para ver todos los cambios reflejados.
+                window.location.reload(); 
             } else {
-                alert('Hubo un error al editar el curso: ' + result);
+                alert('Hubo un error al editar el curso: \n' + result);
             }
         })
         .catch(error => {
-            alert('Hubo un error al procesar la solicitud: ' + error);
+            console.error('Error en la solicitud fetch:', error);
+            alert('Hubo un error de conexión o en el servidor al procesar la solicitud.');
         });
     });
 
