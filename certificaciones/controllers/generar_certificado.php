@@ -1,5 +1,4 @@
 <?php
-// ✅ CAMBIO 1: Simplificar la obtención de datos usando la nueva función
 require_once('../config/model.php');
 require_once('../models/curso.php');
 
@@ -43,10 +42,8 @@ if (isset($_GET['valor_unico'])) {
             'imagePath' => '../public/assets/img/marca_agua.png',
             'bannerPath' => '../public/assets/img/banner_certificado.jpg',
             'footerPath' => '../public/assets/img/footer.jpg',
-            // ✅ CAMBIO 2: Añadir el array de firmantes a los datos para JS
             'firmantes' => $datos_completos['firmantes'] ?? [],
-            // Las firmas fijas se eliminan de aquí, ya que ahora son dinámicas o parte del caso de rectoría.
-            // 'coordinadorFirmaPath', 'emilioLozadaFirmaPath' ya no son necesarios aquí.
+            'mostrar_firmas' => $datos_completos['firma_digital'] ?? false,
         ];
     } else {
         $error_message = "No se encontraron datos de certificación para el valor único proporcionado.";
@@ -100,12 +97,10 @@ if (!$certificateData) {
         const COLOR_ROJO_UPTAIET = [173, 4, 4];
         const COLOR_NEGRO = [0, 0, 0];
         const PAGE_MARGIN_X = 10;
-        // ✅ --- AQUÍ ESTÁN LAS CONSTANTES FALTANTES ---
         const PAGE_MARGIN_Y = 5;       // Margen superior para el banner
         const NUEVA_ALTURA_BANNER = 20; // Altura para la imagen del banner
         const CONTENT_WIDTH = pdf.internal.pageSize.width - (2 * PAGE_MARGIN_X);
 
-        // --- Funciones Auxiliares ---
         function convertirFechaSimplificada(fechaStr) {
             if (!fechaStr) return "Fecha no proporcionada";
             const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -166,9 +161,6 @@ if (!$certificateData) {
             }
         }
 
-                // ✅ CAMBIO 3: AÑADIR LAS FUNCIONES AUXILIARES PARA FIRMAS DINÁMICAS
-        // Estas funciones vienen de nuestro archivo de prueba.
-
         function getPosicionCoordenadas(codigoPosicion) {
             const pageW = pdf.internal.pageSize.width;
             const pageH = pdf.internal.pageSize.height;
@@ -197,7 +189,6 @@ if (!$certificateData) {
             return posiciones[codigoPosicion.toUpperCase()] || null;
         }
 
-        // REEMPLAZA TAMBIÉN ESTA FUNCIÓN COMPLETA
         function dibujarFirmaDinamica(pdf, firmante) {
             const coords = getPosicionCoordenadas(firmante.posicion_codigo);
             if (!coords) {
@@ -205,27 +196,64 @@ if (!$certificateData) {
                 return;
             }
                 const firmaImgWidth = 45, firmaImgHeight = 45;
-
-                const SUPERPOSICION_VERTICAL = 12; // <-- ¡JUEGA CON ESTE NÚMERO!
-
+                const SUPERPOSICION_VERTICAL = 12;
                 const yImagen = coords.y - firmaImgHeight + SUPERPOSICION_VERTICAL;
 
+                // Dibuja la imagen de la firma SÓLO si existe
                 if (firmante.firma_base64) {
-                try {
-                    const imgType = firmante.firma_base64.match(/data:image\/(.*?);/)[1].toUpperCase();
-                    pdf.addImage(firmante.firma_base64, imgType, coords.x - (firmaImgWidth / 2), yImagen, firmaImgWidth, firmaImgHeight);
-                } catch(e) { console.error("Error al añadir imagen de firma base64:", e); }
-            } else {
-                pdf.setFontSize(8).setTextColor(255,0,0).text('[Firma no disponible]', coords.x, coords.y - 15, {align: 'center'});
+                    try {
+                        const imgType = firmante.firma_base64.match(/data:image\/(.*?);/)[1].toUpperCase();
+                        pdf.addImage(firmante.firma_base64, imgType, coords.x - (firmaImgWidth / 2), yImagen, firmaImgWidth, firmaImgHeight);
+                    } catch(e) { console.error("Error al añadir imagen de firma base64:", e); }
+                } 
+                else if (certificateData.mostrar_firmas) {
+                    pdf.setFontSize(8).setTextColor(255,0,0).text('[Firma no disponible]', coords.x, coords.y - 15, {align: 'center'});
+                }
+                // Si mostrar_firmas es false, simplemente no se dibuja nada en el else, dejando el espacio en blanco.
+                
+                // Dibuja el texto (esto siempre se ejecuta)
+                pdf.setFont(FONT_CAMBRIA, 'bold').setFontSize(14).setTextColor(...COLOR_NEGRO);
+                pdf.text(capitalizeWords(firmante.nombre), coords.x, coords.y, { align: 'center' });
+                
+                pdf.setFont(FONT_CAMBRIA, 'bold').setFontSize(14);
+                pdf.text(capitalizeWords(firmante.cargo), coords.x, coords.y + 5, { align: 'center' });
             }
-            
-            // Dibuja el texto (esta parte no cambia)
-            pdf.setFont(FONT_CAMBRIA, 'bold').setFontSize(14).setTextColor(...COLOR_NEGRO);
-            pdf.text(capitalizeWords(firmante.nombre), coords.x, coords.y, { align: 'center' });
-            
-            pdf.setFont(FONT_CAMBRIA, 'bold').setFontSize(14);
-            pdf.text(capitalizeWords(firmante.cargo), coords.x, coords.y + 5, { align: 'center' });
-        }
+
+            /**
+             * Imprime un objeto de texto complejo, carácter por carácter, centrando cada línea.
+             * @param {jsPDF} doc - La instancia del documento jsPDF.
+             * @param {object} textObject - El objeto con las filas y caracteres (generado previamente).
+             * @param {number} startY - La coordenada Y donde comenzará a imprimir el bloque de texto.
+             * @param {number} fontSize - El tamaño de la fuente a utilizar.
+             * @param {number} lineSpacing - El espaciado vertical entre líneas.
+             */
+            function printCharacters(doc, textObject, startY, fontSize, lineSpacing) {
+                const pageW = doc.internal.pageSize.width;
+
+                // Recorre cada fila (línea de texto)
+                textObject.forEach(row => {
+                    let lineChars = Object.values(row);
+                    let lineWidth = 0;
+
+                    // 1. Primero, calculamos el ancho total de la línea para poder centrarla
+                    lineChars.forEach(value => {
+                        lineWidth += doc.getStringUnitWidth(value.char) * fontSize * 0.38;
+                    });
+
+                    // 2. Calculamos el punto de inicio X para que esta línea quede centrada
+                    let startX = (pageW - lineWidth) / 2;
+
+                    // 3. Ahora que sabemos dónde empezar, imprimimos la línea carácter por carácter
+                    lineChars.forEach(value => {
+                        doc.setFont(FONT_CAMBRIA, value.bold ? "bold" : "normal");
+                        doc.text(value.char, startX, startY);
+                        startX += doc.getStringUnitWidth(value.char) * fontSize * 0.38;
+                    });
+
+                    // 4. Bajamos la coordenada Y para la siguiente línea
+                    startY += lineSpacing;
+                });
+            }
 
         pdf.setFont(FONT_CAMBRIA, 'normal');
 
@@ -273,42 +301,56 @@ if (!$certificateData) {
         // Inicio de la lógica original para texto con negritas (adaptada)
         const linesCert = splitTextIntoLines(textoCertificacionCompleto, maxWidthCertText, pdf);
         linesCert.forEach(line => {
-            let xPos = (pdf.internal.pageSize.width - pdf.getTextWidth(line)) / 2; // Center each line
-            let remainingLine = line;
-            let boldNameCursoActive = false; // Para mantener negrita si el nombre del curso se parte
+            // Usamos toUpperCaseSpecial para convertir a mayúsculas respetando acentos.
+            let nombreCursoConFormato = toUpperCaseSpecial(certificateData.nombre_curso);
 
-            function printSegment(segment, isBold) {
-                pdf.setFont(FONT_CAMBRIA, isBold || boldNameCursoActive ? 'bold' : 'normal');
-                pdf.text(segment, xPos, currentY);
-                xPos += pdf.getTextWidth(segment);
-                if (isBold && segment === nombreCursoUppercase) boldNameCursoActive = true;
-                if (segment.endsWith(textoDespuesDeCurso)) boldNameCursoActive = false; // Fin de negrita
-            }
+            const textoAntesDePaso = esParticipacion ? "Por su " : "Por haber ";
+            const pasoTexto = toUpperCaseSpecial(esParticipacion ? "PARTICIPACION " : certificateData.paso);
+            const textoAntesDeCurso = ` en ${certificateData.articulo_tipo_curso} ${certificateData.tipo_curso.replace("_rectoria", "")} de `;
+            const textoDespuesDeCurso = "";
 
-            // Si la línea contiene 'pasoTexto' y 'nombreCursoUppercase'
-            if (line.includes(pasoTexto) && line.includes(nombreCursoUppercase)) {
-                const parts = line.split(new RegExp(`(${pasoTexto}|${nombreCursoUppercase})`));
-                parts.forEach(part => {
-                    if (part === pasoTexto || part === nombreCursoUppercase) {
-                        printSegment(part, true);
-                    } else if (part) {
-                        printSegment(part, false);
+            // Creamos la frase completa, marcando las partes que irán en negrita con **
+            let contenido = `${textoAntesDePaso}**${pasoTexto}**${textoAntesDeCurso}**${nombreCursoConFormato}**${textoDespuesDeCurso}`;
+
+            // --- Inicio del Sistema de Renderizado Avanzado ---
+
+            const regex = /(\*{2})+/g;
+            const textoSinMarcas = contenido.replace(regex, '');
+            let textoDividido = pdf.splitTextToSize(textoSinMarcas, 180); // Ancho máximo del texto
+
+            let charsMapLength = 0;
+            let position = 0;
+            let isBold = false;
+
+            let textRows = textoDividido.map((row, i) => {
+                const charsMap = row.split('');
+                const chars = charsMap.map((char, j) => {
+                    position = charsMapLength + j + i;
+                    let currentChar = contenido.charAt(position);
+
+                    if (currentChar === "*") {
+                        const spyNextChar = contenido.charAt(position + 1);
+                        if (spyNextChar === "*") {
+                            isBold = !isBold;
+                            currentChar = contenido.charAt(position + 2);
+
+                            let removeMarks = contenido.split('');
+                            removeMarks.splice(position, 2);
+                            contenido = removeMarks.join('');
+                        }
                     }
+                    return { char: currentChar, bold: isBold };
                 });
-            } else if (line.includes(pasoTexto)) {
-                 const parts = line.split(new RegExp(`(${pasoTexto})`));
-                 parts.forEach(part => part === pasoTexto ? printSegment(part, true) : (part && printSegment(part, false)));
-            } else if (line.includes(nombreCursoUppercase)) {
-                const parts = line.split(new RegExp(`(${nombreCursoUppercase})`));
-                parts.forEach(part => part === nombreCursoUppercase ? printSegment(part, true) : (part && printSegment(part, false)));
-            } else {
-                printSegment(line, false);
-            }
-            currentY += 7; // Line height
+                charsMapLength += charsMap.length;
+                return Object.values(chars); // Devolvemos un array de objetos
+            });
+
+            // Llamamos a nuestra nueva función para imprimir el texto
+            printCharacters(pdf, textRows, 125, 16, 7); // (doc, texto, Y inicial, tamaño fuente, espaciado)
         });
         // Fin de la lógica original para texto con negritas
 
-        currentY += 3; // Espacio adicional después del bloque de certificación
+        currentY += 20; // Espacio adicional después del bloque de certificación
         const fechaExpedicion = convertirFechaSimplificada(certificateData.fechaInscripcion);
         pdf.setFont(FONT_CAMBRIA, 'normal');
         pdf.text(`Certificación expedida en la Ciudad de San Cristóbal, ${fechaExpedicion}`, centerX, currentY, { align: 'center' });
@@ -414,23 +456,17 @@ if (!$certificateData) {
         if (esRectoria) {
             console.log("Detectado curso de rectoría, usando lógica semi-dinámica.");
 
-            // ✅ 1. Buscamos al facilitador DENTRO del array de firmantes
-            // Asumimos que al facilitador se le asigna el cargo 'Facilitador' en la función PHP
             const facilitador = certificateData.firmantes.find(f => f.cargo.toLowerCase() === 'facilitador');
 
-            // ✅ 2. Creamos un objeto "firmante" para el director con los datos fijos
             const director = {
                 nombre: 'Msc. Emilio Losada',
                 cargo: 'Director de PNF en Electrónica',
                 firma_base64: certificateData.firma_director_rectoria_b64, // Usamos la firma que PHP nos preparó
-                // Le asignamos una posición fija en el certificado para este caso especial
                 posicion_codigo: 'P2_INF_DER' // Firma del director a la derecha
             };
 
-            // ✅ 3. Dibujamos al director
             dibujarFirmaDinamica(pdf, director);
 
-            // ✅ 4. Si encontramos al facilitador, lo dibujamos a la izquierda
             if (facilitador) {
                 // Forzamos la posición del facilitador para el caso de rectoría
                 facilitador.posicion_codigo = 'P2_INF_IZQ';
@@ -448,13 +484,41 @@ if (!$certificateData) {
             });
         }
 
-        // Ejemplo de manejo con posible imagen asíncrona (promotorFirmaDigital)
-        const generateAndShowPdf = () => {
-            const pdfOutput = pdf.output('blob');
-            const blobUrl = URL.createObjectURL(pdfOutput);
-            // window.location.href = blobUrl; // Para descargar o abrir en la misma pestaña
-            document.body.innerHTML = `<iframe src="${blobUrl}" style="width: 100vw; height: 100vh; border: none; margin: 0; padding: 0; overflow: hidden;"></iframe>`;
-        };
+// Función para detectar si es un dispositivo móvil
+function isMobile() {
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+// Función que genera el PDF y decide cómo mostrarlo
+const generateAndShowPdf = () => {
+    if (isMobile()) {
+        // --- LÓGICA DE DESCARGA PARA MÓVIL (Solución 2 que vimos) ---
+        console.log("Móvil detectado. Iniciando descarga...");
+        const pdfOutput = pdf.output('blob');
+        const blobUrl = URL.createObjectURL(pdfOutput);
+        
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        
+        const nombreArchivo = `Certificado-${certificateData.nombreEstudiante.replace(/\s/g, '_')}.pdf`;
+        link.download = nombreArchivo; 
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+
+        // Opcional: mostrar un mensaje de que la descarga ha comenzado
+        document.body.innerHTML = `<div style="font-family: sans-serif; text-align: center; padding: 40px;"><h1>Descarga iniciada...</h1><p>Si la descarga no comienza, por favor, intente de nuevo.</p></div>`;
+
+    } else {
+        // --- LÓGICA DE VISUALIZACIÓN PARA PC (la que ya tenías) ---
+        console.log("PC detectado. Mostrando en iframe...");
+        const pdfOutput = pdf.output('blob');
+        const blobUrl = URL.createObjectURL(pdfOutput);
+        document.body.innerHTML = `<iframe src="${blobUrl}" style="width: 100vw; height: 100vh; border: none;"></iframe>`;
+    }
+};
 
         if ((esRectoria && tieneFirmaDigitalPromotor && certificateData.promotorFirmaDigital && certificateData.promotorFirmaDigital.startsWith('data:image')) || 
             (!esRectoria && tieneFirmaDigitalPromotor && certificateData.promotorFirmaDigital && certificateData.promotorFirmaDigital.startsWith('data:image'))) {

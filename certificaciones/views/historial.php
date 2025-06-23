@@ -1,21 +1,13 @@
 <?php
-// Incluir el archivo header.php en views
-include 'header.php';
-
 // Incluir el archivo model.php en config
 include '../config/model.php';
 
-$user_id = $_SESSION['user_id'];
+require_once '../controllers/init.php';
 
-require_once '../controllers/autenticacion.php';
+$user_id = $_SESSION['user_id'];
 
 // Verificar si la solicitud es AJAX
 $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-
-if (!$is_ajax) {
-    // Incluir el archivo header.php en views
-    include 'header.php';
-}
 
 echo '<div class="main-content">';
 

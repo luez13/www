@@ -375,12 +375,14 @@ public function obtener_datos_certificacion($valor_unico) {
 
 
 public function obtenerDatosCompletosCertificado($valor_unico) {
+    // 1. Obtiene los datos principales (incluyendo el booleano 'firma_digital')
     $datos_principales = $this->obtener_datos_certificacion($valor_unico);
     if (!$datos_principales) { return null; }
 
     $id_curso = $datos_principales['id_curso'];
     $id_promotor_curso = $datos_principales['promotor'];
 
+    // Obtenemos las configuraciones de firma siempre
     $sql_firmas = "
         SELECT ccf.id_cargo_firmante, ccf.usar_promotor_curso, pf.codigo_posicion, pf.pagina
         FROM cursos.cursos_config_firmas AS ccf
@@ -393,13 +395,12 @@ public function obtenerDatosCompletosCertificado($valor_unico) {
 
     $firmantes_procesados = [];
     foreach ($configuraciones as $config) {
-        // Inicializamos firmante_info con los datos de posición y página.
         $firmante_info = [
             'posicion_codigo' => $config['codigo_posicion'],
             'pagina'          => $config['pagina'],
             'nombre'          => '[Firmante no asignado]',
             'cargo'           => '',
-            'firma_base64'    => null,
+            'firma_base64'    => null, // Por defecto no hay firma
         ];
         
         $data_firmante = null;
@@ -420,13 +421,12 @@ public function obtenerDatosCompletosCertificado($valor_unico) {
             $firmante_info['cargo'] = $data_firmante['nombre_cargo'];
             $ruta_desde_db = $data_firmante['firma_digital'];
 
-            if (!empty($ruta_desde_db)) {
-                $nombre_archivo = basename($ruta_desde_db);
-                // La ruta se construye relativa a la raíz del proyecto, asumiendo que el DOCUMENT_ROOT apunta a la carpeta raíz del proyecto.
-                $ruta_relativa_final = 'public/assets/firmas/' . $nombre_archivo;
+            // ✅ --- LÓGICA DEL INTERRUPTOR MODIFICADA ---
+            // Solo intentamos cargar la imagen si el interruptor general está en 'true' Y si hay una ruta de firma.
+            if (!empty($datos_principales['firma_digital']) && $datos_principales['firma_digital'] === true && !empty($ruta_desde_db)) {
                 
-                // Corrección: La ruta absoluta debe ser más precisa.
-                // Asumimos que este script está en /models/ y la raíz es un nivel arriba.
+                $nombre_archivo = basename($ruta_desde_db);
+                $ruta_relativa_final = 'public/assets/firmas/' . $nombre_archivo;
                 $ruta_absoluta = dirname(__DIR__) . '/' . $ruta_relativa_final;
 
                 if (file_exists($ruta_absoluta)) {
@@ -443,21 +443,12 @@ public function obtenerDatosCompletosCertificado($valor_unico) {
 
     $datos_principales['firmantes'] = $firmantes_procesados;
     
-    // Este bloque consulta la tabla de módulos usando el id_curso que ya tenemos.
-    $sql_modulos = "
-        SELECT nombre_modulo, numero
-        FROM cursos.modulos
-        WHERE id_curso = :id_curso
-        ORDER BY numero ASC
-    ";
+    // Obtenemos los módulos (lógica sin cambios)
+    $sql_modulos = "SELECT nombre_modulo, numero FROM cursos.modulos WHERE id_curso = :id_curso ORDER BY numero ASC";
     $stmt_modulos = $this->pdo->prepare($sql_modulos);
     $stmt_modulos->execute([':id_curso' => $id_curso]);
-    $modulos = $stmt_modulos->fetchAll(PDO::FETCH_ASSOC);
+    $datos_principales['modulos'] = $stmt_modulos->fetchAll(PDO::FETCH_ASSOC);
 
-    // Añadimos el array de módulos (lleno o vacío) al resultado final.
-    $datos_principales['modulos'] = $modulos;
-
-    // Se devuelve el paquete completo con datos del curso, firmantes y módulos.
     return $datos_principales;
 }
 

@@ -2,7 +2,7 @@
 // init.php
 // Asegúrate de que la ruta a autenticacion.php sea correcta desde la ubicación de init.php
 // Usar __DIR__ es más robusto para la inclusión de archivos.
-require_once __DIR__ . '/../controllers/autenticacion.php'; // Ajusta esta ruta si es necesario
+require_once '../controllers/autenticacion.php'; // Ajusta esta ruta si es necesario
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();

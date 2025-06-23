@@ -1,142 +1,173 @@
 <?php
-// Incluir el archivo model.php en config
+// --- INICIO DE TU LÓGICA PHP (SIN CAMBIOS) ---
 include '../config/model.php';
-
-// Crear una instancia de la clase DB
 $db = new DB();
-
-// Crear una instancia de la clase Curso
 include '../models/curso.php';
 $curso = new Curso($db);
-
-// Obtener el id del curso de la URL
 $id_curso = $_GET['id'];
-
-// Usar el método de la clase Curso para obtener el contenido del curso
 $curso_contenido = $curso->obtener_curso($id_curso);
 
-// Obtener el nombre del promotor
-$stmt = $db->prepare('SELECT nombre FROM cursos.usuarios WHERE id = :id_promotor');
-$stmt->execute(['id_promotor' => $curso_contenido['promotor']]);
-$promotor = $stmt->fetch();
+$stmt_promotor = $db->prepare('SELECT nombre FROM cursos.usuarios WHERE id = :id_promotor');
+$stmt_promotor->execute(['id_promotor' => $curso_contenido['promotor']]);
+$promotor = $stmt_promotor->fetch();
 
-// Obtener el valor único del curso
-$stmt = $db->prepare('SELECT valor_unico FROM cursos.certificaciones WHERE curso_id = :curso_id');
-$stmt->execute(['curso_id' => $id_curso]);
-$valor_unico = $stmt->fetchColumn();
+$stmt_cupos = $db->prepare('SELECT COUNT(*) FROM cursos.certificaciones WHERE curso_id = :curso_id');
+$stmt_cupos->execute(['curso_id' => $id_curso]);
+$count = $stmt_cupos->fetchColumn();
+$cupos_disponibles = $curso_contenido['limite_inscripciones'] - $count;
 
-// Definir la base de la URL dinámicamente
-$host = $_SERVER['HTTP_HOST'];
-$uri = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
-$base_url = "http://$host$uri/../controllers/generar_certificado.php";
+$stmt_inscripcion = $db->prepare('SELECT * FROM cursos.certificaciones WHERE curso_id = :curso_id AND id_usuario = :id_usuario');
+$stmt_inscripcion->execute(['curso_id' => $id_curso, 'id_usuario' => $_SESSION['user_id']]);
+$inscripcion = $stmt_inscripcion->fetch();
 
-// Verificar si la solicitud es AJAX
 $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
 if (!$is_ajax) {
-    // Incluir el archivo header.php en views
-    include '../views/header.php';
+    include '../views/header.php'; // Asegúrate de que aquí se carga Bootstrap 5 CSS y el nuevo CDN de iconos.
 }
+// --- FIN DE TU LÓGICA PHP ---
+?>
 
-echo '<div class="main-content">';
-echo '<h3>Contenido del curso</h3>';
-echo '<p>Nombre: ' . $curso_contenido['nombre_curso'] . '</p>';
-echo '<p>Descripción: ' . $curso_contenido['descripcion'] . '</p>';
-echo '<p>Tipo de curso: ' . $curso_contenido['tipo_curso'] . '</p>';
-echo '<p>Tiempo asignado: ' . $curso_contenido['tiempo_asignado'] . '</p>';
-echo '<p>Inicio del mes: ' . $curso_contenido['inicio_mes'] . '</p>';
-echo '<p>Estado: ' . ($curso_contenido['estado'] ? 'Activo' : 'Inactivo') . '</p>';
-echo '<p>Días de clase: ' . $curso_contenido['dias_clase'] . '</p>';
-echo '<p>Horario de inicio: ' . $curso_contenido['horario_inicio'] . '</p>';
-echo '<p>Horario de fin: ' . $curso_contenido['horario_fin'] . '</p>';
-echo '<p>Nivel del curso: ' . $curso_contenido['nivel_curso'] . '</p>';
-echo '<p>Costo: ' . $curso_contenido['costo'] . '</p>';
-echo '<p>Conocimientos previos: ' . $curso_contenido['conocimientos_previos'] . '</p>';
-echo '<p>Requerimientos: ' . $curso_contenido['requerimientos_implemento'] . '</p>';
-echo '<p>Desempeño al culminar: ' . $curso_contenido['desempeno_al_concluir'] . '</p>';
+<div class="container mt-4 mb-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0"><?php echo htmlspecialchars($curso_contenido['nombre_curso']); ?></h3>
+            <p class="mb-0 fst-italic">Un curso de tipo: <?php echo htmlspecialchars($curso_contenido['tipo_curso']); ?></p>
+        </div>
+        <div class="card-body">
+            <p class="card-text"><?php echo htmlspecialchars($curso_contenido['descripcion']); ?></p>
+            
+            <ul class="list-group list-group-flush mt-3">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong><i class="bi bi-person-fill me-2"></i>Promotor</strong>
+                    <span class="badge bg-secondary rounded-pill"><?php echo htmlspecialchars($promotor['nombre']); ?></span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong><i class="bi bi-calendar-check me-2"></i>Estado</strong>
+                    <?php if ($curso_contenido['estado']): ?>
+                        <span class="badge bg-success rounded-pill">Activo</span>
+                    <?php else: ?>
+                        <span class="badge bg-danger rounded-pill">Inactivo</span>
+                    <?php endif; ?>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong><i class="bi bi-people-fill me-2"></i>Cupos Disponibles</strong>
+                    <span class="badge bg-info rounded-pill"><?php echo $cupos_disponibles; ?></span>
+                </li>
+                <li class="list-group-item">
+                    <strong><i class="bi bi-clock-fill me-2"></i>Horario</strong>
+                    <span><?php echo htmlspecialchars($curso_contenido['dias_clase']); ?> de <?php echo date("g:i a", strtotime($curso_contenido['horario_inicio'])); ?> a <?php echo date("g:i a", strtotime($curso_contenido['horario_fin'])); ?></span>
+                </li>
+                 <li class="list-group-item">
+                    <strong><i class="bi bi-book-half me-2"></i>Requisitos Previos</strong>
+                    <span><?php echo htmlspecialchars($curso_contenido['conocimientos_previos']); ?></span>
+                </li>
+            </ul>
 
-// Mostrar los cupos disponibles
-$stmt = $db->prepare('SELECT COUNT(*) FROM cursos.certificaciones WHERE curso_id = :curso_id');
-$stmt->execute(['curso_id' => $id_curso]);
-$count = $stmt->fetchColumn();
-$cupos_disponibles = $curso_contenido['limite_inscripciones'] - $count;
-echo '<p>Cupos disponibles: ' . $cupos_disponibles . '</p>';
-echo '<p>Promotor: ' . $promotor['nombre'] . '</p>';
-
-// Consultar los módulos del curso
-$stmt = $db->prepare('SELECT * FROM cursos.modulos WHERE id_curso = :id_curso ORDER BY numero');
-$stmt->execute(['id_curso' => $id_curso]);
-$modulos = $stmt->fetchAll();
-echo '<h3>Módulos del curso</h3>';
-foreach ($modulos as $modulo) {
-    echo '<div class="modulo">';
-    echo '<h4>Módulo ' . $modulo['numero'] . ': ' . $modulo['nombre_modulo'] . '</h4>';
-    echo '<p>Contenido: ' . $modulo['contenido'] . '</p>';
-    echo '<p>Actividad: ' . $modulo['actividad'] . '</p>';
-    echo '<p>Instrumento: ' . $modulo['instrumento'] . '</p>';
-}
-
-// Consultar si el usuario ya está inscrito en el curso
-$stmt = $db->prepare('SELECT * FROM cursos.certificaciones WHERE curso_id = :curso_id AND id_usuario = :id_usuario');
-$stmt->execute(['curso_id' => $id_curso, 'id_usuario' => $_SESSION['user_id']]);
-$inscripcion = $stmt->fetch();
-
-if ($_SESSION['id_rol'] != 4) {
-    if (!$inscripcion) {
-        // Si el usuario no está inscrito, mostrar el botón de inscribirse
-        echo '<form method="POST" action="../controllers/curso_acciones.php" onsubmit="return confirmarInscripcion()">';
-        echo '<input type="hidden" name="action" value="inscribirse">';
-        echo '<input type="hidden" name="id_usuario" value="' . $_SESSION['user_id'] . '">';
-        echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
-        echo '<button type="submit" id="inscribirse-btn" class="btn btn-primary">Inscribirse al curso</button>';
-        echo '</form>';
-    } else {
-        echo '<p>Nota: ' . $inscripcion['nota'] . '</p>';
+            <h4 class="mt-4">Módulos del Curso</h4>
+            <div class="accordion" id="accordionModulos">
+                <?php
+                $stmt_modulos = $db->prepare('SELECT * FROM cursos.modulos WHERE id_curso = :id_curso ORDER BY numero');
+                $stmt_modulos->execute(['id_curso' => $id_curso]);
+                $modulos = $stmt_modulos->fetchAll();
+                foreach ($modulos as $modulo):
+                ?>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading-<?php echo $modulo['id_modulo']; ?>">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-<?php echo $modulo['id_modulo']; ?>" aria-expanded="false" aria-controls="collapse-<?php echo $modulo['id_modulo']; ?>">
+                                <strong>Módulo <?php echo $modulo['numero']; ?>:</strong>&nbsp;<?php echo htmlspecialchars($modulo['nombre_modulo']); ?>
+                            </button>
+                        </h2>
+                        <div id="collapse-<?php echo $modulo['id_modulo']; ?>" class="accordion-collapse collapse" aria-labelledby="heading-<?php echo $modulo['id_modulo']; ?>" data-bs-parent="#accordionModulos">
+                            <div class="accordion-body">
+                                <p><strong>Contenido:</strong> <?php echo htmlspecialchars($modulo['contenido']); ?></p>
+                                <p><strong>Actividad a Realizar:</strong> <?php echo htmlspecialchars($modulo['actividad']); ?></p>
+                                <p><strong>Instrumento de Evaluación:</strong> <?php echo htmlspecialchars($modulo['instrumento']); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
         
-        // Mostrar el botón de cancelar inscripción solo si el curso no está completado
-        if ($inscripcion['completado'] != 1) {
-            echo '<form method="POST" action="../controllers/curso_acciones.php" onsubmit="return confirmarCancelacion()">';
-            echo '<input type="hidden" name="action" value="cancelar_inscripcion">';
-            echo '<input type="hidden" name="id_usuario" value="' . $_SESSION['user_id'] . '">';
-            echo '<input type="hidden" name="curso_id" value="' . $id_curso . '">';
-            echo '<button type="submit" id="cancelar-inscripcion-btn" class="btn btn-danger">Cancelar inscripción</button>';
-            echo '</form>';
-        }
-        
-        // Mostrar los botones de ver certificado y ver URL solo si el curso está completado y el pago está confirmado
-        if ($inscripcion['completado'] == 1 && $inscripcion['pago'] == 1) {
-            $valor_unico = $inscripcion['valor_unico'];
-            echo '<button class="btn btn-success" type="button" onclick="verCertificado(\'' . $valor_unico . '\')">Ver Certificado</button>';
-            echo '<button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseURL" aria-expanded="false" aria-controls="collapseURL" onclick="obtenerCertificadoURL(\'' . $valor_unico . '\')">Ver URL</button>';
-            echo '<div class="collapse" id="collapseURL">';
-            echo '<div class="card card-body">';
-            echo '<p id="certificadoUrlContainer"></p>';  // Este es el contenedor donde se mostrará la URL
-            echo '</div>';
-        }
-    }
-}
+        <div class="card-footer text-center bg-light p-3">
+            <?php if ($_SESSION['id_rol'] != 4): ?>
+                <?php if (!$inscripcion): ?>
+                    <form method="POST" action="../controllers/curso_acciones.php" onsubmit="return confirm('¿Estás seguro de que quieres inscribirte en este curso?')">
+                        <input type="hidden" name="action" value="inscribirse">
+                        <input type="hidden" name="id_usuario" value="<?php echo $_SESSION['user_id']; ?>">
+                        <input type="hidden" name="curso_id" value="<?php echo $id_curso; ?>">
+                        <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-pencil-square me-2"></i>Inscribirse al curso</button>
+                    </form>
+                <?php else: ?>
+                    <div class="alert alert-info">Ya estás inscrito en este curso. Tu nota actual es: <strong><?php echo $inscripcion['nota'] ?? 'N/A'; ?></strong></div>
+                    
+                    <div class="btn-group" role="group" aria-label="Acciones del curso">
+                        <?php if ($inscripcion['completado'] != 1): ?>
+                            <form class="d-inline" method="POST" action="../controllers/curso_acciones.php" onsubmit="return confirm('¿Estás seguro de que quieres cancelar tu inscripción?')">
+                                <input type="hidden" name="action" value="cancelar_inscripcion">
+                                <input type="hidden" name="id_usuario" value="<?php echo $_SESSION['user_id']; ?>">
+                                <input type="hidden" name="curso_id" value="<?php echo $id_curso; ?>">
+                                <button type="submit" class="btn btn-danger"><i class="bi bi-x-circle me-2"></i>Cancelar inscripción</button>
+                            </form>
+                        <?php endif; ?>
+
+                        <?php if ($inscripcion['completado'] == 1 && $inscripcion['pago'] == 1):
+                            $valor_unico = $inscripcion['valor_unico'];
+                        ?>
+                            <button id="btn-certificado" class="btn btn-success" type="button" onclick="obtenerCertificado('<?php echo $valor_unico; ?>')">
+                                </button>
+                            
+                            <button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseURL" aria-expanded="false" aria-controls="collapseURL">
+                                <i class="bi bi-link-45deg me-2"></i>Ver URL
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                     <div class="collapse mt-3" id="collapseURL">
+                        <div class="card card-body" id="certificadoUrlContainer">
+                            </div>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+<?php
 if (!$is_ajax) {
-    // Incluir el archivo footer.php en views
     include '../views/footer.php';
 }
 ?>
 <script>
-function verCertificado(valorUnico) {
-    window.open(`../controllers/generar_certificado.php?valor_unico=${valorUnico}`, '_blank');
+// 1. Función para detectar si es un dispositivo móvil
+function isMobile() {
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
+// 2. Función principal que decide qué hacer
+function obtenerCertificado(valorUnico) {
+    const urlCertificado = `../controllers/generar_certificado.php?valor_unico=${valorUnico}`;
+    if (isMobile()) {
+        // En móvil, abrimos la URL. La página del certificado se encargará de la descarga.
+        window.open(urlCertificado, '_blank');
+    } else {
+        // En PC, abrimos en una nueva pestaña para visualización.
+        window.open(urlCertificado, '_blank');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    const botonCertificado = document.getElementById('btn-certificado');
+    if (botonCertificado) {
+        if (isMobile()) {
+            botonCertificado.innerHTML = `<i class="bi bi-download me-2"></i> Descargar Certificado`;
+        } else {
+            botonCertificado.innerHTML = `<i class="bi bi-eye-fill me-2"></i> Ver Certificado`;
+        }
+    }
+});
+
 function obtenerCertificadoURL(valorUnico) {
-    fetch(`../controllers/certificado_endpoint.php?valor_unico=${valorUnico}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                console.error(data.error);
-            } else {
-                console.log(data);  // Verificar que se están obteniendo los datos correctamente
-                const certificadoUrl = `https://${window.location.host}/certifuptaisarec/controllers/generar_certificado.php?valor_unico=${valorUnico}`;
-                document.getElementById('certificadoUrlContainer').innerHTML = `<a href="${certificadoUrl}" target="_blank">${certificadoUrl}</a>`;
-            }
-        })
-        .catch(error => console.error('Error:', error));
+    const url = `https://${window.location.host}/certifuptaisarec/controllers/generar_certificado.php?valor_unico=${valorUnico}`;
+    document.getElementById('certificadoUrlContainer').innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
 }
 </script>
