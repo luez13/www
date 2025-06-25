@@ -209,12 +209,15 @@ if (!$certificateData) {
                 else if (certificateData.mostrar_firmas) {
                     pdf.setFontSize(8).setTextColor(255,0,0).text('[Firma no disponible]', coords.x, coords.y - 15, {align: 'center'});
                 }
-                // Si mostrar_firmas es false, simplemente no se dibuja nada en el else, dejando el espacio en blanco.
-                
-                // Dibuja el texto (esto siempre se ejecuta)
                 pdf.setFont(FONT_CAMBRIA, 'bold').setFontSize(14).setTextColor(...COLOR_NEGRO);
-                pdf.text(capitalizeWords(firmante.nombre), coords.x, coords.y, { align: 'center' });
-                
+                let nombreMostrado = firmante.nombre;
+
+                if (firmante.cargo && firmante.cargo.toLowerCase() === 'facilitador' && firmante.titulo) {
+
+                    nombreMostrado = `${firmante.titulo} ${firmante.nombre}`;
+                }
+
+                pdf.text(capitalizeWords(nombreMostrado), coords.x, coords.y, { align: 'center' });                
                 pdf.setFont(FONT_CAMBRIA, 'bold').setFontSize(14);
                 pdf.text(capitalizeWords(firmante.cargo), coords.x, coords.y + 5, { align: 'center' });
             }

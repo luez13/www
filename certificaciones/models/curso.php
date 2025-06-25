@@ -375,14 +375,14 @@ public function obtener_datos_certificacion($valor_unico) {
 
 
 public function obtenerDatosCompletosCertificado($valor_unico) {
-    // 1. Obtiene los datos principales (incluyendo el booleano 'firma_digital')
+    // 1. Obtiene los datos principales (sin cambios aquí)
     $datos_principales = $this->obtener_datos_certificacion($valor_unico);
     if (!$datos_principales) { return null; }
 
     $id_curso = $datos_principales['id_curso'];
     $id_promotor_curso = $datos_principales['promotor'];
 
-    // Obtenemos las configuraciones de firma siempre
+    // Obtenemos las configuraciones de firma (sin cambios aquí)
     $sql_firmas = "
         SELECT ccf.id_cargo_firmante, ccf.usar_promotor_curso, pf.codigo_posicion, pf.pagina
         FROM cursos.cursos_config_firmas AS ccf
@@ -399,32 +399,46 @@ public function obtenerDatosCompletosCertificado($valor_unico) {
             'posicion_codigo' => $config['codigo_posicion'],
             'pagina'          => $config['pagina'],
             'nombre'          => '[Firmante no asignado]',
+            'titulo'          => '', // <-- CAMBIO: Añadido para estandarizar
             'cargo'           => '',
-            'firma_base64'    => null, // Por defecto no hay firma
+            'firma_base64'    => null,
         ];
         
         $data_firmante = null;
 
         if ($config['usar_promotor_curso'] && $id_promotor_curso) {
-            $stmt_user = $this->pdo->prepare("SELECT nombre, apellido, firma_digital, titulo FROM cursos.usuarios WHERE id = :id");
+            // --- CAMBIO CLAVE AQUÍ: AÑADIMOS 'cargo' A LA CONSULTA ---
+            $stmt_user = $this->pdo->prepare("SELECT nombre, apellido, firma_digital, titulo, cargo FROM cursos.usuarios WHERE id = :id");
             $stmt_user->execute([':id' => $id_promotor_curso]);
             $data_firmante = $stmt_user->fetch(PDO::FETCH_ASSOC);
-            if ($data_firmante) $data_firmante['nombre_cargo'] = 'Facilitador';
+            
+            // Si encontramos al promotor, establecemos su cargo para el certificado como "Facilitador"
+            if ($data_firmante) {
+                // Guardamos el cargo real del usuario, pero para el certificado usamos 'Facilitador'
+                $data_firmante['nombre_cargo_certificado'] = 'Facilitador';
+            }
+
         } elseif ($config['id_cargo_firmante']) {
+            // Esta parte busca otros firmantes desde la tabla 'cargos', la dejamos igual
             $stmt_cargo = $this->pdo->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE id_cargo = :id");
             $stmt_cargo->execute([':id' => $config['id_cargo_firmante']]);
             $data_firmante = $stmt_cargo->fetch(PDO::FETCH_ASSOC);
+            if ($data_firmante) {
+                $data_firmante['nombre_cargo_certificado'] = $data_firmante['nombre_cargo'];
+            }
         }
         
         if ($data_firmante) {
-            $firmante_info['nombre'] = trim(($data_firmante['titulo'] ?? '') . ' ' . $data_firmante['nombre'] . ' ' . $data_firmante['apellido']);
-            $firmante_info['cargo'] = $data_firmante['nombre_cargo'];
+            // --- CAMBIO: ESTRUCTURAMOS LOS DATOS DE FORMA MÁS LIMPIA ---
+            $firmante_info['nombre'] = trim($data_firmante['nombre'] . ' ' . $data_firmante['apellido']);
+            $firmante_info['titulo'] = $data_firmante['titulo'] ?? '';
+            // Usamos el cargo definido para el certificado ('Facilitador' para el promotor)
+            $firmante_info['cargo']  = $data_firmante['nombre_cargo_certificado']; 
+            
             $ruta_desde_db = $data_firmante['firma_digital'];
 
-            // ✅ --- LÓGICA DEL INTERRUPTOR MODIFICADA ---
-            // Solo intentamos cargar la imagen si el interruptor general está en 'true' Y si hay una ruta de firma.
+            // Lógica de la firma digital (sin cambios aquí)
             if (!empty($datos_principales['firma_digital']) && $datos_principales['firma_digital'] === true && !empty($ruta_desde_db)) {
-                
                 $nombre_archivo = basename($ruta_desde_db);
                 $ruta_relativa_final = 'public/assets/firmas/' . $nombre_archivo;
                 $ruta_absoluta = dirname(__DIR__) . '/' . $ruta_relativa_final;
@@ -443,7 +457,7 @@ public function obtenerDatosCompletosCertificado($valor_unico) {
 
     $datos_principales['firmantes'] = $firmantes_procesados;
     
-    // Obtenemos los módulos (lógica sin cambios)
+    // Obtenemos los módulos (sin cambios)
     $sql_modulos = "SELECT nombre_modulo, numero FROM cursos.modulos WHERE id_curso = :id_curso ORDER BY numero ASC";
     $stmt_modulos = $this->pdo->prepare($sql_modulos);
     $stmt_modulos->execute([':id_curso' => $id_curso]);

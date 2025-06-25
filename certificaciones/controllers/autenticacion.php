@@ -193,7 +193,7 @@ switch ($action) {
         // Obtener los datos del formulario
         $nombre = $_POST['nombre'];
         $apellido = $_POST['apellido'];
-        $correo = $_POST['correo'];
+        $correo = strtolower($_POST['correo']);
         $password = $_POST['password'];
         $confirm_password = $_POST['confirm_password'];
         $cedula = $_POST['cedula'];
@@ -223,7 +223,7 @@ switch ($action) {
         break;    
         case 'login':
             // Obtener los datos del formulario
-            $correo = $_POST['correo'];
+            $correo = strtolower($_POST['correo']);
             $password = $_POST['password'];
             // Validar los datos
             if (validar_login($correo, $password)) {
@@ -268,7 +268,7 @@ switch ($action) {
         // Obtener los datos del formulario
         $nombre = $_POST['nombre'];
         $apellido = $_POST['apellido'];
-        $correo = $_POST['correo'];
+        $correo = strtolower($_POST['correo']);
         $cedula = $_POST['cedula'];
         $nuevaContrasena = $_POST['nueva_contrasena']; // Nuevo campo para la nueva contraseña
     
@@ -311,7 +311,7 @@ switch ($action) {
         break;
     case 'recuperar':
         // Obtener el correo del formulario
-        $correo = $_POST['correo'];
+        $correo = strtolower($_POST['correo']);
         // Verificar que el correo no esté vacío
         if (!empty($correo)) {
             // Consultar la base de datos para obtener el usuario con el correo ingresado

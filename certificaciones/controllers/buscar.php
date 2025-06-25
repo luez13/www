@@ -214,7 +214,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso
                         <input type="hidden" name="page" value="<?= htmlspecialchars($page); ?>">
                         <button type="button" class="btn btn-danger" onclick="inscribirUsuario(<?= htmlspecialchars($usuario['id']); ?>)">Cancelar Inscripción</button>
                     </form>
-                        <form action="" method="post" class="mt-2">
+                        <form id="fechaForm-<?= htmlspecialchars($usuario['id']); ?>" action="../controllers/buscar.php" method="post" class="mt-2" onsubmit="event.preventDefault();">
                             <input type="hidden" name="action" value="actualizar_fecha">
                             <input type="hidden" name="id_usuario" value="<?= htmlspecialchars($usuario['id']); ?>">
                             <input type="hidden" name="curso_id" value="<?= htmlspecialchars($id_curso); ?>">
@@ -222,7 +222,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso
                             <div class="input-group">
                                 <input type="date" class="form-control form-control-sm" name="fecha_inscripcion" value="<?= htmlspecialchars($fecha_para_input) ?>">
                                 <div class="input-group-append">
-                                    <button type="submit" class="btn btn-secondary btn-sm">Guardar Fecha</button>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="actualizarFechaUsuario(<?= htmlspecialchars($usuario['id']); ?>)">Guardar Fecha</button>
                                 </div>
                             </div>
                         </form>

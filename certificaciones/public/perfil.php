@@ -133,7 +133,7 @@ try {
         </a>
         <div id="collapseUsuarios" class="collapse" aria-labelledby="headingUsuarios" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="#" onclick="loadPage('../views/usuarios.php')">Verificación Usuarios</a>
+                <a class="collapse-item" href="#" onclick="loadPage('usuarios.php')">Verificación Usuarios</a>
             </div>
         </div>
     </li>
@@ -828,5 +828,49 @@ function subirFirmaDigital() {
       }).catch(error => {
           console.error('Error:', error);
       });
+}
+
+function actualizarFechaUsuario(userId) {
+    // 1. Localizar el formulario específico para la fecha de este usuario
+    var form = document.getElementById('fechaForm-' + userId);
+    if (!form) {
+        console.error('Formulario de fecha no encontrado para el usuario:', userId);
+        alert('Error: No se pudo encontrar el formulario.');
+        return;
+    }
+
+    // 2. Recopilar los datos del formulario
+    var formData = new FormData(form);
+    var actionUrl = form.getAttribute('action');
+    var idCurso = form.querySelector('input[name="curso_id"]').value;
+    var currentPage = form.querySelector('input[name="page"]').value;
+
+    // 3. Enviar los datos usando fetch (AJAX)
+    fetch(actionUrl, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(result => {
+        // 4. Analizar la respuesta del servidor para obtener el mensaje
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = result;
+        var alertElement = tempDiv.querySelector('.alert');
+        var alertMessage = alertElement ? alertElement.innerText.trim() : 'Operación completada.';
+
+        // Mostrar el mensaje de éxito o error
+        alert(alertMessage);
+        
+        // 5. Recargar la lista de usuarios para reflejar los cambios sin recargar toda la página
+        loadPage('../controllers/buscar.php', { 
+            id_curso: idCurso, 
+            page: currentPage,
+            scrollTo: 'user-' + userId // Parámetro para hacer scroll al usuario editado
+        });
+    })
+    .catch(error => {
+        console.error('Error en la actualización:', error);
+        alert('Hubo un error al procesar la solicitud: ' + error);
+    });
 }
 </script>
