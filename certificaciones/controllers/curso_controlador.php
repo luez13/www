@@ -131,16 +131,14 @@ case 'crear':
         );
 
         if ($resultado) {
-            echo '<script>
-                alert("La propuesta de curso se ha creado correctamente.");
-                window.location.href = "../public/perfil.php";
-            </script>';
+            // Simplemente devuelve un mensaje de texto plano
+            echo "La propuesta de curso se ha creado correctamente.";
         } else {
-            echo '<script>
-                alert("Ha ocurrido un error al crear la propuesta.");
-                window.history.back();
-            </script>';
+            // Para errores, también un mensaje de texto plano
+            http_response_code(400); // Opcional: envía un código de error HTTP
+            echo "Ha ocurrido un error al crear la propuesta.";
         }
+        exit();
         break;
         case 'editar':
             // Obtener los datos del formulario

@@ -13,7 +13,7 @@ echo '<div class="container-fluid">';
 if (isset($_GET['action']) && $_GET['action'] == 'crear') {
 
     // --- Obtenemos los datos necesarios para las firmas por defecto ---
-    $stmt_coord = $db->prepare("SELECT id_cargo FROM cursos.cargos WHERE nombre_cargo = 'Coord. de Formación Permanente' LIMIT 1");
+    $stmt_coord = $db->prepare("SELECT id_cargo FROM cursos.cargos WHERE nombre_cargo = 'Coord. Formación Permanente' LIMIT 1");
     $stmt_coord->execute();
     $id_cargo_coordinador = $stmt_coord->fetchColumn();
 

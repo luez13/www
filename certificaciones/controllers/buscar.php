@@ -5,28 +5,24 @@ include '../config/model.php';
 // Crear una instancia de la clase DB
 $db = new DB();
 
-$pagina_actual = 'buscar_cursos.php'; // Definir la página actual
+$pagina_actual = 'buscar.php'; // Definir la página actual
 
-// Definir la función validar_inscripcion
+// ... (La función validar_inscripcion no cambia) ...
 function validar_inscripcion($id_usuario, $curso_id) {
-    if (empty($id_usuario) || empty($curso_id)) {
-        return false;
-    }
-    if (!is_numeric($id_usuario) || !is_numeric($curso_id)) {
-        return false;
-    }
+    if (empty($id_usuario) || empty($curso_id)) { return false; }
+    if (!is_numeric($id_usuario) || !is_numeric($curso_id)) { return false; }
     return true;
 }
 
 $message = '';
 $type = '';
-// Manejar la solicitud POST
+// El manejo de la solicitud POST no cambia en absoluto.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_usuario = isset($_POST['id_usuario']) ? $_POST['id_usuario'] : null;
     $curso_id = isset($_POST['curso_id']) ? $_POST['curso_id'] : null;
     $action = isset($_POST['action']) ? $_POST['action'] : '';
 
-        if ($action === 'actualizar_fecha' && validar_inscripcion($id_usuario, $curso_id)) {
+    if ($action === 'actualizar_fecha' && validar_inscripcion($id_usuario, $curso_id)) {
         $fecha_inscripcion = isset($_POST['fecha_inscripcion']) ? $_POST['fecha_inscripcion'] : null;
         if ($fecha_inscripcion) {
             try {
@@ -79,85 +75,97 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Obtener la página actual y el ID del curso
+// --- CAMBIOS PARA LA BÚSQUEDA Y PAGINACIÓN ---
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $id_curso = isset($_GET['id_curso']) ? (int)$_GET['id_curso'] : 0;
+$busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : ''; // <-- CAMBIO: Obtenemos el término de búsqueda
 $limit = 10;
 $offset = ($page - 1) * $limit;
 
-// Obtener el nombre del curso
+// La lógica para obtener el nombre del curso no cambia
 $curso = ['nombre_curso' => 'Curso no encontrado'];
 if ($id_curso > 0) {
     $stmt = $db->prepare('SELECT nombre_curso FROM cursos.cursos WHERE id_curso = :id_curso');
     $stmt->execute(['id_curso' => $id_curso]);
     $curso = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$curso) {
-        $curso = ['nombre_curso' => 'Curso no encontrado'];
-    }
+    if (!$curso) { $curso = ['nombre_curso' => 'Curso no encontrado']; }
 }
 
-// Consultar la base de datos para obtener los usuarios
 $total_pages = 0;
 $usuarios = [];
 try {
-    $stmt = $db->prepare('SELECT COUNT(*) FROM cursos.usuarios');
-    $stmt->execute();
-    $total = $stmt->fetchColumn();
+    // --- CAMBIO: La consulta para contar ahora también usa la búsqueda ---
+    $count_sql = "SELECT COUNT(*) FROM cursos.usuarios u";
+    $params = [];
+    $whereClause = '';
+    if (!empty($busqueda)) {
+        $whereClause = " WHERE u.nombre ILIKE :busqueda OR u.apellido ILIKE :busqueda OR u.cedula ILIKE :busqueda";
+        $params[':busqueda'] = "%$busqueda%";
+    }
+    $stmt_count = $db->prepare($count_sql . $whereClause);
+    $stmt_count->execute($params);
+    $total = $stmt_count->fetchColumn();
     $total_pages = ceil($total / $limit);
 
-    // Nueva consulta que ordena primero los inscritos en el curso
-    $stmt = $db->prepare("
-        SELECT u.id, u.nombre, u.cedula, u.correo, 
+    // --- CAMBIO: La consulta principal ahora también filtra por la búsqueda ---
+    $sql = "
+        SELECT u.id, u.nombre, u.apellido, u.cedula, u.correo, 
                CASE WHEN c.id_usuario IS NOT NULL THEN 1 ELSE 0 END AS inscrito
         FROM cursos.usuarios u
-        LEFT JOIN cursos.certificaciones c 
-            ON u.id = c.id_usuario AND c.curso_id = :id_curso
-        ORDER BY inscrito DESC, u.nombre ASC
-        LIMIT :limit OFFSET :offset
-    ");
+        LEFT JOIN cursos.certificaciones c ON u.id = c.id_usuario AND c.curso_id = :id_curso
+    ";
     
-    $stmt->bindParam(':id_curso', $id_curso, PDO::PARAM_INT);
-    $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-    $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+    // Añadimos la cláusula WHERE de búsqueda a la consulta principal
+    $sql .= $whereClause;
+
+    $sql .= " ORDER BY inscrito DESC, u.nombre ASC LIMIT :limit OFFSET :offset";
+    
+    $stmt = $db->prepare($sql);
+    
+    // Unimos los parámetros
+    $final_params = array_merge($params, [
+        ':id_curso' => $id_curso,
+        ':limit' => $limit,
+        ':offset' => $offset
+    ]);
+
+    // Bindeamos los parámetros dinámicamente
+    foreach ($final_params as $key => &$val) {
+        $type = is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR;
+        $stmt->bindParam($key, $val, $type);
+    }
+    
     $stmt->execute();
     $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (PDOException $e) {
     echo 'Error: ' . $e->getMessage();
     die();
 }
 
-// En la función `renderPagination`:
-function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso) {
+// --- CAMBIO: La función de paginación ahora necesita el término de búsqueda ---
+function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso, $busqueda) {
     $html = '<nav><ul class="pagination">';
+    $busqueda_js = htmlspecialchars($busqueda, ENT_QUOTES); // Escapamos para JavaScript
 
-    // Botón para la primera página
     if ($current_page > 1) {
-        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: 1, id_curso: ' . $id_curso . ' }); return false;">Primera</a></li>';
-        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page - 1) . ', id_curso: ' . $id_curso . ' }); return false;">&laquo; Anterior</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: 1, id_curso: ' . $id_curso . ', busqueda: \'' . $busqueda_js . '\' }); return false;">Primera</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page - 1) . ', id_curso: ' . $id_curso . ', busqueda: \'' . $busqueda_js . '\' }); return false;">&laquo; Anterior</a></li>';
     }
 
-    // Determinar el rango de páginas a mostrar
     $start_page = max(1, $current_page - 2);
     $end_page = min($total_pages, $current_page + 2);
+    if ($current_page <= 3) { $end_page = min(5, $total_pages); }
+    if ($current_page >= $total_pages - 2) { $start_page = max(1, $total_pages - 4); }
 
-    // Ajustar si estamos cerca del principio o final
-    if ($current_page <= 3) {
-        $end_page = min(5, $total_pages);
-    }
-    if ($current_page >= $total_pages - 2) { 
-        $start_page = max(1, $total_pages - 4);
-    }
-
-    // Páginas numéricas
     for ($i = $start_page; $i <= $end_page; $i++) {
         $active = $i == $current_page ? 'active' : '';
-        $html .= '<li class="page-item ' . $active . '"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . $i . ', id_curso: ' . $id_curso . ' }); return false;">' . $i . '</a></li>';
+        $html .= '<li class="page-item ' . $active . '"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . $i . ', id_curso: ' . $id_curso . ', busqueda: \'' . $busqueda_js . '\' }); return false;">' . $i . '</a></li>';
     }
 
-    // Botón para la última página
     if ($current_page < $total_pages) {
-        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page + 1) . ', id_curso: ' . $id_curso . ' }); return false;">Siguiente &raquo;</a></li>';
-        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . $total_pages . ', id_curso: ' . $id_curso . ' }); return false;">Última</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page + 1) . ', id_curso: ' . $id_curso . ', busqueda: \'' . $busqueda_js . '\' }); return false;">Siguiente &raquo;</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . $total_pages . ', id_curso: ' . $id_curso . ', busqueda: \'' . $busqueda_js . '\' }); return false;">Última</a></li>';
     }
 
     $html .= '</ul></nav>';
@@ -170,7 +178,14 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso
 <body>
 <div class="container mt-4" id="page-content">
     <h3>Usuarios Registrados para el curso: <?php echo htmlspecialchars($curso['nombre_curso']) . " (ID: " . htmlspecialchars($id_curso) . ")"; ?></h3>
-    
+
+        <div class="input-group mb-3">
+        <span class="input-group-text" id="basic-addon1"><i class="fas fa-search"></i></span>
+        <input type="text" id="inscripcion-search-input" class="form-control" 
+               placeholder="Buscar por nombre, apellido o cédula..." 
+               value="<?= htmlspecialchars($busqueda) ?>"
+               data-id-curso="<?= htmlspecialchars($id_curso) ?>">
+    </div>
     <?php if (!empty($usuarios)): ?>
     <button type="button" class="btn btn-info" onclick="loadPage('../controllers/generar_certificados_lote.php', { curso_id: <?= htmlspecialchars($id_curso); ?> })">
         Ver/Descargar Todos los Certificados
@@ -243,7 +258,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $id_curso
         </div>
         <?php
         // Asegúrate de que `$id_curso` se pase en cada enlace de paginación
-        echo renderPagination($total_pages, $page, 'buscar.php', $id_curso);
+        echo renderPagination($total_pages, $page, 'buscar.php', $id_curso, $busqueda);
         ?>
     </div>
 </div>

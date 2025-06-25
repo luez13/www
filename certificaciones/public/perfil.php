@@ -609,6 +609,34 @@ function reapplyEvents() {
             alert('Hubo un error al procesar la solicitud: ' + error);
         });
     });
+
+    let inscripcionSearchTimeout;
+    $('#inscripcion-search-input').off('keyup').on('keyup', function() {
+        clearTimeout(inscripcionSearchTimeout);
+        const input = $(this);
+        const busqueda = input.val();
+        const id_curso = input.data('id-curso');
+        
+        // --- CAMBIO: Guardamos la longitud del texto para saber dónde poner el cursor ---
+        const cursorPosition = busqueda.length;
+
+        inscripcionSearchTimeout = setTimeout(function() {
+            loadPage('buscar.php', {
+                id_curso: id_curso,
+                busqueda: busqueda,
+                page: 1 
+            });
+            setTimeout(() => {
+                const reacquiredInput = $('#inscripcion-search-input');
+                if (reacquiredInput.length) {
+                    reacquiredInput.focus(); // Ponemos el foco en el campo
+                    // Movemos el cursor al final del texto que el usuario había escrito
+                    reacquiredInput[0].setSelectionRange(cursorPosition, cursorPosition);
+                }
+            }, 0);
+
+        }, 300);
+    });
 }
 
 function inscribirUsuario(userId) {
