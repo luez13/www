@@ -1,0 +1,19 @@
+{
+    "nombre_curso": "Impresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3D",
+    "descripcion": "masterclass de impresiones en 3D de protesis dentales",
+    "tiempo_asignado": "2",
+    "inicio_mes": "2024-10-27",
+    "tipo_curso": "masterclass",
+    "limite_inscripciones": "20",
+    "dias_clase": "{Martes}",
+    "horario_inicio": "11:11:00",
+    "horario_fin": "05:11:00",
+    "nivel_curso": "medio",
+    "costo": "20.00",
+    "conocimientos_previos": "conocimientos basicos en cuanto a tecnologias",
+    "requerimientos_implemento": "ninguno",
+    "desempeno_al_concluir": "capacitacion en protesis dentales",
+    "horas_cronologicas": 1,
+    "fecha_finalizacion": 21,
+    "autorizacion": "2025-02-15"
+}

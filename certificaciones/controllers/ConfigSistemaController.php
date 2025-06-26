@@ -10,7 +10,7 @@ header('Content-Type: application/json');
 // Respuesta por defecto
 $response = ['success' => false, 'message' => 'Acción no reconocida.'];
 // Determinar la acción a realizar (desde GET o POST)
-$action = $_REQUEST['action'] ?? null;
+$action = isset($_REQUEST['action']) ? $_REQUEST['action'] : null;
 
 // Solo el rol 4 (Admin) puede ejecutar estas acciones
 if ($_SESSION['id_rol'] != 4) {

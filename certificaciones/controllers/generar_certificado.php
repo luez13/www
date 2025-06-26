@@ -17,7 +17,7 @@ if (isset($_GET['valor_unico'])) {
         // Toda la lógica de buscar promotor, módulos, etc., ahora está dentro de la función.
         // Solo necesitamos construir el array final para JavaScript.
 
-        $horas_cronologicas = $datos_completos['horas_cronologicas'] ?? 0;
+        $horas_cronologicas = isset($datos_completos['horas_cronologicas']) ? $datos_completos['horas_cronologicas'] : 0;
         if ($datos_completos['tipo_curso'] === "masterclass" && $horas_cronologicas == 0) {
             $horas_cronologicas = 4;
         }
@@ -36,14 +36,14 @@ if (isset($_GET['valor_unico'])) {
             'tipo_curso' => $datos_completos['tipo_curso'],
             'nombre_curso' => $datos_completos['nombre_curso'],
             'horas_cronologicas' => $horas_cronologicas,
-            'modulos' => $datos_completos['modulos'] ?? [], // Asumiendo que la función también puede devolver módulos
+            'modulos' => isset($datos_completos['modulos']) ? $datos_completos['modulos'] : array(),
             'articulo_tipo_curso' => ($datos_completos['tipo_curso'] === "charla" || $datos_completos['tipo_curso'] === "masterclass") ? "la" : "el",
             'certificadoUrl' => "http://{$_SERVER['HTTP_HOST']}/certifuptaisarec/controllers/generar_certificado.php?valor_unico={$valor_unico}",
             'imagePath' => '../public/assets/img/marca_agua.png',
             'bannerPath' => '../public/assets/img/banner_certificado.jpg',
             'footerPath' => '../public/assets/img/footer.jpg',
-            'firmantes' => $datos_completos['firmantes'] ?? [],
-            'mostrar_firmas' => $datos_completos['firma_digital'] ?? false,
+            'firmantes' => isset($datos_completos['firmantes']) ? $datos_completos['firmantes'] : array(),
+            'mostrar_firmas' => isset($datos_completos['firma_digital']) ? $datos_completos['firma_digital'] : false,
         ];
     } else {
         $error_message = "No se encontraron datos de certificación para el valor único proporcionado.";

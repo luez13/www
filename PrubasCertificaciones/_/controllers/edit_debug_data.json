@@ -1,92 +1,59 @@
 {
     "course_data": {
         "action": "editar",
-        "id_curso": "25",
-        "nombre_curso": "Introducci\u00f3n a Arduino",
-        "descripcion": "Curso sobre la Tecnolog\u00eda Arduino",
-        "tiempo_asignado": "2",
-        "inicio_mes": "2025-01-14",
+        "id_curso": "58",
+        "nombre_curso": "ARDUINO",
+        "descripcion": "ARDUINO",
+        "tiempo_asignado": "3",
+        "inicio_mes": "2025-05-21",
+        "horas_cronologicas": "20",
+        "fecha_finalizacion": "2025-06-04T15:16",
+        "firma_digital": "on",
         "tipo_curso": "curso",
-        "limite_inscripciones": "15",
+        "limite_inscripciones": "5",
         "promotor": "218",
-        "dias_clase": "{Viernes,S\u00e1bado}",
-        "horario_inicio": "08:00:00",
-        "horario_fin": "16:00",
+        "dias_clase": "{Lunes,Mi\u00e9rcoles}",
+        "horario_inicio": "09:00:00",
+        "horario_fin": "13:00:00",
         "nivel_curso": "introductorio",
-        "costo": "240000.00",
-        "conocimientos_previos": "\u2022\tSistemas Electr\u00f3nicos Digitales I, Programaci\u00f3n B\u00e1sica",
-        "requerimientos_implementos": "Laboratorio con Computadores",
-        "desempe\u00f1o_al_concluir": "Capacidad para dise\u00f1ar y desarrollar proyectos m\u00e1s complejos.\r\nCreaci\u00f3n de sistemas automatizados.\r\nRob\u00f3tica b\u00e1sica o proyectos de Internet.",
+        "costo": "30.00",
+        "conocimientos_previos": "NINGUNO",
+        "requerimientos_implementos": "NINGUNO",
+        "desempe\u00f1o_al_concluir": "ARDUINO",
         "id_modulo": [
-            "110",
-            "111",
-            "112",
-            "113",
-            "114"
+            "265",
+            "266",
+            "267",
+            "268",
+            "269"
         ],
         "nombre_modulo": [
-            "Introducci\u00f3n a la Tecnolog\u00eda Arduino",
-            "El Hardware de Arduino",
-            "Programando Arduino",
-            "Conexi\u00f3n con el mundo f\u00edsico",
-            "Proyecto"
+            "Introducci\u00f3n a la tecnolog\u00eda arduino.",
+            "El hardware de arduino.",
+            "Programando arduino.",
+            "Conexi\u00f3n con el mundo f\u00edsico.",
+            "Proyecto."
         ],
         "contenido": [
-            "Rese\u00f1a Hist\u00f3rica de Arduino",
-            "Definici\u00f3n de Arduino",
-            "Microcontroladores",
-            "Placas de Arduino",
-            "Aspectos f\u00edsicos del Arduino (Hardware).",
-            "\u00bfPor qu\u00e9 usar Arduino?",
-            "Descarga e Instalaci\u00f3n del Software Arduino IDE",
-            "Entorno de programaci\u00f3n.",
-            "Instrucciones b\u00e1sicas.",
-            "Variables, Operadores y Estructuras de control.",
-            "Archivos Hex.",
-            "Entradas\/Salidas.",
-            "Digitales y Anal\u00f3gicas.",
-            "Sensores y M\u00f3dulos.",
-            "Comunicaci\u00f3n Serial.",
-            "Display 7 segmentos y Teclado Matricial.",
-            "aplicaci\u00f3n de lo aprendido"
+            "Introducci\u00f3n a la tecnolog\u00eda arduino.",
+            "El hardware de arduino.",
+            "Programando arduino.",
+            "Conexi\u00f3n con el mundo f\u00edsico.",
+            "Proyecto."
         ],
         "numero_modulo_contenido": [
             "1",
-            "1",
-            "2",
-            "2",
-            "2",
             "2",
             "3",
-            "3",
-            "3",
-            "3",
-            "3",
-            "4",
-            "4",
-            "4",
-            "4",
             "4",
             "5"
         ],
         "id_modulo_contenido": [
-            "110",
-            "110",
-            "111",
-            "111",
-            "111",
-            "111",
-            "112",
-            "112",
-            "112",
-            "112",
-            "112",
-            "113",
-            "113",
-            "113",
-            "113",
-            "113",
-            "114"
+            "265",
+            "266",
+            "267",
+            "268",
+            "269"
         ],
         "numero_modulo": [
             "1",
@@ -96,94 +63,82 @@
             "5"
         ],
         "actividad_modulo": [
-            "Simulaci\u00f3n",
-            "Simulaci\u00f3n",
-            "Simulaci\u00f3n",
-            "Simulaci\u00f3n",
-            "Simulaci\u00f3n"
+            "Ninguna",
+            "Ninguna",
+            "Ninguna",
+            "Ninguna",
+            "Ninguna"
         ],
         "instrumento_modulo": [
-            "Montaje del circuito",
-            "Montaje del circuito",
-            "Montaje del circuito",
-            "Montaje del circuito",
-            "Montaje del circuito"
+            "Ninguna",
+            "Ninguna",
+            "Ninguna",
+            "Ninguna",
+            "Ninguna"
         ]
     },
     "modules_data": [
         {
-            "id_modulo": "110",
-            "id_curso": "25",
-            "nombre_modulo": "Introducci\u00f3n a la Tecnolog\u00eda Arduino",
-            "contenido": "[Rese\u00f1a Hist\u00f3rica de Arduino][Definici\u00f3n de Arduino]",
+            "id_modulo": "265",
+            "id_curso": "58",
+            "nombre_modulo": "Introducci\u00f3n a la tecnolog\u00eda arduino.",
+            "contenido": "[Introducci\u00f3n a la tecnolog\u00eda arduino.]",
             "numero": "1",
-            "actividad": "Simulaci\u00f3n",
-            "instrumento": "Montaje del circuito"
+            "actividad": "Ninguna",
+            "instrumento": "Ninguna"
         },
         {
-            "id_modulo": "111",
-            "id_curso": "25",
-            "nombre_modulo": "El Hardware de Arduino",
-            "contenido": "[Microcontroladores][Placas de Arduino][Aspectos f\u00edsicos del Arduino (Hardware).][\u00bfPor qu\u00e9 usar Arduino?]",
+            "id_modulo": "266",
+            "id_curso": "58",
+            "nombre_modulo": "El hardware de arduino.",
+            "contenido": "[El hardware de arduino.]",
             "numero": "2",
-            "actividad": "Simulaci\u00f3n",
-            "instrumento": "Montaje del circuito"
+            "actividad": "Ninguna",
+            "instrumento": "Ninguna"
         },
         {
-            "id_modulo": "112",
-            "id_curso": "25",
-            "nombre_modulo": "Programando Arduino",
-            "contenido": "[Descarga e Instalaci\u00f3n del Software Arduino IDE][Entorno de programaci\u00f3n.][Instrucciones b\u00e1sicas.][Variables, Operadores y Estructuras de control.][Archivos Hex.]",
+            "id_modulo": "267",
+            "id_curso": "58",
+            "nombre_modulo": "Programando arduino.",
+            "contenido": "[Programando arduino.]",
             "numero": "3",
-            "actividad": "Simulaci\u00f3n",
-            "instrumento": "Montaje del circuito"
+            "actividad": "Ninguna",
+            "instrumento": "Ninguna"
         },
         {
-            "id_modulo": "113",
-            "id_curso": "25",
-            "nombre_modulo": "Conexi\u00f3n con el mundo f\u00edsico",
-            "contenido": "[Entradas\/Salidas.][Digitales y Anal\u00f3gicas.][Sensores y M\u00f3dulos.][Comunicaci\u00f3n Serial.][Display 7 segmentos y Teclado Matricial.]",
+            "id_modulo": "268",
+            "id_curso": "58",
+            "nombre_modulo": "Conexi\u00f3n con el mundo f\u00edsico.",
+            "contenido": "[Conexi\u00f3n con el mundo f\u00edsico.]",
             "numero": "4",
-            "actividad": "Simulaci\u00f3n",
-            "instrumento": "Montaje del circuito"
+            "actividad": "Ninguna",
+            "instrumento": "Ninguna"
         },
         {
-            "id_modulo": "114",
-            "id_curso": "25",
-            "nombre_modulo": "Proyecto",
-            "contenido": "[aplicaci\u00f3n de lo aprendido]",
+            "id_modulo": "269",
+            "id_curso": "58",
+            "nombre_modulo": "Proyecto.",
+            "contenido": "[Proyecto.]",
             "numero": "5",
-            "actividad": "Simulaci\u00f3n",
-            "instrumento": "Montaje del circuito"
+            "actividad": "Ninguna",
+            "instrumento": "Ninguna"
         }
     ],
     "contenidos_modulo": {
-        "110": [
-            "Rese\u00f1a Hist\u00f3rica de Arduino",
-            "Definici\u00f3n de Arduino"
+        "265": [
+            "Introducci\u00f3n a la tecnolog\u00eda arduino."
         ],
-        "111": [
-            "Microcontroladores",
-            "Placas de Arduino",
-            "Aspectos f\u00edsicos del Arduino (Hardware).",
-            "\u00bfPor qu\u00e9 usar Arduino?"
+        "266": [
+            "El hardware de arduino."
         ],
-        "112": [
-            "Descarga e Instalaci\u00f3n del Software Arduino IDE",
-            "Entorno de programaci\u00f3n.",
-            "Instrucciones b\u00e1sicas.",
-            "Variables, Operadores y Estructuras de control.",
-            "Archivos Hex."
+        "267": [
+            "Programando arduino."
         ],
-        "113": [
-            "Entradas\/Salidas.",
-            "Digitales y Anal\u00f3gicas.",
-            "Sensores y M\u00f3dulos.",
-            "Comunicaci\u00f3n Serial.",
-            "Display 7 segmentos y Teclado Matricial."
+        "268": [
+            "Conexi\u00f3n con el mundo f\u00edsico."
         ],
-        "114": [
-            "aplicaci\u00f3n de lo aprendido"
+        "269": [
+            "Proyecto."
         ]
     }
 }

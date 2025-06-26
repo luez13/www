@@ -1,0 +1,121 @@
+{
+    "id_curso": "44",
+    "nombre_curso": "Impresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3D",
+    "descripcion": "masterclass de impresiones en 3D de protesis dentales",
+    "tiempo_asignado": "2",
+    "inicio_mes": "2024-10-27",
+    "tipo_curso": "masterclass",
+    "limite_inscripciones": "20",
+    "dias_clase_pg": "{Martes}",
+    "horario_inicio": "11:11:00",
+    "horario_fin": "05:11:00",
+    "nivel_curso": "medio",
+    "costo": "20.00",
+    "conocimientos_previos": "conocimientos basicos en cuanto a tecnologias",
+    "modulos": [
+        {
+            "id_modulo": "97",
+            "id_curso": "44",
+            "nombre_modulo": "impresion 3D",
+            "contenido": "[impresion 3D]",
+            "numero": "1",
+            "actividad": "participacion",
+            "instrumento": "participacion"
+        }
+    ],
+    "requerimientos_implemento": "ninguno",
+    "desempe\u00f1o_al_concluir": "capacitacion en protesis dentales",
+    "horas_cronologicas": 21,
+    "fecha_finalizacion_correcta": "2025-02-15",
+    "autorizacion": 1
+}{
+    "id_curso": "44",
+    "nombre_curso": "Impresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3D",
+    "descripcion": "masterclass de impresiones en 3D de protesis dentales",
+    "tiempo_asignado": "2",
+    "inicio_mes": "2024-10-27",
+    "tipo_curso": "masterclass",
+    "limite_inscripciones": "20",
+    "dias_clase_pg": "{Martes}",
+    "horario_inicio": "11:11:00",
+    "horario_fin": "05:11:00",
+    "nivel_curso": "medio",
+    "costo": "20.00",
+    "conocimientos_previos": "conocimientos basicos en cuanto a tecnologias",
+    "modulos": [
+        {
+            "id_modulo": "97",
+            "id_curso": "44",
+            "nombre_modulo": "impresion 3D",
+            "contenido": "[impresion 3D]",
+            "numero": "1",
+            "actividad": "participacion",
+            "instrumento": "participacion"
+        }
+    ],
+    "requerimientos_implemento": "ninguno",
+    "desempe\u00f1o_al_concluir": "capacitacion en protesis dentales",
+    "horas_cronologicas": 21,
+    "fecha_finalizacion_correcta": "2025-02-15",
+    "autorizacion": 1
+}{
+    "id_curso": "44",
+    "nombre_curso": "Impresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3D",
+    "descripcion": "masterclass de impresiones en 3D de protesis dentales",
+    "tiempo_asignado": "2",
+    "inicio_mes": "2024-10-27",
+    "tipo_curso": "masterclass",
+    "limite_inscripciones": "20",
+    "dias_clase_pg": "{Martes}",
+    "horario_inicio": "11:11:00",
+    "horario_fin": "05:11:00",
+    "nivel_curso": "medio",
+    "costo": "20.00",
+    "conocimientos_previos": "conocimientos basicos en cuanto a tecnologias",
+    "modulos": [
+        {
+            "id_modulo": "97",
+            "id_curso": "44",
+            "nombre_modulo": "impresion 3D",
+            "contenido": "[impresion 3D]",
+            "numero": "1",
+            "actividad": "participacion",
+            "instrumento": "participacion"
+        }
+    ],
+    "requerimientos_implemento": "ninguno",
+    "desempe\u00f1o_al_concluir": "capacitacion en protesis dentales",
+    "horas_cronologicas": 20,
+    "fecha_finalizacion_correcta": "2025-02-15",
+    "autorizacion": 1
+}{
+    "id_curso": "44",
+    "nombre_curso": "Impresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3DImpresio\u00f1es 3D",
+    "descripcion": "masterclass de impresiones en 3D de protesis dentales",
+    "tiempo_asignado": "2",
+    "inicio_mes": "2024-10-27",
+    "tipo_curso": "masterclass",
+    "limite_inscripciones": "20",
+    "dias_clase_pg": "{Martes}",
+    "horario_inicio": "11:11:00",
+    "horario_fin": "05:11:00",
+    "nivel_curso": "medio",
+    "costo": "20.00",
+    "conocimientos_previos": "conocimientos basicos en cuanto a tecnologias",
+    "modulos": [
+        {
+            "id_modulo": "97",
+            "id_curso": "44",
+            "nombre_modulo": "impresion 3D",
+            "contenido": "[impresion 3D]",
+            "numero": "1",
+            "actividad": "participacion",
+            "instrumento": "participacion"
+        }
+    ],
+    "requerimientos_implemento": "ninguno",
+    "desempe\u00f1o_al_concluir": "capacitacion en protesis dentales",
+    "horas_cronologicas": 20,
+    "fecha_finalizacion_correcta": "2025-02-15",
+    "autorizacion": 1
+}

@@ -86,43 +86,49 @@ $action = $_POST['action'];
 
 // Ejecutar la acción correspondiente
 switch ($action) {
-case 'crear':
-    $nombre_curso = $_POST['nombre_curso'] ?? '';
-    $descripcion = $_POST['descripcion'] ?? '';
-    $tiempo_asignado = $_POST['tiempo_asignado'] ?? '';
-    $inicio_mes = $_POST['inicio_mes'] ?? '';
-    $tipo_curso = $_POST['tipo_curso'] ?? '';
-    $limite_inscripciones = $_POST['limite_inscripciones'] ?? '';
-    $dias_clase_array = $_POST['dias_clase'] ?? [];
-    $dias_clase_pg = '{' . implode(',', $dias_clase_array) . '}';
-    $horario_inicio = $_POST['horario_inicio'] ?? '';
-    $horario_fin = $_POST['horario_fin'] ?? '';
-    $nivel_curso = $_POST['nivel_curso'] ?? '';
-    $costo = $_POST['costo'] ?? 0;
-    $conocimientos_previos = $_POST['conocimientos_previos'] ?? '';
-    $requerimientos_implemento = $_POST['requerimientos_implementos'] ?? '';
-    $desempeno_al_concluir = $_POST['desempeño_al_concluir'] ?? '';
-    
-    $configuracion_firmas = $_POST['config_firmas'] ?? [];
+    case 'crear':
+        $nombre_curso = isset($_POST['nombre_curso']) ? $_POST['nombre_curso'] : '';
+        $descripcion = isset($_POST['descripcion']) ? $_POST['descripcion'] : '';
+        $tiempo_asignado = isset($_POST['tiempo_asignado']) ? $_POST['tiempo_asignado'] : '';
+        $inicio_mes = isset($_POST['inicio_mes']) ? $_POST['inicio_mes'] : '';
+        $tipo_curso = isset($_POST['tipo_curso']) ? $_POST['tipo_curso'] : '';
+        $limite_inscripciones = isset($_POST['limite_inscripciones']) ? $_POST['limite_inscripciones'] : '';
+        
+        $dias_clase_array = isset($_POST['dias_clase']) ? $_POST['dias_clase'] : array();
+        
+        $dias_clase_pg = '{' . implode(',', $dias_clase_array) . '}';
+        $horario_inicio = isset($_POST['horario_inicio']) ? $_POST['horario_inicio'] : '';
+        $horario_fin = isset($_POST['horario_fin']) ? $_POST['horario_fin'] : '';
+        $nivel_curso = isset($_POST['nivel_curso']) ? $_POST['nivel_curso'] : '';
+        $costo = isset($_POST['costo']) ? $_POST['costo'] : 0;
+        $conocimientos_previos = isset($_POST['conocimientos_previos']) ? $_POST['conocimientos_previos'] : '';
+        $requerimientos_implemento = isset($_POST['requerimientos_implementos']) ? $_POST['requerimientos_implementos'] : '';
+        $desempeno_al_concluir = isset($_POST['desempeño_al_concluir']) ? $_POST['desempeño_al_concluir'] : '';
+        
+        $configuracion_firmas = isset($_POST['config_firmas']) ? $_POST['config_firmas'] : array();
 
-    $nombres_modulos = $_POST['nombre_modulo'] ?? [];
-    $contenidos_modulos = $_POST['contenido'] ?? [];
-    $actividades_modulos = $_POST['actividad'] ?? [];
-    $instrumentos_modulos = $_POST['instrumento'] ?? [];
-    
-    $modulos_a_crear = [];
-    foreach ($nombres_modulos as $i => $nombre) {
-        $modulos_a_crear[] = [
-            'nombre_modulo' => $nombre,
-            'contenido' => $contenidos_modulos[$i] ?? '',
-            'actividad' => $actividades_modulos[$i] ?? '',
-            'instrumento' => $instrumentos_modulos[$i] ?? '',
-            'numero' => $i + 1
-        ];
-    }
+        // Hacemos lo mismo para todos los arrays de módulos
+        $nombres_modulos = isset($_POST['nombre_modulo']) ? $_POST['nombre_modulo'] : array();
+        $contenidos_modulos = isset($_POST['contenido']) ? $_POST['contenido'] : array();
+        $actividades_modulos = isset($_POST['actividad']) ? $_POST['actividad'] : array();
+        $instrumentos_modulos = isset($_POST['instrumento']) ? $_POST['instrumento'] : array();
+        
+        // Reemplazamos el array vacío '[]' con 'array()'
+        $modulos_a_crear = array();
+        foreach ($nombres_modulos as $i => $nombre) {
+            // Reemplazamos la creación de array '[]' con 'array()'
+            $modulos_a_crear[] = array(
+                'nombre_modulo' => $nombre,
+                'contenido' => isset($contenidos_modulos[$i]) ? $contenidos_modulos[$i] : '',
+                'actividad' => isset($actividades_modulos[$i]) ? $actividades_modulos[$i] : '',
+                'instrumento' => isset($instrumentos_modulos[$i]) ? $instrumentos_modulos[$i] : '',
+                'numero' => $i + 1
+            );
+        }
 
         $promotor_id = $_SESSION['user_id'];
         
+        // Esta parte no necesita cambios
         $resultado = $curso->crearCursoCompleto(
             $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, 
             $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, 
@@ -131,11 +137,9 @@ case 'crear':
         );
 
         if ($resultado) {
-            // Simplemente devuelve un mensaje de texto plano
             echo "La propuesta de curso se ha creado correctamente.";
         } else {
-            // Para errores, también un mensaje de texto plano
-            http_response_code(400); // Opcional: envía un código de error HTTP
+            http_response_code(400); 
             echo "Ha ocurrido un error al crear la propuesta.";
         }
         exit();
@@ -144,7 +148,7 @@ case 'crear':
             // Obtener los datos del formulario
             $id_curso = $_POST['id_curso'];
             $promotor = $_POST['promotor'];
-            $configuracion_firmas = $_POST['config_firmas'] ?? [];
+            $configuracion_firmas = isset($_POST['config_firmas']) ? $_POST['config_firmas'] : array();
             $nombre_curso = $_POST['nombre_curso'];
             $descripcion = $_POST['descripcion'];
             $tiempo_asignado = $_POST['tiempo_asignado'];

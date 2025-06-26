@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/model.php';
 
 header('Content-Type: application/json');
 
-$action = $_REQUEST['action'] ?? null;
+$action = isset($_REQUEST['action']) ? $_REQUEST['action'] : null;
 $response = ['success' => false, 'message' => 'Acción no reconocida.'];
 
 // Solo usuarios con permisos pueden acceder
@@ -22,7 +22,7 @@ try {
         case 'obtener_config':
             // Lógica para obtener la configuración guardada para un id_curso
             // (La implementaremos en el siguiente paso)
-            $id_curso = $_GET['id_curso'] ?? 0;
+            $id_curso = isset($_GET['id_curso']) ? $_GET['id_curso'] : 0;
             $sql = "SELECT p.codigo_posicion, cc.id_cargo_firmante, cc.usar_promotor_curso 
                     FROM cursos.cursos_config_firmas cc
                     JOIN cursos.posiciones_firma p ON cc.id_posicion = p.id_posicion

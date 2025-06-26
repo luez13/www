@@ -16,7 +16,7 @@ define('UPLOAD_URL', '../public/assets/firmas/'); // Ruta relativa para el acces
 $response = ['success' => false, 'message' => 'Acción no reconocida o no proporcionada.'];
 
 // Determinar la acción a realizar
-$action = $_REQUEST['action'] ?? null;
+$action = isset($_REQUEST['action']) ? $_REQUEST['action'] : null;
 
 try {
     $db = new DB(); // Instancia de la conexión a la base de datos
@@ -89,14 +89,14 @@ try {
             
             $activo = isset($_POST['activo']) ? 1 : 0;
 
-            $stmt->execute([
-                ':titulo' => $_POST['titulo'] ?? null,
+            $stmt->execute(array(
+                ':titulo' => isset($_POST['titulo']) ? $_POST['titulo'] : null,
                 ':nombre' => $_POST['nombre'],
                 ':apellido' => $_POST['apellido'],
                 ':nombre_cargo' => $_POST['nombre_cargo'],
                 ':firma_digital' => $rutaFirma,
                 ':activo' => $activo
-            ]);
+            ));
 
             $response = ['success' => true, 'message' => 'Firmante añadido correctamente.'];
             break;
@@ -138,14 +138,14 @@ try {
             $sql = "UPDATE cursos.cargos SET titulo = :titulo, nombre = :nombre, apellido = :apellido, nombre_cargo = :nombre_cargo, activo = :activo {$setFirmaSql} WHERE id_cargo = :id_cargo";
             $stmt = $db->prepare($sql);
 
-            $params = [
-                ':titulo' => $_POST['titulo'] ?? null,
+            $params = array(
+                ':titulo' => isset($_POST['titulo']) ? $_POST['titulo'] : null,
                 ':nombre' => $_POST['nombre'],
                 ':apellido' => $_POST['apellido'],
                 ':nombre_cargo' => $_POST['nombre_cargo'],
                 ':activo' => isset($_POST['activo']) ? 1 : 0,
                 ':id_cargo' => $id_cargo
-            ];
+            );
 
             // Añadir el parámetro de la firma solo si se va a actualizar
             if (!empty($setFirmaSql)) {

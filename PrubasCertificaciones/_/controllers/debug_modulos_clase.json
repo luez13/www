@@ -1,638 +1,561 @@
 {
-    "curso_id": 45,
-    "nombre_modulo": "atun",
-    "contenido": "[atun]",
-    "actividad": "atun",
-    "instrumento": "atun",
+    "curso_id": 55,
+    "nombre_modulo": "arg",
+    "contenido": "[arg][arg]",
+    "actividad": "arg",
+    "instrumento": "arg",
     "numero": 1
 }{
-    "curso_id": 45,
-    "nombre_modulo": "atun",
-    "contenido": "[atun]",
-    "actividad": "atun",
-    "instrumento": "atun",
+    "curso_id": 5,
+    "nombre_modulo": "prueba",
+    "contenido": "[prueba]",
+    "actividad": "prueba",
+    "instrumento": "prueba",
+    "numero": 1
+}{
+    "curso_id": 5,
+    "nombre_modulo": "prueba",
+    "contenido": "[prueba]",
+    "actividad": "prueba",
+    "instrumento": "prueba",
+    "numero": 2
+}{
+    "curso_id": 6,
+    "nombre_modulo": "Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica",
+    "contenido": "[Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica]",
+    "actividad": "Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica",
+    "instrumento": "Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica",
+    "numero": 1
+}{
+    "curso_id": 6,
+    "nombre_modulo": "Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica",
+    "contenido": "[Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica]",
+    "actividad": "Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica",
+    "instrumento": "Anal\u00edtica en electricidad y electr\u00f3nica b\u00e1sica",
     "numero": 2
 }{
     "curso_id": 46,
-    "nombre_modulo": "prueba2s",
-    "contenido": "[prueba2s]",
-    "actividad": "prueba2s",
-    "instrumento": "prueba2s",
+    "nombre_modulo": "prueba",
+    "contenido": "[prueba]",
+    "actividad": "prueba",
+    "instrumento": "prueba",
     "numero": 1
 }{
-    "curso_id": 7,
-    "nombre_modulo": "\u2022\tIntroducci\u00f3n.",
-    "contenido": "[ninguno]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
-    "numero": 1
-}{
-    "curso_id": 7,
-    "nombre_modulo": "\u2022\tDefinici\u00f3n de Primeros Auxilios.",
-    "contenido": "[ninguno]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 46,
+    "nombre_modulo": "prueba",
+    "contenido": "[prueba]",
+    "actividad": "prueba",
+    "instrumento": "prueba",
     "numero": 2
 }{
-    "curso_id": 7,
-    "nombre_modulo": "\u2022\tPrincipios Generales de los Primeros Auxilios.",
-    "contenido": "[ninguno]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 47,
+    "nombre_modulo": "Sumatoria de resistencias en serie.",
+    "contenido": "[En un circuito en serie, la resistencia total se calcula sumando las resistencias individuales.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 1
+}{
+    "curso_id": 47,
+    "nombre_modulo": "Aplicaci\u00f3n de la ley de Ohm.",
+    "contenido": "[La ley de Ohm se usa para determinar la relaci\u00f3n entre tensi\u00f3n, corriente y resistencia en un circuito el\u00e9ctrico.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 2
+}{
+    "curso_id": 47,
+    "nombre_modulo": "Divisor de corriente y divisor de voltaje.",
+    "contenido": "[Un divisor de corriente divide la corriente total entre las diferentes ramas de un circuito en paralelo, mientras que un divisor de voltaje divide el voltaje total entre las resistencias en serie.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 3
 }{
-    "curso_id": 7,
-    "nombre_modulo": "\u2022\tEvaluaci\u00f3n Secundaria.",
-    "contenido": "[ninguno]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 47,
+    "nombre_modulo": "Puente de wheatstone.",
+    "contenido": "[El Puente de Wheatstone es un circuito electr\u00f3nico utilizado para medir resistencias desconocidas con alta precisi\u00f3n.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 4
 }{
-    "curso_id": 7,
-    "nombre_modulo": "\u2022\tConducta PAS.",
-    "contenido": "[ninguno]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 47,
+    "nombre_modulo": "Calculo de resistencia Th\u00e9venin.",
+    "contenido": "[Para calcular la resistencia de Th\u00e9venin (Rth), se sigue un proceso de dos pasos: primero, se desconectan todas las fuentes independientes de tensi\u00f3n y corriente del circuito, reemplaz\u00e1ndolas por cortocircuitos y circuitos abiertos, respectivamente. Luego, se calcula la resistencia equivalente de la red resultante, mirando desde los terminales donde se encuentra la carga. ]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 5
 }{
-    "curso_id": 7,
-    "nombre_modulo": "\u2022\tReanimaci\u00f3n Cardiopulmonar (RCP).",
-    "contenido": "[ninguno]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 47,
+    "nombre_modulo": "Diodos ideales.",
+    "contenido": "[Un diodo ideal es un modelo te\u00f3rico de un dispositivo semiconductor que permite el flujo de corriente solo en una direcci\u00f3n, sin p\u00e9rdidas ni limitaciones. ]",
+    "actividad": "Ninguno",
+    "instrumento": "Ninguno",
     "numero": 6
 }{
-    "curso_id": 7,
-    "nombre_modulo": "\u2022\tUso del Desfibrilador Externo Autom\u00e1tico (DEA).",
-    "contenido": "[ninguno]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 47,
+    "nombre_modulo": "Diodos reales.",
+    "contenido": "[Un diodo real es un componente electr\u00f3nico fabricado con materiales semiconductores como el silicio o el germanio, que presenta caracter\u00edsticas no ideales como ca\u00edda de tensi\u00f3n en sentido directo y corriente de fuga en sentido inverso.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 7
 }{
-    "curso_id": 7,
-    "nombre_modulo": "\u2022\tEnse\u00f1anza de Primeros Auxilios a Ni\u00f1os.",
-    "contenido": "[ninguno]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 47,
+    "nombre_modulo": "Modelo 1 del diodo.",
+    "contenido": "[El Modelo 1 del diodo, o modelo ideal, representa un diodo como un interruptor que se comporta como un cortocircuito en polarizaci\u00f3n directa y como un circuito abierto en polarizaci\u00f3n inversa.]",
+    "actividad": "Ninguno",
+    "instrumento": "Ninguno",
     "numero": 8
 }{
-    "curso_id": 7,
-    "nombre_modulo": "\u2022\tPrimeros Auxilios Psicol\u00f3gicos.",
-    "contenido": "[ninguno]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 47,
+    "nombre_modulo": "Modelo 2 del diodo.",
+    "contenido": "[El \"modelo 2 del diodo\" se refiere al modelo de dos diodos para una celda solar. Este modelo es m\u00e1s preciso que el modelo de un diodo, ya que considera el fen\u00f3meno de recombinaci\u00f3n, mejorando la exactitud en la curva IV (tensi\u00f3n-corriente). ]",
+    "actividad": "Ninguno",
+    "instrumento": "Ninguno",
     "numero": 9
 }{
-    "curso_id": 7,
-    "nombre_modulo": "\u2022\tEvaluaci\u00f3n Primaria.",
-    "contenido": "[ninguno]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 47,
+    "nombre_modulo": "Transformaci\u00f3n de fuentes de corriente en voltaje.",
+    "contenido": "[La transformaci\u00f3n de fuentes de corriente a fuentes de voltaje, y viceversa, es una t\u00e9cnica fundamental en el an\u00e1lisis de circuitos el\u00e9ctricos. Se basa en la equivalencia entre una fuente de corriente en paralelo con una resistencia y una fuente de voltaje en serie con la misma resistencia.]",
+    "actividad": "Ninguno",
+    "instrumento": "Ninguno",
     "numero": 10
 }{
-    "curso_id": 7,
-    "nombre_modulo": "\u2022\tEvaluaci\u00f3n Inicial de un Herido.",
-    "contenido": "[ninguno]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 47,
+    "nombre_modulo": "Transformaci\u00f3n de fuentes de voltaje en corriente.",
+    "contenido": "[La transformaci\u00f3n de fuentes de voltaje a corriente es un proceso que convierte una fuente de voltaje en serie con una resistencia en una fuente de corriente en paralelo con la misma resistencia, y viceversa.]",
+    "actividad": "Ninguno",
+    "instrumento": "Ninguno",
     "numero": 11
 }{
-    "curso_id": 8,
-    "nombre_modulo": "Conceptos b\u00e1sicos",
-    "contenido": "[Conceptos b\u00e1sicos]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
+    "curso_id": 48,
+    "nombre_modulo": "Sumatoria de resistencias en serie.",
+    "contenido": "[En un circuito en serie, la resistencia total se calcula sumando las resistencias individuales.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 1
 }{
-    "curso_id": 8,
-    "nombre_modulo": "materiales",
-    "contenido": "[materiales]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
+    "curso_id": 48,
+    "nombre_modulo": "Aplicaci\u00f3n de la ley de Ohm.",
+    "contenido": "[La ley de Ohm se usa para determinar la relaci\u00f3n entre tensi\u00f3n, corriente y resistencia en un circuito el\u00e9ctrico.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 2
 }{
-    "curso_id": 8,
-    "nombre_modulo": "Requisitos constructivos",
-    "contenido": "[Requisitos constructivos]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
+    "curso_id": 48,
+    "nombre_modulo": "Divisor de corriente y divisor de voltaje.",
+    "contenido": "[Un divisor de corriente divide la corriente total entre las diferentes ramas de un circuito en paralelo, mientras que un divisor de voltaje divide el voltaje total entre las resistencias en serie.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 3
 }{
-    "curso_id": 8,
-    "nombre_modulo": "Detallado del acero de refuerzo",
-    "contenido": "[Detallado del acero de refuerzo]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
+    "curso_id": 48,
+    "nombre_modulo": "Puente de wheatstone.",
+    "contenido": "[El Puente de Wheatstone es un circuito electr\u00f3nico utilizado para medir resistencias desconocidas con alta precisi\u00f3n.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 4
 }{
-    "curso_id": 8,
-    "nombre_modulo": "Introducci\u00f3n en el an\u00e1lisis y dise\u00f1o",
-    "contenido": "[Introducci\u00f3n en el an\u00e1lisis y dise\u00f1o]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
+    "curso_id": 48,
+    "nombre_modulo": "Calculo de resistencia Th\u00e9venin.",
+    "contenido": "[Para calcular la resistencia de Th\u00e9venin (Rth), se sigue un proceso de dos pasos: primero, se desconectan todas las fuentes independientes de tensi\u00f3n y corriente del circuito, reemplaz\u00e1ndolas por cortocircuitos y circuitos abiertos, respectivamente. Luego, se calcula la resistencia equivalente de la red resultante, mirando desde los terminales donde se encuentra la carga. ]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 5
 }{
-    "curso_id": 8,
-    "nombre_modulo": "Vigas",
-    "contenido": "[Vigas]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
+    "curso_id": 48,
+    "nombre_modulo": "Diodos ideales y reales.",
+    "contenido": "[Un diodo ideal es un modelo te\u00f3rico de un dispositivo semiconductor que permite el flujo de corriente solo en una direcci\u00f3n, sin p\u00e9rdidas ni limitaciones. Un diodo real es un componente electr\u00f3nico fabricado con materiales semiconductores como el silicio o el germanio, que presenta caracter\u00edsticas no ideales como ca\u00edda de tensi\u00f3n en sentido directo y corriente de fuga en sentido inverso.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 6
 }{
-    "curso_id": 8,
-    "nombre_modulo": "Losas",
-    "contenido": "[Losas ]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
+    "curso_id": 48,
+    "nombre_modulo": "Modelo 1 y 2 del diodo.",
+    "contenido": "[El Modelo 1 del diodo, o modelo ideal, representa un diodo como un interruptor que se comporta como un cortocircuito en polarizaci\u00f3n directa y como un circuito abierto en polarizaci\u00f3n inversa. El \"modelo 2 del diodo\" se refiere al modelo de dos diodos para una celda solar. Este modelo es m\u00e1s preciso que el modelo de un diodo, ya que considera el fen\u00f3meno de recombinaci\u00f3n, mejorando la exactitud en la curva IV (tensi\u00f3n-corriente). ]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 7
 }{
-    "curso_id": 8,
-    "nombre_modulo": "Escaleras",
-    "contenido": "[Escaleras]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
+    "curso_id": 48,
+    "nombre_modulo": "Transformaci\u00f3n de fuentes de corriente en voltaje.",
+    "contenido": "[La transformaci\u00f3n de fuentes de corriente a fuentes de voltaje, y viceversa, es una t\u00e9cnica fundamental en el an\u00e1lisis de circuitos el\u00e9ctricos. Se basa en la equivalencia entre una fuente de corriente en paralelo con una resistencia y una fuente de voltaje en serie con la misma resistencia.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 8
 }{
-    "curso_id": 9,
-    "nombre_modulo": "importancia de la inteligencia artificial en el marketing digital",
-    "contenido": "[mejora en la personalizacion de la experiencia del cliente][optimizacion de campa\u00f1as publicitarias][mejora en la atencion al cliente]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
+    "curso_id": 48,
+    "nombre_modulo": "Transformaci\u00f3n de fuentes de voltaje en corriente.",
+    "contenido": "[La transformaci\u00f3n de fuentes de voltaje a corriente es un proceso que convierte una fuente de voltaje en serie con una resistencia en una fuente de corriente en paralelo con la misma resistencia, y viceversa.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguno",
+    "numero": 9
+}{
+    "curso_id": 49,
+    "nombre_modulo": "Elaboraci\u00f3n del Ar-i de impuestos sobre la renta.",
+    "contenido": "[Como parte de las obligaciones fiscales m\u00e1s comunes y recurrentes, se encuentra la declaraci\u00f3n y pago anual del ISLR, en el caso de los contribuyentes ordinarios. Este es un impuesto que grava las rentas, y que debe ser calculado previamente para ser declarado al SENIAT. Una pieza fundamental para poder hacer los c\u00e1lculos respectivos es el formulario AR-I (para personas naturales asalariadas), donde el trabajador estima sus ingresos y gastos. Esta planilla es de suma importancia para calcular adecuadamente tus impuestos y no declares un monto incorrecto. ]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 1
 }{
-    "curso_id": 9,
-    "nombre_modulo": "principales herramientas de IA aplicadas al marketing",
-    "contenido": "[automatizacion del marketing con IA][mejora la experiencia del cliente][estrategias de contenido impulsadas por IA]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 49,
+    "nombre_modulo": "La forma 16 para tramites administrativos.",
+    "contenido": "[Instructivo de Usuario Declaraci\u00f3n y Pago de Tasas e Impuestos (Forma 16), Versi\u00f3n 1.0. Providencia mediante la cual se reajusta el valor de la Unidad Tributaria de cero coma cuarenta Bol\u00edvares (Bs. 0,40) a nueve Bol\u00edvares (Bs. 9,00).]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 2
 }{
-    "curso_id": 9,
-    "nombre_modulo": "estrategias para la personalizacion de contenido utilizando IA",
-    "contenido": "[analisis de datos para segmentacion efectiva][automatizacion del contenido perzonalizado][medicion y analisis de resutados]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
-    "numero": 3
-}{
-    "curso_id": 9,
-    "nombre_modulo": "medicion y analisis de resultados en campa\u00f1as de marketing digital con IA",
-    "contenido": "[importancia de la medicion de resultados][herramientas de analisis impulsadas por IA][interpretacion de datos y resultados][impacto de la IA en la medicion de campa\u00f1as][desafio en la medicion de resultados]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
-    "numero": 4
-}{
-    "curso_id": 10,
-    "nombre_modulo": "definicion de peque\u00f1as empresas",
-    "contenido": "[estructuras][objetivos][estrategias]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 50,
+    "nombre_modulo": "Normativa para la evaluaci\u00f3n de proyecto formativo de la UPTAIET",
+    "contenido": "[Normativa para la evaluaci\u00f3n de proyecto formativo de la UPTAIET]",
+    "actividad": "capitulo 1",
+    "instrumento": "trabajo",
     "numero": 1
 }{
-    "curso_id": 10,
-    "nombre_modulo": "SMART",
-    "contenido": "[SMART]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 51,
+    "nombre_modulo": "Introducci\u00f3n",
+    "contenido": "[INTRODUCCI\u00d3N]",
+    "actividad": "ninguno ",
+    "instrumento": "ninguno ",
+    "numero": 1
+}{
+    "curso_id": 51,
+    "nombre_modulo": "Manejo de bio materiales",
+    "contenido": "[Manejo de bio materiales]",
+    "actividad": "ninguno ",
+    "instrumento": "ninguno ",
     "numero": 2
 }{
-    "curso_id": 10,
-    "nombre_modulo": "plan de negocio",
-    "contenido": "[plan de negocio]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 51,
+    "nombre_modulo": "Bio \u00e9tica en pr\u00f3tesis dentales",
+    "contenido": "[Bio \u00e9tica en pr\u00f3tesis dentales]",
+    "actividad": "ninguno ",
+    "instrumento": "ninguno ",
     "numero": 3
 }{
-    "curso_id": 10,
-    "nombre_modulo": "PYMES",
-    "contenido": "[PYMES]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 52,
+    "nombre_modulo": "Introducci\u00f3n",
+    "contenido": "[[INTRODUCCI\u00d3N]]",
+    "actividad": "ninguno ",
+    "instrumento": "ninguno ",
+    "numero": 1
+}{
+    "curso_id": 52,
+    "nombre_modulo": "Manejo de bio materiales",
+    "contenido": "[[Manejo de bio materiales]]",
+    "actividad": "ninguno ",
+    "instrumento": "ninguno ",
+    "numero": 2
+}{
+    "curso_id": 52,
+    "nombre_modulo": "Bio \u00e9tica en pr\u00f3tesis dentales",
+    "contenido": "[[Bio \u00e9tica en pr\u00f3tesis dentales]]",
+    "actividad": "ninguno ",
+    "instrumento": "ninguno ",
+    "numero": 3
+}{
+    "curso_id": 53,
+    "nombre_modulo": "Anatom\u00eda dental y maxilofacial",
+    "contenido": "[Anatom\u00eda dental y maxilofacial]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 1
+}{
+    "curso_id": 53,
+    "nombre_modulo": "Caracter\u00edsticas de los dientes",
+    "contenido": "[Caracter\u00edsticas de los dientes]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 2
+}{
+    "curso_id": 53,
+    "nombre_modulo": "Ubicaci\u00f3n y variaciones anat\u00f3micas ",
+    "contenido": "[Ubicaci\u00f3n y variaciones anat\u00f3micas ]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 3
+}{
+    "curso_id": 53,
+    "nombre_modulo": "Maxilares edentulos totales y parcialmente edentulos ",
+    "contenido": "[Maxilares edentulos totales y parcialmente edentulos ]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 4
 }{
-    "curso_id": 10,
-    "nombre_modulo": "propuesta de emprendimiento",
-    "contenido": "[propuesta de emprendimiento]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
+    "curso_id": 54,
+    "nombre_modulo": "Toma de medidas",
+    "contenido": "[Toma de medidas]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 1
+}{
+    "curso_id": 54,
+    "nombre_modulo": "Creaci\u00f3n de b\u00e1sico de corpi\u00f1o femenino",
+    "contenido": "[Creaci\u00f3n de b\u00e1sico de corpi\u00f1o femenino]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 2
+}{
+    "curso_id": 55,
+    "nombre_modulo": "DERECHOS SEXUALES Y REPRODUCTIVOS",
+    "contenido": "[DERECHOS SEXUALES Y REPRODUCTIVOS]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 1
+}{
+    "curso_id": 55,
+    "nombre_modulo": "CRECIMIENTO DE LA MUJER",
+    "contenido": "[CRECIMIENTO DE LA MUJER]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 2
+}{
+    "curso_id": 56,
+    "nombre_modulo": "Ley org\u00e1nica inclusi\u00f3n igualdad desarrollo integral personas discapacitadas-goe ",
+    "contenido": "[Ley org\u00e1nica inclusi\u00f3n igualdad desarrollo integral personas discapacitadas-goe ]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 1
+}{
+    "curso_id": 56,
+    "nombre_modulo": "Art\u00edculo 30",
+    "contenido": "[Art\u00edculo 30]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 2
+}{
+    "curso_id": 57,
+    "nombre_modulo": "Word",
+    "contenido": "[Word]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 1
+}{
+    "curso_id": 57,
+    "nombre_modulo": "Powerpoint",
+    "contenido": "[powerpoint]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 2
+}{
+    "curso_id": 57,
+    "nombre_modulo": "Excel",
+    "contenido": "[Excel]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 3
+}{
+    "curso_id": 58,
+    "nombre_modulo": "Introducci\u00f3n a la tecnolog\u00eda arduino",
+    "contenido": "[Introducci\u00f3n a la tecnolog\u00eda arduino]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 1
+}{
+    "curso_id": 58,
+    "nombre_modulo": "El hardware de arduino",
+    "contenido": "[El hardware de arduino]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 2
+}{
+    "curso_id": 58,
+    "nombre_modulo": "Programando arduino",
+    "contenido": "[Programando arduino]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 3
+}{
+    "curso_id": 58,
+    "nombre_modulo": "Conexi\u00f3n con el mundo f\u00edsico",
+    "contenido": "[Conexi\u00f3n con el mundo f\u00edsico]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 4
+}{
+    "curso_id": 58,
+    "nombre_modulo": "Proyecto",
+    "contenido": "[Proyecto]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 5
 }{
-    "curso_id": 10,
-    "nombre_modulo": "pagina de emprendimiento",
-    "contenido": "[ascesoria]",
-    "actividad": "ninguno",
-    "instrumento": "ninguno",
-    "numero": 6
-}{
-    "curso_id": 11,
-    "nombre_modulo": "Farmacolog\u00eda",
-    "contenido": "[Farmacolog\u00eda b\u00e1sica][administraci\u00f3n de medicamentos][c\u00e1lculo de dosis]",
-    "actividad": "Desarrollar destrezas pr\u00e1cticas en la terap\u00e9utica farmacol\u00f3gica b\u00e1sica",
-    "instrumento": "Actividades pr\u00e1cticas de administraci\u00f3n de medicamentos, ejercicios escritos de c\u00e1lculo de dosis de f\u00e1rmacos.",
+    "curso_id": 59,
+    "nombre_modulo": "Principios b\u00e1sicos de contabilidad.",
+    "contenido": "[Principios b\u00e1sicos de contabilidad.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 1
 }{
-    "curso_id": 11,
-    "nombre_modulo": "Inyectolog\u00eda ",
-    "contenido": "[Administraci\u00f3n de medicamentos por v\u00eda parenteral IV][Administraci\u00f3n de medicamentos por v\u00eda parenteral SC][Administraci\u00f3n de medicamentos por v\u00eda parenteral IV]",
-    "actividad": "Aplicaci\u00f3n de medicamentos por v\u00eda parenteral y su importancia",
-    "instrumento": "Actividades pr\u00e1cticas de inyectolog\u00eda",
+    "curso_id": 59,
+    "nombre_modulo": "Registros contables.",
+    "contenido": "[Registros contables.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 2
 }{
-    "curso_id": 11,
-    "nombre_modulo": "Fluidoterapia",
-    "contenido": "[Hidrataci\u00f3n oral, intravenosa e subcut\u00e1nea en peque\u00f1os\r\nanimales.][C\u00e1lculos de goteo y dosis recomendadas.][Tipos de Sueros IV.]",
-    "actividad": "Aplicaci\u00f3n de fluidos por v\u00eda intravenosa por medio de venopunci\u00f3n.",
-    "instrumento": "Actividades pr\u00e1cticas de venopunci\u00f3n canalizaci\u00f3n y administraci\u00f3n de fluidos.",
+    "curso_id": 59,
+    "nombre_modulo": "Libro diario y mayor.",
+    "contenido": "[Libro diario y mayor.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 3
 }{
-    "curso_id": 11,
-    "nombre_modulo": "Toma de muestras de laboratorio",
-    "contenido": "[T\u00e9cnicas de tomas de muestras.][Interpretaci\u00f3n de resultados.]",
-    "actividad": "Toma de muestras para laboratorio y ejercicios de interpretaci\u00f3n",
-    "instrumento": "Actividades pr\u00e1cticas del laboratorio",
+    "curso_id": 59,
+    "nombre_modulo": "An\u00e1lisis de ajustes contables.",
+    "contenido": "[An\u00e1lisis de ajustes contables.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 4
 }{
-    "curso_id": 12,
-    "nombre_modulo": "Farmacolog\u00eda b\u00e1sica",
+    "curso_id": 59,
+    "nombre_modulo": "Presentaci\u00f3n de estados financieros.",
+    "contenido": "[Presentaci\u00f3n de estados financieros.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 5
+}{
+    "curso_id": 60,
+    "nombre_modulo": "Farmacolog\u00eda b\u00e1sica.",
     "contenido": "[Farmacolog\u00eda b\u00e1sica]",
     "actividad": "Desarrollar destrezas pr\u00e1cticas en la terap\u00e9utica farmacol\u00f3gica b\u00e1sica",
     "instrumento": "Actividades pr\u00e1cticas de administraci\u00f3n de medicamentos, ejercicios escritos de c\u00e1lculo de dosis de f\u00e1rmacos",
     "numero": 1
 }{
-    "curso_id": 12,
-    "nombre_modulo": "administraci\u00f3n de medicamentos",
-    "contenido": "[administraci\u00f3n de medicamentos]",
+    "curso_id": 60,
+    "nombre_modulo": "Administraci\u00f3n de medicamentos.",
+    "contenido": "[Administraci\u00f3n de medicamentos.]",
     "actividad": "Desarrollar destrezas pr\u00e1cticas en la terap\u00e9utica farmacol\u00f3gica b\u00e1sica",
     "instrumento": "Actividades pr\u00e1cticas de administraci\u00f3n de medicamentos, ejercicios escritos de c\u00e1lculo de dosis de f\u00e1rmacos",
     "numero": 2
 }{
-    "curso_id": 12,
-    "nombre_modulo": "C\u00e1lculo de dosis",
+    "curso_id": 60,
+    "nombre_modulo": "C\u00e1lculo de dosis.",
     "contenido": "[C\u00e1lculo de dosis]",
     "actividad": "Desarrollar destrezas pr\u00e1cticas en la terap\u00e9utica farmacol\u00f3gica b\u00e1sica",
     "instrumento": "Actividades pr\u00e1cticas de administraci\u00f3n de medicamentos, ejercicios escritos de c\u00e1lculo de dosis de f\u00e1rmacos",
     "numero": 3
 }{
-    "curso_id": 13,
-    "nombre_modulo": "Administraci\u00f3n de medicamentos por v\u00eda parenteral IV",
+    "curso_id": 61,
+    "nombre_modulo": "Introducci\u00f3n a la electr\u00f3nica b\u00e1sica y tinkercad.",
+    "contenido": "[Introducci\u00f3n a la electr\u00f3nica b\u00e1sica y tinkercad.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 1
+}{
+    "curso_id": 61,
+    "nombre_modulo": "Sensores y actuadores. ",
+    "contenido": "[Sensores y actuadores. ]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 2
+}{
+    "curso_id": 61,
+    "nombre_modulo": "Introducci\u00f3n a los microcontroladores. ",
+    "contenido": "[Introducci\u00f3n a los microcontroladores. ]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 3
+}{
+    "curso_id": 61,
+    "nombre_modulo": "Controladores avanzados y proyectos integrados. ",
+    "contenido": "[Controladores avanzados y proyectos integrados. ]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 4
+}{
+    "curso_id": 61,
+    "nombre_modulo": "Evaluaci\u00f3n y retroalimentaci\u00f3n.",
+    "contenido": "[Evaluaci\u00f3n y retroalimentaci\u00f3n.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
+    "numero": 5
+}{
+    "curso_id": 62,
+    "nombre_modulo": "Administraci\u00f3n de medicamentos por v\u00eda parenteral intravenosa (IV).",
     "contenido": "[Administraci\u00f3n de medicamentos por v\u00eda parenteral IV]",
     "actividad": "Aplicaci\u00f3n de medicamentos por v\u00eda parenteral y su importancia.",
     "instrumento": "Actividades pr\u00e1cticas de inyectolog\u00eda.",
     "numero": 1
 }{
-    "curso_id": 13,
-    "nombre_modulo": "Administraci\u00f3n de medicamentos por v\u00eda parenteral SC",
+    "curso_id": 62,
+    "nombre_modulo": "Administraci\u00f3n de medicamentos por v\u00eda parenteral subcut\u00e1nea (SC).",
     "contenido": "[Administraci\u00f3n de medicamentos por v\u00eda parenteral SC]",
     "actividad": "Aplicaci\u00f3n de medicamentos por v\u00eda parenteral y su importancia.",
     "instrumento": "Actividades pr\u00e1cticas de inyectolog\u00eda.",
     "numero": 2
 }{
-    "curso_id": 13,
-    "nombre_modulo": "Administraci\u00f3n de medicamentos por v\u00eda parenteral IV",
+    "curso_id": 62,
+    "nombre_modulo": "Administraci\u00f3n de medicamentos por v\u00eda parenteral intramuscular (IM).",
     "contenido": "[Administraci\u00f3n de medicamentos por v\u00eda parenteral IV]",
     "actividad": "Aplicaci\u00f3n de medicamentos por v\u00eda parenteral y su importancia.",
     "instrumento": "Actividades pr\u00e1cticas de inyectolog\u00eda.",
     "numero": 3
 }{
-    "curso_id": 14,
+    "curso_id": 63,
     "nombre_modulo": "Hidrataci\u00f3n oral, intravenosa e subcut\u00e1nea en peque\u00f1os animales.",
     "contenido": "[Hidrataci\u00f3n oral, intravenosa e subcut\u00e1nea en peque\u00f1os animales.]",
     "actividad": "Aplicaci\u00f3n de fluidos por v\u00eda intravenosa por medio de venopunci\u00f3n.",
     "instrumento": "Actividades pr\u00e1cticas de venopunci\u00f3n canalizaci\u00f3n y administraci\u00f3n de fluidos.",
     "numero": 1
 }{
-    "curso_id": 14,
+    "curso_id": 63,
     "nombre_modulo": "C\u00e1lculos de goteo y dosis recomendadas.",
     "contenido": "[C\u00e1lculos de goteo y dosis recomendadas.]",
     "actividad": "Aplicaci\u00f3n de fluidos por v\u00eda intravenosa por medio de venopunci\u00f3n.",
     "instrumento": "Actividades pr\u00e1cticas de venopunci\u00f3n canalizaci\u00f3n y administraci\u00f3n de fluidos.",
     "numero": 2
 }{
-    "curso_id": 14,
+    "curso_id": 63,
     "nombre_modulo": "Tipos de Sueros IV",
     "contenido": "[Tipos de Sueros IV]",
     "actividad": "Aplicaci\u00f3n de fluidos por v\u00eda intravenosa por medio de venopunci\u00f3n.",
     "instrumento": "Actividades pr\u00e1cticas de venopunci\u00f3n canalizaci\u00f3n y administraci\u00f3n de fluidos.",
     "numero": 3
 }{
-    "curso_id": 15,
-    "nombre_modulo": "T\u00e9cnicas de tomas de muestras.",
-    "contenido": "[T\u00e9cnicas de tomas de muestras.]",
-    "actividad": "Toma de muestras para laboratorio y ejercicios de interpretaci\u00f3n.",
-    "instrumento": "Actividades pr\u00e1cticas del laboratorio",
+    "curso_id": 64,
+    "nombre_modulo": "Introducci\u00f3n.",
+    "contenido": "[Introducci\u00f3n.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 1
 }{
-    "curso_id": 15,
-    "nombre_modulo": "Interpretaci\u00f3n de resultados",
-    "contenido": "[Interpretaci\u00f3n de resultados]",
-    "actividad": "Toma de muestras para laboratorio y ejercicios de interpretaci\u00f3n.",
-    "instrumento": "Actividades pr\u00e1cticas del laboratorio",
+    "curso_id": 64,
+    "nombre_modulo": "Materiales. ",
+    "contenido": "[Materiales. ]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 2
 }{
-    "curso_id": 16,
-    "nombre_modulo": "Introducci\u00f3n a las redes de computaci\u00f3n",
-    "contenido": "[Introducci\u00f3n a las redes de computaci\u00f3n]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 1
-}{
-    "curso_id": 16,
-    "nombre_modulo": "Tipologias y clases de red",
-    "contenido": "[Tipologias y clases de red]",
-    "actividad": "Ninguno ",
-    "instrumento": "Ninguno",
-    "numero": 2
-}{
-    "curso_id": 16,
-    "nombre_modulo": "Cableado estructurado y conectividad",
-    "contenido": "[Cableado estructurado y conectividad]",
-    "actividad": "Ninguno ",
-    "instrumento": "Ninguno",
+    "curso_id": 64,
+    "nombre_modulo": "Tipos de carga.",
+    "contenido": "[Tipos de carga.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 3
 }{
-    "curso_id": 16,
-    "nombre_modulo": "Configuraci\u00f3n y router",
-    "contenido": "[Configuraci\u00f3n y router]",
-    "actividad": "Ninguno ",
-    "instrumento": "Ninguno",
+    "curso_id": 64,
+    "nombre_modulo": "Criterios de dise\u00f1o.",
+    "contenido": "[Criterios de dise\u00f1o.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 4
 }{
-    "curso_id": 16,
-    "nombre_modulo": "Instalaci\u00f3n y configuraci\u00f3n de servidores de red",
-    "contenido": "[Instalaci\u00f3n y configuraci\u00f3n de servidores de red]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
+    "curso_id": 64,
+    "nombre_modulo": "Vigas.",
+    "contenido": "[Vigas.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 5
 }{
-    "curso_id": 17,
-    "nombre_modulo": "Normas del SAREC",
-    "contenido": "[Normas del SAREC]",
-    "actividad": "Ninguni",
-    "instrumento": "Ninguni",
-    "numero": 1
-}{
-    "curso_id": 17,
-    "nombre_modulo": "Normativa universitaria",
-    "contenido": "[Normativa universitaria]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 2
-}{
-    "curso_id": 17,
-    "nombre_modulo": "Estrategias educativas",
-    "contenido": "[Estrategias educativas]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 3
-}{
-    "curso_id": 17,
-    "nombre_modulo": "Planificaci\u00f3n educativa",
-    "contenido": "[Planificaci\u00f3n educativa]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 4
-}{
-    "curso_id": 17,
-    "nombre_modulo": "Evaluaci\u00f3n educativa",
-    "contenido": "[Evaluaci\u00f3n educativa]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 5
-}{
-    "curso_id": 18,
-    "nombre_modulo": "Normas del SAREC",
-    "contenido": "[Normas del SAREC]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 1
-}{
-    "curso_id": 18,
-    "nombre_modulo": "Normativa universitaria",
-    "contenido": "[Normativa universitaria]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 2
-}{
-    "curso_id": 18,
-    "nombre_modulo": "Estrategias educativas",
-    "contenido": "[Estrategias educativas]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 3
-}{
-    "curso_id": 18,
-    "nombre_modulo": "Planificaci\u00f3n educativa",
-    "contenido": "[Planificaci\u00f3n educativa]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 4
-}{
-    "curso_id": 18,
-    "nombre_modulo": "Evaluaci\u00f3n educativa",
-    "contenido": "[Evaluaci\u00f3n educativa]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 5
-}{
-    "curso_id": 19,
-    "nombre_modulo": "Normas del SAREC",
-    "contenido": "[Normas del SAREC]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 1
-}{
-    "curso_id": 19,
-    "nombre_modulo": "Normativa universitaria",
-    "contenido": "[Normativa universitaria]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 2
-}{
-    "curso_id": 19,
-    "nombre_modulo": "Estrategias educativas",
-    "contenido": "[Estrategias educativas]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 3
-}{
-    "curso_id": 19,
-    "nombre_modulo": "Planificaci\u00f3n educativa",
-    "contenido": "[Planificaci\u00f3n educativa]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 4
-}{
-    "curso_id": 19,
-    "nombre_modulo": "Evaluaci\u00f3n educativa",
-    "contenido": "[Evaluaci\u00f3n educativa]",
-    "actividad": "Ninguno",
-    "instrumento": "Ninguno",
-    "numero": 5
-}{
-    "curso_id": 21,
-    "nombre_modulo": "Ense\u00f1anza y aprendizaje",
-    "contenido": "[La ense\u00f1anza][El aprendizaje]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
-    "numero": 1
-}{
-    "curso_id": 21,
-    "nombre_modulo": "Teor\u00edas del aprendizaje",
-    "contenido": "[Introducci\u00f3n a la Teor\u00eda Conductista, cognitivista, constructivismo, humanismo, aprendizaje social.][Aplicaci\u00f3n en el entorno pedag\u00f3gico y andrag\u00f3gico]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
-    "numero": 2
-}{
-    "curso_id": 21,
-    "nombre_modulo": "El aprendizaje colaborativo",
-    "contenido": "[Concepto y caracter\u00edsticas][Las tres estructuras del aprendizaje][Factores que influyen en el aprendizaje][Proyectos de aprendizaje: Trabajo en equipo]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
-    "numero": 3
-}{
-    "curso_id": 21,
-    "nombre_modulo": "Modelo educativo basado en los cuatros pilares de la UNESCO",
-    "contenido": "[Aprender a aprender][Aprender a hacer][Aprender a ser][Aprender a convivir]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
-    "numero": 4
-}{
-    "curso_id": 22,
-    "nombre_modulo": "Constituci\u00f3n de la Rep\u00fablica Bolivariana de Venezuela 30 de diciembre 1999.N\u00ba 36.860.",
-    "contenido": "[Art\u00edculo 102. La educaci\u00f3n es un derecho humano y un deber social fundamental, es democr\u00e1tica, gratuita y obligatoria.]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
-    "numero": 1
-}{
-    "curso_id": 22,
-    "nombre_modulo": "Leyes",
-    "contenido": "[La Ley Org\u00e1nica de Educaci\u00f3n (2009). Gaceta Oficial N\u00ba 5.929 15 de agosto][La Ley de Ciencia, Tecnolog\u00eda e Innovaci\u00f3n (2010). Gaceta Oficial N\u00ba 6.011 31 de diciembre][Ley de Universidades (1970) gaceta oficial N1 1.429 Etraordinario de fecha 8 de septiembre 1970]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
-    "numero": 2
-}{
-    "curso_id": 22,
-    "nombre_modulo": "Reglamento",
-    "contenido": "[Reglamento de los institutos y colegios universitarios. 1995. Gaceta oficial extraordinaria Nro 4.995 31 de octubre][Reglamento interno  de evaluaci\u00f3n  del rendimiento estudiantil (RIERE)]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
-    "numero": 3
-}{
-    "curso_id": 22,
-    "nombre_modulo": "Normativas",
-    "contenido": "[Gaceta Oficial de la Rep\u00fablica Bolivariana de Venezuela: A lo largo de los a\u00f1os, se han publicado diversas normativas y disposiciones relacionadas con la educaci\u00f3n en Venezuela a trav\u00e9s de la Gaceta Oficial, incluyendo resoluciones ministeriales, decretos y otros documentos oficiales]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
-    "numero": 4
-}{
-    "curso_id": 22,
-    "nombre_modulo": "Gaceta",
-    "contenido": "[Programas Nacionales de Formaci\u00f3n (PNF) se cre\u00f3 mediante Resoluci\u00f3n 2.963 de fecha 13 de mayo de 2008, publicada en Gaceta Oficial 38.930 del 14 de mayo de 2008]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
-    "numero": 5
-}{
-    "curso_id": 22,
-    "nombre_modulo": "Pol\u00edticas educativas",
-    "contenido": "[Pol\u00edticas Educativas: A lo largo de los a\u00f1os, el Ministerio de Educaci\u00f3n ha implementado diversas pol\u00edticas educativas destinadas a mejorar la calidad de la educaci\u00f3n en el pa\u00eds, como el Plan de la Patria, el Plan Nacional de Educaci\u00f3n y otros programas y proyectos educativos]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
+    "curso_id": 64,
+    "nombre_modulo": "An\u00e1lisis y dise\u00f1o por flexi\u00f3n.",
+    "contenido": "[An\u00e1lisis y dise\u00f1o por flexi\u00f3n.]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 6
 }{
-    "curso_id": 22,
-    "nombre_modulo": "Planes",
-    "contenido": "[Plan de la Patria per\u00edodo 2019-2025]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
+    "curso_id": 64,
+    "nombre_modulo": "Secciones simplemente y doblemente armadas. ",
+    "contenido": "[Secciones simplemente y doblemente armadas. ]",
+    "actividad": "Ninguna",
+    "instrumento": "Ninguna",
     "numero": 7
-}{
-    "curso_id": 22,
-    "nombre_modulo": "\u00c9tica profesional",
-    "contenido": "[Introducci\u00f3n a la \u00c9tica Profesional][Fundamentos de la \u00c9tica Profesional][Responsabilidad Profesional][Dilemas \u00c9ticos en el Trabajo][\u00c9tica Profesional en Diversas Disciplinas][Cultivando una Cultura \u00c9tica en las Organizaciones][Tendencias Actuales y Retos de la \u00c9tica Profesional][Evaluaci\u00f3n y Reflexi\u00f3n \u00c9tica]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
-    "numero": 8
-}{
-    "curso_id": "11",
-    "nombre_modulo": "Procedimientos quir\u00fargicos b\u00e1sicos.",
-    "contenido": "[]",
-    "actividad": "ninguna",
-    "instrumento": "ninguno",
-    "numero": "5"
-}{
-    "curso_id": 23,
-    "nombre_modulo": "Introducci\u00f3n",
-    "contenido": "[Conjunto de n\u00fameros reales y potenciaci\u00f3n]",
-    "actividad": "Examen escrito",
-    "instrumento": "ninguno",
-    "numero": 1
-}{
-    "curso_id": 23,
-    "nombre_modulo": "Ecuaciones simples",
-    "contenido": "[Ecuaciones de 1er grado y sistema de ecuaciones con dos variables]",
-    "actividad": "Examen escrito",
-    "instrumento": "ninguno",
-    "numero": 2
-}{
-    "curso_id": 23,
-    "nombre_modulo": "Polinomios",
-    "contenido": "[Productos notables y soluci\u00f3n de ecuaciones de 2do grado]",
-    "actividad": "Examen escrito",
-    "instrumento": "ninguno",
-    "numero": 3
-}{
-    "curso_id": 24,
-    "nombre_modulo": "Introducci\u00f3n",
-    "contenido": "[Correlaci\u00f3n y regresi\u00f3n lineal]",
-    "actividad": "Examen escrito",
-    "instrumento": "ninguno",
-    "numero": 1
-}{
-    "curso_id": 24,
-    "nombre_modulo": "Dise\u00f1os experimentales",
-    "contenido": "[Dise\u00f1o de experimentos simples: dise\u00f1o de bloques al azar (DBA), dise\u00f1o completamente al azar (DCA)]",
-    "actividad": "Examen escrito",
-    "instrumento": "ninguno",
-    "numero": 2
-}{
-    "curso_id": 24,
-    "nombre_modulo": "An\u00e1lisis de resultados",
-    "contenido": "[An\u00e1lisis de Varianza (ANOVA)]",
-    "actividad": "Examen escrito",
-    "instrumento": "ninguno",
-    "numero": 3
-}{
-    "curso_id": 25,
-    "nombre_modulo": "Introducci\u00f3n a la Tecnolog\u00eda Arduino",
-    "contenido": "[Rese\u00f1a Hist\u00f3rica de Arduino][Definici\u00f3n de Arduino]",
-    "actividad": "Simulaci\u00f3n",
-    "instrumento": "Montaje del circuito",
-    "numero": 1
-}{
-    "curso_id": 25,
-    "nombre_modulo": "El Hardware de Arduino",
-    "contenido": "[Microcontroladores][Placas de Arduino][Aspectos f\u00edsicos del Arduino (Hardware).][\u00bfPor qu\u00e9 usar Arduino?]",
-    "actividad": "Simulaci\u00f3n",
-    "instrumento": "Montaje del circuito",
-    "numero": 2
-}{
-    "curso_id": 25,
-    "nombre_modulo": "Programando Arduino",
-    "contenido": "[Descarga e Instalaci\u00f3n del Software Arduino IDE][Entorno de programaci\u00f3n.][Instrucciones b\u00e1sicas.][Variables, Operadores y Estructuras de control.][Archivos Hex.]",
-    "actividad": "Simulaci\u00f3n",
-    "instrumento": "Montaje del circuito",
-    "numero": 3
-}{
-    "curso_id": 25,
-    "nombre_modulo": "Conexi\u00f3n con el mundo f\u00edsico",
-    "contenido": "[Entradas\/Salidas.][Digitales y Anal\u00f3gicas.][Sensores y M\u00f3dulos.][Comunicaci\u00f3n Serial.][Display 7 segmentos y Teclado Matricial.]",
-    "actividad": "Simulaci\u00f3n",
-    "instrumento": "Montaje del circuito",
-    "numero": 4
-}{
-    "curso_id": 25,
-    "nombre_modulo": "Proyecto",
-    "contenido": "[aplicaci\u00f3n de lo aprendido]",
-    "actividad": "Simulaci\u00f3n",
-    "instrumento": "Montaje del circuito",
-    "numero": 5
 }

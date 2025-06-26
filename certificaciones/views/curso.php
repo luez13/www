@@ -100,8 +100,8 @@ if (!$is_ajax) {
                         <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-pencil-square me-2"></i>Inscribirse al curso</button>
                     </form>
                 <?php else: ?>
-                    <div class="alert alert-info">Ya estás inscrito en este curso. Tu nota actual es: <strong><?php echo $inscripcion['nota'] ?? 'N/A'; ?></strong></div>
-                    
+                    <div class="alert alert-info">Ya estás inscrito en este curso. Tu nota actual es: <strong><?php echo isset($inscripcion['nota']) ? $inscripcion['nota'] : 'N/A'; ?></strong></div>
+                                       
                     <div class="btn-group" role="group" aria-label="Acciones del curso">
                         <?php if ($inscripcion['completado'] != 1): ?>
                             <form class="d-inline" method="POST" action="../controllers/curso_acciones.php" onsubmit="return confirm('¿Estás seguro de que quieres cancelar tu inscripción?')">

@@ -392,7 +392,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual) {
                                     
                                     foreach ($posiciones_firma as $posicion):
                                         $id_posicion_actual = $posicion['id_posicion'];
-                                        $config_actual = $configs_curso[$id_posicion_actual] ?? null;
+                                        $config_actual = isset($configs_curso[$id_posicion_actual]) ? $configs_curso[$id_posicion_actual] : null;
                                     ?>
                                         <div class="row align-items-center mb-3 p-2 border rounded bg-light">
                                             <div class="col-md-3">

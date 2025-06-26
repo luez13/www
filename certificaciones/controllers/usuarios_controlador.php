@@ -26,8 +26,8 @@ try {
         $correo = strtolower($_POST['correo']); // Estandarizamos a minúsculas
         $cedula = $_POST['cedula'];
         $id_rol = $_POST['id_rol'];
-        $titulo = $_POST['titulo'] ?? '';
-        $cargo = $_POST['cargo'] ?? '';
+        $titulo = isset($_POST['titulo']) ? $_POST['titulo'] : '';
+        $cargo = isset($_POST['cargo']) ? $_POST['cargo'] : '';
 
         $stmt = $db->prepare("UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula, id_rol = :id_rol, titulo = :titulo, cargo = :cargo WHERE id = :id");
         $stmt->execute([

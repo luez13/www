@@ -431,7 +431,7 @@ public function obtenerDatosCompletosCertificado($valor_unico) {
         if ($data_firmante) {
             // --- CAMBIO: ESTRUCTURAMOS LOS DATOS DE FORMA MÁS LIMPIA ---
             $firmante_info['nombre'] = trim($data_firmante['nombre'] . ' ' . $data_firmante['apellido']);
-            $firmante_info['titulo'] = $data_firmante['titulo'] ?? '';
+            $firmante_info['titulo'] = isset($data_firmante['titulo']) ? $data_firmante['titulo'] : '';
             // Usamos el cargo definido para el certificado ('Facilitador' para el promotor)
             $firmante_info['cargo']  = $data_firmante['nombre_cargo_certificado']; 
             

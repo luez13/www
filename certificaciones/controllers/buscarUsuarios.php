@@ -90,8 +90,8 @@ if (count($usuarios) > 0) {
         $userHtml .= '<div class="mb-3"><label>Apellido</label><input type="text" class="form-control" name="apellido" value="' . htmlspecialchars($usuario['apellido']) . '"></div>';
         $userHtml .= '<div class="mb-3"><label>Correo</label><input type="email" class="form-control" name="correo" value="' . htmlspecialchars($usuario['correo']) . '"></div>';
         $userHtml .= '<div class="mb-3"><label>Cédula</label><input type="text" class="form-control" name="cedula" value="' . htmlspecialchars($usuario['cedula']) . '"></div>';
-        $userHtml .= '<div class="mb-3"><label>Título (Ej: Ing., Lic., TSU)</label><input type="text" class="form-control" name="titulo" value="' . htmlspecialchars($usuario['titulo'] ?? '') . '"></div>';
-        $userHtml .= '<div class="mb-3"><label>Cargo</label><input type="text" class="form-control" name="cargo" value="' . htmlspecialchars($usuario['cargo'] ?? '') . '"></div>';
+        $userHtml .= '<div class="mb-3"><label>Título (Ej: Ing., Lic., TSU)</label><input type="text" class="form-control" name="titulo" value="' . htmlspecialchars(isset($usuario['titulo']) ? $usuario['titulo'] : '') . '"></div>';
+        $userHtml .= '<div class="mb-3"><label>Cargo</label><input type="text" class="form-control" name="cargo" value="' . htmlspecialchars(isset($usuario['cargo']) ? $usuario['cargo'] : '') . '"></div>';
 
         // Campo para la nueva contraseña
         $userHtml .= '<div class="mb-3"><label>Nueva Contraseña (dejar en blanco para no cambiar)</label><input type="password" class="form-control" name="nueva_contrasena"></div>';
