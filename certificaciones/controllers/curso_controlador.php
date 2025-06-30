@@ -18,7 +18,7 @@ function validar_curso(
     $nombre_curso, $descripcion, $promotor, $tiempo_asignado, $inicio_mes, 
     $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio, 
     $horario_fin, $nivel_curso, $costo, $conocimientos_previos, 
-    $requerimientos_implemento, $desempeno_al_concluir, $modulos, 
+    $requerimientos_implemento, $desempeño_al_concluir, $modulos, 
     $horas_cronologicas, $fecha_finalizacion, $firma_digital
 ) {
     
@@ -37,7 +37,7 @@ function validar_curso(
     if (empty($nivel_curso)) $campos_vacios[] = 'nivel_curso';
     if (empty($conocimientos_previos)) $campos_vacios[] = 'conocimientos_previos';
     if (empty($requerimientos_implemento)) $campos_vacios[] = 'requerimientos_implemento';
-    if (empty($desempeno_al_concluir)) $campos_vacios[] = 'desempeno_al_concluir';
+    if (empty($desempeño_al_concluir)) $campos_vacios[] = 'desempeño_al_concluir';
     if (empty($modulos)) $campos_vacios[] = 'modulos';
 
     if (!empty($campos_vacios)) {
@@ -73,7 +73,6 @@ function validar_curso(
         return false;
     }
 
-    // ✅ CORRECCIÓN ESTRUCTURAL: Si pasamos todas las validaciones anteriores, devolvemos true al final.
     return true;
 }
 

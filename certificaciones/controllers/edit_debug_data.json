@@ -1,63 +1,54 @@
 {
     "course_data": {
         "action": "editar",
-        "id_curso": "12",
-        "nombre_curso": "algoaqui",
-        "descripcion": "algoaqui",
-        "tipo_curso": "masterclass",
+        "id_curso": "2",
+        "nombre_curso": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
+        "descripcion": "prueba 2",
+        "tipo_curso": "seminario",
         "nivel_curso": "introductorio",
-        "inicio_mes": "2025-06-16",
-        "fecha_finalizacion": "2025-06-17T15:11",
-        "tiempo_asignado": "2",
-        "horario_inicio": "11:43:00",
-        "horario_fin": "17:43:00",
+        "inicio_mes": "2025-03-16",
+        "fecha_finalizacion": "2025-06-26T10:41",
+        "tiempo_asignado": "1",
+        "horario_inicio": "11:00:00",
+        "horario_fin": "05:00:00",
         "dias_clase": [
-            "martes",
-            "jueves"
+            "domingo"
         ],
-        "costo": "50.00",
+        "costo": "2.00",
         "horas_cronologicas": "20",
-        "limite_inscripciones": "20",
-        "conocimientos_previos": "algoaqui",
-        "requerimientos_implementos": "algoaqui",
-        "desempe\u00f1o_al_concluir": "algoaqui",
-        "promotor": "2",
+        "limite_inscripciones": "2",
+        "conocimientos_previos": "prueba 2",
+        "requerimientos_implementos": "prueba 2",
+        "desempe\u00f1o_al_concluir": "prueba 2",
+        "promotor": "3",
+        "firma_digital": "1",
         "id_modulo": [
-            "15",
-            "16"
-        ],
-        "nombre_modulo": [
-            "algoaquisss",
-            "algoaqui"
-        ],
-        "numero_modulo": [
-            "1",
             "2"
         ],
+        "nombre_modulo": [
+            "prueba 2"
+        ],
+        "numero_modulo": [
+            "1"
+        ],
         "contenido": [
-            "algoaqui",
-            "algoaqui",
-            "algoaqui"
+            "prueba 2"
         ],
         "id_modulo_contenido": [
-            "15",
-            "15",
-            "16"
+            "2"
         ],
         "actividad_modulo": [
-            "ninguna",
             "ninguna"
         ],
         "instrumento_modulo": [
-            "ninguno",
-            "ninguno"
+            "ninguna"
         ],
         "config_firmas": {
             "1": {
                 "id_cargo_firmante": ""
             },
             "2": {
-                "id_cargo_firmante": "2"
+                "id_cargo_firmante": ""
             },
             "3": {
                 "id_cargo_firmante": ""
@@ -73,31 +64,18 @@
     },
     "modules_data": [
         {
-            "id_modulo": "15",
-            "id_curso": "12",
-            "nombre_modulo": "algoaquisss",
-            "contenido": "[algoaqui][algoaqui]",
+            "id_modulo": "2",
+            "id_curso": "2",
+            "nombre_modulo": "prueba 2",
+            "contenido": "[prueba 2]",
             "numero": "1",
             "actividad": "ninguna",
-            "instrumento": "ninguno"
-        },
-        {
-            "id_modulo": "16",
-            "id_curso": "12",
-            "nombre_modulo": "algoaqui",
-            "contenido": "[algoaqui]",
-            "numero": "2",
-            "actividad": "ninguna",
-            "instrumento": "ninguno"
+            "instrumento": "ninguna"
         }
     ],
     "contenidos_modulo": {
-        "15": [
-            "algoaqui",
-            "algoaqui"
-        ],
-        "16": [
-            "algoaqui"
+        "2": [
+            "prueba 2"
         ]
     }
 }
