@@ -143,8 +143,7 @@ switch ($action) {
         }
         exit();
         break;
-        case 'editar':
-            // Obtener los datos del formulario
+case 'editar':
             $id_curso = $_POST['id_curso'];
             $promotor = $_POST['promotor'];
             $configuracion_firmas = isset($_POST['config_firmas']) ? $_POST['config_firmas'] : array();
@@ -154,6 +153,8 @@ switch ($action) {
             $inicio_mes = $_POST['inicio_mes'];
             $tipo_curso = $_POST['tipo_curso'];
             $limite_inscripciones = $_POST['limite_inscripciones'];
+            
+            // Procesamiento de días de clase
             $dias_clase = isset($_POST['dias_clase']) ? $_POST['dias_clase'] : [];
             if (!is_array($dias_clase)) {
                 $dias_clase = str_replace(['{', '}'], '', $dias_clase);
@@ -163,6 +164,7 @@ switch ($action) {
             } else {
                 $dias_clase_pg = '{' . implode(',', $dias_clase) . '}';
             }
+            
             $horario_inicio = $_POST['horario_inicio'];
             $horario_fin = $_POST['horario_fin'];
             $nivel_curso = $_POST['nivel_curso'];
@@ -173,98 +175,112 @@ switch ($action) {
             $horas_cronologicas = $_POST['horas_cronologicas'];
             $fecha_finalizacion = $_POST['fecha_finalizacion'];
             $firma_digital = isset($_POST['firma_digital']) ? true : false;
-            $autorizacion = $_SESSION['user_id']; // Capturando el id del usuario actual para la autorización        
-        
-            // Definir $is_admin_or_authorizer
-            $user_id = $_SESSION['user_id']; // Asegúrate de que esto se defina antes de su uso
+            
+            // Lógica de autorización
+            $autorizacion_post = isset($_POST['autorizacion']) ? $_POST['autorizacion'] : null;
+            $autorizacion_final = null;
+            if ($autorizacion_post == $_SESSION['user_id']) {
+                $autorizacion_final = $_SESSION['user_id'];
+            }
+            
+            $user_id = $_SESSION['user_id']; 
             $is_admin_or_authorizer = esPerfil3($user_id) || esPerfil4($user_id);
-        
-            // Obtener los datos de los módulos
-            if (!isset($_POST['contenido'])) {
-                $_POST['contenido'] = []; // Inicializa como array vacío si no está definido
-            }
-        
-            $nombre_modulo = $_POST['nombre_modulo'];
-            $contenido = $_POST['contenido'];
-            $actividad = $_POST['actividad_modulo'];
-            $instrumento = $_POST['instrumento_modulo'];
-            $numero_modulo = $_POST['numero_modulo'];
-            $id_modulo = $_POST['id_modulo'];
-        
-            // Nuevos campos ocultos
-            $numero_modulo_contenido = isset($_POST['numero_modulo_contenido']) ? $_POST['numero_modulo_contenido'] : [];
-            $id_modulo_contenido = isset($_POST['id_modulo_contenido']) ? $_POST['id_modulo_contenido'] : [];
-        
-            // Agrupar contenidos por módulo
-            $contenidos_modulo = [];
-            foreach ($id_modulo as $id) {
-                $contenidos_modulo[$id] = [];
-            }
-            foreach ($contenido as $index => $content) {
-                if (isset($id_modulo_contenido[$index])) {
-                    $modulo_id = $id_modulo_contenido[$index];
-                    $contenidos_modulo[$modulo_id][] = $content;
-                }
-            }
-        
-            // Crear los datos de los módulos
-            $modulos = [];
-            foreach ($id_modulo as $i => $id) {
-                if (empty($id)) {
-                    // Crear el módulo ya que no tiene ID
-                    $contenido_completo = isset($contenidos_modulo[$id]) ? implode('][', $contenidos_modulo[$id]) : '';
-                    $contenido_completo = '[' . $contenido_completo . ']';
-                    $curso->crearModulo($id_curso, $nombre_modulo[$i], $contenido_completo, $actividad[$i], $instrumento[$i], $numero_modulo[$i]);
+
+            // Obtener la lista de módulos a eliminar
+            $modulos_a_eliminar_ids = isset($_POST['modulos_a_eliminar']) ? $_POST['modulos_a_eliminar'] : '';
+            
+            $modulos_raw = isset($_POST['modulos']) ? $_POST['modulos'] : [];
+            
+            // Arrays para separar lógica
+            $modulos_a_editar = [];
+            $modulos_nuevos = []; 
+            
+            // 1. PROCESAMIENTO DE DATOS (Sin guardar en BD todavía)
+            foreach ($modulos_raw as $id_modulo_key => $modulo_data) {
+                
+                // Formato de contenido [texto][texto]
+                $contenido_completo = ''; 
+                if (isset($modulo_data['contenido']) && is_array($modulo_data['contenido'])) {
+                    foreach ($modulo_data['contenido'] as $txt) {
+                        $txt_limpio = str_replace(['[', ']'], '', $txt);
+                        $contenido_completo .= '[' . $txt_limpio . ']';
+                    }
                 } else {
-                    // Editar el módulo existente
-                    $contenido_completo = isset($contenidos_modulo[$id]) ? implode('][', $contenidos_modulo[$id]) : '';
-                    $contenido_completo = '[' . $contenido_completo . ']';
-                    $modulos[] = [
-                        'id_modulo' => $id,
-                        'id_curso' => $id_curso,
-                        'nombre_modulo' => $nombre_modulo[$i],
-                        'contenido' => $contenido_completo,
-                        'numero' => $numero_modulo[$i],
-                        'actividad' => $actividad[$i],
-                        'instrumento' => $instrumento[$i]
-                    ];
+                    $contenido_completo = isset($modulo_data['contenido']) ? $modulo_data['contenido'] : '';
                 }
-            }            
-        
-            // Guardar los datos para inspección
+
+                // Preparar el array de datos del módulo
+                $datos_modulo = [
+                    'id_modulo'     => $id_modulo_key,
+                    'id_curso'      => $id_curso,
+                    'nombre_modulo' => $modulo_data['nombre_modulo'],
+                    'contenido'     => $contenido_completo,
+                    'numero'        => $modulo_data['numero'],
+                    'actividad'     => $modulo_data['actividad'],
+                    'instrumento'   => $modulo_data['instrumento']
+                ];
+
+                // Clasificar: ¿Es Nuevo o Existente?
+                if (empty($modulo_data['id_modulo']) || strpos($id_modulo_key, 'new_') === 0) {
+                    $modulos_nuevos[] = $datos_modulo;
+                } else {
+                    $modulos_a_editar[] = $datos_modulo;
+                }
+            }
+            
+            // Combinamos ambos para que la validación no falle si solo hay módulos nuevos
+            $modulos_para_validacion = array_merge($modulos_a_editar, $modulos_nuevos); 
+
+            // Registro de datos (Debug)
             file_put_contents('edit_debug_data.json', json_encode([
                 'course_data' => $_POST,
-                'modules_data' => $modulos,
-                'contenidos_modulo' => $contenidos_modulo
+                'modules_edit' => $modulos_a_editar,
+                'modules_new' => $modulos_nuevos,
+                'modules_delete' => $modulos_a_eliminar_ids
             ], JSON_PRETTY_PRINT), LOCK_EX);
 
-            // Inicializar variables si no están definidas
-            $modulos = isset($modulos) ? $modulos : [];
-            $desempeño_al_concluir = isset($_POST['desempeño_al_concluir']) ? $_POST['desempeño_al_concluir'] : null;
+            // 2. VALIDACIÓN
+            if (validar_curso($nombre_curso, $descripcion, $promotor, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento, $desempeño_al_concluir, $modulos_para_validacion, $horas_cronologicas, $fecha_finalizacion, $firma_digital)) {
+                
+                // 3. EJECUCIÓN (Solo si validó correctamente)
 
-            // Validar los datos
-            if (validar_curso($nombre_curso, $descripcion, $promotor, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento, $desempeño_al_concluir, $modulos,$horas_cronologicas, $fecha_finalizacion, $firma_digital)) {
-                // Editar el curso usando el método de la clase Curso
-                if ($is_admin_or_authorizer) {
-                    $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $promotor, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeño_al_concluir, $horas_cronologicas, $fecha_finalizacion, $firma_digital, $_SESSION['user_id'], $configuracion_firmas);
-                } else {
-                    $curso->editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $promotor, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeño_al_concluir, $horas_cronologicas, $fecha_finalizacion, $firma_digital, $configuracion_firmas);
+                // A) Crear los Módulos Nuevos
+                foreach ($modulos_nuevos as $nuevo) {
+                    $curso->crearModulo(
+                        $id_curso, 
+                        $nuevo['nombre_modulo'], 
+                        $nuevo['contenido'], 
+                        $nuevo['actividad'], 
+                        $nuevo['instrumento'], 
+                        $nuevo['numero']
+                    );
                 }
-                // Devolver mensaje de éxito
+
+                // B) Editar Curso y Módulos Existentes
+                // Nota: Aquí pasamos null o el ID de autorización según corresponda
+                $auth_param = ($is_admin_or_authorizer) ? $autorizacion_final : null;
+
+                $curso->editar(
+                    $id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, 
+                    $limite_inscripciones, $promotor, $dias_clase_pg, $horario_inicio, $horario_fin, 
+                    $nivel_curso, $costo, $conocimientos_previos, 
+                    $modulos_a_editar, // Solo pasamos los existentes para UPDATE
+                    $requerimientos_implemento, $desempeño_al_concluir, $horas_cronologicas, 
+                    $fecha_finalizacion, $firma_digital, 
+                    $auth_param, // Autorización
+                    $configuracion_firmas, 
+                    $modulos_a_eliminar_ids // IDs a eliminar
+                );
+                
                 echo '<script>
                         alert("El curso se ha editado correctamente");
                         window.location.href = "../public/perfil.php";
                     </script>';
             } else {
-                // Devolver mensaje de error con detalles
+                // Si falla la validación, no se ha guardado nada en la BD
                 $errorDetails = json_encode($_POST, JSON_HEX_APOS | JSON_HEX_QUOT);
-                file_put_contents('edit_debug_data.json', json_encode([
-                    'course_data' => $_POST,
-                    'modules_data' => $modulos,
-                    'contenidos_modulo' => $contenidos_modulo
-                ], JSON_PRETTY_PRINT), LOCK_EX);
                 echo '<script>
-                        alert("Los datos del curso son inválidos: ' . addslashes($errorDetails) . '");
+                        alert("Los datos del curso son inválidos. Revise los campos obligatorios.");
                         window.location.href = "../public/perfil.php";
                     </script>';
             }

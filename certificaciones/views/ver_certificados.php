@@ -2,12 +2,13 @@
 require_once '../controllers/autenticacion.php';
 require_once '../config/model.php';
 require_once '../models/curso.php';
+require_once '../views/header.php';
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 $current_page = basename($_SERVER['PHP_SELF']);
-include '../views/header.php';
+include '../controllers/init.php';
 
 $db = new DB();
 $curso = new Curso($db);

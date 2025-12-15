@@ -1,81 +1,111 @@
 {
     "course_data": {
         "action": "editar",
-        "id_curso": "2",
+        "id_curso": "7",
+        "modulos_a_eliminar": "",
         "nombre_curso": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
-        "descripcion": "prueba 2",
-        "tipo_curso": "seminario",
+        "descripcion": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
+        "tipo_curso": "masterclass",
         "nivel_curso": "introductorio",
-        "inicio_mes": "2025-03-16",
-        "fecha_finalizacion": "2025-06-26T10:41",
-        "tiempo_asignado": "1",
-        "horario_inicio": "11:00:00",
-        "horario_fin": "05:00:00",
+        "inicio_mes": "2025-05-14",
+        "fecha_finalizacion": "2025-11-18T10:24",
+        "tiempo_asignado": "2",
+        "horario_inicio": "09:30:00",
+        "horario_fin": "10:30:00",
         "dias_clase": [
-            "domingo"
+            "lunes"
         ],
-        "costo": "2.00",
-        "horas_cronologicas": "20",
-        "limite_inscripciones": "2",
-        "conocimientos_previos": "prueba 2",
-        "requerimientos_implementos": "prueba 2",
-        "desempe\u00f1o_al_concluir": "prueba 2",
-        "promotor": "3",
-        "firma_digital": "1",
-        "id_modulo": [
-            "2"
-        ],
-        "nombre_modulo": [
-            "prueba 2"
-        ],
-        "numero_modulo": [
-            "1"
-        ],
-        "contenido": [
-            "prueba 2"
-        ],
-        "id_modulo_contenido": [
-            "2"
-        ],
-        "actividad_modulo": [
-            "ninguna"
-        ],
-        "instrumento_modulo": [
-            "ninguna"
-        ],
+        "costo": "20.00",
+        "horas_cronologicas": "2",
+        "limite_inscripciones": "20",
+        "conocimientos_previos": "ninguno",
+        "requerimientos_implementos": "ninguno",
+        "desempe\u00f1o_al_concluir": "ninguno",
+        "promotor": "1",
+        "modulos": {
+            "6": {
+                "id_modulo": "6",
+                "nombre_modulo": "ninguno",
+                "numero": "1",
+                "contenido": [
+                    "ninguno"
+                ],
+                "actividad": "ninguno",
+                "instrumento": "ninguno"
+            },
+            "7": {
+                "id_modulo": "7",
+                "nombre_modulo": "ninguno",
+                "numero": "2",
+                "contenido": [
+                    "ninguno",
+                    "ninguno"
+                ],
+                "actividad": "ninguno",
+                "instrumento": "ninguno"
+            },
+            "new_1": {
+                "nombre_modulo": "algoaqui",
+                "numero": "3",
+                "contenido": [
+                    "asdadad"
+                ],
+                "actividad": "asdad",
+                "instrumento": "asdadasdd"
+            }
+        },
         "config_firmas": {
             "1": {
-                "id_cargo_firmante": ""
+                "id_cargo_firmante": "2"
             },
             "2": {
-                "id_cargo_firmante": ""
+                "id_cargo_firmante": "2"
             },
             "3": {
-                "id_cargo_firmante": ""
+                "id_cargo_firmante": "2"
             },
             "4": {
-                "id_cargo_firmante": ""
+                "id_cargo_firmante": "2"
             },
             "5": {
                 "id_cargo_firmante": "",
                 "usar_promotor_curso": "1"
+            },
+            "6": {
+                "id_cargo_firmante": "2"
             }
         }
     },
-    "modules_data": [
+    "modules_edit": [
         {
-            "id_modulo": "2",
-            "id_curso": "2",
-            "nombre_modulo": "prueba 2",
-            "contenido": "[prueba 2]",
+            "id_modulo": 6,
+            "id_curso": "7",
+            "nombre_modulo": "ninguno",
+            "contenido": "[ninguno]",
             "numero": "1",
-            "actividad": "ninguna",
-            "instrumento": "ninguna"
+            "actividad": "ninguno",
+            "instrumento": "ninguno"
+        },
+        {
+            "id_modulo": 7,
+            "id_curso": "7",
+            "nombre_modulo": "ninguno",
+            "contenido": "[ninguno][ninguno]",
+            "numero": "2",
+            "actividad": "ninguno",
+            "instrumento": "ninguno"
         }
     ],
-    "contenidos_modulo": {
-        "2": [
-            "prueba 2"
-        ]
-    }
+    "modules_new": [
+        {
+            "id_modulo": "new_1",
+            "id_curso": "7",
+            "nombre_modulo": "algoaqui",
+            "contenido": "[asdadad]",
+            "numero": "3",
+            "actividad": "asdad",
+            "instrumento": "asdadasdd"
+        }
+    ],
+    "modules_delete": ""
 }

@@ -1,17 +1,33 @@
+<head>
+    <meta charset="UTF-8">
+    <title>Detalles del Curso</title>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        /* Tus estilos personalizados para ajustar el contenido del iframe */
+        body {
+            background-color: #ffffff !important;
+            color: #000000;
+            padding: 20px;
+        }
+    </style>
+</head>
+
 <?php
 // Incluir el archivo model.php en config
 include '../config/model.php';
 
-// Definir la clase fondo-negro para el fondo negro y el texto blanco 
-echo '<style> .fondo-negro { 
-background-color: #ffffff !important; /* Fondo negro */ color: #000000; /* Texto blanco para contraste */ 
-} </style>';
+// Incluir el archivo init.php en views
+include '../controllers/init.php';
 
-// Incluir el archivo header.php en views
-include '../views/header.php';
-
-// Aplicar la clase fondo-negro al body 
-echo '<script>document.body.classList.add("fondo-negro");</script>';
+echo "<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.body.classList.add('fondo-negro');
+    });
+</script>";
 
 // Incluir el archivo curso.php en models
 include '../models/curso.php';
@@ -129,8 +145,6 @@ if (is_numeric($id_curso) && $id_curso > 0) {
     echo '<p>El id del curso es inválido.</p>';
 }
 echo '</div>';
-// Incluir el archivo footer.php en views
-include '../views/footer.php';
 ?>
 <script>
 $(document).ready(function(){

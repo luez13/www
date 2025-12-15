@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('portrait', 'mm', 'letter');
 
-        pdf.setFont("century", "normal");
+        pdf.setFont("Helvetica", "normal");
         pdf.setFontSize(12);
 
         // Título centrado
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const startX = 30;
         let startY = 50;
         const fontSize = 13;
-        const lineSpacing = 7;
+        const lineSpacing = 6;
 
         const regex = /(\*{2})+/g;
         const textoSinMarcas = contenido.replace(regex, '');
@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const startXCached = startX;
         textObject.map(row => {
             Object.entries(row).map(([key, value]) => {
-                doc.setFont("century", value.bold ? "bold" : "normal");
+                doc.setFont("cambria", value.bold ? "bold" : "normal");
                 doc.text(value.char, startX, startY);
                 startX += doc.getStringUnitWidth(value.char) * fontSize * 0.38;
             });

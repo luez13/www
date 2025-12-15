@@ -2,8 +2,8 @@
 // Incluir el archivo model.php en config
 include '../config/model.php';
 
-// Incluir el archivo header.php en views
-include '../views/header.php';
+// Incluir el archivo init.php en views
+include '../controllers/init.php';
 
 // Crear una instancia de la clase DB
 $db = new DB();
@@ -25,7 +25,4 @@ try {
     // Mostrar un mensaje de error al usuario
     echo '<p>Ha ocurrido un error al obtener los cursos disponibles: ' . $e->getMessage() . '</p>';
 }
-
-// Incluir el archivo footer.php en views
-include '../views/footer.php';
 ?>

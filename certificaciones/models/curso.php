@@ -89,7 +89,52 @@ class Curso {
         }
     }
 
-    public function editar($id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, $limite_inscripciones, $promotor, $dias_clase_pg, $horario_inicio, $horario_fin, $nivel_curso, $costo, $conocimientos_previos, $modulos, $requerimientos_implemento, $desempeno_al_concluir, $horas_cronologicas, $fecha_finalizacion, $firma_digital, $autorizacion = null, $configuracion_firmas = []) {
+    public function crearModulo($id_curso, $nombre_modulo, $contenido, $actividad, $instrumento, $numero) {
+        $sql = "INSERT INTO cursos.modulos (id_curso, nombre_modulo, contenido, actividad, instrumento, numero) 
+                VALUES (:id_curso, :nombre_modulo, :contenido, :actividad, :instrumento, :numero)";
+        
+        $stmt = $this->pdo->prepare($sql);
+        
+        try {
+            return $stmt->execute([
+                ':id_curso'      => $id_curso,
+                ':nombre_modulo' => $nombre_modulo,
+                ':contenido'     => $contenido,
+                ':actividad'     => $actividad,
+                ':instrumento'   => $instrumento,
+                ':numero'        => $numero
+            ]);
+        } catch (PDOException $e) {
+            // Lanza la excepción para que sea capturada por el rollBack del método editar().
+            throw $e; 
+        }
+    }
+
+    public function obtenerModulosPorCurso($id_curso) {
+        $sql = "SELECT id_modulo, nombre_modulo, contenido, actividad, instrumento, numero 
+                FROM cursos.modulos 
+                WHERE id_curso = :id_curso 
+                ORDER BY numero ASC";
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':id_curso' => $id_curso]);
+        
+        // Si no encuentra resultados, fetchAll() devuelve un array vacío, lo cual es ideal.
+        return $stmt->fetchAll(PDO::FETCH_ASSOC); 
+    }
+
+    public function editar(
+        $id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso, 
+        $limite_inscripciones, $promotor, $dias_clase_pg, $horario_inicio, $horario_fin, 
+        $nivel_curso, $costo, $conocimientos_previos, 
+        // Módulos a Editar (EXISTENTES)
+        $modulos_a_editar, 
+        $requerimientos_implemento, $desempeno_al_concluir, $horas_cronologicas, 
+        $fecha_finalizacion, $firma_digital, 
+        $autorizacion = null, $configuracion_firmas = [],
+        // IDs de Módulos a Eliminar (NUEVO)
+        $modulos_a_eliminar_ids = '' 
+    ) {
 
         // Restauramos la transacción para un guardado seguro
         $this->pdo->beginTransaction();
@@ -126,10 +171,29 @@ class Curso {
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute($params);
 
-            // PASO 2: Actualizar los módulos
-            foreach ($modulos as $modulo) {
-                $stmt_modulo = $this->pdo->prepare('UPDATE cursos.modulos SET nombre_modulo = :nombre_modulo, contenido = :contenido, numero = :numero, actividad = :actividad, instrumento = :instrumento WHERE id_modulo = :id_modulo');
-                $stmt_modulo->execute(['nombre_modulo' => $modulo['nombre_modulo'], 'contenido' => $modulo['contenido'], 'numero' => $modulo['numero'], 'actividad' => $modulo['actividad'], 'instrumento' => $modulo['instrumento'], 'id_modulo' => $modulo['id_modulo']]);
+            // PASO 2A: Eliminar los módulos marcados
+            if (!empty($modulos_a_eliminar_ids)) {
+                $ids = explode(',', $modulos_a_eliminar_ids);
+                // Convertir IDs a string con comas para la consulta IN
+                $placeholders = implode(',', array_fill(0, count($ids), '?')); 
+                $sql_delete = "DELETE FROM cursos.modulos WHERE id_modulo IN ($placeholders) AND id_curso = ?";
+                $stmt_delete = $this->pdo->prepare($sql_delete);
+                // Concatenar IDs de módulos con el ID del curso
+                $stmt_delete->execute(array_merge($ids, [$id_curso]));
+            }
+
+            // PASO 2B: Actualizar los módulos existentes
+            foreach ($modulos_a_editar as $modulo) {
+                $stmt_modulo = $this->pdo->prepare('UPDATE cursos.modulos SET nombre_modulo = :nombre_modulo, contenido = :contenido, numero = :numero, actividad = :actividad, instrumento = :instrumento WHERE id_modulo = :id_modulo AND id_curso = :id_curso');
+                $stmt_modulo->execute([
+                    'nombre_modulo' => $modulo['nombre_modulo'], 
+                    'contenido' => $modulo['contenido'], 
+                    'numero' => $modulo['numero'], 
+                    'actividad' => $modulo['actividad'], 
+                    'instrumento' => $modulo['instrumento'], 
+                    'id_modulo' => $modulo['id_modulo'],
+                    'id_curso' => $id_curso
+                ]);
             }
 
             // PASO 3: Actualizar las firmas
@@ -429,28 +493,27 @@ public function obtenerDatosCompletosCertificado($valor_unico) {
         }
         
         if ($data_firmante) {
-            // --- CAMBIO: ESTRUCTURAMOS LOS DATOS DE FORMA MÁS LIMPIA ---
-            $firmante_info['nombre'] = trim($data_firmante['nombre'] . ' ' . $data_firmante['apellido']);
-            $firmante_info['titulo'] = isset($data_firmante['titulo']) ? $data_firmante['titulo'] : '';
-            // Usamos el cargo definido para el certificado ('Facilitador' para el promotor)
-            $firmante_info['cargo']  = $data_firmante['nombre_cargo_certificado']; 
-            
-            $ruta_desde_db = $data_firmante['firma_digital'];
+        $primer_nombre = explode(' ', trim($data_firmante['nombre']))[0];
+        $primer_apellido = explode(' ', trim($data_firmante['apellido']))[0];
+        $firmante_info['nombre'] = $primer_nombre . ' ' . $primer_apellido;
 
-            // Lógica de la firma digital (sin cambios aquí)
-            if (!empty($datos_principales['firma_digital']) && $datos_principales['firma_digital'] === true && !empty($ruta_desde_db)) {
-                $nombre_archivo = basename($ruta_desde_db);
-                $ruta_relativa_final = 'public/assets/firmas/' . $nombre_archivo;
-                $ruta_absoluta = dirname(__DIR__) . '/' . $ruta_relativa_final;
+        $firmante_info['titulo'] = isset($data_firmante['titulo']) ? $data_firmante['titulo'] : '';
+        $firmante_info['cargo'] = $data_firmante['nombre_cargo_certificado']; 
+        $ruta_desde_db = $data_firmante['firma_digital'];
 
-                if (file_exists($ruta_absoluta)) {
-                    $imageData = file_get_contents($ruta_absoluta);
-                    $imageType = mime_content_type($ruta_absoluta);
-                    $firmante_info['firma_base64'] = 'data:' . $imageType . ';base64,' . base64_encode($imageData);
-                } else {
-                    $firmante_info['cargo'] .= ' (Firma no encontrada)';
-                }
+        if (!empty($datos_principales['firma_digital']) && $datos_principales['firma_digital'] === true && !empty($ruta_desde_db)) {
+            $nombre_archivo = basename($ruta_desde_db);
+            $ruta_relativa_final = 'public/assets/firmas/' . $nombre_archivo;
+            $ruta_absoluta = dirname(__DIR__) . '/' . $ruta_relativa_final;
+
+            if (file_exists($ruta_absoluta)) {
+            $imageData = file_get_contents($ruta_absoluta);
+            $imageType = mime_content_type($ruta_absoluta);
+            $firmante_info['firma_base64'] = 'data:' . $imageType . ';base64,' . base64_encode($imageData);
+            } else {
+            $firmante_info['cargo'] .= ' (Firma no encontrada)';
             }
+        }
         }
         $firmantes_procesados[] = $firmante_info;
     }

@@ -1,6 +1,6 @@
 <?php
-// Incluir el archivo header.php en views
-include '../views/header.php';
+// Incluir el archivo init.php en views
+include '../controllers/init.php';
 
 // Incluir el archivo model.php en config
 include '../config/model.php';

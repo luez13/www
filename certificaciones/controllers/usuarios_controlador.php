@@ -1,8 +1,5 @@
 <?php
 // controllers/usuarios_controlador.php
-
-// NO incluir header.php. Un controlador AJAX no debe generar HTML.
-
 // Incluir el archivo model.php para la base de datos
 include '../config/model.php';
 

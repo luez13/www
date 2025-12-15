@@ -1,6 +1,6 @@
 <?php
 include '../config/model.php';
-include '../views/header.php';
+include '../controllers/init.php';
 include '../models/curso.php';
 
 $db = new DB();
@@ -24,6 +24,14 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
     $stmt_pos2 = $db->prepare("SELECT id_posicion FROM cursos.posiciones_firma WHERE codigo_posicion = 'P2_INF_DER' LIMIT 1");
     $stmt_pos2->execute();
     $id_posicion_2 = $stmt_pos2->fetchColumn();
+
+    $stmt_vic = $db->prepare("SELECT valor_config FROM cursos.config_sistema WHERE clave_config = 'ID_CARGO_VICERRECTORADO_POR_DEFECTO' LIMIT 1");
+    $stmt_vic->execute();
+    $id_cargo_vicerrectora = $stmt_vic->fetchColumn();
+
+    $stmt_pos3 = $db->prepare("SELECT id_posicion FROM cursos.posiciones_firma WHERE codigo_posicion = 'P1_INF_IZQ' LIMIT 1");
+    $stmt_pos3->execute();
+    $id_posicion_3 = $stmt_pos3->fetchColumn();
 
 ?>
     <h1 class="h3 mb-4 text-gray-800">Postular una Nueva Propuesta de Curso</h1>
@@ -157,16 +165,24 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
             <div class="card-body">
                 <p>Al crear el curso, se asignarán las siguientes firmas por defecto en el certificado:</p>
                 <ul>
-                    <li><strong>Posición 1 (Inferior Derecha):</strong> Se asignará al cargo "Coordinador de Formación Permanente".</li>
-                    <li><strong>Posición 2 (Inferior Derecha):</strong> Se asignará al Promotor del curso (usted).</li>
+                    <li><strong>Posición Coordinador (P1_INF_DER):</strong> Se asignará al "Coordinador de Formación Permanente".</li>
+                    
+                    <li><strong>Posición Vicerrectora (P1_INF_IZQ):</strong> Se asignará a la "Vicerrectora Académica".</li>
+
+                    <li><strong>Posición Promotor (P2_INF_DER):</strong> Se asignará al Promotor del curso (usted).</li>
                 </ul>
                 <p class="text-muted small">Esta configuración podrá ser modificada más adelante por un administrador.</p>
                 
                 <?php if ($id_posicion_1 && $id_cargo_coordinador): ?>
-                    <input type="hidden" name="config_firmas[<?= $id_posicion_1 ?>][id_cargo_firmante]" value="<?= $id_cargo_coordinador ?>">
+                    <input type="hidden" name="config_firmas[<?php echo $id_posicion_1; ?>][id_cargo_firmante]" value="<?php echo $id_cargo_coordinador; ?>">
                 <?php endif; ?>
+
+                <?php if ($id_posicion_3 && $id_cargo_vicerrectora): ?>
+                    <input type="hidden" name="config_firmas[<?php echo $id_posicion_3; ?>][id_cargo_firmante]" value="<?php echo $id_cargo_vicerrectora; ?>">
+                <?php endif; ?>
+                
                 <?php if ($id_posicion_2): ?>
-                    <input type="hidden" name="config_firmas[<?= $id_posicion_2 ?>][usar_promotor_curso]" value="1">
+                    <input type="hidden" name="config_firmas[<?php echo $id_posicion_2; ?>][usar_promotor_curso]" value="1">
                 <?php endif; ?>
             </div>
         </div>
@@ -274,7 +290,6 @@ echo '</div>';
 }
 
 echo '</div>';
-include '../views/footer.php';
 ?>
 
 <script src="../models/module_processing.js"></script>

@@ -2,7 +2,7 @@
 // public/usuarios.php
 
 // Incluimos el header una sola vez.
-include '../views/header.php';
+include '../controllers/init.php';
 ?>
 
 <div class="container mt-4">
@@ -101,8 +101,3 @@ $(document).ready(function() {
     });
 });
 </script>
-
-<?php
-// Incluimos el footer una sola vez.
-include '../views/footer.php';
-?>

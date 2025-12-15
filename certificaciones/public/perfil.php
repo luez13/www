@@ -110,12 +110,12 @@ try {
             <div class="bg-white py-2 collapse-inner rounded">
                 <?php if ($_SESSION['id_rol'] == 2 || $_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4): ?>
                 <h6 class="collapse-header">Facilitadores</h6>
-                <a class="collapse-item" href="#" onclick="loadPage('gestion_cursos.php?action=crear')">Postular Propuesta</a>
-                <a class="collapse-item" href="#" onclick="loadPage('gestion_cursos.php?action=ver')">Ver Postulaciones</a>
+                <a class="collapse-item" href="#" onclick="loadPage('../public/gestion_cursos.php?action=crear')">Postular Propuesta</a>
+                <a class="collapse-item" href="#" onclick="loadPage('../public/gestion_cursos.php?action=ver')">Ver Postulaciones</a>
                 <?php endif; ?>
                 <?php if ($_SESSION['id_rol'] == 4 || $_SESSION['id_rol'] == 3): ?>
                 <h6 class="collapse-header">Administrador</h6>
-                <a class="collapse-item" href="#" onclick="loadPage('editar_cursos.php')">Verificar Postulación</a>
+                <a class="collapse-item" href="#" onclick="loadPage('../public/editar_cursos.php')">Verificar Postulación</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -133,7 +133,7 @@ try {
         </a>
         <div id="collapseUsuarios" class="collapse" aria-labelledby="headingUsuarios" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="#" onclick="loadPage('usuarios.php')">Verificación Usuarios</a>
+                <a class="collapse-item" href="#" onclick="loadPage('../public/usuarios.php')">Verificación Usuarios</a>
             </div>
         </div>
     </li>
@@ -166,8 +166,19 @@ try {
                 <a class="collapse-item" href="#" onclick="loadPage('../views/gestionar_cargos.php')">Gestionar Firmantes</a>
                 <a class="collapse-item" href="#" onclick="loadPage('../views/ajustes_sistema.php')">Ajustes Generales</a>
             </div>
+        </li>
+        <hr class="sidebar-divider">
+
+        <!-- Nueva subsección: Sugerencias -->
+        <div class="sidebar-heading">
+            Sugerencias
         </div>
-    </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" onclick="loadPage('../views/sugerencias.php')"> 
+                <i class="fas fa-lightbulb"></i>
+                <span>Sugerencias</span>
+            </a>
+        </li>
     <?php endif; ?>
     </ul>
 
@@ -382,14 +393,15 @@ include '../views/footer.php';
 ?>
 
 <script>
-let selectedUsers = new Set(); // Asegúrate de que esto solo se declare una vez en el ámbito global
+let selectedUsers = new Set();
+let newModuloCounter = 0; // Usado para añadir nuevos módulos
 
 function loadPage(page, params = {}) {
-    console.log('Loading page:', page, 'with params:', params); // Para depuración
-
+    console.log('Loading page:', page, 'with params:', params);
+    
     let url = page;
-    if (page === 'buscar.php') {
-        url = '../controllers/' + page;
+    if (page.endsWith('.php') && !page.includes('/')) {
+        url = (page === 'buscar.php') ? '../controllers/' + page : '../views/' + page;
     }
 
     $.ajax({
@@ -397,8 +409,16 @@ function loadPage(page, params = {}) {
         method: 'GET',
         data: params,
         success: function(data) {
-            $('#page-content').html(data); // Asegúrate de que el ID del contenedor sea correcto
-            reapplyEvents(); // Si necesitas reaplicar eventos de JavaScript
+            $('#page-content').html(data);
+            reapplyEvents();
+            if (params.scrollTo) {
+                setTimeout(() => {
+                    const target = document.getElementById(params.scrollTo);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100); 
+            }
         },
         error: function(xhr, status, error) {
             console.error('Error loading page:', page, error);
@@ -407,237 +427,187 @@ function loadPage(page, params = {}) {
     });
 }
 
-$(document).ready(function() {
-    reapplyEvents();
-    $('#inscribir-usuarios-btn').on('click', function() {
-        if (selectedUsers.size > 0) {
-            var cursoId = $('#curso-id').val(); // Obtener el ID del curso seleccionado
-            var usuariosArray = Array.from(selectedUsers); // Convertir el conjunto a un array
-            $.ajax({
-                url: '../controllers/usuarios_controlador.php',
-                method: 'POST',
-                data: {
-                    action: 'inscribir_usuarios',
-                    usuarios: usuariosArray,
-                    curso_id: cursoId
-                },
-                success: function(response) {
-                    alert('Usuarios registrados correctamente en el curso.');
-                    location.reload(); // Recargar la página para reflejar los cambios
-                },
-                error: function() {
-                    alert('Hubo un error al registrar los usuarios en el curso.');
-                }
-            });
-        } else {
-            alert('No hay usuarios seleccionados.');
+function submitFormWithFetch(form, successMessage, reloadOnSuccess = false, callback = null) {
+    const formData = new FormData(form);
+    const formUrl = form.getAttribute('action');
+
+    fetch(formUrl, {
+        method: form.method,
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Respuesta del servidor no fue OK: ' + response.statusText);
         }
+        return response.text();
+    })
+    .then(result => {
+        if (result.includes(successMessage)) {
+            alert('¡Éxito! ' + successMessage);
+            if (reloadOnSuccess) {
+                window.location.reload(); 
+            } else if (typeof callback === 'function') {
+                callback(form); // Ejecutar callback si no recarga la página
+            }
+        } else {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = result;
+            const alertElement = tempDiv.querySelector('.alert');
+            const errorMessage = alertElement ? alertElement.innerText.trim() : result;
+            alert('Hubo un error: \n' + errorMessage);
+        }
+    })
+    .catch(error => {
+        console.error('Error en la solicitud fetch:', error);
+        alert('Hubo un error de conexión o en el servidor al procesar la solicitud.');
     });
-});
+}
 
-$(document).ready(function() {
-    $('#busquedaForm').submit(function(event) {
-        event.preventDefault();
-        var busqueda = $('#busqueda').val();
-        var id_curso = $('#id_curso').val();
-        loadPage('buscar.php', { busqueda: busqueda, id_curso: id_curso, page: 1 });
-    });
-});
+function handleInscripcionUsuarios() {
+    if (selectedUsers.size > 0) {
+        var cursoId = $('#curso-id').val(); 
+        var usuariosArray = Array.from(selectedUsers); 
+        
+        $.ajax({
+            url: '../controllers/usuarios_controlador.php',
+            method: 'POST',
+            data: {
+                action: 'inscribir_usuarios',
+                usuarios: usuariosArray,
+                curso_id: cursoId
+            },
+            success: function(response) {
+                alert('Usuarios registrados correctamente en el curso.');
+                location.reload(); 
+            },
+            error: function() {
+                alert('Hubo un error al registrar los usuarios en el curso.');
+            }
+        });
+    } else {
+        alert('No hay usuarios seleccionados.');
+    }
+}
 
-document.addEventListener('DOMContentLoaded', function() {
-    reapplyEvents();
-});
+function handleBusquedaForm(event) {
+    event.preventDefault();
+    var busqueda = $('#busqueda').val();
+    var id_curso = $('#id_curso').val();
+    loadPage('buscar.php', { busqueda: busqueda, id_curso: id_curso, page: 1 });
+}
+
+function handleUsuarioCheckbox() {
+    var userId = $(this).data('id');
+    if ($(this).is(':checked')) {
+        selectedUsers.add(userId);
+    } else {
+        selectedUsers.delete(userId);
+    }
+}
+
+function handleCursoEdition(event) {
+    event.preventDefault();
+    const form = this;
+    const successMsg = 'El curso se ha editado correctamente';
+    
+    submitFormWithFetch(form, successMsg, true); // Recargar toda la página al éxito
+}
+
+function handleUsuarioEdition(event) {
+    event.preventDefault();
+    const form = this;
+    const successMsg = 'El usuario se ha editado correctamente';
+    
+    const callback = () => {
+        const pageLink = document.querySelector('.page-item.active .page-link');
+        const page = pageLink ? pageLink.dataset.page : 1; 
+        loadPage('usuarios.php', { page: page });
+    };
+    
+    submitFormWithFetch(form, successMsg, false, callback);
+}
+
+function handleInscripcionForm(event) {
+    event.preventDefault();
+    const form = this;
+    const successMsg = 'Te has inscrito correctamente en el curso';
+    
+    const callback = (form) => {
+        var idCurso = form.querySelector('input[name="curso_id"]').value;
+        loadPage('buscar.php', { id_curso: idCurso });
+    };
+    
+    submitFormWithFetch(form, successMsg, false, callback);
+}
+
+function handleInscripcionSearch() {
+    const input = $(this);
+    const busqueda = input.val();
+    const id_curso = input.data('id-curso');
+    const cursorPosition = busqueda.length;
+
+    clearTimeout(window.inscripcionSearchTimeout); 
+
+    window.inscripcionSearchTimeout = setTimeout(function() {
+        loadPage('buscar.php', {
+            id_curso: id_curso,
+            busqueda: busqueda,
+            page: 1 
+        });
+    }, 300);
+}
 
 function reapplyEvents() {
-    // Remove previous event listeners
-    $('.editarCursoForm').off('submit');
-    $('.page-link-nav').off('click');
-    $('#busqueda-input').off('input');
-    $(document).off('click', '.pagination-link');
-    $('.usuario-checkbox').off('change');
-    $('#inscribir-usuarios-btn').off('click');
-    $('.editar-usuario-form').off('submit');
-
-    // EN PERFIL.PHP - REEMPLÁZALO CON ESTE CÓDIGO (DESPUÉS)
-    $('.editarCursoForm').on('submit', function(event) {
-        event.preventDefault();
-        var form = this;
-        var formData = new FormData(form);
-
-        // La URL del formulario. Usamos getAttribute('action') para obtener la URL correcta.
-        const url = form.getAttribute('action');
-
-        fetch(url, { // <-- Aquí aplicamos la corrección
-            method: form.method,
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Respuesta del servidor no fue OK: ' + response.statusText);
-            }
-            return response.text();
-        })
-        .then(result => {
-            if (result.includes('El curso se ha editado correctamente')) {
-                alert('¡Éxito! El curso se ha actualizado correctamente.');
-                // Recargamos la página para ver todos los cambios reflejados.
-                window.location.reload(); 
-            } else {
-                alert('Hubo un error al editar el curso: \n' + result);
-            }
-        })
-        .catch(error => {
-            console.error('Error en la solicitud fetch:', error);
-            alert('Hubo un error de conexión o en el servidor al procesar la solicitud.');
-        });
-    });
-
-    $('.page-link-nav').on('click', function(event) {
-        event.preventDefault();
-        var page = $(this).data('page');
-        var idCurso = $(this).closest('.pagination').data('id-curso'); // Asegúrate de pasar id_curso correctamente
-        loadPage('../controllers/buscar.php', { page: page, id_curso: idCurso });
-    });
-
-    $('#busqueda-input').on('input', function() {
-        var inputField = $(this);
-        var busqueda = inputField.val().replace(/%/g, ''); // Eliminar caracteres %
-        inputField.val(busqueda); // Actualizar el valor del campo para reflejar el cambio
-        if (inputField.length > 0 && typeof inputField[0].setSelectionRange === 'function') {
-            setTimeout(() => {
-                inputField[0].setSelectionRange(busqueda.length, busqueda.length); // Mantener el cursor al final del texto
-            }, 0);
-        }
-        loadPage('../controllers/usuarios_controlador.php', { action: 'buscar', busqueda: busqueda });
-    });
-
-    $(document).on('click', '.pagination-link', function(event) {
-        event.preventDefault();
+    console.log('Reapplying all events...');
+    
+    $('.editarCursoForm').off('submit', handleCursoEdition).on('submit', handleCursoEdition);
+    $('#inscribir-usuarios-btn').off('click', handleInscripcionUsuarios).on('click', handleInscripcionUsuarios);
+    $('#busquedaForm').off('submit', handleBusquedaForm).on('submit', handleBusquedaForm);
+    
+    $(document).off('change', '.usuario-checkbox').on('change', '.usuario-checkbox', handleUsuarioCheckbox);
+    $(document).off('click', '.pagination-link').on('click', '.pagination-link', function(e) {
+        e.preventDefault();
         var page = $(this).data('page');
         var busqueda = $('#busqueda-input').val();
         loadPage('../controllers/usuarios_controlador.php', { page: page, busqueda: busqueda });
     });
-
-    $('.usuario-checkbox').on('change', function() {
-        var userId = $(this).data('id');
-        if ($(this).is(':checked')) {
-            selectedUsers.add(userId); // Agregar el usuario al conjunto de seleccionados
-        } else {
-            selectedUsers.delete(userId); // Eliminar el usuario del conjunto de seleccionados
-        }
+    $(document).off('click', '.page-link-nav').on('click', '.page-link-nav', function(event) {
+        event.preventDefault();
+        var page = $(this).data('page');
+        var idCurso = $(this).closest('.pagination').data('id-curso');
+        loadPage('../controllers/buscar.php', { page: page, id_curso: idCurso });
     });
-
-    // Restaurar la selección de usuarios al recargar la página
+    
+    $('form[id^="inscripcionForm"]').off('submit', handleInscripcionForm).on('submit', handleInscripcionForm);
+    $('.editar-usuario-form').off('submit', handleUsuarioEdition).on('submit', handleUsuarioEdition);
+    
+    $('#inscripcion-search-input').off('keyup', handleInscripcionSearch).on('keyup', handleInscripcionSearch);
+    
+    applySidebarToggle();
+    
     $('.usuario-checkbox').each(function() {
         var userId = $(this).data('id');
         if (selectedUsers.has(userId)) {
             $(this).prop('checked', true);
         }
     });
+}
 
-    // Manejar el botón de acción con usuarios seleccionados
-    $('#inscribir-usuarios-btn').on('click', function() {
-        if (selectedUsers.size > 0) {
-            var cursoId = $('#curso-id').val(); // Obtener el ID del curso seleccionado
-            var usuariosArray = Array.from(selectedUsers); // Convertir el conjunto a un array
-            $.ajax({
-                url: '../controllers/usuarios_controlador.php',
-                method: 'POST',
-                data: {
-                    action: 'inscribir_usuarios',
-                    usuarios: usuariosArray,
-                    curso_id: cursoId
-                },
-                success: function(response) {
-                    alert('Usuarios registrados correctamente en el curso.');
-                    location.reload(); // Recargar la página para reflejar los cambios
-                },
-                error: function() {
-                    alert('Hubo un error al registrar los usuarios en el curso.');
-                }
-            });
-        } else {
-            alert('No hay usuarios seleccionados.');
-        }
-    });
-
-    // Add event listeners for inscripcion forms
-    $('form[id^="inscripcionForm"]').on('submit', function(event) {
-        event.preventDefault();
-        var form = this;
-        var formData = new FormData(form);
-
-        fetch(form.action, {
-            method: form.method,
-            body: formData
-        })
-        .then(response => response.text())
-        .then(result => {
-            if (result.includes('Te has inscrito correctamente en el curso')) {
-                alert('Usuario inscrito correctamente.');
-                var idCurso = form.querySelector('input[name="curso_id"]').value;
-                loadPage('../controllers/buscar.php', { id_curso: idCurso });
-            } else {
-                alert('Hubo un error al inscribir al usuario: ' + result);
-            }
-        })
-        .catch(error => {
-            alert('Hubo un error al procesar la solicitud: ' + error);
-        });
-    });
-
-        // Add new event listeners
-        $('.editar-usuario-form').on('submit', function(event) {
-        event.preventDefault();
-        var form = this;
-        var formData = new FormData(form);
-        fetch(form.action, {
-            method: form.method,
-            body: formData
-        })
-        .then(response => response.text())
-        .then(result => {
-            if (result.includes('El usuario se ha editado correctamente')) {
-                alert('El usuario se ha editado correctamente');
-                var page = document.querySelector('.page-item.active .page-link').dataset.page;
-                loadPage('usuarios.php', { page: page });
-            } else {
-                alert('Hubo un error al editar el usuario: ' + result);
-            }
-        })
-        .catch(error => {
-            alert('Hubo un error al procesar la solicitud: ' + error);
-        });
-    });
-
-    let inscripcionSearchTimeout;
-    $('#inscripcion-search-input').off('keyup').on('keyup', function() {
-        clearTimeout(inscripcionSearchTimeout);
-        const input = $(this);
-        const busqueda = input.val();
-        const id_curso = input.data('id-curso');
-        
-        // --- CAMBIO: Guardamos la longitud del texto para saber dónde poner el cursor ---
-        const cursorPosition = busqueda.length;
-
-        inscripcionSearchTimeout = setTimeout(function() {
-            loadPage('buscar.php', {
-                id_curso: id_curso,
-                busqueda: busqueda,
-                page: 1 
-            });
-            setTimeout(() => {
-                const reacquiredInput = $('#inscripcion-search-input');
-                if (reacquiredInput.length) {
-                    reacquiredInput.focus(); // Ponemos el foco en el campo
-                    // Movemos el cursor al final del texto que el usuario había escrito
-                    reacquiredInput[0].setSelectionRange(cursorPosition, cursorPosition);
-                }
-            }, 0);
-
-        }, 300);
+function applySidebarToggle() {
+    $('#sidebarToggleTop').off('click').on('click', function() {
+        $('#accordionSidebar').toggleClass('toggled');
     });
 }
+
+function initApp() {
+    applySidebarToggle();
+    
+    reapplyEvents();
+}
+
+// Único punto de entrada para la ejecución
+$(document).ready(initApp); 
+
 
 function inscribirUsuario(userId) {
     var form = document.getElementById('inscripcionForm-' + userId);
@@ -686,26 +656,6 @@ function inscribirUsuario(userId) {
     });
 }
 
-function applySidebarToggle() {
-    $('#sidebarToggleTop').off('click').on('click', function() {
-        $('#accordionSidebar').toggleClass('toggled');
-    });
-}
-
-$(document).ready(function() {
-    applySidebarToggle();
-    reapplyEvents();
-});
-
-// Call reapplyEvents when the document is ready
-$(document).ready(function() {
-    reapplyEvents();
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    reapplyEvents();
-});
-
 function loadProfile() {
     $.ajax({
         url: '../public/perfil.php',
@@ -748,40 +698,6 @@ function showModal(message, callback) {
     });
     $('#confirmationModal').modal('show');
 }
-
-$(document).ready(function() {
-    $('#editUserForm').on('submit', function(e) {
-        e.preventDefault();
-        $.ajax({
-            url: '../models/datos_usuario.php',
-            type: 'POST',
-            data: $(this).serialize(),
-            success: function(response) {
-                alert(response);
-                $('#editUserModal').modal('hide');
-
-                $('#userDropdown span').text($('#nombre').val());
-                $('#userDropdown img').attr('src', '../public/assets/img/undraw_profile.svg');
-
-                $('.user-info').each(function() {
-                    var field = $(this).find('strong').text().toLowerCase();
-                    if (field.includes('nombre')) {
-                        $(this).find('span').text($('#nombre').val());
-                    } else if (field.includes('apellido')) {
-                        $(this).find('span').text($('#apellido').val());
-                    } else if (field.includes('correo')) {
-                        $(this).find('span').text($('#correo').val());
-                    } else if (field.includes('cédula')) {
-                        $(this).find('span').text($('#cedula').val());
-                    }
-                });
-            },
-            error: function() {
-                alert('Error al editar los datos.');
-            }
-        });
-    });
-});
 
 function loadCourse(courseId) {
     const url = '../views/curso.php';

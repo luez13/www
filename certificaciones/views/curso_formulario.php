@@ -2,8 +2,8 @@
 // Incluir el archivo model.php en config
 include '../config/model.php';
 
-// Incluir el archivo header.php en views
-include '../views/header.php';
+// Incluir el archivo init.php en views
+include '../controllers/init.php';
 
 // Incluir el archivo curso.php en models
 include '../models/curso.php';
@@ -100,9 +100,6 @@ echo '<button type="button" id="addModuleBtn" class="btn btn-secondary">Agregar 
 echo '<p><input type="submit" value="Editar curso"></p>';
 echo '</form>';
 echo '</div>';
-
-// Incluir el archivo footer.php en views
-include '../views/footer.php';
 ?>
 
 <script>

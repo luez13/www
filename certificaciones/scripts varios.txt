@@ -620,3 +620,77 @@ GRANT ALL ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
 
 -- Otorgar permisos sobre las funciones
 GRANT ALL ON ALL FUNCTIONS IN SCHEMA cursos TO uptaivir_certificacion2;
+
+-- ##################################################################
+-- # SCRIPT DE INICIALIZACIÓN: GESTIÓN DE DIPLOMADOS Y NOTAS
+-- ##################################################################
+
+-- 1. AJUSTES PREVIOS: Actualización de tabla existente (usuario_documentos)
+DO $$
+BEGIN
+    -- Añadir columna id_curso si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'cursos' AND table_name = 'usuario_documentos' AND column_name = 'id_curso') THEN
+        ALTER TABLE cursos.usuario_documentos ADD COLUMN id_curso INTEGER;
+    END IF;
+
+    -- Añadir Foreign Key de forma segura
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_usuario_documentos_curso') THEN
+        ALTER TABLE cursos.usuario_documentos 
+        ADD CONSTRAINT fk_usuario_documentos_curso FOREIGN KEY (id_curso) REFERENCES cursos.cursos (id_curso) ON DELETE SET NULL;
+    END IF;
+
+    -- Permisos básicos
+    GRANT ALL ON TABLE cursos.usuario_documentos TO uptaivir_certificacion2;
+END $$;
+
+-- 2. CREACIÓN DE TABLAS PARA DIPLOMADOS
+
+-- 2.1. Materias / Bimestres
+-- Define la unidad curricular, el docente y la modalidad.
+CREATE TABLE IF NOT EXISTS cursos.materias_bimestre (
+    id_materia_bimestre SERIAL PRIMARY KEY,
+    id_curso INTEGER NOT NULL REFERENCES cursos.cursos (id_curso) ON DELETE CASCADE,
+    nombre_materia VARCHAR(255) NOT NULL,
+    duracion_bimestres VARCHAR(50) NOT NULL, -- Ej: "Bimestre 1"
+    total_horas INTEGER NOT NULL,
+    modalidad VARCHAR(255) NOT NULL DEFAULT 'Virtual',
+    docente_id INTEGER NOT NULL REFERENCES cursos.usuarios (id) ON DELETE RESTRICT
+);
+
+-- 2.2. Configuración del Plan de Evaluación
+-- Define qué se evalúa (Ej: "Examen", "Taller").
+-- NOTA: Se permiten nombres repetidos dentro de la misma materia.
+CREATE TABLE IF NOT EXISTS cursos.actividades_config (
+    id_actividad_config SERIAL PRIMARY KEY,
+    id_materia_bimestre INTEGER NOT NULL REFERENCES cursos.materias_bimestre (id_materia_bimestre) ON DELETE CASCADE,
+    nombre_actividad VARCHAR(255) NOT NULL,
+    ponderacion_porcentaje NUMERIC(5, 2) NOT NULL CHECK (ponderacion_porcentaje > 0 AND ponderacion_porcentaje <= 100)
+);
+
+-- 2.3. Notas de los Participantes
+-- Almacena la calificación de un usuario para una actividad específica.
+CREATE TABLE IF NOT EXISTS cursos.notas_participante (
+    id_nota SERIAL PRIMARY KEY,
+    id_usuario INTEGER NOT NULL REFERENCES cursos.usuarios (id) ON DELETE CASCADE,
+    id_actividad_config INTEGER NOT NULL REFERENCES cursos.actividades_config (id_actividad_config) ON DELETE CASCADE,
+    calificacion_obtenida NUMERIC(4, 2) NOT NULL,
+    -- Un alumno solo puede tener una nota por actividad específica
+    UNIQUE (id_usuario, id_actividad_config)
+);
+
+-- 2.4. Actas de Cierre (Histórico)
+-- Guarda los datos congelados al momento de cerrar la materia.
+CREATE TABLE IF NOT EXISTS cursos.actas_cierre (
+    id_acta SERIAL PRIMARY KEY,
+    id_materia_bimestre INTEGER NOT NULL REFERENCES cursos.materias_bimestre (id_materia_bimestre) ON DELETE CASCADE,
+    fecha_cierre TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+    participantes_inscritos INTEGER NOT NULL DEFAULT 0,
+    participantes_aprobados INTEGER NOT NULL DEFAULT 0,
+    firmante_vicerrector_id INTEGER REFERENCES cursos.usuarios (id) ON DELETE SET NULL,
+    firmante_coord_id INTEGER REFERENCES cursos.usuarios (id) ON DELETE SET NULL
+);
+
+-- 3. ASIGNACIÓN DE PERMISOS (Rol: uptaivir_certificacion2)
+
+GRANT ALL ON TABLE cursos.materias_bimestre, cursos.actividades_config, cursos.notas_participante, cursos.actas_cierre TO uptaivir_certificacion2;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;

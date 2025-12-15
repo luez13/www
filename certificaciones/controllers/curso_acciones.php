@@ -173,6 +173,4 @@ switch ($action) {
 }
 
 echo '</div>';
-// Incluir el archivo footer.php en views
-include '../views/footer.php';
 ?>

@@ -161,7 +161,7 @@ if (!$certificateData) {
             }
         }
 
-        function getPosicionCoordenadas(codigoPosicion) {
+    function getPosicionCoordenadas(codigoPosicion) {
             const pageW = pdf.internal.pageSize.width;
             const pageH = pdf.internal.pageSize.height;
             const centerX = pageW / 2;
@@ -169,57 +169,81 @@ if (!$certificateData) {
             const HORIZONTAL_OFFSET = 90;
             
             // Para la Página 1, la altura se calcula relativa al footer
-            const footerPositionY = pageH - 25;
             const firmaBaseY_P1 = (pageH - 25) - 45;
 
-            // Para la Página 2, definimos una altura independiente y más baja
-            const firmaBaseY_P2 = pageH - 15;
+            // --- INICIO DE LA MODIFICACIÓN DE ALTURA ---
+
+            // 1. Aumentamos el margen inferior para las firmas de la página 2.
+            //    Antes era 'pageH - 15', ahora le damos más espacio.
+            const firmaBaseY_P2 = pageH - 19; // ¡Ajusta este 25 si quieres más o menos espacio!
+
+            // --- FIN DE LA MODIFICACIÓN DE ALTURA ---
 
             const posiciones = {
                 // --- Página 1 ---
                 'P1_INF_IZQ': { x: centerX - HORIZONTAL_OFFSET, y: firmaBaseY_P1 + 37 },
-                'P1_INF_CEN': { x: centerX,                     y: firmaBaseY_P1 + 37 },
+                'P1_INF_CEN': { x: centerX,                   y: firmaBaseY_P1 + 37 },
                 'P1_INF_DER': { x: centerX + HORIZONTAL_OFFSET, y: firmaBaseY_P1 + 37 },
                 
                 // --- Página 2 ---
                 'P2_INF_IZQ': { x: centerX - HORIZONTAL_OFFSET, y: firmaBaseY_P2 },
-                'P2_INF_CEN': { x: centerX,                     y: firmaBaseY_P2 },
+                'P2_INF_CEN': { x: centerX,                   y: firmaBaseY_P2 },
                 'P2_INF_DER': { x: centerX + HORIZONTAL_OFFSET, y: firmaBaseY_P2 }
             };
             return posiciones[codigoPosicion.toUpperCase()] || null;
         }
 
         function dibujarFirmaDinamica(pdf, firmante) {
-            const coords = getPosicionCoordenadas(firmante.posicion_codigo);
-            if (!coords) {
-                console.warn(`Coordenadas no encontradas para la posición: ${firmante.posicion_codigo}`);
-                return;
-            }
+                const coords = getPosicionCoordenadas(firmante.posicion_codigo);
+                if (!coords) {
+                    console.warn(`Coordenadas no encontradas para la posición: ${firmante.posicion_codigo}`);
+                    return;
+                }
+
                 const firmaImgWidth = 45, firmaImgHeight = 45;
                 const SUPERPOSICION_VERTICAL = 12;
                 const yImagen = coords.y - firmaImgHeight + SUPERPOSICION_VERTICAL;
 
-                // Dibuja la imagen de la firma SÓLO si existe
                 if (firmante.firma_base64) {
                     try {
                         const imgType = firmante.firma_base64.match(/data:image\/(.*?);/)[1].toUpperCase();
                         pdf.addImage(firmante.firma_base64, imgType, coords.x - (firmaImgWidth / 2), yImagen, firmaImgWidth, firmaImgHeight);
-                    } catch(e) { console.error("Error al añadir imagen de firma base64:", e); }
-                } 
-                else if (certificateData.mostrar_firmas) {
-                    pdf.setFontSize(8).setTextColor(255,0,0).text('[Firma no disponible]', coords.x, coords.y - 15, {align: 'center'});
+                    } catch (e) { console.error("Error al añadir imagen de firma base64:", e); }
+                } else if (certificateData.mostrar_firmas) {
+                    pdf.setFontSize(8).setTextColor(255, 0, 0).text('[Firma no disponible]', coords.x, coords.y - 15, { align: 'center' });
                 }
+
                 pdf.setFont(FONT_CAMBRIA, 'bold').setFontSize(14).setTextColor(...COLOR_NEGRO);
-                let nombreMostrado = firmante.nombre;
+                
+                // --- INICIO DE LA MODIFICACIÓN DE LÓGICA DE TÍTULOS ---
+                
+                let nombreMostrado = firmante.nombre; // Por defecto, mostramos solo el nombre.
 
-                if (firmante.cargo && firmante.cargo.toLowerCase() === 'facilitador' && firmante.titulo) {
+                // ANTES: Solo se añadía el título para el 'facilitador'.
+                // if (firmante.cargo && firmante.cargo.toLowerCase() === 'facilitador' && firmante.titulo) { ... }
 
+                // AHORA: Si CUALQUIER firmante tiene un título en la base de datos, se le antepondrá a su nombre.
+                if (firmante.titulo) {
                     nombreMostrado = `${firmante.titulo} ${firmante.nombre}`;
                 }
+                
+                // --- FIN DE LA MODIFICACIÓN DE LÓGICA DE TÍTULOS ---
 
-                pdf.text(capitalizeWords(nombreMostrado), coords.x, coords.y, { align: 'center' });                
+                const maxWidthParaFirma = 75;
+                const nombreEnLineas = pdf.splitTextToSize(capitalizeWords(nombreMostrado), maxWidthParaFirma);
+                
+                const lineHeight = 4.5; 
+                let yActual = coords.y;
+
+                nombreEnLineas.forEach(linea => {
+                    pdf.text(linea, coords.x, yActual, { align: 'center' });
+                    yActual += lineHeight;
+                });
+
+                const yPosicionCargo = yActual + 1;
+
                 pdf.setFont(FONT_CAMBRIA, 'bold').setFontSize(14);
-                pdf.text(capitalizeWords(firmante.cargo), coords.x, coords.y + 5, { align: 'center' });
+                pdf.text(capitalizeWords(firmante.cargo), coords.x, yPosicionCargo, { align: 'center' });
             }
 
             /**
@@ -385,39 +409,64 @@ if (!$certificateData) {
 
         pdf.setFont(FONT_CAMBRIA, 'normal');
         pdf.setFontSize(16);
-        const modulosStartY = 50;
-        const modulosLineHeight = 7; // Reducido para más módulos
+        
+        // --- INICIO DE LA LÓGICA DE MÓDULOS Y TEXTO INFERIOR (PÁGINA 2) ---
+
+         // ✅ Renombramos la variable a 'cursorY_pagina2' para evitar conflictos y ser más claros.
+         let cursorY_pagina2 = 50; // Posición inicial para el contenido de la página 2.
+
+         // --- Lógica de Módulos con Ancho Dinámico ---
+        const modulosLineHeight = 7;
+        const leftMargin = 40;
+        const pageMarginRight = 20;
+        const qrCodeZoneWidth = 70;
+        const qrCodeEndY = 60;
+        const maxWidthNarrow = pdf.internal.pageSize.width - leftMargin - qrCodeZoneWidth;
+        const maxWidthWide = pdf.internal.pageSize.width - leftMargin - pageMarginRight;
+
         certificateData.modulos.forEach((modulo, index) => {
-            pdf.text(`${index + 1}. ${modulo.nombre_modulo}`, 40, modulosStartY + (index * modulosLineHeight));
+        const moduleText = `${index + 1}. ${modulo.nombre_modulo}`;
+        let currentMaxWidth = (cursorY_pagina2 < qrCodeEndY) ? maxWidthNarrow : maxWidthWide;
+
+        const lines = pdf.splitTextToSize(moduleText, currentMaxWidth);
+ 
+            pdf.text(lines, leftMargin, cursorY_pagina2);
+            cursorY_pagina2 += (lines.length * modulosLineHeight) + 2;
         });
 
+        // --- Lógica del Bloque de Texto Inferior ---
+
+        // ✅ Ahora, continuamos usando 'cursorY_pagina2' desde donde se quedó.
+        // Ya no creamos una variable 'textCurrentY' con una posición fija.
+        cursorY_pagina2 = 145; // Le damos una posición inicial fija para que no quede pegado a los módulos.
+
         pdf.setFontSize(15);
-        const textBlockStartY = 145; // Ajustado para subir un poco más
         const textBlockLineHeight = 5;
-        let textCurrentY = textBlockStartY;
+        const textBlockWidth = CONTENT_WIDTH - 40;
 
         const registroTexto = `Registrado en formación permanente tomo ${certificateData.tomo} y folio ${certificateData.folio}.`;
-        const registroTextoLineas = pdf.splitTextToSize(registroTexto, CONTENT_WIDTH - 40); // Ancho más restringido
-        pdf.text(registroTextoLineas, PAGE_MARGIN_X + 10, textCurrentY);
-        textCurrentY += (registroTextoLineas.length * textBlockLineHeight) + 2;
+        const registroTextoLineas = pdf.splitTextToSize(registroTexto, textBlockWidth);
+        pdf.text(registroTextoLineas, PAGE_MARGIN_X + 10, cursorY_pagina2);
+        cursorY_pagina2 += (registroTextoLineas.length * textBlockLineHeight) + 2;
 
         if (certificateData.nota !== null && certificateData.nota != 0) {
-            const notaTexto = `Presentando una calificación final de ${certificateData.nota} de una nota máxima (20).`;
-            const notaTextoLineas = pdf.splitTextToSize(notaTexto, CONTENT_WIDTH - 40);
-            pdf.text(notaTextoLineas, PAGE_MARGIN_X + 10, textCurrentY);
-            textCurrentY += (notaTextoLineas.length * textBlockLineHeight) + 2;
+        const notaTexto = `Presentando una calificación final de ${certificateData.nota} de una nota máxima (20).`;
+        const notaTextoLineas = pdf.splitTextToSize(notaTexto, textBlockWidth);
+            pdf.text(notaTextoLineas, PAGE_MARGIN_X + 10, cursorY_pagina2);
+            cursorY_pagina2 += (notaTextoLineas.length * textBlockLineHeight) + 2;
         }
 
         const duracionTexto = `El programa tuvo una duración de ${certificateData.horas_cronologicas} horas cronológicas.`;
-        const duracionTextoLineas = pdf.splitTextToSize(duracionTexto, CONTENT_WIDTH - 40);
-        pdf.text(duracionTextoLineas, PAGE_MARGIN_X + 10, textCurrentY);
-        textCurrentY += (duracionTextoLineas.length * textBlockLineHeight) + 2;
+        const duracionTextoLineas = pdf.splitTextToSize(duracionTexto, textBlockWidth);
+        pdf.text(duracionTextoLineas, PAGE_MARGIN_X + 10, cursorY_pagina2);
+        cursorY_pagina2 += (duracionTextoLineas.length * textBlockLineHeight) + 2;
 
         const fechaInicioEnLetras = convertirFechaSimplificada(certificateData.inicioMesCurso);
         const fechaFinEnLetras = convertirFechaSimplificada(certificateData.fechaFinalizacionCurso);
         const cursoTexto = `Curso desarrollado ${certificateData.tipo_curso === 'masterclass' ? 'el ' + fechaInicioEnLetras : 'entre ' + fechaInicioEnLetras + ' y ' + fechaFinEnLetras}.`;
-        const cursoTextoLineas = pdf.splitTextToSize(cursoTexto, CONTENT_WIDTH - 40);
-        pdf.text(cursoTextoLineas, PAGE_MARGIN_X + 10, textCurrentY);
+        const cursoTextoLineas = pdf.splitTextToSize(cursoTexto, textBlockWidth);
+        pdf.text(cursoTextoLineas, PAGE_MARGIN_X + 10, cursorY_pagina2);
+
 
         const tieneFirmaDigitalPromotor = certificateData.promotorFirmaDigital;
         
@@ -495,24 +544,22 @@ function isMobile() {
 // Función que genera el PDF y decide cómo mostrarlo
 const generateAndShowPdf = () => {
     if (isMobile()) {
-        // --- LÓGICA DE DESCARGA PARA MÓVIL (Solución 2 que vimos) ---
-        console.log("Móvil detectado. Iniciando descarga...");
+// --- LÓGICA DE PRUEBA PARA MÓVIL ---
+        console.log("Móvil detectado. Creando botón de descarga manual...");
         const pdfOutput = pdf.output('blob');
         const blobUrl = URL.createObjectURL(pdfOutput);
-        
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        
         const nombreArchivo = `Certificado-${certificateData.nombreEstudiante.replace(/\s/g, '_')}.pdf`;
-        link.download = nombreArchivo; 
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(blobUrl);
 
-        // Opcional: mostrar un mensaje de que la descarga ha comenzado
-        document.body.innerHTML = `<div style="font-family: sans-serif; text-align: center; padding: 40px;"><h1>Descarga iniciada...</h1><p>Si la descarga no comienza, por favor, intente de nuevo.</p></div>`;
+        // En lugar de simular un clic, creamos un botón real y visible
+        document.body.innerHTML = `
+            <div style="font-family: sans-serif; text-align: center; padding: 40px;">
+                <h1>Certificado listo</h1>
+                <p>Tu certificado ha sido generado. Pulsa el botón para descargarlo.</p>
+                <a href="${blobUrl}" download="${nombreArchivo}" style="display: inline-block; padding: 15px 25px; font-size: 18px; color: white; background-color: #0d6efd; text-decoration: none; border-radius: 5px;">
+                    Descargar PDF
+                </a>
+            </div>
+        `;
 
     } else {
         // --- LÓGICA DE VISUALIZACIÓN PARA PC (la que ya tenías) ---
