@@ -210,7 +210,7 @@ if (!$certificateData) {
                         pdf.addImage(firmante.firma_base64, imgType, coords.x - (firmaImgWidth / 2), yImagen, firmaImgWidth, firmaImgHeight);
                     } catch (e) { console.error("Error al añadir imagen de firma base64:", e); }
                 } else if (certificateData.mostrar_firmas) {
-                    pdf.setFontSize(8).setTextColor(255, 0, 0).text('[Firma no disponible]', coords.x, coords.y - 15, { align: 'center' });
+                    // pdf.setFontSize(8).setTextColor(255, 0, 0).text('[Firma no disponible]', coords.x, coords.y - 15, { align: 'center' });
                 }
 
                 pdf.setFont(FONT_CAMBRIA, 'bold').setFontSize(14).setTextColor(...COLOR_NEGRO);
@@ -562,11 +562,21 @@ const generateAndShowPdf = () => {
         `;
 
     } else {
-        // --- LÓGICA DE VISUALIZACIÓN PARA PC (la que ya tenías) ---
-        console.log("PC detectado. Mostrando en iframe...");
+        // --- LÓGICA PARA PC (MEJORADA) ---
+        console.log("PC detectado (o móvil en modo escritorio).");
         const pdfOutput = pdf.output('blob');
         const blobUrl = URL.createObjectURL(pdfOutput);
-        document.body.innerHTML = `<iframe src="${blobUrl}" style="width: 100vw; height: 100vh; border: none;"></iframe>`;
+        const nombreArchivo = `Certificado-${certificateData.nombreEstudiante.replace(/\s/g, '_')}.pdf`;
+
+        // Mostramos el iframe PERO le agregamos un botón flotante de descarga por seguridad
+        document.body.innerHTML = `
+            <div style="position: fixed; top: 10px; right: 20px; z-index: 9999;">
+                <a href="${blobUrl}" download="${nombreArchivo}" class="btn btn-success" style="padding: 10px 20px; color: white; background-color: #198754; text-decoration: none; border-radius: 5px; font-family: sans-serif; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    Descargar PDF
+                </a>
+            </div>
+            <iframe src="${blobUrl}" style="width: 100vw; height: 100vh; border: none;"></iframe>
+        `;
     }
 };
 

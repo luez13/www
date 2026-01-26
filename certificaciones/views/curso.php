@@ -111,12 +111,22 @@ if (!$is_ajax) {
                                 <button type="submit" class="btn btn-danger"><i class="bi bi-x-circle me-2"></i>Cancelar inscripción</button>
                             </form>
                         <?php endif; ?>
-
+                        
                         <?php if ($inscripcion['completado'] == 1 && $inscripcion['pago'] == 1):
                             $valor_unico = $inscripcion['valor_unico'];
                         ?>
-                            <button id="btn-certificado" class="btn btn-success" type="button" onclick="obtenerCertificado('<?php echo $valor_unico; ?>')">
-                                </button>
+                            <div class="alert alert-light border border-secondary shadow-sm mb-3">
+                                <h5 class="text-primary"><i class="bi bi-cash-coin me-2"></i>Legalización y Firmas</h5>
+                                <p class="mb-1">Este certificado se genera digitalmente. Para obtener las firmas autorizadas y sellos institucionales:</p>
+                                <ul class="mb-2 small">
+                                    <li><strong>Arancel:</strong> 5 Euros (Calculados a la tasa del día BCV).</li>
+                                    <li><strong>Procedimiento:</strong> Diríjase a la caja de la universidad con el comprobante de pago impreso.</li>
+                                </ul>
+                                <small class="text-muted fst-italic"><i class="bi bi-info-circle me-1"></i>Sin este proceso, el certificado se emitirá sin firmas.</small>
+                            </div>
+                            <button id="btn-certificado" class="btn btn-success" type="button" onclick="confirmarDescarga('<?php echo $valor_unico; ?>')">
+                                <i class="bi bi-eye-fill me-2"></i> Ver Certificado
+                            </button>
                             
                             <button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#collapseURL" aria-expanded="false" aria-controls="collapseURL">
                                 <i class="bi bi-link-45deg me-2"></i>Ver URL
@@ -137,37 +147,101 @@ if (!$is_ajax) {
     include '../views/footer.php';
 }
 ?>
+
+<div class="modal fade" id="modalAranceles" tabindex="-1" aria-labelledby="modalArancelesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title text-dark" id="modalArancelesLabel"><i class="bi bi-exclamation-triangle-fill me-2"></i>Validación requerida</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Estimado usuario, está a punto de visualizar su certificado.</p>
+                
+                <div class="alert alert-secondary">
+                    <p class="mb-0"><strong>Recuerde:</strong> El documento se mostrará <u>sin firmas ni sellos</u> hasta que se valide el pago del arancel administrativo.</p>
+                </div>
+
+                <h6>Datos para el pago:</h6>
+                <ul>
+                    <li><strong>Monto:</strong> 5 EUR (Tasa BCV).</li>
+                    <li><strong>Banco:</strong> [Nombre del Banco]</li>
+                    <li><strong>Cuenta:</strong> 0000-0000-00-0000000000</li>
+                    <li><strong>Beneficiario:</strong> UPTAIET</li>
+                    <li><strong>RIF:</strong> G-20000000-0</li>
+                </ul>
+                <p class="small text-muted mb-0">Por favor consigne el comprobante en la caja de la universidad.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmarContinuar">
+                    <i class="bi bi-check-circle me-2"></i>Entendido, Ver Certificado
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-// 1. Función para detectar si es un dispositivo móvil
+// Variable global para guardar temporalmente el ID del certificado
+let valorUnicoPendiente = null;
+// Instancia del modal (se inicializa luego)
+let modalAranceles = null;
+
 function isMobile() {
     return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
-// 2. Función principal que decide qué hacer
-function obtenerCertificado(valorUnico) {
-    const urlCertificado = `../controllers/generar_certificado.php?valor_unico=${valorUnico}`;
-    if (isMobile()) {
-        // En móvil, abrimos la URL. La página del certificado se encargará de la descarga.
-        window.open(urlCertificado, '_blank');
-    } else {
-        // En PC, abrimos en una nueva pestaña para visualización.
-        window.open(urlCertificado, '_blank');
+// 1. Nueva función que INTERCEPTA el clic
+function confirmarDescarga(valorUnico) {
+    valorUnicoPendiente = valorUnico; // Guardamos el valor
+    
+    // Inicializamos el modal si no existe
+    if (!modalAranceles) {
+        modalAranceles = new bootstrap.Modal(document.getElementById('modalAranceles'));
     }
+    
+    // Mostramos el modal
+    modalAranceles.show();
 }
 
-document.addEventListener('DOMContentLoaded', (event) => {
+// 2. Función que ejecuta la acción real (llamada desde el botón del Modal)
+function ejecutarObtencionCertificado() {
+    if (!valorUnicoPendiente) return;
+
+    // Ocultar modal
+    if (modalAranceles) modalAranceles.hide();
+
+    // Lógica original de abrir PDF
+    const urlCertificado = `../controllers/generar_certificado.php?valor_unico=${valorUnicoPendiente}`;
+    window.open(urlCertificado, '_blank');
+}
+
+// 3. Configuración inicial
+(function() {
     const botonCertificado = document.getElementById('btn-certificado');
-    if (botonCertificado) {
-        if (isMobile()) {
-            botonCertificado.innerHTML = `<i class="bi bi-download me-2"></i> Descargar Certificado`;
-        } else {
-            botonCertificado.innerHTML = `<i class="bi bi-eye-fill me-2"></i> Ver Certificado`;
-        }
-    }
-});
+    const containerUrl = document.getElementById('certificadoUrlContainer');
+    const btnConfirmarModal = document.getElementById('btnConfirmarContinuar');
 
-function obtenerCertificadoURL(valorUnico) {
-    const url = `https://${window.location.host}/certifuptaisarec/controllers/generar_certificado.php?valor_unico=${valorUnico}`;
-    document.getElementById('certificadoUrlContainer').innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
-}
+    // Configurar el botón del modal para que ejecute la acción
+    if (btnConfirmarModal) {
+        btnConfirmarModal.addEventListener('click', ejecutarObtencionCertificado);
+    }
+    
+    // Ajustar texto si es móvil (Estética)
+    if (botonCertificado && isMobile()) {
+        botonCertificado.innerHTML = `<i class="bi bi-download me-2"></i> Descargar Certificado`;
+        botonCertificado.classList.remove('btn-success'); 
+        botonCertificado.classList.add('btn-primary');
+    }
+
+    // Llenar la URL automáticamente
+    if (containerUrl) {
+        <?php if (isset($valor_unico)): ?>
+            const valor = '<?php echo $valor_unico; ?>';
+            const url = `${window.location.origin}/certifuptaisarec/controllers/generar_certificado.php?valor_unico=${valor}`;
+            containerUrl.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
+        <?php endif; ?>
+    }
+})();
 </script>

@@ -39,6 +39,18 @@ if (isset($_GET['action']) && $_GET['action'] == 'inscritos') {
 
         // Mostrar los cursos que el usuario ha finalizado en formato HTML
         echo '<h3>Cursos que has finalizado</h3>';
+        echo '
+        <div class="alert alert-warning border-start border-warning border-4 shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle fa-2x me-3 text-warning"></i>
+                <div>
+                    <strong>Aviso Importante sobre Certificación:</strong><br>
+                    La emisión del certificado digital es automática. Sin embargo, para la <strong>validación oficial (firmas y sellos)</strong>, es necesario consignar el pago de los aranceles administrativos correspondientes.
+                </div>
+            </div>
+        </div>';
+        // --- FIN DEL BLOQUE ---
+
         echo '<ul>';
         foreach ($cursos_finalizados as $curso) {
             // Mostrar el nombre del curso como un enlace que redirige al archivo curso.php con el id del curso
