@@ -44,7 +44,10 @@ try {
                 'duracion_bimestres'  => isset($_POST['duracion_bimestres']) ? $_POST['duracion_bimestres'] : '',
                 'total_horas'         => isset($_POST['total_horas']) ? $_POST['total_horas'] : 0,
                 'modalidad'           => isset($_POST['modalidad']) ? $_POST['modalidad'] : 'Virtual',
-                'docente_id'          => $_POST['docente_id']
+                'docente_id'          => $_POST['docente_id'],
+                
+                // AGREGA ESTA LÍNEA EXACTA AQUÍ:
+                'lapso_academico'     => isset($_POST['lapso_academico']) ? $_POST['lapso_academico'] : 1
             );
 
             if ($materiaModel->saveMateria($datos)) {

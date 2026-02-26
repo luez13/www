@@ -19,42 +19,81 @@ class Nota {
     }
 
     // 2. Guardar el Plan de Evaluación (Borra lo anterior y crea nuevo - Simplificación)
+    // En models/Nota.php
+
     public function guardarPlanEvaluacion($id_materia, $actividades) {
-        try {
-            $this->conn->beginTransaction();
+    try {
+        $this->conn->beginTransaction();
 
-            // A. Validar que sume 100% (o 20 pts, según lógica, usaremos 100%)
-            $total = 0;
-            foreach($actividades as $act) $total += $act['porcentaje'];
-            if($total != 100) throw new Exception("La ponderación total debe sumar exactamente 100% (Suma actual: $total%)");
+        // 1. Validar la suma del 100%
+        $total = 0;
+        foreach($actividades as $act) $total += $act['porcentaje'];
+        
+        // Pequeña tolerancia por decimales flotantes, aunque lo ideal es entero
+        if(abs($total - 100) > 0.1) {
+            throw new Exception("La ponderación total debe sumar exactamente 100% (Suma actual: $total%)");
+        }
 
-            // B. Limpiar plan anterior (Cuidado: esto borra notas asociadas por la FK cascade)
-            // En producción idealmente se edita, pero para este MVP recreamos
-            // OJO: Si ya hay notas cargadas, esto es peligroso. 
-            // Para simplificar: Asumimos que si editan el plan, resetean las notas.
-            $stmt_del = $this->conn->prepare("DELETE FROM cursos.actividades_config WHERE id_materia_bimestre = :id");
-            $stmt_del->execute(['id' => $id_materia]);
+        // 2. Obtener IDs actuales en la base de datos para esta materia
+        $stmt_ids = $this->conn->prepare("SELECT id_actividad_config FROM cursos.actividades_config WHERE id_materia_bimestre = :id");
+        $stmt_ids->execute(['id' => $id_materia]);
+        $ids_en_db = $stmt_ids->fetchAll(PDO::FETCH_COLUMN);
 
-            // C. Insertar nuevas actividades
-            $sql = "INSERT INTO cursos.actividades_config (id_materia_bimestre, nombre_actividad, ponderacion_porcentaje) 
-                    VALUES (:id, :nombre, :porc)";
-            $stmt = $this->conn->prepare($sql);
+        // 3. Procesar las actividades que vienen del formulario
+        $ids_recibidos = [];
 
-            foreach($actividades as $act) {
-                $stmt->execute([
-                    'id' => $id_materia,
+        $sql_update = "UPDATE cursos.actividades_config SET nombre_actividad = :nombre, ponderacion_porcentaje = :porc WHERE id_actividad_config = :id_act";
+        $stmt_update = $this->conn->prepare($sql_update);
+
+        $sql_insert = "INSERT INTO cursos.actividades_config (id_materia_bimestre, nombre_actividad, ponderacion_porcentaje) VALUES (:id_mat, :nombre, :porc)";
+        $stmt_insert = $this->conn->prepare($sql_insert);
+
+        foreach($actividades as $act) {
+            // Si trae ID, es una edición
+            if (!empty($act['id']) && is_numeric($act['id'])) {
+                $ids_recibidos[] = $act['id'];
+                $stmt_update->execute([
                     'nombre' => $act['nombre'],
-                    'porc' => $act['porcentaje']
+                    'porc'   => $act['porcentaje'],
+                    'id_act' => $act['id']
+                ]);
+            } 
+            // Si NO trae ID, es una inserción nueva
+            else {
+                $stmt_insert->execute([
+                    'id_mat' => $id_materia,
+                    'nombre' => $act['nombre'],
+                    'porc'   => $act['porcentaje']
                 ]);
             }
-
-            $this->conn->commit();
-            return true;
-        } catch (Exception $e) {
-            $this->conn->rollBack();
-            throw $e;
         }
+
+        // 4. Eliminar SOLO las actividades que estaban en la BD pero no llegaron en el formulario
+        // OJO: Esto borrará las notas asociadas a ESAS actividades específicas por el CONSTRAINT CASCADE (si existe)
+        // o fallará si no hay cascada (protegiendo los datos).
+        
+        $ids_a_borrar = array_diff($ids_en_db, $ids_recibidos);
+        
+        if (!empty($ids_a_borrar)) {
+            // Convertir array a string separado por comas para el IN (seguro porque son integers)
+            $in_query = implode(',', array_map('intval', $ids_a_borrar));
+            
+            // Opcional: Verificar si tienen notas antes de borrar (Si quieres ser muy estricto)
+            /* $check = $this->conn->query("SELECT COUNT(*) FROM cursos.notas_participante WHERE id_actividad_config IN ($in_query)");
+            if ($check->fetchColumn() > 0) throw new Exception("No se pueden eliminar actividades que ya tienen notas cargadas.");
+            */
+
+            $this->conn->exec("DELETE FROM cursos.actividades_config WHERE id_actividad_config IN ($in_query)");
+        }
+
+        $this->conn->commit();
+        return true;
+
+    } catch (Exception $e) {
+        $this->conn->rollBack();
+        throw $e;
     }
+}
 
     // 3. Obtener Notas Detalladas de una Materia
     public function getNotasDetalladas($id_materia) {

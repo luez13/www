@@ -1,111 +1,94 @@
 {
     "course_data": {
         "action": "editar",
-        "id_curso": "7",
+        "id_curso": "14",
         "modulos_a_eliminar": "",
         "nombre_curso": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
         "descripcion": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
-        "tipo_curso": "masterclass",
-        "nivel_curso": "introductorio",
-        "inicio_mes": "2025-05-14",
-        "fecha_finalizacion": "2025-11-18T10:24",
+        "tipo_curso": "diplomado",
+        "nivel_curso": "medio",
+        "inicio_mes": "2025-06-26",
+        "fecha_finalizacion": "2025-06-25T16:16",
         "tiempo_asignado": "2",
-        "horario_inicio": "09:30:00",
-        "horario_fin": "10:30:00",
+        "horario_inicio": "16:12:00",
+        "horario_fin": "18:12:00",
         "dias_clase": [
-            "lunes"
+            "sabado"
         ],
         "costo": "20.00",
-        "horas_cronologicas": "2",
-        "limite_inscripciones": "20",
-        "conocimientos_previos": "ninguno",
-        "requerimientos_implementos": "ninguno",
-        "desempe\u00f1o_al_concluir": "ninguno",
-        "promotor": "1",
+        "horas_cronologicas": "30",
+        "limite_inscripciones": "2",
+        "conocimientos_previos": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
+        "requerimientos_implementos": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
+        "desempe\u00f1o_al_concluir": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
+        "promotor": "3",
         "modulos": {
-            "6": {
-                "id_modulo": "6",
-                "nombre_modulo": "ninguno",
+            "19": {
+                "id_modulo": "19",
+                "nombre_modulo": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
                 "numero": "1",
                 "contenido": [
-                    "ninguno"
+                    "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
+                    "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro"
                 ],
-                "actividad": "ninguno",
+                "actividad": "ninguna",
                 "instrumento": "ninguno"
             },
-            "7": {
-                "id_modulo": "7",
-                "nombre_modulo": "ninguno",
+            "22": {
+                "id_modulo": "22",
+                "nombre_modulo": "algoaqui",
                 "numero": "2",
                 "contenido": [
-                    "ninguno",
-                    "ninguno"
-                ],
-                "actividad": "ninguno",
-                "instrumento": "ninguno"
-            },
-            "new_1": {
-                "nombre_modulo": "algoaqui",
-                "numero": "3",
-                "contenido": [
-                    "asdadad"
+                    "dasdadsadasd",
+                    "asdasda",
+                    "asdadads"
                 ],
                 "actividad": "asdad",
-                "instrumento": "asdadasdd"
+                "instrumento": "asdasdasd"
             }
         },
         "config_firmas": {
             "1": {
-                "id_cargo_firmante": "2"
+                "id_cargo_firmante": "3"
             },
             "2": {
                 "id_cargo_firmante": "2"
             },
             "3": {
-                "id_cargo_firmante": "2"
+                "id_cargo_firmante": ""
             },
             "4": {
-                "id_cargo_firmante": "2"
+                "id_cargo_firmante": ""
             },
             "5": {
                 "id_cargo_firmante": "",
                 "usar_promotor_curso": "1"
             },
             "6": {
-                "id_cargo_firmante": "2"
+                "id_cargo_firmante": ""
             }
         }
     },
     "modules_edit": [
         {
-            "id_modulo": 6,
-            "id_curso": "7",
-            "nombre_modulo": "ninguno",
-            "contenido": "[ninguno]",
+            "id_modulo": 19,
+            "id_curso": "14",
+            "nombre_modulo": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
+            "contenido": "[El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro][El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro]",
             "numero": "1",
-            "actividad": "ninguno",
+            "actividad": "ninguna",
             "instrumento": "ninguno"
         },
         {
-            "id_modulo": 7,
-            "id_curso": "7",
-            "nombre_modulo": "ninguno",
-            "contenido": "[ninguno][ninguno]",
-            "numero": "2",
-            "actividad": "ninguno",
-            "instrumento": "ninguno"
-        }
-    ],
-    "modules_new": [
-        {
-            "id_modulo": "new_1",
-            "id_curso": "7",
+            "id_modulo": 22,
+            "id_curso": "14",
             "nombre_modulo": "algoaqui",
-            "contenido": "[asdadad]",
-            "numero": "3",
+            "contenido": "[dasdadsadasd][asdasda][asdadads]",
+            "numero": "2",
             "actividad": "asdad",
-            "instrumento": "asdadasdd"
+            "instrumento": "asdasdasd"
         }
     ],
+    "modules_new": [],
     "modules_delete": ""
 }

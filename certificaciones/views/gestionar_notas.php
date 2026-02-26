@@ -44,7 +44,7 @@ $alumnos_lista = $stmt_alum->fetchAll(PDO::FETCH_ASSOC);
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Control de Estudios</h1>
-        <button class="btn btn-secondary btn-sm" onclick="loadPage('../public/editar_cursos.php', { page: 1 })">
+        <button class="btn btn-secondary btn-sm" onclick="goBack()">
             <i class="fas fa-arrow-left"></i> Volver
         </button>
     </div>
@@ -217,17 +217,18 @@ function cargarDatosMateria(idMateria) {
 function renderizarPlan(plan) {
     var html = '';
     if(plan.length === 0) {
-        for(var i=1; i<=4; i++) html += crearFilaPlanHTML('', ''); 
+        for(var i=1; i<=4; i++) html += crearFilaPlanHTML('', '', ''); 
     } else {
-        plan.forEach(p => html += crearFilaPlanHTML(p.nombre_actividad, p.ponderacion_porcentaje));
+        // Pasamos el ID real de la base de datos
+        plan.forEach(p => html += crearFilaPlanHTML(p.nombre_actividad, p.ponderacion_porcentaje, p.id_actividad_config));
     }
     $('#bodyPlan').html(html);
     calcularTotalPlan();
 }
 
-function crearFilaPlanHTML(nom, porc) {
+function crearFilaPlanHTML(nom, porc, id = '') { // <--- Agrega el parámetro id
     return `<tr>
-        <td><input type="text" class="form-control" name="nombre_actividad[]" value="${nom}" placeholder="Nombre de actividad"></td>
+        <input type="hidden" name="id_actividad[]" value="${id}"> <td><input type="text" class="form-control" name="nombre_actividad[]" value="${nom}" placeholder="Nombre de actividad"></td>
         <td><input type="number" class="form-control input-porc" name="porcentaje_actividad[]" value="${porc}" onkeyup="calcularTotalPlan()"></td>
         <td><button class="btn btn-outline-danger btn-sm" onclick="$(this).closest('tr').remove(); calcularTotalPlan();">X</button></td>
     </tr>`;

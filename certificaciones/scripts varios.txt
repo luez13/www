@@ -694,3 +694,30 @@ CREATE TABLE IF NOT EXISTS cursos.actas_cierre (
 
 GRANT ALL ON TABLE cursos.materias_bimestre, cursos.actividades_config, cursos.notas_participante, cursos.actas_cierre TO uptaivir_certificacion2;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
+
+-- ##################################################################
+-- # ACTUALIZACIÓN: GESTIÓN DE PERIODOS/LAPSOS ACADÉMICOS
+-- ##################################################################
+
+DO $$
+BEGIN
+    -- 1. Añadir columna 'lapso_academico' para agrupar materias
+    -- Se usa SMALLINT. Ej: 1 para "1er Trimestre/Bimestre", 2 para "2do...", etc.
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_schema = 'cursos' 
+                   AND table_name = 'materias_bimestre' 
+                   AND column_name = 'lapso_academico') THEN
+                   
+        ALTER TABLE cursos.materias_bimestre 
+        ADD COLUMN lapso_academico SMALLINT NOT NULL DEFAULT 1;
+        
+        COMMENT ON COLUMN cursos.materias_bimestre.lapso_academico IS 'Indica el orden del periodo: 1, 2 o 3 (Bimestre o Trimestre según el curso)';
+    END IF;
+
+    -- 2. Asegurar permisos sobre la tabla modificada
+    GRANT ALL PRIVILEGES ON TABLE cursos.materias_bimestre TO uptaivir_certificacion2;
+    
+    -- (Opcional) Si usas secuencias nuevas, asegurar permisos (aunque aquí no creamos tablas nuevas)
+    -- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
+    
+END $$;

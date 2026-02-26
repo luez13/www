@@ -93,7 +93,7 @@ $json_pdf = json_encode($lista_para_pdf);
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Acta de Cierre Final</h1>
-        <button class="btn btn-secondary btn-sm" onclick="loadPage('../public/editar_cursos.php', { page: 1 })">
+                <button class="btn btn-secondary btn-sm" onclick="goBack()">
             <i class="fas fa-arrow-left"></i> Volver
         </button>
     </div>
