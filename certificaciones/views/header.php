@@ -84,7 +84,8 @@ $_SESSION['logueado'] = isset($_SESSION['nombre']);
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <?php if ($current_page === 'index.php'): ?>
         <script src="../public/assets/js/particle-network.js" defer></script>
-    <?php endif; ?>
+    <?php
+endif; ?>
     <script>
         function confirmarInscripcion() {
             console.log("Confirmar inscripción llamado");
@@ -105,13 +106,16 @@ $_SESSION['logueado'] = isset($_SESSION['nombre']);
                 <a href="../public/perfil.php" class="banner-link">
                     <img src="../public/assets/img/vector membrete 1-01.png" alt="Banner" class="banner-image">
                 </a>
-            <?php else: ?>
+            <?php
+    else: ?>
                 <a href="../public/index.php" class="banner-link">
                     <img src="../public/assets/img/vector membrete 1-01.png" alt="Banner" class="banner-image">
                 </a>
-            <?php endif; ?>
+            <?php
+    endif; ?>
         </div>
-        <?php endif; ?>
+        <?php
+endif; ?>
     </div>
 </body>
 </html>
