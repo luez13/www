@@ -328,7 +328,11 @@ function calcularPromedioFila(input) {
         let val = 0;
         if (rawVal === 'NP') val = 0;
         else if (rawVal !== '') val = parseFloat(rawVal);
-        var porc = parseFloat($(headers[index]).text().replace('%'','')) / 100;
+        
+        // --- AQUÍ ESTABA EL ERROR CORREGIDO ---
+        var porc = parseFloat($(headers[index]).text().replace('%', '')) / 100;
+        // ----------------------------------------
+        
         if (!isNaN(val)) definitiva += val * porc; 
     });
 

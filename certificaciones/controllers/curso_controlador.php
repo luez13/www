@@ -19,7 +19,7 @@ function validar_curso(
     $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio,
     $horario_fin, $nivel_curso, $costo, $conocimientos_previos,
     $requerimientos_implemento, $desempeño_al_concluir, $modulos,
-    $horas_cronologicas, $fecha_finalizacion, $firma_digital    )
+    $horas_cronologicas, $fecha_finalizacion, $firma_digital)
 {
 
     // --- Bloque 1: Validación de campos vacíos ---
@@ -167,7 +167,8 @@ switch ($action) {
             echo "Ha ocurrido un error al crear la propuesta.";
         }
         exit();
-        break;    case 'editar':
+        break;
+    case 'editar':
         $id_curso = $_POST['id_curso'];
         $promotor = $_POST['promotor'];
         $configuracion_firmas = isset($_POST['config_firmas']) ? $_POST['config_firmas'] : array();
@@ -338,6 +339,35 @@ switch ($action) {
         $curso->iniciar($id_curso);
         // Devolver mensaje de éxito
         echo 'El curso se ha iniciado correctamente';
+        break;
+    case 'cambiar_estado':
+        // Validar permisos
+        if (!in_array($_SESSION['id_rol'], [1, 2, 3, 4])) {
+            echo json_encode(['success' => false, 'message' => 'No tienes permisos.']);
+            exit;
+        }
+
+        $id_curso = $_POST['id_curso'] ?? null;
+        $estado = $_POST['estado'] ?? null;
+
+        if ($id_curso !== null && $estado !== null) {
+            $query = "UPDATE cursos.cursos SET estado = :estado WHERE id_curso = :id_curso";
+            $stmt = $db->prepare($query);
+            $success = $stmt->execute([
+                ':estado' => $estado === '1' || $estado === 1,
+                ':id_curso' => $id_curso
+            ]);
+
+            if ($success) {
+                echo json_encode(['success' => true]);
+            }
+            else {
+                echo json_encode(['success' => false, 'message' => 'Error al actualizar base de datos.']);
+            }
+        }
+        else {
+            echo json_encode(['success' => false, 'message' => 'Faltan parámetros.']);
+        }
         break;
     default:
         // Devolver mensaje de error

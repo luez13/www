@@ -36,19 +36,33 @@ $anio_cierre = date("Y");
 
 if (isset($_GET['id_curso'])) {
     $id_curso = $_GET['id_curso'];
-    // $datos = $curso->obtener_datos_acta_cierre($id_curso); // **DEBES CAMBIAR EL MÉTODO**
+// $datos = $curso->obtener_datos_acta_cierre($id_curso); // **DEBES CAMBIAR EL MÉTODO**
 
-    // Aquí deberías obtener todos los datos necesarios para el acta de cierre,
-    // como el nombre del diplomado, la materia, el docente, inscritos, etc.
-    // Por simplicidad y dado que no tengo tu modelo, uso los placeholders de arriba.
+// Aquí deberías obtener todos los datos necesarios para el acta de cierre,
+// como el nombre del diplomado, la materia, el docente, inscritos, etc.
+// Por simplicidad y dado que no tengo tu modelo, uso los placeholders de arriba.
 
-} else {
-    // Si no se proporciona un ID, podrías lanzar un error o usar datos de prueba
+}
+else {
+// Si no se proporciona un ID, podrías lanzar un error o usar datos de prueba
 }
 
+// 🔒 RESTRICCIÓN: Mostrar el botón de cierre irreversible SOLO a roles autorizados
+if (isset($_SESSION['id_rol']) && ($_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4)) {
+    // Es administrador o autorizador: Mostramos el botón
+    echo '<div class="text-center my-4">';
+    echo '    <button class="btn btn-primary btn-lg shadow mt-2" onclick="cerrarDiplomado()"><i class="fas fa-lock me-2"></i>Cerrar Diplomado Oficialmente</button>';
+    echo '</div>';
+}
+else {
+    // Es promotor o facilitador: Mostramos un aviso de modo lectura
+    echo '<div class="alert alert-info shadow-sm text-center my-4" role="alert">';
+    echo '    <i class="fas fa-info-circle me-2"></i> <strong>Modo de visualización:</strong> Puedes consultar el acta, pero solo los administradores tienen permisos para realizar el cierre definitivo del diplomado en el sistema.';
+    echo '</div>';
+}
 
-$piePagina ='../public/assets/img/piePagina.jpg';
-$encabezado ='../public/assets/img/encabezado.jpg';
+$piePagina = '../public/assets/img/piePagina.jpg';
+$encabezado = '../public/assets/img/encabezado.jpg';
 ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">

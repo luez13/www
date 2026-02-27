@@ -21,166 +21,163 @@ try {
 
 <!-- navegador -->
 <ul class="navbar-nav bg-gradient-dark primary sidebar sidebar-dark accordion" id="accordionSidebar">
-    <!-- Menú de navegación -->
+    
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="#" onclick="loadProfile()">
         <div class="sidebar-brand-icon rotate-n-15">
-            <img src="../public/assets/img/logo.png" width="50" height="50"/>
+            <img src="../public/assets/img/logo.png" width="50" height="50" alt="Logo UPTAIET"/>
         </div>
-        <div class="sidebar-brand-text mx-3">UPTAIET<sup></sup></div>
+        <div class="sidebar-brand-text mx-3">UPTAIET</div>
     </a>
-    <!-- Dividir -->
+    
     <hr class="sidebar-divider my-0">
 
-    <!-- Nav Item - panel -->
     <li class="nav-item active">
         <a class="nav-link" href="perfil.php">
-            <i class="fas fa-desktop"></i>
-            <span>INICIO</span></a>
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Panel Principal</span>
+        </a>
     </li>
 
-    <!-- Divi -->
     <hr class="sidebar-divider">
+    <div class="sidebar-heading">Área Académica</div>
 
-    <!-- Heading PAR 1-->
-    <div class="sidebar-heading">
-        MENÚ
-    </div>
-    <!-- Nav Item - Utilities Collapse Menu -->
-    <?php if ($_SESSION['id_rol'] == 1 || $_SESSION['id_rol'] == 2 || $_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4): ?>
+    <?php if (in_array($_SESSION['id_rol'], [1, 2, 3, 4])): ?>
     <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
-            aria-expanded="true" aria-controls="collapseUtilities">
-            <i class="fas fa-flag"></i>
-            <span>RUTA APRENDIZAJE</span>
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCatalogo"
+            aria-expanded="true" aria-controls="collapseCatalogo">
+            <i class="fas fa-fw fa-book-reader"></i>
+            <span>Catálogo de Cursos</span>
         </a>
-        <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities"
-            data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-                <h6 class="collapse-header">Rutas Activas:</h6>
-                <a class="collapse-item" href="#" onclick="loadCategory('masterclass', true)">MasterClass</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('taller', true)">taller</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('curso', true)">Cursos</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('seminario', true)">Seminario</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('diplomado', true)">Diplomado</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('congreso', true)">Congreso</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('charla', true)">Charla</a>
-                <!-- <h6 class="collapse-header">Rutas Cerradas:</h6>
-                <a class="collapse-item" href="#" onclick="loadCategory('masterclass', false)">MasterClass</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('taller', false)">taller</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('curso', false)">Cursos</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('seminario', false)">Seminario</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('diplomado', false)">Diplomado</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('congreso', false)">Congreso</a>
-                <a class="collapse-item" href="#" onclick="loadCategory('charla', false)">Charla</a> -->
+        <div id="collapseCatalogo" class="collapse" aria-labelledby="headingCatalogo" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded shadow-sm">
+                <h6 class="collapse-header text-primary">Oferta Activa:</h6>
+                <a class="collapse-item" href="#" onclick="loadCategory('masterclass', true)"><i class="fas fa-chalkboard me-2 text-muted"></i>MasterClass</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('taller', true)"><i class="fas fa-tools me-2 text-muted"></i>Talleres</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('curso', true)"><i class="fas fa-laptop-code me-2 text-muted"></i>Cursos</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('seminario', true)"><i class="fas fa-users me-2 text-muted"></i>Seminarios</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('diplomado', true)"><i class="fas fa-graduation-cap me-2 text-muted"></i>Diplomados</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('congreso', true)"><i class="fas fa-microphone me-2 text-muted"></i>Congresos</a>
+                <a class="collapse-item" href="#" onclick="loadCategory('charla', true)"><i class="fas fa-comments me-2 text-muted"></i>Charlas</a>
+            </div>
+        </div>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAprendizaje"
+            aria-expanded="true" aria-controls="collapseAprendizaje">
+            <i class="fas fa-fw fa-user-graduate"></i>
+            <span>Mi Aprendizaje</span>
+        </a>
+        <div id="collapseAprendizaje" class="collapse" aria-labelledby="headingAprendizaje" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded shadow-sm">
+                <h6 class="collapse-header text-success">Mi Expediente:</h6>
+                <a class="collapse-item" href="#" onclick="loadPage('../views/historial.php?action=inscritos')"><i class="fas fa-play-circle me-2 text-muted"></i>Cursos en Progreso</a>
+                <a class="collapse-item" href="#" onclick="loadPage('../views/historial.php?action=finalizados')"><i class="fas fa-check-circle me-2 text-muted"></i>Cursos Finalizados</a>
             </div>
         </div>
     </li>
     <?php endif; ?>
 
-<!-- Nav Item - Historial -->
-<?php if ($_SESSION['id_rol'] == 1 || $_SESSION['id_rol'] == 2 || $_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4): ?>
-<hr class="sidebar-divider">
-<li class="nav-item">
-    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseHistorial"
-        aria-expanded="true" aria-controls="collapseHistorial">
-        <i class="fas fa-folder-open"></i>
-        <span>Historial</span>
-    </a>
-    <div id="collapseHistorial" class="collapse" aria-labelledby="headingHistorial" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header">Rutas:</h6>
-            <a class="collapse-item" href="#" onclick="loadPage('../views/historial.php?action=inscritos')">Cursos Inscritos</a>
-            <a class="collapse-item" href="#" onclick="loadPage('../views/historial.php?action=finalizados')">Cursos Finalizados</a>
+    <?php if (in_array($_SESSION['id_rol'], [1, 2, 3, 4])): ?>
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePagos"
+            aria-expanded="true" aria-controls="collapsePagos">
+            <i class="fas fa-fw fa-wallet"></i>
+            <span>Facturación y Pagos</span>
+        </a>
+        <div id="collapsePagos" class="collapse" aria-labelledby="headingPagos" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded shadow-sm">
+                <h6 class="collapse-header text-success">Gestión de Pagos:</h6>
+                <a class="collapse-item" href="#" onclick="loadPage('../views/mis_pagos.php')"><i class="fas fa-file-invoice-dollar me-2 text-muted"></i>Mis Aranceles</a>
+            </div>
         </div>
-    </div>
-</li>
-<?php endif; ?>
+    </li>
+    <?php endif; ?>
 
-<!-- Nav Item - Registro Propuesta -->
-<?php if ($_SESSION['id_rol'] == 2 || $_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4): ?>
-<hr class="sidebar-divider">
-<li class="nav-item">
-    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
-        aria-expanded="true" aria-controls="collapsePages">
-        <i class="fas fa-spinner fa-folder"></i>
-        <span>REGISTRO PROPUESTA</span>
-    </a>
-    <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-            <div class="bg-white py-2 collapse-inner rounded">
-                <?php if ($_SESSION['id_rol'] == 2 || $_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4): ?>
-                <h6 class="collapse-header">Facilitadores</h6>
-                <a class="collapse-item" href="#" onclick="loadPage('../public/gestion_cursos.php?action=crear')">Postular Propuesta</a>
-                <a class="collapse-item" href="#" onclick="loadPage('../public/gestion_cursos.php?action=ver')">Ver Postulaciones</a>
+    <?php if (in_array($_SESSION['id_rol'], [2, 3, 4])): ?>
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">Espacio Docente</div>
+
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDocencia"
+            aria-expanded="true" aria-controls="collapseDocencia">
+            <i class="fas fa-fw fa-chalkboard-teacher"></i>
+            <span>Gestión Curricular</span>
+        </a>
+        <div id="collapseDocencia" class="collapse" aria-labelledby="headingDocencia" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded shadow-sm">
+                
+                <h6 class="collapse-header text-primary">Mis Responsabilidades:</h6>
+                <a class="collapse-item font-weight-bold text-success" href="#" onclick="loadPage('../views/mis_materias_facilitador.php')">
+                    <i class="fas fa-tasks me-2"></i> Mis Materias (Notas)
+                </a>
+                <div class="dropdown-divider"></div>
+                <h6 class="collapse-header text-info">Creación de Cursos:</h6>
+                <a class="collapse-item" href="#" onclick="loadPage('../public/gestion_cursos.php?action=crear')">Postular Nueva Propuesta</a>
+                <a class="collapse-item" href="#" onclick="loadPage('../public/gestion_cursos.php?action=ver')">Mis Postulaciones</a>
+                
+                <?php if (in_array($_SESSION['id_rol'], [3, 4])): ?>
+                <div class="dropdown-divider"></div>
+                <h6 class="collapse-header text-danger">Coordinación:</h6>
+                <a class="collapse-item" href="#" onclick="loadPage('../public/editar_cursos.php')">Evaluar Propuestas</a>
                 <?php endif; ?>
-                <?php if ($_SESSION['id_rol'] == 4 || $_SESSION['id_rol'] == 3): ?>
-                <h6 class="collapse-header">Administrador</h6>
-                <a class="collapse-item" href="#" onclick="loadPage('../public/editar_cursos.php')">Verificar Postulación</a>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-</li>
-<?php endif; ?>
-
-<!-- Nav Item - Menú de Usuarios -->
-<?php if ($_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4): ?>
-    <hr class="sidebar-divider">
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUsuarios" aria-expanded="true" aria-controls="collapseUsuarios">
-            <i class="fas fa-users"></i>
-            <span>Usuarios</span>
-        </a>
-        <div id="collapseUsuarios" class="collapse" aria-labelledby="headingUsuarios" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="#" onclick="loadPage('../public/usuarios.php')">Verificación Usuarios</a>
             </div>
         </div>
     </li>
     <?php endif; ?>
 
-    <?php if (in_array($_SESSION['id_rol'], [3, 4])): // Solo para Autorizador (3) y Administrador (4) ?>
+<?php if (in_array($_SESSION['id_rol'], [3, 4])): ?>
     <hr class="sidebar-divider">
+    <div class="sidebar-heading">Institucional</div>
+
     <li class="nav-item">
-        <a class="nav-link" href="#" onclick="loadPage('../views/gestionar_cargos.php')"> 
-            <i class="fas fa-id-badge"></i> 
-            <span>Gestionar Cargos</span>
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseComunidad" aria-expanded="true" aria-controls="collapseComunidad">
+            <i class="fas fa-fw fa-users-cog"></i>
+            <span>Comunidad y Tesorería</span>
         </a>
+        <div id="collapseComunidad" class="collapse" aria-labelledby="headingComunidad" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded shadow-sm">
+                
+                <h6 class="collapse-header text-primary">Gestión de Personas:</h6>
+                <a class="collapse-item" href="#" onclick="loadPage('../public/usuarios.php')">Verificación de Usuarios</a>
+                <a class="collapse-item" href="#" onclick="loadPage('../views/gestionar_cargos.php')">Directorio y Cargos</a>
+
+                <div class="dropdown-divider"></div>
+                
+                <h6 class="collapse-header text-success">Tesorería y Pagos:</h6>
+                <a class="collapse-item" href="#" onclick="loadPage('../views/gestion_pagos.php')"><i class="fas fa-search-dollar me-2 text-muted"></i>Auditar Pagos</a>
+                <a class="collapse-item" href="#" onclick="loadPage('../views/gestion_cuentas_bancarias.php')"><i class="fas fa-university me-2 text-muted"></i>Cuentas Destino</a>
+
+            </div>
+        </div>
     </li>
     <?php endif; ?>
-    <?php if ($_SESSION['id_rol'] == 4): // Solo para Administrador ?>
-    <hr class="sidebar-divider">
 
-    <div class="sidebar-heading">
-        Configuración
-    </div>
-
+    <?php if ($_SESSION['id_rol'] == 4): ?>
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAjustes" aria-expanded="true" aria-controls="collapseAjustes">
             <i class="fas fa-fw fa-cogs"></i>
-            <span>Ajustes</span>
+            <span>Sistema y Ajustes</span>
         </a>
         <div id="collapseAjustes" class="collapse" aria-labelledby="headingAjustes" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-                <h6 class="collapse-header">Administración:</h6>
-                <a class="collapse-item" href="#" onclick="loadPage('../views/gestionar_cargos.php')">Gestionar Firmantes</a>
-                <a class="collapse-item" href="#" onclick="loadPage('../views/ajustes_sistema.php')">Ajustes Generales</a>
+            <div class="bg-white py-2 collapse-inner rounded shadow-sm">
+                <h6 class="collapse-header text-primary">Ajustes Generales:</h6>
+                <a class="collapse-item" href="#" onclick="loadPage('../views/ajustes_sistema.php')"><i class="fas fa-sliders-h me-2 text-muted"></i>Configuración Global</a>
+                <div class="dropdown-divider"></div>
+                <h6 class="collapse-header text-warning">Retroalimentación:</h6>
+                <a class="collapse-item" href="#" onclick="loadPage('../views/sugerencias.php')"><i class="fas fa-lightbulb me-2 text-muted"></i>Buzón de Sugerencias</a>
             </div>
-        </li>
-        <hr class="sidebar-divider">
-
-        <!-- Nueva subsección: Sugerencias -->
-        <div class="sidebar-heading">
-            Sugerencias
         </div>
-        <li class="nav-item">
-            <a class="nav-link" href="#" onclick="loadPage('../views/sugerencias.php')"> 
-                <i class="fas fa-lightbulb"></i>
-                <span>Sugerencias</span>
-            </a>
-        </li>
+    </li>
     <?php endif; ?>
-    </ul>
+
+    <hr class="sidebar-divider d-none d-md-block">
+
+    <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
+
+</ul>
 
 </ul>
 </ul>
@@ -196,9 +193,11 @@ try {
         <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
 
             <!-- Toda la estructura del nav izq Sidebar Toggle (Topbar) -->
-            <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-                <i class="fa fa-bars"></i>
-            </button>
+<div class="text-center d-none d-md-inline mb-3">
+        <button class="btn btn-secondary rounded-circle border-0" id="sidebarToggle">
+            <i class="fas fa-arrows-alt-h"></i>
+        </button>
+    </div>
 
             <!-- Search 
             <form

@@ -60,6 +60,10 @@ echo '<option value="introductorio"' . ($curso_editar['nivel_curso'] == 'introdu
 echo '<option value="medio"' . ($curso_editar['nivel_curso'] == 'medio' ? ' selected' : '') . '>Medio</option>';
 echo '<option value="avanzado"' . ($curso_editar['nivel_curso'] == 'avanzado' ? ' selected' : '') . '>Avanzado</option>';
 echo '</select></p>';
+echo '<p>Estado: <select name="estado" required>';
+echo '<option value="1"' . ($curso_editar['estado'] == true ? ' selected' : '') . '>Activo</option>';
+echo '<option value="0"' . ($curso_editar['estado'] == false ? ' selected' : '') . '>Inactivo / Finalizado</option>';
+echo '</select></p>';
 echo '<p>Costo: <input type="number" name="costo" value="' . htmlspecialchars($curso_editar['costo']) . '" step="0.01" required></p>';
 echo '<p>Conocimientos previos: <textarea name="conocimientos_previos" required>' . htmlspecialchars($curso_editar['conocimientos_previos']) . '</textarea></p>';
 echo '<p>Requerimientos e implementos: <textarea name="requerimientos_implementos" required>' . htmlspecialchars($curso_editar['requerimientos_implemento']) . '</textarea></p>';

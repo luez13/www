@@ -721,3 +721,45 @@ BEGIN
     -- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
     
 END $$;
+
+-- ##################################################################
+-- # ACTUALIZACIÓN: MÓDULO DE PAGOS Y CUENTAS BANCARIAS
+-- ##################################################################
+
+-- 1. CREACIÓN DE TABLA: CUENTAS BANCARIAS
+CREATE TABLE IF NOT EXISTS cursos.cuentas_bancarias (
+    id_cuenta SERIAL PRIMARY KEY,
+    banco VARCHAR(100) NOT NULL,
+    titular VARCHAR(100) NOT NULL,
+    cedula_rif VARCHAR(50) NOT NULL,
+    telefono VARCHAR(50), 
+    correo VARCHAR(100), 
+    tipo_cuenta VARCHAR(50), 
+    numero_cuenta VARCHAR(50),
+    activo BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+COMMENT ON TABLE cursos.cuentas_bancarias IS 'Cuentas destino disponibles para que los usuarios realicen sus pagos.';
+
+-- 2. CREACIÓN DE TABLA: COMPROBANTES DE PAGO
+CREATE TABLE IF NOT EXISTS cursos.comprobantes_pago (
+    id_comprobante SERIAL PRIMARY KEY,
+    id_usuario INTEGER NOT NULL REFERENCES cursos.usuarios(id) ON DELETE CASCADE,
+    id_curso INTEGER NOT NULL REFERENCES cursos.cursos(id_curso) ON DELETE CASCADE,
+    archivo_ruta VARCHAR(255) NOT NULL, -- Ruta del PDF o imagen
+    numero_operacion VARCHAR(100) NOT NULL,
+    banco_origen VARCHAR(100), -- Banco desde donde transfirió el usuario
+    monto NUMERIC(10, 2) NOT NULL,
+    estado VARCHAR(50) NOT NULL DEFAULT 'Pendiente', -- Pendiente, Comprobado, Rechazado
+    fecha_pago DATE NOT NULL,
+    fecha_subida TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+COMMENT ON TABLE cursos.comprobantes_pago IS 'Almacena los comprobantes de pago subidos por los usuarios para cada curso.';
+
+-- 3. ASIGNAR PERMISOS
+GRANT ALL PRIVILEGES ON TABLE cursos.cuentas_bancarias TO uptaivir_certificacion2;
+GRANT ALL PRIVILEGES ON TABLE cursos.comprobantes_pago TO uptaivir_certificacion2;
+
+-- Asegurar permisos sobre las secuencias recién creadas
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;

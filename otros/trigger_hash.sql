@@ -1,7 +1,0 @@
-DELIMITER //
-CREATE TRIGGER generar_hash BEFORE INSERT ON doc_ref
-FOR EACH ROW
-BEGIN
-  SET NEW.token = SHA2(CONCAT(NEW.user_id, NEW.document_id, NOW()), 256);
-END;//
-DELIMITER ;

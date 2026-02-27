@@ -197,96 +197,132 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
     $cursos = $cursoModel->obtener_contenido($user_id);
 
 // Mostrar una tabla con los cursos creados por el usuario
-echo '<h3>Cursos creados por ti</h3>';
-echo '<div class="table-responsive">';
-echo '<table class="table table-striped">';
-echo '<thead class="thead-dark">';
+echo '<div class="d-flex justify-content-between align-items-center mb-3">';
+echo '<h3 class="m-0 text-gray-800">Cursos creados por ti</h3>';
+echo '</div>';
+
+echo '<div class="table-responsive shadow-sm rounded bg-white">';
+echo '<table class="table table-hover table-bordered table-sm align-middle mb-0">';
+echo '<thead class="table-dark text-center">';
 echo '<tr>';
-echo '<th>Nombre</th>';
-echo '<th>Descripción</th>';
-echo '<th>Semanas</th>';
-echo '<th>Fecha de inicio</th>';
-echo '<th>Tipo de curso</th>';
-echo '<th>Límite de inscripciones</th>';
-echo '<th>Días de clase</th>';
-echo '<th>Horario de inicio</th>';
-echo '<th>Horario de fin</th>';
-echo '<th>Nivel del curso</th>';
-echo '<th>Costo</th>';
-echo '<th>Conocimientos previos</th>';
-echo '<th>Requerimientos e implementos</th>';
-echo '<th>Desempeño al concluir</th>';
-echo '<th>Estado</th>';
-echo '<th>Opciones</th>';
+echo '<th style="width: 25%;" class="py-3">Información del Curso</th>';
+echo '<th style="width: 25%;" class="py-3">Planificación</th>';
+echo '<th style="width: 20%;" class="py-3">Inscripción</th>';
+echo '<th style="width: 10%;" class="py-3">Estado</th>';
+echo '<th style="width: 20%;" class="py-3">Opciones</th>';
 echo '</tr>';
 echo '</thead>';
 echo '<tbody>';
 
 foreach ($cursos as $curso) {
     echo '<tr>';
-    echo '<td>' . $curso['nombre_curso'] . '</td>';
-    echo '<td>' . $curso['descripcion'] . '</td>';
-    echo '<td>' . $curso['tiempo_asignado'] . '</td>';
-    echo '<td>' . $curso['inicio_mes'] . '</td>';
-    echo '<td>' . $curso['tipo_curso'] . '</td>';
-    echo '<td>' . $curso['limite_inscripciones'] . '</td>';
-    echo '<td>' . $curso['dias_clase'] . '</td>';
-    echo '<td>' . $curso['horario_inicio'] . '</td>';
-    echo '<td>' . $curso['horario_fin'] . '</td>';
-    echo '<td>' . $curso['nivel_curso'] . '</td>';
-    echo '<td>' . $curso['costo'] . '</td>';
-    echo '<td>' . $curso['conocimientos_previos'] . '</td>';
-    echo '<td>' . $curso['requerimientos_implemento'] . '</td>';
-    echo '<td>' . $curso['desempeno_al_concluir'] . '</td>';
-    echo '<td>' . ($curso['estado'] ? 'Activo' : 'Finalizado') . '</td>';
-    echo '<td>';
-    echo '<div class="btn-group-vertical" role="group">';
-    echo '<button class="btn btn-secondary mb-1" onclick="loadPage(\'../views/curso_formulario.php\', {id_curso: ' . $curso['id_curso'] . '})">Editar</button>';
     
-    echo '<button class="btn btn-dark mb-1" onclick="loadPage(\'../public/detalles_curso.php\', {id: ' . $curso['id_curso'] . '})">Detalles del curso</button>';
+    // 1. Columna: Información del Curso (Nombre, Tipo y Nivel)
+    echo '<td class="px-3">';
+    echo '<div class="fw-bold text-primary mb-2" style="font-size: 1.1rem;">' . htmlspecialchars($curso['nombre_curso']) . '</div>';
+    echo '<span class="badge bg-secondary me-1 text-uppercase">' . str_replace('_', ' ', $curso['tipo_curso']) . '</span>';
+    echo '<span class="badge bg-info text-dark text-capitalize">' . $curso['nivel_curso'] . '</span>';
+    echo '</td>';
+
+    // 2. Columna: Planificación (Fechas, Horarios, Días)
+    echo '<td class="px-3">';
+    echo '<div class="small mb-1"><i class="fas fa-calendar-alt text-muted me-2"></i><strong>Inicio:</strong> ' . date('d/m/Y', strtotime($curso['inicio_mes'])) . ' <span class="text-muted">(' . $curso['tiempo_asignado'] . ' sem.)</span></div>';
+    echo '<div class="small mb-1"><i class="fas fa-clock text-muted me-2"></i><strong>Horario:</strong> ' . date('H:i', strtotime($curso['horario_inicio'])) . ' - ' . date('H:i', strtotime($curso['horario_fin'])) . '</div>';
+    echo '<div class="small"><i class="fas fa-calendar-week text-muted me-2"></i><strong>Días:</strong> <span class="text-capitalize">' . str_replace(',', ', ', $curso['dias_clase']) . '</span></div>';
+    echo '</td>';
+
+    // 3. Columna: Inscripción (Cupos y Costo)
+    echo '<td class="px-3">';
+    echo '<div class="small mb-1"><i class="fas fa-users text-muted me-2"></i><strong>Cupos:</strong> ' . $curso['limite_inscripciones'] . ' máx.</div>';
+    $costo_formateado = ($curso['costo'] > 0) ? '$' . number_format($curso['costo'], 2) : 'Gratuito';
+    echo '<div class="small"><i class="fas fa-tag text-muted me-2"></i><strong>Costo:</strong> ' . $costo_formateado . '</div>';
+    echo '</td>';
+
+    // 4. Columna: Estado
+    echo '<td class="text-center">';
+    $badge_class = $curso['estado'] ? 'bg-success' : 'bg-danger';
+    $estado_txt = $curso['estado'] ? 'Activo' : 'Finalizado';
+    echo '<span class="badge ' . $badge_class . ' px-3 py-2"><i class="fas fa-circle me-1" style="font-size: 0.6em;"></i>' . $estado_txt . '</span>';
+    echo '</td>';
+
+// 5. Columna: Opciones
+    echo '<td class="px-3 py-2">';
+    echo '<div class="d-flex flex-column gap-2 w-100">';
     
-    $estado = $curso['estado'] ? 'Finalizar' : 'Iniciar';
-    $action = $curso['estado'] ? 'finalizar' : 'iniciar';
-    echo '<button class="btn btn-success mb-1" onclick="cambiarEstadoCurso(' . $curso['id_curso'] . ', \'' . $action . '\')">' . $estado . '</button>';
+    // Botón Editar (Visible para todos)
+    echo '<button class="btn btn-sm btn-primary" onclick="loadPage(\'../views/curso_formulario.php\', {id_curso: ' . $curso['id_curso'] . '})"><i class="fas fa-edit me-2"></i>Editar</button>';
     
-    // Mostrar el botón de eliminar solo si no hay inscritos o aprobados
-    echo '<button class="btn btn-danger" onclick="eliminarCurso(' . $curso['id_curso'] . ')">Eliminar</button>';
+    // 🔒 RESTRICCIÓN: Botón Iniciar / Finalizar (SOLO ROLES 3 y 4)
+    if (isset($_SESSION['id_rol']) && ($_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4)) {
+        $estado_texto = $curso['estado'] ? 'Finalizar' : 'Iniciar';
+        $action = $curso['estado'] ? 'finalizar' : 'iniciar';
+        $icono_estado = $curso['estado'] ? 'fas fa-stop-circle' : 'fas fa-play-circle';
+        echo '<button class="btn btn-sm btn-success" onclick="cambiarEstadoCurso(' . $curso['id_curso'] . ', \'' . $action . '\')"><i class="' . $icono_estado . ' me-2"></i>' . $estado_texto . '</button>';
+    }
     
-    // Botón para mostrar/ocultar módulos
-    echo '<button class="btn btn-info mb-1" data-bs-toggle="collapse" data-bs-target="#modulos-' . $curso['id_curso'] . '">Módulos</button>';
+    // Menú Desplegable "Opciones Académicas"
+    echo '<div class="dropdown w-100">';
+    echo '<button class="btn btn-sm btn-info dropdown-toggle w-100 text-white" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-cogs me-2"></i>Opciones</button>';
+    echo '<ul class="dropdown-menu shadow-sm">';
     
-    // Botón para generar constancia
-    echo '<button class="btn btn-warning mb-1" onclick="generarConstancia(' . $curso['id_curso'] . ')">Generar constancia</button>';
+    echo '<li><a class="dropdown-item" href="#" onclick="loadPage(\'../public/detalles_curso.php\', {id: ' . $curso['id_curso'] . '}); return false;"><i class="fas fa-info-circle me-2 text-secondary"></i>Detalles del curso</a></li>';
+    echo '<li><a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target="#modulos-' . $curso['id_curso'] . '"><i class="fas fa-list me-2 text-secondary"></i>Ver Módulos</a></li>';
+    echo '<li><a class="dropdown-item" href="#" onclick="generarConstancia(' . $curso['id_curso'] . '); return false;"><i class="fas fa-file-signature me-2 text-secondary"></i>Generar constancia</a></li>';
     
-    echo '</div>';    
+    // Sección Exclusiva de Diplomados
+    $es_diplomado = in_array(strtolower($curso['tipo_curso']), ['diplomado', 'diplomado_rectoria']);
+    // Sección Exclusiva de Diplomados
+    $es_diplomado = in_array(strtolower($curso['tipo_curso']), ['diplomado', 'diplomado_rectoria']);
+    if ($es_diplomado) {
+        // 🔒 RESTRICCIÓN: Gestión completa del diplomado (SOLO ROLES 3 y 4)
+        if (isset($_SESSION['id_rol']) && ($_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4)) {
+            echo '<li><hr class="dropdown-divider"></li>';
+            echo '<li><h6 class="dropdown-header text-primary"><i class="fas fa-graduation-cap me-2"></i>Gestión de Diplomado</h6></li>';
+            echo '<li><a class="dropdown-item" href="#" onclick="loadPage(\'../views/gestionar_materias.php\', {id_curso: ' . $curso['id_curso'] . '}); return false;"><i class="fas fa-book me-2 text-primary"></i>Materias</a></li>';
+            echo '<li><a class="dropdown-item" href="#" onclick="loadPage(\'../views/gestionar_notas.php\', {id_curso: ' . $curso['id_curso'] . '}); return false;"><i class="fas fa-calculator me-2 text-primary"></i>Cargar Notas</a></li>';
+            echo '<li><a class="dropdown-item" href="#" onclick="loadPage(\'../views/generar_acta_cierre.php\', {id_curso: ' . $curso['id_curso'] . '}); return false;"><i class="fas fa-file-contract me-2 text-primary"></i>Acta de Cierre</a></li>';
+        }
+    }
+    
+    // 🔒 RESTRICCIÓN: Botón Peligroso (Eliminar) - SOLO ROLES 3 y 4
+    if (isset($_SESSION['id_rol']) && ($_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4)) {
+        echo '<li><hr class="dropdown-divider"></li>';
+        echo '<li><a class="dropdown-item text-danger" href="#" onclick="eliminarCurso(' . $curso['id_curso'] . '); return false;"><i class="fas fa-trash-alt me-2"></i>Eliminar Curso</a></li>';
+    }
+    
+    echo '</ul>';
+    echo '</div>'; // Fin dropdown
+    echo '</div>'; // Fin flexbox
     echo '</td>';
     echo '</tr>';
 
     // Mostrar los módulos del curso en un contenedor colapsable
     if (!empty($curso['modulos'])) {
         echo '<tr>';
-        echo '<td colspan="16">';
-        echo '<div id="modulos-' . $curso['id_curso'] . '" class="collapse">';
-        echo '<h4>Módulos del curso</h4>';
-        echo '<ul class="list-group">';
+        echo '<td colspan="5" class="p-0 border-0">'; // ATENCIÓN: Cambiamos colspan a 5
+        echo '<div id="modulos-' . $curso['id_curso'] . '" class="collapse bg-light p-4 border-bottom border-info border-4">';
+        echo '<h5 class="text-info mb-3"><i class="fas fa-layer-group me-2"></i>Módulos del curso</h5>';
+        echo '<div class="row">';
         foreach ($curso['modulos'] as $modulo) {
-            echo '<li class="list-group-item">';
-            echo '<strong>Modulo' . $modulo['numero'] .  '</strong> <br>';
-            echo '<strong>Nombre:</strong> ' . $modulo['nombre_modulo'] . '<br>';
-            echo '<strong>Contenido:</strong> ' . $modulo['contenido'] . '<br>';
-            echo '<strong>Actividad:</strong> ' . $modulo['actividad'] . '<br>';
-            echo '<strong>Instrumento:</strong> ' . $modulo['instrumento'] . '<br>';
-            echo '</li>';
+            echo '<div class="col-md-6 mb-3">';
+            echo '<div class="card h-100 border-left-info shadow-sm">';
+            echo '<div class="card-body py-2">';
+            echo '<strong class="text-dark">Módulo ' . $modulo['numero'] . ':</strong> ' . $modulo['nombre_modulo'] . '<br>';
+            echo '<small class="text-muted"><strong>Contenido:</strong> ' . $modulo['contenido'] . '</small><br>';
+            echo '<small class="text-muted"><strong>Actividad:</strong> ' . $modulo['actividad'] . ' | <strong>Instrumento:</strong> ' . $modulo['instrumento'] . '</small>';
+            echo '</div>';
+            echo '</div>';
+            echo '</div>';
         }
-        echo '</ul>';
-        echo '</div>';
+        echo '</div>'; // Fin row
+        echo '</div>'; // Fin collapse
         echo '</td>';
         echo '</tr>';
     }
 }
 echo '</tbody>';
 echo '</table>';
-echo '</div>';
+echo '</div>'; // Fin table-responsive
 }
 
 echo '</div>';
