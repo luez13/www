@@ -117,6 +117,37 @@ CREATE TABLE IF NOT EXISTS cursos.buzon_sugerencias (
 GRANT ALL PRIVILEGES ON TABLE cursos.buzon_sugerencias TO uptaivir_certificacion2;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
 
+-- Agregar nuevas columnas faltantes en producción
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'cursos' AND table_name = 'cursos' AND column_name = 'imagen_portada') THEN
+        ALTER TABLE cursos.cursos ADD COLUMN imagen_portada VARCHAR(255);
+    END IF;
+END $$;
+
+-- Asegurar Foreign Key explícita en buzon_sugerencias
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'buzon_sugerencias_id_usuario_fkey') THEN
+        ALTER TABLE cursos.buzon_sugerencias 
+        ADD CONSTRAINT buzon_sugerencias_id_usuario_fkey FOREIGN KEY (id_usuario) REFERENCES cursos.usuarios (id) ON DELETE SET NULL;
+    END IF;
+END $$;
+
+-- Tabla Landing Carrusel (Para la pantalla de inicio / publicidad)
+CREATE TABLE IF NOT EXISTS cursos.landing_carrusel (
+    id_carrusel SERIAL PRIMARY KEY,
+    ruta_imagen VARCHAR(255) NOT NULL,
+    titulo VARCHAR(255),
+    descripcion TEXT,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_creacion TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+GRANT ALL PRIVILEGES ON TABLE cursos.landing_carrusel TO uptaivir_certificacion2;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
+
+
 /*
 ====================================================================================
  PARTE 2: DDL CONSOLIDADO DE LA BASE DE DATOS (REFERENCIA COMPLETA)
