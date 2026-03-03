@@ -70,6 +70,7 @@ switch ($action) {
             $datosPago = [
                 'id_usuario' => $id_usuario,
                 'id_curso' => $id_curso,
+                'id_materia_bimestre' => !empty($_POST['id_materia_bimestre']) ? intval($_POST['id_materia_bimestre']) : null,
                 'archivo_ruta' => $rutaBD,
                 'numero_operacion' => trim($_POST['numero_operacion']),
                 'banco_origen' => trim($_POST['banco_origen']),
@@ -79,16 +80,26 @@ switch ($action) {
 
             if ($pagoModel->registrarComprobante($datosPago)) {
                 echo json_encode(['success' => true, 'message' => 'Comprobante subido y registrado exitosamente.']);
-            }
-            else {
+            } else {
                 // Si falla la BD, es buena práctica borrar el archivo huérfano
                 unlink($rutaFisica);
                 echo json_encode(['success' => false, 'message' => 'Error al guardar el registro en la base de datos.']);
             }
-        }
-        else {
+        } else {
             echo json_encode(['success' => false, 'message' => 'Error al mover el archivo al servidor.']);
         }
+        break;
+
+    case 'obtener_materias':
+        if (empty($_POST['id_curso']) && empty($_GET['id_curso'])) {
+            echo json_encode(['success' => false, 'message' => 'Falta el id del curso.']);
+            exit;
+        }
+        $id_curso = $_POST['id_curso'] ?? $_GET['id_curso'];
+        require_once '../models/Materia.php';
+        $materiaModel = new Materia($db);
+        $materias = $materiaModel->getMateriasByCurso($id_curso);
+        echo json_encode(['success' => true, 'data' => $materias]);
         break;
 
     case 'actualizar_estado_comprobante':
@@ -105,6 +116,7 @@ switch ($action) {
 
         $id_comprobante = $_POST['id_comprobante'];
         $estado = $_POST['estado'];
+        $observacion = !empty($_POST['observacion']) ? trim($_POST['observacion']) : null;
         $estadosPermitidos = ['Pendiente', 'Comprobado', 'Rechazado'];
 
         if (!in_array($estado, $estadosPermitidos)) {
@@ -112,11 +124,172 @@ switch ($action) {
             exit;
         }
 
-        if ($pagoModel->actualizarEstadoComprobante($id_comprobante, $estado)) {
+        if ($pagoModel->actualizarEstadoComprobante($id_comprobante, $estado, $observacion)) {
             echo json_encode(['success' => true, 'message' => "El estado del comprobante cambió a $estado."]);
-        }
-        else {
+        } else {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar el estado en la base de datos.']);
+        }
+        break;
+
+    case 'eliminar_comprobante':
+        if (empty($_POST['id_comprobante'])) {
+            echo json_encode(['success' => false, 'message' => 'Falta el ID del comprobante.']);
+            exit;
+        }
+        $id_comprobante = $_POST['id_comprobante'];
+
+        $comprobante = $pagoModel->obtenerComprobantePorId($id_comprobante);
+        if (!$comprobante) {
+            echo json_encode(['success' => false, 'message' => 'El comprobante no existe.']);
+            exit;
+        }
+
+        $es_admin = isset($_SESSION['id_rol']) && in_array($_SESSION['id_rol'], [3, 4]);
+        $es_propietario = $comprobante['id_usuario'] == $_SESSION['user_id'];
+        $estado_permitido = in_array($comprobante['estado'], ['Pendiente', 'Rechazado']);
+
+        // Puede eliminar si es Admin, O si es el dueño y el estado lo permite
+        if ($es_admin || ($es_propietario && $estado_permitido)) {
+            if ($pagoModel->eliminarComprobante($id_comprobante)) {
+                echo json_encode(['success' => true, 'message' => 'Comprobante eliminado con éxito.']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error al eliminar el comprobante de la base de datos.']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No tienes permisos para eliminar este comprobante (está comprobado o no te pertenece).']);
+        }
+        break;
+
+    case 'editar_comprobante':
+        // Validar requeridos básicos
+        $requeridos = ['id_comprobante', 'numero_operacion', 'banco_origen', 'monto', 'fecha_pago'];
+        foreach ($requeridos as $campo) {
+            if (empty($_POST[$campo])) {
+                echo json_encode(['success' => false, 'message' => "El campo $campo es obligatorio."]);
+                exit;
+            }
+        }
+
+        $id_comprobante = $_POST['id_comprobante'];
+        $comprobante_actual = $pagoModel->obtenerComprobantePorId($id_comprobante);
+
+        if (!$comprobante_actual) {
+            echo json_encode(['success' => false, 'message' => 'Comprobante no encontrado.']);
+            exit;
+        }
+
+        $es_admin = isset($_SESSION['id_rol']) && in_array($_SESSION['id_rol'], [3, 4]);
+        $es_propietario = $comprobante_actual['id_usuario'] == $_SESSION['user_id'];
+        $estado_permitido = in_array($comprobante_actual['estado'], ['Pendiente', 'Rechazado']);
+
+        // Puede editar si es Admin, O si es el dueño y el estado lo permite
+        if (!$es_admin && !($es_propietario && $estado_permitido)) {
+            echo json_encode(['success' => false, 'message' => 'No tienes permisos para editar este comprobante.']);
+            exit;
+        }
+
+        $origen_peticion = $_POST['origen'] ?? '';
+        $estado_final = ($origen_peticion === 'usuario') ? 'Pendiente' : ($es_admin ? null : 'Pendiente');
+
+        $datosActualizar = [
+            'id_comprobante' => $id_comprobante,
+            'numero_operacion' => trim($_POST['numero_operacion']),
+            'banco_origen' => trim($_POST['banco_origen']),
+            'monto' => floatval($_POST['monto']),
+            'fecha_pago' => $_POST['fecha_pago'],
+            'archivo_ruta' => null,
+            'estado' => $estado_final
+        ];
+
+        // Manejar subida de archivo opcional
+        if (isset($_FILES['comprobante_archivo']) && $_FILES['comprobante_archivo']['error'] === UPLOAD_ERR_OK) {
+            $archivo = $_FILES['comprobante_archivo'];
+            $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+            $permitidas = ['pdf', 'jpg', 'jpeg', 'png'];
+
+            if (!in_array($extension, $permitidas)) {
+                echo json_encode(['success' => false, 'message' => 'Formato de archivo no permitido. Usa PDF, JPG, JPEG o PNG.']);
+                exit;
+            }
+
+            $directorioDestino = '../public/assets/comprobantes/';
+            if (!file_exists($directorioDestino))
+                mkdir($directorioDestino, 0777, true);
+
+            $nombreUnico = $comprobante_actual['id_usuario'] . '_' . $comprobante_actual['id_curso'] . '_' . time() . '.' . $extension;
+            $rutaFisica = $directorioDestino . $nombreUnico;
+
+            if (move_uploaded_file($archivo['tmp_name'], $rutaFisica)) {
+                $datosActualizar['archivo_ruta'] = 'assets/comprobantes/' . $nombreUnico;
+                // Borrar antiguo
+                if (!empty($comprobante_actual['archivo_ruta'])) {
+                    $rutaAntigua = '../public/' . $comprobante_actual['archivo_ruta'];
+                    if (file_exists($rutaAntigua)) {
+                        unlink($rutaAntigua);
+                    }
+                }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error al subir el nuevo comprobante.']);
+                exit;
+            }
+        }
+
+        if ($pagoModel->actualizarComprobante($datosActualizar)) {
+            echo json_encode(['success' => true, 'message' => 'Comprobante actualizado correctamente.']);
+        } else {
+            // Revertir
+            if ($datosActualizar['archivo_ruta']) {
+                unlink('../public/' . $datosActualizar['archivo_ruta']);
+            }
+            echo json_encode(['success' => false, 'message' => 'Error al actualizar base de datos.']);
+        }
+        break;
+
+    case 'backup_comprobantes':
+        // Validar que sea admin superior
+        if (!isset($_SESSION['id_rol']) || !in_array($_SESSION['id_rol'], [3, 4])) {
+            die('Acceso denegado. No eres administrador.');
+        }
+
+        $directorio = '../public/assets/comprobantes/';
+        $archivo_tar = '../public/assets/backup_comprobantes_' . date('Y-m-d_H-i-s') . '.tar';
+
+        if (!class_exists('PharData')) {
+            die('La clase PharData no está habilitada en PHP. Contacta con soporte.');
+        }
+
+        try {
+            $phar = new PharData($archivo_tar);
+            $phar->buildFromDirectory($directorio);
+
+            // Forzar descarga
+            if (file_exists($archivo_tar)) {
+                header('Content-Type: application/x-tar');
+                header('Content-Disposition: attachment; filename="' . basename($archivo_tar) . '"');
+                header('Content-Length: ' . filesize($archivo_tar));
+                readfile($archivo_tar);
+                // Eliminar el archivo temporal
+                unlink($archivo_tar);
+                exit;
+            } else {
+                die('Error al generar el archivo TAR.');
+            }
+        } catch (Exception $e) {
+            die('Error creando el backup: ' . $e->getMessage());
+        }
+        break;
+
+    case 'limpiar_comprobantes':
+        // Validar rol de admin
+        if (!isset($_SESSION['id_rol']) || !in_array($_SESSION['id_rol'], [3, 4])) {
+            echo json_encode(['success' => false, 'message' => 'Acceso denegado. No tienes permisos para vaciar el servidor.']);
+            exit;
+        }
+
+        if ($pagoModel->vaciarComprobantes()) {
+            echo json_encode(['success' => true, 'message' => 'Se han borrado todos los comprobantes físicos y registros.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Error al vaciar los comprobantes.']);
         }
         break;
 
@@ -153,12 +326,10 @@ switch ($action) {
         if ($action === 'crear_cuenta') {
             if ($pagoModel->crearCuenta($datosCuenta)) {
                 echo json_encode(['success' => true, 'message' => 'Cuenta bancaria creada exitosamente.']);
-            }
-            else {
+            } else {
                 echo json_encode(['success' => false, 'message' => 'Error al guardar la nueva cuenta bancaria.']);
             }
-        }
-        else {
+        } else {
             // actualizar_cuenta
             if (empty($_POST['id_cuenta'])) {
                 echo json_encode(['success' => false, 'message' => 'El ID de la cuenta es obligatorio para actualizar.']);
@@ -168,8 +339,7 @@ switch ($action) {
 
             if ($pagoModel->actualizarCuenta($datosCuenta)) {
                 echo json_encode(['success' => true, 'message' => 'Cuenta bancaria actualizada correctamente.']);
-            }
-            else {
+            } else {
                 echo json_encode(['success' => false, 'message' => 'Error al actualizar la cuenta bancaria.']);
             }
         }

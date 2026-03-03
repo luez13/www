@@ -15,12 +15,26 @@ $db = new DB();
 $curso = new Curso($db);
 
 function validar_curso(
-    $nombre_curso, $descripcion, $promotor, $tiempo_asignado, $inicio_mes,
-    $tipo_curso, $limite_inscripciones, $dias_clase, $horario_inicio,
-    $horario_fin, $nivel_curso, $costo, $conocimientos_previos,
-    $requerimientos_implemento, $desempeño_al_concluir, $modulos,
-    $horas_cronologicas, $fecha_finalizacion, $firma_digital)
-{
+    $nombre_curso,
+    $descripcion,
+    $promotor,
+    $tiempo_asignado,
+    $inicio_mes,
+    $tipo_curso,
+    $limite_inscripciones,
+    $dias_clase,
+    $horario_inicio,
+    $horario_fin,
+    $nivel_curso,
+    $costo,
+    $conocimientos_previos,
+    $requerimientos_implemento,
+    $desempeño_al_concluir,
+    $modulos,
+    $horas_cronologicas,
+    $fecha_finalizacion,
+    $firma_digital
+) {
 
     // --- Bloque 1: Validación de campos vacíos ---
     $campos_vacios = [];
@@ -153,16 +167,28 @@ switch ($action) {
 
         // Esta parte no necesita cambios
         $resultado = $curso->crearCursoCompleto(
-            $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso,
-            $limite_inscripciones, $dias_clase_pg, $horario_inicio, $horario_fin,
-            $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento,
-            $desempeno_al_concluir, $promotor_id, $modulos_a_crear, $configuracion_firmas
+            $nombre_curso,
+            $descripcion,
+            $tiempo_asignado,
+            $inicio_mes,
+            $tipo_curso,
+            $limite_inscripciones,
+            $dias_clase_pg,
+            $horario_inicio,
+            $horario_fin,
+            $nivel_curso,
+            $costo,
+            $conocimientos_previos,
+            $requerimientos_implemento,
+            $desempeno_al_concluir,
+            $promotor_id,
+            $modulos_a_crear,
+            $configuracion_firmas
         );
 
         if ($resultado) {
             echo "La propuesta de curso se ha creado correctamente.";
-        }
-        else {
+        } else {
             http_response_code(400);
             echo "Ha ocurrido un error al crear la propuesta.";
         }
@@ -186,8 +212,7 @@ switch ($action) {
             $dias_clase_array = explode(',', $dias_clase);
             $dias_clase_array = array_map('trim', $dias_clase_array);
             $dias_clase_pg = '{' . implode(',', $dias_clase_array) . '}';
-        }
-        else {
+        } else {
             $dias_clase_pg = '{' . implode(',', $dias_clase) . '}';
         }
 
@@ -232,8 +257,7 @@ switch ($action) {
                     $txt_limpio = str_replace(['[', ']'], '', $txt);
                     $contenido_completo .= '[' . $txt_limpio . ']';
                 }
-            }
-            else {
+            } else {
                 $contenido_completo = isset($modulo_data['contenido']) ? $modulo_data['contenido'] : '';
             }
 
@@ -251,8 +275,7 @@ switch ($action) {
             // Clasificar: ¿Es Nuevo o Existente?
             if (empty($modulo_data['id_modulo']) || strpos($id_modulo_key, 'new_') === 0) {
                 $modulos_nuevos[] = $datos_modulo;
-            }
-            else {
+            } else {
                 $modulos_a_editar[] = $datos_modulo;
             }
         }
@@ -290,12 +313,26 @@ switch ($action) {
             $auth_param = ($is_admin_or_authorizer) ? $autorizacion_final : null;
 
             $curso->editar(
-                $id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso,
-                $limite_inscripciones, $promotor, $dias_clase_pg, $horario_inicio, $horario_fin,
-                $nivel_curso, $costo, $conocimientos_previos,
+                $id_curso,
+                $nombre_curso,
+                $descripcion,
+                $tiempo_asignado,
+                $inicio_mes,
+                $tipo_curso,
+                $limite_inscripciones,
+                $promotor,
+                $dias_clase_pg,
+                $horario_inicio,
+                $horario_fin,
+                $nivel_curso,
+                $costo,
+                $conocimientos_previos,
                 $modulos_a_editar, // Solo pasamos los existentes para UPDATE
-                $requerimientos_implemento, $desempeño_al_concluir, $horas_cronologicas,
-                $fecha_finalizacion, $firma_digital,
+                $requerimientos_implemento,
+                $desempeño_al_concluir,
+                $horas_cronologicas,
+                $fecha_finalizacion,
+                $firma_digital,
                 $auth_param, // Autorización
                 $configuracion_firmas,
                 $modulos_a_eliminar_ids, // IDs a eliminar
@@ -304,15 +341,22 @@ switch ($action) {
 
             echo '<script>
                         alert("El curso se ha editado correctamente");
-                        window.location.href = "../public/perfil.php";
+                        if(document.referrer) {
+                            window.location.href = document.referrer;
+                        } else {
+                            window.location.href = "../public/index.php";
+                        }
                     </script>';
-        }
-        else {
+        } else {
             // Si falla la validación, no se ha guardado nada en la BD
             $errorDetails = json_encode($_POST, JSON_HEX_APOS | JSON_HEX_QUOT);
             echo '<script>
                         alert("Los datos del curso son inválidos. Revise los campos obligatorios.");
-                        window.location.href = "../public/perfil.php";
+                        if(document.referrer) {
+                            window.location.href = document.referrer;
+                        } else {
+                            window.location.href = "../public/index.php";
+                        }
                     </script>';
         }
         break;
@@ -360,12 +404,10 @@ switch ($action) {
 
             if ($success) {
                 echo json_encode(['success' => true]);
-            }
-            else {
+            } else {
                 echo json_encode(['success' => false, 'message' => 'Error al actualizar base de datos.']);
             }
-        }
-        else {
+        } else {
             echo json_encode(['success' => false, 'message' => 'Faltan parámetros.']);
         }
         break;

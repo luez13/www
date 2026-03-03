@@ -1,238 +1,130 @@
-hola, tengo una base de datos llamada certificaciones_DB en postgres 16, dentro del esquema esta cursos, dentro de cursos estan las siguientes tablas:
+/*
+====================================================================================
+ PARTE 1: SCRIPT DE ACTUALIZACIÓN (PARA ENVIAR Y EJECUTAR EN EL SERVIDOR)
+====================================================================================
+NOTA: Este es el script con las últimas modificaciones que necesitas enviar.
+Contiene la creación de las tablas de Diplomados, Notas y el Módulo de Pagos,
+además de los ajustes a tablas existentes y los permisos necesarios.
+*/
 
-auditoria columnas:
-
-id_auditoria: integer, llave primaria.
-usuario: varchar (255).
-accion: varchar (20).
-tabla_afectada: varchar (50).
-fecha: timestamp.
-dato_previo: text.
-dato_modificado: text.
-certificaciones columnas:
-
-id_idcertificacion: integer, llave primaria.
-id_usuario: integer, llave foránea curso.usuarios id.
-curso_id: integer, llave foránea curso.curso id_curso.
-valor_unico: varchard, llave única.
-completado: boolean.
-nota: integer.
-fecha_inscripcion: timestamp.
-cursos columnas:
-
-id_curso: integer, llave primaria.
-promotor: varchar (255).
-modalidad: varchar (255).
-nombre_curso: varchar (255).
-descripcion: text.
-duracion: integer.
-periodo: date.
-tipo_evaluacion: boolean.
-tipo_curso: varchar (255).
-autorizacion: varchar (255).
-limite_inscripciones: integer.
-estado: boolean.
-dias_clase: unknown.
-horario_inicio: time.
-horario_fin time.
-curso_modulos columnas:
-
-id_modulo: integer, llave primaria.
-id_curso: integer, llave foránea curso.curso id_curso.
-nombre_modulo: varchar (255).
-descripcion_modulo: text.
-fecha_inicio: date.
-fecha_fin: date.
-roles columnas:
-
-id_rol: integer, llave primaria.
-nombre_rol: varchar (100).
-usuarios columnas:
-
-id: integer, llave primaria.
-nombre: varchar (100).
-apellido: varchar (100).
-correo: varchar (100), llave única.
-password: text.
-cedula: varchar (100), llave única.
-id_rol: integer, llave foránea curso.roles id_rol.
-token: varchar(255).
-confirmado: boolean.
-
-
-asi esta formada la base de datos.
-
-y esto es un esquema de como estan organizados mis archivos:
-
-certificaciones/
-├── config/
-│   └── model.php
-├── controllers/
-│   ├── asignar_nota.php
-│   ├── autenticacion.php
-│   ├── curso_acciones.php
-│   ├── curso_controlador.php
-|   ├── usuarios_controlador.php
-|   └── actualizar_estado.php
-├── models/
-│   ├── curso.php
-│   ├── datos_usuario.php
-│   └── obtener_cursos.php
-├── public/
-│   ├── assets/
-│   │   └── estilo.css
-│   ├── cursos.php
-│   ├── gestion_cursos.php
-│   ├── index.php
-│   ├── perfil.php
-│   ├── detallles_curso.php
-|   ├── register.php
-│   └── editar_cursos.php
-└── views/
-    ├── curso_formulario.html
-    ├── curso.php
-    ├── historial.php
-    ├── footer.php
-    └── header.php
-
-
--- Crear la base de datos
-CREATE DATABASE certificaciones_DB;
-
--- Conectar a la base de datos
-\c certificaciones_DB;
-
--- Crear el esquema
-CREATE SCHEMA cursos;
-
--- Crear las tablas dentro del esquema cursos
-CREATE TABLE cursos.cursos (
-    id_curso SERIAL PRIMARY KEY,
-    promotor VARCHAR(255),
-    modalidad VARCHAR(255),
-    nombre_curso VARCHAR(255),
-    descripcion TEXT,
-    duracion INTERVAL,
-    periodo DATE,
-    tipo_evaluacion BOOLEAN,
-    tipo_curso VARCHAR(255),
-    autorizacion VARCHAR(255),
-    limite_inscripciones INTEGER,
-    estado BOOLEAN
-);
-
-CREATE TABLE cursos.roles (
-    id_rol SERIAL PRIMARY KEY,
-    nombre_rol VARCHAR(255)
-);
-
-CREATE TABLE cursos.usuarios (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(255),
-    apellido VARCHAR(255),
-    correo VARCHAR(255) UNIQUE,
-    password TEXT,
-    cedula VARCHAR(255) UNIQUE,
-    id_rol INTEGER REFERENCES cursos.roles(id_rol),
-    token VARCHAR(255),
-    confirmado BOOLEAN
-);
-
-CREATE TABLE cursos.certificaciones (
-    id_idcertificacion SERIAL PRIMARY KEY,
-    id_usuario INTEGER REFERENCES cursos.usuarios(id),
-    curso_id INTEGER REFERENCES cursos.cursos(id_curso),
-    valor_unico VARCHAR(255) UNIQUE,
-    completado BOOLEAN,
-    nota INTEGER,
-    fecha_inscripcion TIMESTAMP
-);
-
-CREATE TABLE cursos.auditoria (
-    id_auditoria SERIAL PRIMARY KEY,
-    usuario VARCHAR(255) NOT NULL,
-    accion VARCHAR(20) NOT NULL,
-    tabla_afectada VARCHAR(50) NOT NULL,
-    fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    dato_previo TEXT,
-    dato_modificado TEXT
-);
-
--- Crear la función de auditoría dentro del esquema cursos
-CREATE OR REPLACE FUNCTION cursos.cursos_audit() RETURNS TRIGGER AS $$
-DECLARE
-    accion_texto VARCHAR(10);
-    usuario_sistema INTEGER;
+DO $$
 BEGIN
-    -- Obtener el ID del usuario del sistema desde una variable de configuración
-    SELECT current_setting('myapp.current_user_id', true)::INTEGER INTO usuario_sistema;
-
-    IF TG_OP = 'DELETE' THEN
-        accion_texto := 'DELETE';
-    ELSIF TG_OP = 'UPDATE' THEN
-        accion_texto := 'UPDATE';
-    ELSE
-        accion_texto := 'INSERT';
+    -- Añadir columna id_curso si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'cursos' AND table_name = 'usuario_documentos' AND column_name = 'id_curso') THEN
+        ALTER TABLE cursos.usuario_documentos ADD COLUMN id_curso INTEGER;
     END IF;
 
-    INSERT INTO cursos.auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
-    VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), OLD::text, NEW::text);
+    -- Añadir Foreign Key de forma segura
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_usuario_documentos_curso') THEN
+        ALTER TABLE cursos.usuario_documentos 
+        ADD CONSTRAINT fk_usuario_documentos_curso FOREIGN KEY (id_curso) REFERENCES cursos.cursos (id_curso) ON DELETE SET NULL;
+    END IF;
 
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
+    GRANT ALL ON TABLE cursos.usuario_documentos TO uptaivir_certificacion2;
+END $$;
 
--- Crear los triggers dentro del esquema cursos
-CREATE TRIGGER certificaciones_trigger
-AFTER INSERT OR UPDATE OR DELETE ON cursos.certificaciones
-FOR EACH ROW EXECUTE FUNCTION cursos.cursos_audit();
+-- Tablas de Diplomados y Notas
+CREATE TABLE IF NOT EXISTS cursos.materias_bimestre (
+    id_materia_bimestre SERIAL PRIMARY KEY,
+    id_curso INTEGER NOT NULL REFERENCES cursos.cursos (id_curso) ON DELETE CASCADE,
+    nombre_materia VARCHAR(255) NOT NULL,
+    duracion_bimestres VARCHAR(50) NOT NULL,
+    total_horas INTEGER NOT NULL,
+    modalidad VARCHAR(255) NOT NULL DEFAULT 'Virtual',
+    docente_id INTEGER NOT NULL REFERENCES cursos.usuarios (id) ON DELETE RESTRICT
+);
 
-CREATE TRIGGER cursos_trigger
-AFTER INSERT OR UPDATE OR DELETE ON cursos.cursos
-FOR EACH ROW EXECUTE FUNCTION cursos.cursos_audit();
+CREATE TABLE IF NOT EXISTS cursos.actividades_config (
+    id_actividad_config SERIAL PRIMARY KEY,
+    id_materia_bimestre INTEGER NOT NULL REFERENCES cursos.materias_bimestre (id_materia_bimestre) ON DELETE CASCADE,
+    nombre_actividad VARCHAR(255) NOT NULL,
+    ponderacion_porcentaje NUMERIC(5, 2) NOT NULL CHECK (ponderacion_porcentaje > 0 AND ponderacion_porcentaje <= 100)
+);
 
-CREATE TRIGGER roles_trigger
-AFTER INSERT OR UPDATE OR DELETE ON cursos.roles
-FOR EACH ROW EXECUTE FUNCTION cursos.cursos_audit();
+CREATE TABLE IF NOT EXISTS cursos.notas_participante (
+    id_nota SERIAL PRIMARY KEY,
+    id_usuario INTEGER NOT NULL REFERENCES cursos.usuarios (id) ON DELETE CASCADE,
+    id_actividad_config INTEGER NOT NULL REFERENCES cursos.actividades_config (id_actividad_config) ON DELETE CASCADE,
+    calificacion_obtenida NUMERIC(4, 2) NOT NULL,
+    UNIQUE (id_usuario, id_actividad_config)
+);
 
-CREATE TRIGGER usuarios_trigger
-AFTER INSERT OR UPDATE OR DELETE ON cursos.usuarios
-FOR EACH ROW EXECUTE FUNCTION cursos.cursos_audit();
+CREATE TABLE IF NOT EXISTS cursos.actas_cierre (
+    id_acta SERIAL PRIMARY KEY,
+    id_materia_bimestre INTEGER NOT NULL REFERENCES cursos.materias_bimestre (id_materia_bimestre) ON DELETE CASCADE,
+    fecha_cierre TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+    participantes_inscritos INTEGER NOT NULL DEFAULT 0,
+    participantes_aprobados INTEGER NOT NULL DEFAULT 0,
+    firmante_vicerrector_id INTEGER REFERENCES cursos.usuarios (id) ON DELETE SET NULL,
+    firmante_coord_id INTEGER REFERENCES cursos.usuarios (id) ON DELETE SET NULL
+);
 
-Tu estructura actual es bastante buena, pero hay algunas mejoras que podrías considerar para hacerla más clara y modular:
+GRANT ALL ON TABLE cursos.materias_bimestre, cursos.actividades_config, cursos.notas_participante, cursos.actas_cierre TO uptaivir_certificacion2;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
 
-config/
-model.php: Perfecto para la configuración de la base de datos y funciones comunes.
-controllers/
-asignar_nota.php: Está bien aquí, pero podrías renombrarlo a algo más general como NotasController.php para seguir una convención de nombres.
-autenticacion.php: Podrías renombrarlo a AuthController.php para mantener consistencia.
-curso_acciones.php: Podrías fusionarlo con curso_controlador.php si las acciones son específicas de los cursos.
-curso_controlador.php: Renombrarlo a CursosController.php para seguir la convención.
-usuarios_controlador.php: Renombrarlo a UsuariosController.php.
-actualizar_estado.php: Podría ser parte de CursosController.php o UsuariosController.php dependiendo de qué estado estás actualizando.
-models/
-curso.php: Perfecto aquí.
-datos_usuario.php: Podrías renombrarlo a Usuario.php para seguir la convención de nombres.
-obtener_cursos.php: Podrías fusionarlo con curso.php si es específico de los cursos.
-public/
-assets/: Perfecto aquí.
-estilo.css: Perfecto aquí.
-cursos.html: Podrías moverlo a la carpeta views si es una vista.
-gestion_cursos.php: Podrías moverlo a la carpeta views si es una vista.
-index.php: Perfecto aquí.
-perfil.php: Podrías moverlo a la carpeta views si es una vista.
-detallles_curso.php: Podrías moverlo a la carpeta views si es una vista.
-usuario.php: Podrías moverlo a la carpeta views si es una vista.
-editar_cursos.php: Podrías moverlo a la carpeta views si es una vista.
-views/
-curso_formulario.html: Perfecto aquí.
-curso.php: Perfecto aquí.
-footer.php: Perfecto aquí.
-header.php: Perfecto aquí.
-Sugerencias adicionales:
-Separación de lógica y presentación: Asegúrate de que la lógica de negocio esté en los controladores y modelos, y la presentación en las vistas.
-Convenciones de nombres: Usar nombres consistentes y en inglés puede ayudar a mantener la claridad y la coherencia.
-¿Te gustaría ayuda con algún aspecto específico de la reorganización o tienes alguna otra pregunta?
+-- Periodos/Lapsos Académicos
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'cursos' AND table_name = 'materias_bimestre' AND column_name = 'lapso_academico') THEN
+        ALTER TABLE cursos.materias_bimestre ADD COLUMN lapso_academico SMALLINT NOT NULL DEFAULT 1;
+        COMMENT ON COLUMN cursos.materias_bimestre.lapso_academico IS 'Indica el orden del periodo: 1, 2 o 3 (Bimestre o Trimestre según el curso)';
+    END IF;
+    GRANT ALL PRIVILEGES ON TABLE cursos.materias_bimestre TO uptaivir_certificacion2;
+END $$;
+
+-- Módulo de Pagos y Cuentas Bancarias
+CREATE TABLE IF NOT EXISTS cursos.cuentas_bancarias (
+    id_cuenta SERIAL PRIMARY KEY,
+    banco VARCHAR(100) NOT NULL,
+    titular VARCHAR(100) NOT NULL,
+    cedula_rif VARCHAR(50) NOT NULL,
+    telefono VARCHAR(50), 
+    correo VARCHAR(100), 
+    tipo_cuenta VARCHAR(50), 
+    numero_cuenta VARCHAR(50),
+    activo BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS cursos.comprobantes_pago (
+    id_comprobante SERIAL PRIMARY KEY,
+    id_usuario INTEGER NOT NULL REFERENCES cursos.usuarios(id) ON DELETE CASCADE,
+    id_curso INTEGER NOT NULL REFERENCES cursos.cursos(id_curso) ON DELETE CASCADE,
+    archivo_ruta VARCHAR(255) NOT NULL,
+    numero_operacion VARCHAR(100) NOT NULL,
+    banco_origen VARCHAR(100),
+    monto NUMERIC(10, 2) NOT NULL,
+    estado VARCHAR(50) NOT NULL DEFAULT 'Pendiente',
+    fecha_pago DATE NOT NULL,
+    fecha_subida TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+GRANT ALL PRIVILEGES ON TABLE cursos.cuentas_bancarias TO uptaivir_certificacion2;
+GRANT ALL PRIVILEGES ON TABLE cursos.comprobantes_pago TO uptaivir_certificacion2;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
+
+-- Buzón de Sugerencias
+CREATE TABLE IF NOT EXISTS cursos.buzon_sugerencias (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100),
+    apellido VARCHAR(100),
+    correo VARCHAR(100),
+    cedula VARCHAR(100),
+    sugerencia TEXT,
+    fecha_envio TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    id_usuario INTEGER REFERENCES cursos.usuarios(id) ON DELETE SET NULL
+);
+
+GRANT ALL PRIVILEGES ON TABLE cursos.buzon_sugerencias TO uptaivir_certificacion2;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
+
+/*
+====================================================================================
+ PARTE 2: DDL CONSOLIDADO DE LA BASE DE DATOS (REFERENCIA COMPLETA)
+====================================================================================
+NOTA: Este script crea TODA la base de datos de cero, con todas sus tablas, 
+relaciones, triggers y funciones ya consolidadas sin redundancias. Ideal para 
+montar un entorno local nuevo o por si se necesita recrear la BD entera en el futuro.
+*/
 
 -- Configuración inicial
 SET statement_timeout = 0;
@@ -247,487 +139,58 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 -- Crear esquema
-CREATE SCHEMA cursos AUTHORIZATION CURRENT_USER;
+CREATE SCHEMA IF NOT EXISTS cursos AUTHORIZATION CURRENT_USER;
+SET search_path TO cursos;
 
 -- Crear extensión para UUID
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
-COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
 
--- Crear tablas y secuencias
-CREATE TABLE cursos.auditoria (
-    id_auditoria serial PRIMARY KEY,
-    usuario character varying(255),
-    accion character varying(20) NOT NULL,
-    tabla_afectada character varying(50) NOT NULL,
-    fecha timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    dato_previo text,
-    dato_modificado text
-);
+-- ==================== TABLAS INDEPENDIENTES ====================
 
-CREATE TABLE cursos.certificaciones (
-    id_certificacion serial PRIMARY KEY,
-    id_usuario integer,
-    curso_id integer,
-    valor_unico character varying UNIQUE,
-    completado boolean DEFAULT false,
-    nota integer,
-    fecha_inscripcion timestamp without time zone,
-    pago boolean
-);
-
-CREATE TABLE cursos.cursos (
-    id_curso serial PRIMARY KEY,
-    promotor character varying(255),
-    nombre_curso character varying(255),
-    descripcion text,
-    tiempo_asignado integer,
-    inicio_mes date,
-    tipo_curso character varying(255),
-    autorizacion character varying(255),
-    limite_inscripciones integer,
-    estado boolean,
-    dias_clase text[],
-    horario_inicio time without time zone,
-    horario_fin time without time zone,
-    nivel_curso character varying(255),
-    costo numeric(10,2),
-    conocimientos_previos text,
-    requerimientos_implemento text,
-    desempeno_al_concluir text
-);
-
-CREATE TABLE cursos.modulos (
-    id_modulo serial PRIMARY KEY,
-    id_curso integer,
-    nombre_modulo character varying(255),
-    contenido text,
-    numero integer,
-    actividad character varying(255),
-    instrumento character varying(255)
-);
-
-CREATE TABLE cursos.roles (
-    id_rol serial PRIMARY KEY,
-    nombre_rol character varying(100)
-);
-
-CREATE TABLE cursos.usuario_documentos (
-    documento_id serial PRIMARY KEY,
-    usuario_id integer NOT NULL,
-    documento_path character varying(255) NOT NULL,
-    documento_type character varying(50) NOT NULL
-);
-
-CREATE TABLE cursos.usuarios (
-    id serial PRIMARY KEY,
-    nombre character varying(100),
-    apellido character varying(100),
-    correo character varying(100) UNIQUE,
-    password text,
-    cedula character varying(100) UNIQUE,
-    id_rol integer,
-    token character varying(255),
-    confirmado boolean,
-    firma_digital character varying(255)
-);
-
--- Crear relaciones
-ALTER TABLE cursos.certificaciones
-    ADD CONSTRAINT certificaciones_id_curso_fkey FOREIGN KEY (curso_id) REFERENCES cursos.cursos(id_curso);
-ALTER TABLE cursos.certificaciones
-    ADD CONSTRAINT certificaciones_id_usuario_fkey FOREIGN KEY (id_usuario) REFERENCES cursos.usuarios(id);
-ALTER TABLE cursos.modulos
-    ADD CONSTRAINT cursos_modulos_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES cursos.cursos(id_curso);
-ALTER TABLE cursos.usuario_documentos
-    ADD CONSTRAINT usuario_documentos_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES cursos.usuarios(id);
-ALTER TABLE cursos.usuarios
-    ADD CONSTRAINT usuarios_id_rol_fkey FOREIGN KEY (id_rol) REFERENCES cursos.roles(id_rol);
-
--- Función de auditoría
-CREATE OR REPLACE FUNCTION cursos.cursos_audit() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-DECLARE
-    accion_texto VARCHAR(10);
-    usuario_sistema INTEGER;
-BEGIN
-    -- Obtener el ID del usuario del sistema desde una variable de configuración
-    BEGIN
-        SELECT current_setting('myapp.current_user_id', true)::INTEGER INTO usuario_sistema;
-    EXCEPTION
-        WHEN others THEN
-            -- Si no se puede obtener el ID del usuario, usar un valor predeterminado
-            usuario_sistema := -1; -- Puedes usar -1 o cualquier otro valor que indique "sin usuario"
-    END;
-
-    IF TG_OP = 'DELETE' THEN
-        accion_texto := 'DELETE';
-        INSERT INTO cursos.auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
-        VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), OLD::text, NULL);
-        RETURN OLD;
-    ELSIF TG_OP = 'UPDATE' THEN
-        accion_texto := 'UPDATE';
-        INSERT INTO cursos.auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
-        VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), OLD::text, NEW::text);
-        RETURN NEW;
-    ELSIF TG_OP = 'INSERT' THEN
-        accion_texto := 'INSERT';
-        INSERT INTO cursos.auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
-        VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), NULL, NEW::text);
-        RETURN NEW;
-    END IF;
-
-    RETURN NULL;
-END;
-$$;
-
--- Crear triggers
-CREATE TRIGGER certificaciones_trigger AFTER INSERT OR DELETE OR UPDATE ON cursos.certificaciones FOR EACH ROW EXECUTE PROCEDURE cursos.cursos_audit();
-CREATE TRIGGER cursos_trigger AFTER INSERT OR DELETE OR UPDATE ON cursos.cursos FOR EACH ROW EXECUTE PROCEDURE cursos.cursos_audit();
-CREATE TRIGGER roles_trigger AFTER INSERT OR DELETE OR UPDATE ON cursos.roles FOR EACH ROW EXECUTE PROCEDURE cursos.cursos_audit();
-CREATE TRIGGER usuarios_trigger AFTER INSERT OR DELETE OR UPDATE ON cursos.usuarios FOR EACH ROW EXECUTE PROCEDURE cursos.cursos_audit();
-
--- Otorgar permisos sobre el esquema
-GRANT ALL ON SCHEMA cursos TO uptaivir_certificacion2;
-
--- Otorgar permisos sobre las tablas
-GRANT ALL ON ALL TABLES IN SCHEMA cursos TO uptaivir_certificacion2;
-
--- Otorgar permisos sobre las secuencias
-GRANT ALL ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
-
--- Otorgar permisos sobre las funciones
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA cursos TO uptaivir_certificacion2;
-
--- Otorgar permisos sobre los triggers
-DO $$
-DECLARE
-    r RECORD;
-BEGIN
-    FOR r IN (SELECT event_object_table FROM information_schema.triggers WHERE trigger_schema = 'cursos') LOOP
-        EXECUTE 'GRANT ALL ON TABLE cursos.' || r.event_object_table || ' TO uptaivir_certificacion2';
-    END LOOP;
-END $$;
-
-ALTER TABLE cursos.certificaciones
-ADD COLUMN tomo integer,
-ADD COLUMN folio integer;
-
--- Seleccionar el esquema 'cursos'
-SET search_path TO cursos;
-
--- Eliminar la restricción de clave foránea existente
-ALTER TABLE cursos.modulos DROP CONSTRAINT IF EXISTS cursos_modulos_id_curso_fkey;
-
--- Agregar la restricción de clave foránea con ON DELETE CASCADE
-ALTER TABLE cursos.modulos
-    ADD CONSTRAINT cursos_modulos_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES cursos(id_curso) ON DELETE CASCADE;
-
--- Eliminar las columnas firma_digital y fecha_finalizacion de la tabla certificaciones
-ALTER TABLE certificaciones
-DROP COLUMN IF EXISTS firma_digital,
-DROP COLUMN IF NOT EXISTS fecha_finalizacion;
-
--- Crear/Modificar tablas
-CREATE TABLE IF NOT EXISTS usuarios (
-    id serial PRIMARY KEY,
-    nombre character varying(100),
-    apellido character varying(100),
-    correo character varying(100) UNIQUE,
-    password text,
-    cedula character varying(100) UNIQUE,
-    id_rol integer,
-    token character varying(255),
-    confirmado boolean,
-    firma_digital character varying(255) -- Ruta a la imagen de firma digital
-);
-
-CREATE TABLE IF NOT EXISTS cursos (
-    id_curso serial PRIMARY KEY,
-    promotor character varying(255),
-    nombre_curso character varying(255),
-    descripcion text,
-    tiempo_asignado integer,
-    inicio_mes date,
-    tipo_curso character varying(255),
-    autorizacion character varying(255),
-    limite_inscripciones integer,
-    estado boolean,
-    dias_clase text[],
-    horario_inicio time without time zone,
-    horario_fin time without time zone,
-    nivel_curso character varying(255),
-    costo numeric(10,2),
-    conocimientos_previos text,
-    requerimientos_implemento text,
-    desempeno_al_concluir text,
-    horas_cronologicas integer, -- Duración en horas del curso
-    firma_digital boolean DEFAULT false, -- Indicador de firma digital en curso
-    fecha_finalizacion timestamp without time zone -- Fecha de finalización del curso
-);
-
-CREATE TABLE IF NOT EXISTS certificaciones (
-    id_certificacion serial PRIMARY KEY,
-    id_usuario integer,
-    curso_id integer,
-    valor_unico character varying UNIQUE,
-    completado boolean DEFAULT false,
-    nota integer,
-    fecha_inscripcion timestamp without time zone,
-    pago boolean,
-    tomo integer,
-    folio integer
-);
-
-CREATE TABLE IF NOT EXISTS buzon_sugerencias (
-    id serial PRIMARY KEY,
-    nombre character varying(100),
-    apellido character varying(100),
-    correo character varying(100),
-    cedula character varying(100),
-    sugerencia text,
-    fecha_envio timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    id_usuario integer,
-    FOREIGN KEY (id_usuario) REFERENCES usuarios(id)
-);
-
-CREATE TABLE IF NOT EXISTS cargos (
-    id_cargo serial PRIMARY KEY,
-    nombre_cargo character varying(100) NOT NULL,
-    nombre character varying(100),
-    apellido character varying(100),
-    titulo character varying(50),
-    firma_digital character varying(255),
-    id_usuario integer,
-    FOREIGN KEY (id_usuario) REFERENCES usuarios(id)
-);
-
--- Modificar tabla 'usuarios' para agregar nuevos campos
-ALTER TABLE usuarios 
-ADD COLUMN IF NOT EXISTS titulo character varying(50),
-ADD COLUMN IF NOT EXISTS cargo character varying(100);
-
--- Otorgar permisos sobre el esquema
-GRANT ALL ON SCHEMA cursos TO uptaivir_certificacion2;
-
--- Otorgar permisos sobre las tablas existentes y nuevas
-GRANT ALL ON ALL TABLES IN SCHEMA cursos TO uptaivir_certificacion2;
-
--- Otorgar permisos sobre las secuencias
-GRANT ALL ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
-
--- Otorgar permisos sobre las funciones
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA cursos TO uptaivir_certificacion2;
-
--- Otorgar permisos sobre los triggers
-DO $$
-DECLARE
-    r RECORD;
-BEGIN
-    FOR r IN (SELECT event_object_table FROM information_schema.triggers WHERE trigger_schema = 'cursos') LOOP
-        EXECUTE 'GRANT ALL ON TABLE cursos.' || r.event_object_table || ' TO uptaivir_certificacion2';
-    END LOOP;
-END $$;
-
---------------------------------------------------------------------------------------------------------------
-
-CREATE TABLE cursos.posiciones_firma (
-    id_posicion SERIAL PRIMARY KEY,
-    codigo_posicion VARCHAR(25) UNIQUE NOT NULL, -- Ej: "P1_INF_IZQ", "P1_INF_DER", etc.
-    descripcion_posicion VARCHAR(100) NOT NULL,  -- Ej: "Página 1, Inferior Izquierda"
-    pagina SMALLINT NOT NULL                     -- Ej: 1 o 2
-);
-
-COMMENT ON TABLE cursos.posiciones_firma IS 'Define las posiciones predeterminadas donde pueden ir las firmas en los certificados.';
-COMMENT ON COLUMN cursos.posiciones_firma.codigo_posicion IS 'Código único para la posición, usado internamente por la aplicación.';
-COMMENT ON COLUMN cursos.posiciones_firma.descripcion_posicion IS 'Descripción legible para el administrador.';
-COMMENT ON COLUMN cursos.posiciones_firma.pagina IS 'Número de página donde se ubica esta posición de firma.';
-
--- Insertar las 5 posiciones definidas:
-INSERT INTO cursos.posiciones_firma (codigo_posicion, descripcion_posicion, pagina) VALUES
-('P1_INF_IZQ', 'Página 1, Inferior Izquierda', 1),
-('P1_INF_DER', 'Página 1, Inferior Derecha', 1),
-('P1_INF_CEN', 'Página 1, Inferior Centro', 1),
-('P2_INF_IZQ', 'Página 2, Inferior Izquierda', 2),
-('P2_INF_DER', 'Página 2, Inferior Derecha', 2);
-
-
-CREATE TABLE cursos.cursos_config_firmas (
-    id_config SERIAL PRIMARY KEY,
-    id_curso INTEGER NOT NULL,
-    id_posicion INTEGER NOT NULL,
-    id_cargo_firmante INTEGER NULL, -- Puede ser NULL si firma el promotor
-    usar_promotor_curso BOOLEAN NOT NULL DEFAULT FALSE,
-
-    CONSTRAINT fk_curso
-        FOREIGN KEY(id_curso) 
-        REFERENCES cursos.cursos(id_curso)
-        ON DELETE CASCADE, -- Si se borra un curso, se borran sus configs de firma
-    CONSTRAINT fk_posicion
-        FOREIGN KEY(id_posicion)
-        REFERENCES cursos.posiciones_firma(id_posicion)
-        ON DELETE RESTRICT, -- No permitir borrar una posición si está en uso
-    CONSTRAINT fk_cargo_firmante
-        FOREIGN KEY(id_cargo_firmante)
-        REFERENCES cursos.cargos(id_cargo)
-        ON DELETE SET NULL, -- Si se borra un cargo, esta referencia se vuelve NULL (la firma desaparecería del certificado)
-
-    CONSTRAINT chk_firmante_exclusivo
-        CHECK (
-            (id_cargo_firmante IS NOT NULL AND usar_promotor_curso = FALSE) OR -- Firma alguien de cargos
-            (id_cargo_firmante IS NULL AND usar_promotor_curso = TRUE) OR      -- Firma el promotor
-            (id_cargo_firmante IS NULL AND usar_promotor_curso = FALSE)        -- Nadie firma (slot vacío, aunque podrías optar por no insertar la fila)
-        ),
-    CONSTRAINT unq_curso_posicion UNIQUE (id_curso, id_posicion) -- Solo un firmante por posición en un curso
-);
-
-COMMENT ON TABLE cursos.cursos_config_firmas IS 'Configuración de qué firmantes aparecen en qué posiciones para cada curso.';
-COMMENT ON COLUMN cursos.cursos_config_firmas.id_cargo_firmante IS 'Referencia a la tabla cargos si el firmante es una autoridad oficial.';
-COMMENT ON COLUMN cursos.cursos_config_firmas.usar_promotor_curso IS 'TRUE si el promotor del curso firma en esta posición.';
-
-
-CREATE TABLE cursos.config_sistema (
+CREATE TABLE IF NOT EXISTS config_sistema (
     clave_config VARCHAR(100) PRIMARY KEY,
     valor_config VARCHAR(255) NOT NULL,
     descripcion_config TEXT NULL,
     fecha_modificacion TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE cursos.config_sistema IS 'Almacena configuraciones globales del sistema.';
-COMMENT ON COLUMN cursos.config_sistema.clave_config IS 'Clave única para la configuración (ej: ID_CARGO_COORD_FP_POR_DEFECTO).';
-COMMENT ON COLUMN cursos.config_sistema.valor_config IS 'Valor de la configuración.';
-
--- Ejemplo de cómo insertar el ID del coordinador por defecto (supongamos que el id_cargo de Yoselin es 5)
--- Deberás hacer esto una vez que sepas el id_cargo correcto.
--- INSERT INTO cursos.config_sistema (clave_config, valor_config, descripcion_config) VALUES
--- ('ID_CARGO_COORD_FP_POR_DEFECTO', '5', 'ID del cargo correspondiente al Coordinador de Formación Permanente por defecto para plantillas.');
-
-
-ALTER TABLE cursos.cargos
-ADD COLUMN activo BOOLEAN NOT NULL DEFAULT TRUE;
-
-COMMENT ON COLUMN cursos.cargos.activo IS 'Indica si la persona en este cargo está actualmente activa para firmar o ser seleccionada.';
-
-
--- Otorgar permisos sobre el esquema
-GRANT ALL ON SCHEMA cursos TO uptaivir_certificacion2;
-
--- Otorgar permisos sobre las tablas existentes y nuevas
-GRANT ALL ON ALL TABLES IN SCHEMA cursos TO uptaivir_certificacion2;
-
--- Otorgar permisos sobre las secuencias
-GRANT ALL ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
-
--- Otorgar permisos sobre las funciones
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA cursos TO uptaivir_certificacion2;
-
--- ##################################################################
--- # SCRIPT DE INICIALIZACIÓN: GESTIÓN DE DIPLOMADOS Y NOTAS
--- ##################################################################
-
--- 1. AJUSTES PREVIOS: Actualización de tabla existente (usuario_documentos)
-DO $$
-BEGIN
-    -- Añadir columna id_curso si no existe
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'cursos' AND table_name = 'usuario_documentos' AND column_name = 'id_curso') THEN
-        ALTER TABLE cursos.usuario_documentos ADD COLUMN id_curso INTEGER;
-    END IF;
-
-    -- Añadir Foreign Key de forma segura
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_usuario_documentos_curso') THEN
-        ALTER TABLE cursos.usuario_documentos 
-        ADD CONSTRAINT fk_usuario_documentos_curso FOREIGN KEY (id_curso) REFERENCES cursos.cursos (id_curso) ON DELETE SET NULL;
-    END IF;
-
-    -- Permisos básicos
-    GRANT ALL ON TABLE cursos.usuario_documentos TO uptaivir_certificacion2;
-END $$;
-
--- 2. CREACIÓN DE TABLAS PARA DIPLOMADOS
-
--- 2.1. Materias / Bimestres
--- Define la unidad curricular, el docente y la modalidad.
-CREATE TABLE IF NOT EXISTS cursos.materias_bimestre (
-    id_materia_bimestre SERIAL PRIMARY KEY,
-    id_curso INTEGER NOT NULL REFERENCES cursos.cursos (id_curso) ON DELETE CASCADE,
-    nombre_materia VARCHAR(255) NOT NULL,
-    duracion_bimestres VARCHAR(50) NOT NULL, -- Ej: "Bimestre 1"
-    total_horas INTEGER NOT NULL,
-    modalidad VARCHAR(255) NOT NULL DEFAULT 'Virtual',
-    docente_id INTEGER NOT NULL REFERENCES cursos.usuarios (id) ON DELETE RESTRICT
+CREATE TABLE IF NOT EXISTS roles (
+    id_rol SERIAL PRIMARY KEY,
+    nombre_rol VARCHAR(100)
 );
 
--- 2.2. Configuración del Plan de Evaluación
--- Define qué se evalúa (Ej: "Examen", "Taller").
--- NOTA: Se permiten nombres repetidos dentro de la misma materia.
-CREATE TABLE IF NOT EXISTS cursos.actividades_config (
-    id_actividad_config SERIAL PRIMARY KEY,
-    id_materia_bimestre INTEGER NOT NULL REFERENCES cursos.materias_bimestre (id_materia_bimestre) ON DELETE CASCADE,
-    nombre_actividad VARCHAR(255) NOT NULL,
-    ponderacion_porcentaje NUMERIC(5, 2) NOT NULL CHECK (ponderacion_porcentaje > 0 AND ponderacion_porcentaje <= 100)
+CREATE TABLE IF NOT EXISTS posiciones_firma (
+    id_posicion SERIAL PRIMARY KEY,
+    codigo_posicion VARCHAR(25) UNIQUE NOT NULL,
+    descripcion_posicion VARCHAR(100) NOT NULL,
+    pagina SMALLINT NOT NULL
 );
 
--- 2.3. Notas de los Participantes
--- Almacena la calificación de un usuario para una actividad específica.
-CREATE TABLE IF NOT EXISTS cursos.notas_participante (
-    id_nota SERIAL PRIMARY KEY,
-    id_usuario INTEGER NOT NULL REFERENCES cursos.usuarios (id) ON DELETE CASCADE,
-    id_actividad_config INTEGER NOT NULL REFERENCES cursos.actividades_config (id_actividad_config) ON DELETE CASCADE,
-    calificacion_obtenida NUMERIC(4, 2) NOT NULL,
-    -- Un alumno solo puede tener una nota por actividad específica
-    UNIQUE (id_usuario, id_actividad_config)
+CREATE TABLE IF NOT EXISTS cursos (
+    id_curso SERIAL PRIMARY KEY,
+    promotor VARCHAR(255),
+    nombre_curso VARCHAR(255),
+    descripcion TEXT,
+    tiempo_asignado INTEGER,
+    inicio_mes DATE,
+    tipo_curso VARCHAR(255),
+    autorizacion VARCHAR(255),
+    limite_inscripciones INTEGER,
+    estado BOOLEAN,
+    dias_clase TEXT[],
+    horario_inicio TIME WITHOUT TIME ZONE,
+    horario_fin TIME WITHOUT TIME ZONE,
+    nivel_curso VARCHAR(255),
+    costo NUMERIC(10,2),
+    conocimientos_previos TEXT,
+    requerimientos_implemento TEXT,
+    desempeno_al_concluir TEXT,
+    horas_cronologicas INTEGER,
+    firma_digital BOOLEAN DEFAULT FALSE,
+    fecha_finalizacion TIMESTAMP WITHOUT TIME ZONE
 );
 
--- 2.4. Actas de Cierre (Histórico)
--- Guarda los datos congelados al momento de cerrar la materia.
-CREATE TABLE IF NOT EXISTS cursos.actas_cierre (
-    id_acta SERIAL PRIMARY KEY,
-    id_materia_bimestre INTEGER NOT NULL REFERENCES cursos.materias_bimestre (id_materia_bimestre) ON DELETE CASCADE,
-    fecha_cierre TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
-    participantes_inscritos INTEGER NOT NULL DEFAULT 0,
-    participantes_aprobados INTEGER NOT NULL DEFAULT 0,
-    firmante_vicerrector_id INTEGER REFERENCES cursos.usuarios (id) ON DELETE SET NULL,
-    firmante_coord_id INTEGER REFERENCES cursos.usuarios (id) ON DELETE SET NULL
-);
-
--- 3. ASIGNACIÓN DE PERMISOS (Rol: uptaivir_certificacion2)
-
-GRANT ALL ON TABLE cursos.materias_bimestre, cursos.actividades_config, cursos.notas_participante, cursos.actas_cierre TO uptaivir_certificacion2;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
-
--- ##################################################################
--- # ACTUALIZACIÓN: GESTIÓN DE PERIODOS/LAPSOS ACADÉMICOS
--- ##################################################################
-
-DO $$
-BEGIN
-    -- 1. Añadir columna 'lapso_academico' para agrupar materias
-    -- Se usa SMALLINT. Ej: 1 para "1er Trimestre/Bimestre", 2 para "2do...", etc.
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_schema = 'cursos' 
-                   AND table_name = 'materias_bimestre' 
-                   AND column_name = 'lapso_academico') THEN
-                   
-        ALTER TABLE cursos.materias_bimestre 
-        ADD COLUMN lapso_academico SMALLINT NOT NULL DEFAULT 1;
-        
-        COMMENT ON COLUMN cursos.materias_bimestre.lapso_academico IS 'Indica el orden del periodo: 1, 2 o 3 (Bimestre o Trimestre según el curso)';
-    END IF;
-
-    -- 2. Asegurar permisos sobre la tabla modificada
-    GRANT ALL PRIVILEGES ON TABLE cursos.materias_bimestre TO uptaivir_certificacion2;
-    
-    -- (Opcional) Si usas secuencias nuevas, asegurar permisos (aunque aquí no creamos tablas nuevas)
-    -- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
-    
-END $$;
-
--- ##################################################################
--- # ACTUALIZACIÓN: MÓDULO DE PAGOS Y CUENTAS BANCARIAS
--- ##################################################################
-
--- 1. CREACIÓN DE TABLA: CUENTAS BANCARIAS
-CREATE TABLE IF NOT EXISTS cursos.cuentas_bancarias (
+CREATE TABLE IF NOT EXISTS cuentas_bancarias (
     id_cuenta SERIAL PRIMARY KEY,
     banco VARCHAR(100) NOT NULL,
     titular VARCHAR(100) NOT NULL,
@@ -739,27 +202,226 @@ CREATE TABLE IF NOT EXISTS cursos.cuentas_bancarias (
     activo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-COMMENT ON TABLE cursos.cuentas_bancarias IS 'Cuentas destino disponibles para que los usuarios realicen sus pagos.';
+CREATE TABLE IF NOT EXISTS auditoria (
+    id_auditoria SERIAL PRIMARY KEY,
+    usuario VARCHAR(255),
+    accion VARCHAR(20) NOT NULL,
+    tabla_afectada VARCHAR(50) NOT NULL,
+    fecha TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    dato_previo TEXT,
+    dato_modificado TEXT
+);
 
--- 2. CREACIÓN DE TABLA: COMPROBANTES DE PAGO
-CREATE TABLE IF NOT EXISTS cursos.comprobantes_pago (
+-- ==================== TABLAS DEPENDIENTES ====================
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100),
+    apellido VARCHAR(100),
+    correo VARCHAR(100) UNIQUE,
+    password TEXT,
+    cedula VARCHAR(100) UNIQUE,
+    id_rol INTEGER REFERENCES roles(id_rol),
+    token VARCHAR(255),
+    confirmado BOOLEAN,
+    firma_digital VARCHAR(255),
+    titulo VARCHAR(50),
+    cargo VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS cargos (
+    id_cargo SERIAL PRIMARY KEY,
+    nombre_cargo VARCHAR(100) NOT NULL,
+    nombre VARCHAR(100),
+    apellido VARCHAR(100),
+    titulo VARCHAR(50),
+    firma_digital VARCHAR(255),
+    id_usuario INTEGER REFERENCES usuarios(id),
+    activo BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS buzon_sugerencias (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100),
+    apellido VARCHAR(100),
+    correo VARCHAR(100),
+    cedula VARCHAR(100),
+    sugerencia TEXT,
+    fecha_envio TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    id_usuario INTEGER REFERENCES usuarios(id)
+);
+
+CREATE TABLE IF NOT EXISTS modulos (
+    id_modulo SERIAL PRIMARY KEY,
+    id_curso INTEGER REFERENCES cursos(id_curso) ON DELETE CASCADE,
+    nombre_modulo VARCHAR(255),
+    contenido TEXT,
+    numero INTEGER,
+    actividad VARCHAR(255),
+    instrumento VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS usuario_documentos (
+    documento_id SERIAL PRIMARY KEY,
+    usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
+    documento_path VARCHAR(255) NOT NULL,
+    documento_type VARCHAR(50) NOT NULL,
+    id_curso INTEGER REFERENCES cursos(id_curso) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS certificaciones (
+    id_certificacion SERIAL PRIMARY KEY,
+    id_usuario INTEGER REFERENCES usuarios(id),
+    curso_id INTEGER REFERENCES cursos(id_curso),
+    valor_unico VARCHAR UNIQUE,
+    completado BOOLEAN DEFAULT FALSE,
+    nota INTEGER,
+    fecha_inscripcion TIMESTAMP WITHOUT TIME ZONE,
+    pago BOOLEAN,
+    tomo INTEGER,
+    folio INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS cursos_config_firmas (
+    id_config SERIAL PRIMARY KEY,
+    id_curso INTEGER NOT NULL REFERENCES cursos(id_curso) ON DELETE CASCADE,
+    id_posicion INTEGER NOT NULL REFERENCES posiciones_firma(id_posicion) ON DELETE RESTRICT,
+    id_cargo_firmante INTEGER REFERENCES cargos(id_cargo) ON DELETE SET NULL,
+    usar_promotor_curso BOOLEAN NOT NULL DEFAULT FALSE,
+    CONSTRAINT chk_firmante_exclusivo CHECK (
+        (id_cargo_firmante IS NOT NULL AND usar_promotor_curso = FALSE) OR 
+        (id_cargo_firmante IS NULL AND usar_promotor_curso = TRUE) OR      
+        (id_cargo_firmante IS NULL AND usar_promotor_curso = FALSE)
+    ),
+    CONSTRAINT unq_curso_posicion UNIQUE (id_curso, id_posicion)
+);
+
+CREATE TABLE IF NOT EXISTS materias_bimestre (
+    id_materia_bimestre SERIAL PRIMARY KEY,
+    id_curso INTEGER NOT NULL REFERENCES cursos(id_curso) ON DELETE CASCADE,
+    nombre_materia VARCHAR(255) NOT NULL,
+    duracion_bimestres VARCHAR(50) NOT NULL,
+    total_horas INTEGER NOT NULL,
+    modalidad VARCHAR(255) NOT NULL DEFAULT 'Virtual',
+    docente_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+    lapso_academico SMALLINT NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS actividades_config (
+    id_actividad_config SERIAL PRIMARY KEY,
+    id_materia_bimestre INTEGER NOT NULL REFERENCES materias_bimestre(id_materia_bimestre) ON DELETE CASCADE,
+    nombre_actividad VARCHAR(255) NOT NULL,
+    ponderacion_porcentaje NUMERIC(5, 2) NOT NULL CHECK (ponderacion_porcentaje > 0 AND ponderacion_porcentaje <= 100)
+);
+
+CREATE TABLE IF NOT EXISTS notas_participante (
+    id_nota SERIAL PRIMARY KEY,
+    id_usuario INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    id_actividad_config INTEGER NOT NULL REFERENCES actividades_config(id_actividad_config) ON DELETE CASCADE,
+    calificacion_obtenida NUMERIC(4, 2) NOT NULL,
+    UNIQUE (id_usuario, id_actividad_config)
+);
+
+CREATE TABLE IF NOT EXISTS actas_cierre (
+    id_acta SERIAL PRIMARY KEY,
+    id_materia_bimestre INTEGER NOT NULL REFERENCES materias_bimestre(id_materia_bimestre) ON DELETE CASCADE,
+    fecha_cierre TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+    participantes_inscritos INTEGER NOT NULL DEFAULT 0,
+    participantes_aprobados INTEGER NOT NULL DEFAULT 0,
+    firmante_vicerrector_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+    firmante_coord_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS comprobantes_pago (
     id_comprobante SERIAL PRIMARY KEY,
-    id_usuario INTEGER NOT NULL REFERENCES cursos.usuarios(id) ON DELETE CASCADE,
-    id_curso INTEGER NOT NULL REFERENCES cursos.cursos(id_curso) ON DELETE CASCADE,
-    archivo_ruta VARCHAR(255) NOT NULL, -- Ruta del PDF o imagen
+    id_usuario INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    id_curso INTEGER NOT NULL REFERENCES cursos(id_curso) ON DELETE CASCADE,
+    archivo_ruta VARCHAR(255) NOT NULL,
     numero_operacion VARCHAR(100) NOT NULL,
-    banco_origen VARCHAR(100), -- Banco desde donde transfirió el usuario
+    banco_origen VARCHAR(100),
     monto NUMERIC(10, 2) NOT NULL,
-    estado VARCHAR(50) NOT NULL DEFAULT 'Pendiente', -- Pendiente, Comprobado, Rechazado
+    estado VARCHAR(50) NOT NULL DEFAULT 'Pendiente',
     fecha_pago DATE NOT NULL,
     fecha_subida TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
 
-COMMENT ON TABLE cursos.comprobantes_pago IS 'Almacena los comprobantes de pago subidos por los usuarios para cada curso.';
+-- ==================== AUDITORÍA (TRIGGERS) ====================
 
--- 3. ASIGNAR PERMISOS
-GRANT ALL PRIVILEGES ON TABLE cursos.cuentas_bancarias TO uptaivir_certificacion2;
-GRANT ALL PRIVILEGES ON TABLE cursos.comprobantes_pago TO uptaivir_certificacion2;
+CREATE OR REPLACE FUNCTION cursos_audit() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    accion_texto VARCHAR(10);
+    usuario_sistema INTEGER;
+BEGIN
+    BEGIN
+        SELECT current_setting('myapp.current_user_id', true)::INTEGER INTO usuario_sistema;
+    EXCEPTION
+        WHEN others THEN
+            usuario_sistema := -1; 
+    END;
 
--- Asegurar permisos sobre las secuencias recién creadas
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
+    IF TG_OP = 'DELETE' THEN
+        accion_texto := 'DELETE';
+        INSERT INTO auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
+        VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), OLD::text, NULL);
+        RETURN OLD;
+    ELSIF TG_OP = 'UPDATE' THEN
+        accion_texto := 'UPDATE';
+        INSERT INTO auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
+        VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), OLD::text, NEW::text);
+        RETURN NEW;
+    ELSIF TG_OP = 'INSERT' THEN
+        accion_texto := 'INSERT';
+        INSERT INTO auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
+        VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), NULL, NEW::text);
+        RETURN NEW;
+    END IF;
+
+    RETURN NULL;
+END;
+$$;
+
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'certificaciones_trigger') THEN
+        CREATE TRIGGER certificaciones_trigger AFTER INSERT OR DELETE OR UPDATE ON certificaciones FOR EACH ROW EXECUTE PROCEDURE cursos_audit();
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'cursos_trigger') THEN
+        CREATE TRIGGER cursos_trigger AFTER INSERT OR DELETE OR UPDATE ON cursos FOR EACH ROW EXECUTE PROCEDURE cursos_audit();
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'roles_trigger') THEN
+        CREATE TRIGGER roles_trigger AFTER INSERT OR DELETE OR UPDATE ON roles FOR EACH ROW EXECUTE PROCEDURE cursos_audit();
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'usuarios_trigger') THEN
+        CREATE TRIGGER usuarios_trigger AFTER INSERT OR DELETE OR UPDATE ON usuarios FOR EACH ROW EXECUTE PROCEDURE cursos_audit();
+    END IF;
+END $$;
+
+
+-- ==================== INSERTS INICIALES ====================
+
+INSERT INTO posiciones_firma (codigo_posicion, descripcion_posicion, pagina) VALUES
+('P1_INF_IZQ', 'Página 1, Inferior Izquierda', 1),
+('P1_INF_DER', 'Página 1, Inferior Derecha', 1),
+('P1_INF_CEN', 'Página 1, Inferior Centro', 1),
+('P2_INF_IZQ', 'Página 2, Inferior Izquierda', 2),
+('P2_INF_DER', 'Página 2, Inferior Derecha', 2)
+ON CONFLICT (codigo_posicion) DO NOTHING;
+
+
+-- ==================== PERMISOS GENERALES ====================
+
+GRANT ALL ON SCHEMA cursos TO uptaivir_certificacion2;
+GRANT ALL ON ALL TABLES IN SCHEMA cursos TO uptaivir_certificacion2;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA cursos TO uptaivir_certificacion2;
+
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (SELECT event_object_table FROM information_schema.triggers WHERE trigger_schema = 'cursos') LOOP
+        EXECUTE 'GRANT ALL ON TABLE cursos.' || r.event_object_table || ' TO uptaivir_certificacion2';
+    END LOOP;
+END $$;

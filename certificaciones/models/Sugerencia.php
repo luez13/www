@@ -1,12 +1,15 @@
 <?php
-class Sugerencia {
+class Sugerencia
+{
     private $db;
 
-    public function __construct($db) {
+    public function __construct($db)
+    {
         $this->db = $db;
     }
 
-    public function agregarSugerencia($nombre, $apellido, $correo, $cedula, $sugerencia, $id_usuario = null) {
+    public function agregarSugerencia($nombre, $apellido, $correo, $cedula, $sugerencia, $id_usuario = null)
+    {
         try {
             $sql = "INSERT INTO cursos.buzon_sugerencias (nombre, apellido, correo, cedula, sugerencia, id_usuario) VALUES (:nombre, :apellido, :correo, :cedula, :sugerencia, :id_usuario)";
             $stmt = $this->db->prepare($sql);
@@ -20,6 +23,19 @@ class Sugerencia {
         } catch (PDOException $e) {
             // Registrar el error
             error_log("Error al agregar sugerencia: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function eliminarSugerencia($id)
+    {
+        try {
+            $sql = "DELETE FROM cursos.buzon_sugerencias WHERE id = :id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            error_log("Error al eliminar sugerencia: " . $e->getMessage());
             return false;
         }
     }

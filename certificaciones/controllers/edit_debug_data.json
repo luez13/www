@@ -1,58 +1,48 @@
 {
     "course_data": {
         "action": "editar",
-        "id_curso": "14",
+        "id_curso": "5",
         "modulos_a_eliminar": "",
-        "nombre_curso": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
-        "descripcion": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
+        "nombre_curso": "Diplomado de Testing Avanzado 3",
+        "descripcion": "algo",
         "tipo_curso": "diplomado",
         "nivel_curso": "medio",
-        "inicio_mes": "2025-06-26",
-        "fecha_finalizacion": "2025-06-25T16:16",
-        "tiempo_asignado": "2",
-        "horario_inicio": "16:12:00",
-        "horario_fin": "18:12:00",
+        "inicio_mes": "2026-03-11",
+        "fecha_finalizacion": "2026-03-26T16:01",
+        "tiempo_asignado": "6",
+        "horario_inicio": "16:01:00",
+        "horario_fin": "19:01:00",
         "dias_clase": [
+            "lunes",
             "sabado"
         ],
-        "costo": "20.00",
-        "horas_cronologicas": "30",
-        "limite_inscripciones": "2",
-        "conocimientos_previos": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
-        "requerimientos_implementos": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
-        "desempe\u00f1o_al_concluir": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
-        "promotor": "3",
+        "costo": "90.15",
+        "horas_cronologicas": "42",
+        "limite_inscripciones": "600",
+        "conocimientos_previos": "ninguno",
+        "requerimientos_implementos": "alguno",
+        "desempe\u00f1o_al_concluir": "algo",
+        "promotor": "2",
+        "autorizacion": "2",
+        "estado": "1",
         "modulos": {
-            "19": {
-                "id_modulo": "19",
-                "nombre_modulo": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
+            "3": {
+                "id_modulo": "3",
+                "nombre_modulo": "algo",
                 "numero": "1",
                 "contenido": [
-                    "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
-                    "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro"
+                    "algo"
                 ],
-                "actividad": "ninguna",
-                "instrumento": "ninguno"
-            },
-            "22": {
-                "id_modulo": "22",
-                "nombre_modulo": "algoaqui",
-                "numero": "2",
-                "contenido": [
-                    "dasdadsadasd",
-                    "asdasda",
-                    "asdadads"
-                ],
-                "actividad": "asdad",
-                "instrumento": "asdasdasd"
+                "actividad": "algo",
+                "instrumento": "algo"
             }
         },
         "config_firmas": {
             "1": {
-                "id_cargo_firmante": "3"
+                "id_cargo_firmante": ""
             },
             "2": {
-                "id_cargo_firmante": "2"
+                "id_cargo_firmante": "1"
             },
             "3": {
                 "id_cargo_firmante": ""
@@ -71,22 +61,13 @@
     },
     "modules_edit": [
         {
-            "id_modulo": 19,
-            "id_curso": "14",
-            "nombre_modulo": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
-            "contenido": "[El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro][El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro]",
+            "id_modulo": 3,
+            "id_curso": "5",
+            "nombre_modulo": "algo",
+            "contenido": "[algo]",
             "numero": "1",
-            "actividad": "ninguna",
-            "instrumento": "ninguno"
-        },
-        {
-            "id_modulo": 22,
-            "id_curso": "14",
-            "nombre_modulo": "algoaqui",
-            "contenido": "[dasdadsadasd][asdasda][asdadads]",
-            "numero": "2",
-            "actividad": "asdad",
-            "instrumento": "asdasdasd"
+            "actividad": "algo",
+            "instrumento": "algo"
         }
     ],
     "modules_new": [],

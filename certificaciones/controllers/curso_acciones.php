@@ -5,14 +5,16 @@ include '../config/model.php';
 // Crear una instancia de la clase DB
 $db = new DB();
 
-function write_log($message) {
+function write_log($message)
+{
     $log_file = '../controllers/log.txt';
     $current_time = date('Y-m-d H:i:s');
     file_put_contents($log_file, "[$current_time] $message\n", FILE_APPEND);
 }
 
 // Crear una función para validar los datos de inscripción
-function validar_inscripcion($id_usuario, $curso_id) {
+function validar_inscripcion($id_usuario, $curso_id)
+{
     // Verificar que los datos no estén vacíos
     if (empty($id_usuario) || empty($curso_id)) {
         return false;
@@ -26,7 +28,8 @@ function validar_inscripcion($id_usuario, $curso_id) {
 }
 
 // Crear una función para validar los datos de cancelación de inscripción
-function validar_cancelacion($id_usuario, $curso_id) {
+function validar_cancelacion($id_usuario, $curso_id)
+{
     // Verificar que los datos no estén vacíos
     if (empty($id_usuario) || empty($curso_id)) {
         return false;
@@ -40,7 +43,8 @@ function validar_cancelacion($id_usuario, $curso_id) {
 }
 
 // Crear una función para validar los datos de finalización de curso
-function validar_finalizacion($id_usuario, $curso_id) {
+function validar_finalizacion($id_usuario, $curso_id)
+{
     // Verificar que los datos no estén vacíos
     if (empty($id_usuario) || empty($curso_id)) {
         return false;
@@ -54,7 +58,12 @@ function validar_finalizacion($id_usuario, $curso_id) {
 }
 
 // Crear una función para redirigir al usuario a la página de perfil
-function redirigir_con_mensaje($mensaje, $tipo) {
+function redirigir_con_mensaje($mensaje, $tipo)
+{
+    if (isset($_POST['is_ajax'])) {
+        echo $mensaje;
+        exit();
+    }
     echo "<script>
         alert('$mensaje');
         window.location.href = document.referrer;
@@ -63,7 +72,11 @@ function redirigir_con_mensaje($mensaje, $tipo) {
 }
 
 // Crear una función para redirigir al usuario a la página de perfil
-function redirigir_perfil() {
+function redirigir_perfil()
+{
+    if (isset($_POST['is_ajax'])) {
+        exit();
+    }
     // Usar la función header para enviar el encabezado de redirección
     header('Location: ../public/perfil.php');
     // Terminar la ejecución del script
@@ -72,8 +85,11 @@ function redirigir_perfil() {
 
 // Obtener la acción del formulario
 $action = $_POST['action'];
+$is_ajax = isset($_POST['is_ajax']);
 
-echo '<div class="main-content">';
+if (!$is_ajax) {
+    echo '<div class="main-content">';
+}
 
 // Ejecutar la acción correspondiente
 switch ($action) {
@@ -118,59 +134,59 @@ switch ($action) {
         // Obtener los datos del formulario
         $id_usuario = $_POST['id_usuario'];
         $curso_id = $_POST['curso_id'];
-        // Validar los datos
         if (validar_cancelacion($id_usuario, $curso_id)) {
             // Verificar si el curso está finalizado
             $stmt = $db->prepare('SELECT completado FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
             $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
             $finalizado = $stmt->fetchColumn();
             if ($finalizado) {
-                // Mostrar un mensaje al usuario
-                echo '<p>No puedes cancelar tu inscripción porque el curso ya está finalizado.</p>';
+                $mensaje = 'No puedes cancelar tu inscripción porque el curso ya está finalizado.';
+                echo $is_ajax ? $mensaje : "<p>$mensaje</p>";
             } else {
                 // Eliminar los datos de la base de datos
                 try {
                     $stmt = $db->prepare('DELETE FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
                     $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
-                    // Mostrar un mensaje de éxito al usuario
-                    echo '<p>Has cancelado tu suscripción al curso</p>';
+                    $mensaje = 'Has cancelado tu suscripción al curso';
+                    echo $is_ajax ? $mensaje : "<p>$mensaje</p>";
                 } catch (PDOException $e) {
-                    // Mostrar un mensaje de error al usuario
-                    echo '<p>Ha ocurrido un error al cancelar tu suscripción al curso: ' . $e->getMessage() . '</p>';
+                    $mensaje = 'Ha ocurrido un error al cancelar tu suscripción al curso: ' . $e->getMessage();
+                    echo $is_ajax ? $mensaje : "<p>$mensaje</p>";
                 }
             }
         } else {
-            // Mostrar un mensaje de error al usuario
-            echo '<p>Los datos de cancelación son inválidos</p>';
+            $mensaje = 'Los datos de cancelación son inválidos';
+            echo $is_ajax ? $mensaje : "<p>$mensaje</p>";
         }
         redirigir_perfil();
-        break;        
+        break;
     case 'finalizar_curso':
         // Obtener los datos del formulario
         $id_usuario = $_POST['id_usuario'];
         $curso_id = $_POST['curso_id'];
-        // Validar los datos
         if (validar_finalizacion($id_usuario, $curso_id)) {
             // Actualizar los datos en la base de datos
             try {
                 $stmt = $db->prepare('UPDATE cursos.certificaciones SET finalizado = true, fecha_finalizacion = NOW() WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
                 $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
-                // Mostrar un mensaje de éxito al usuario
-                echo '<p>Has finalizado el curso correctamente</p>';
+                $mensaje = 'Has finalizado el curso correctamente';
+                echo $is_ajax ? $mensaje : "<p>$mensaje</p>";
             } catch (PDOException $e) {
-                // Mostrar un mensaje de error al usuario
-                echo '<p>Ha ocurrido un error al finalizar el curso: ' . $e->getMessage() . '</p>';
+                $mensaje = 'Ha ocurrido un error al finalizar el curso: ' . $e->getMessage();
+                echo $is_ajax ? $mensaje : "<p>$mensaje</p>";
             }
         } else {
-            // Mostrar un mensaje de error al usuario
-            echo '<p>Los datos de finalización son inválidos</p>';
+            $mensaje = 'Los datos de finalización son inválidos';
+            echo $is_ajax ? $mensaje : "<p>$mensaje</p>";
         }
         break;
     default:
-        // Mostrar un mensaje de error al usuario
-        echo '<p>Acción inválida</p>';
+        $mensaje = 'Acción inválida';
+        echo $is_ajax ? $mensaje : "<p>$mensaje</p>";
         break;
 }
 
-echo '</div>';
+if (!$is_ajax) {
+    echo '</div>';
+}
 ?>

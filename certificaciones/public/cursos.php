@@ -22,15 +22,15 @@ try {
         $tipo_cursos = [$tipo_curso, $tipo_curso . '_rectoria'];
 
         // Ajustar la consulta SQL para incluir ambas opciones
-        $stmt = $db->prepare('SELECT * FROM cursos.cursos WHERE tipo_curso IN (:tipo_curso1, :tipo_curso2) AND estado = :estado');
+        $stmt = $db->prepare('SELECT * FROM cursos.cursos WHERE tipo_curso IN (:tipo_curso1, :tipo_curso2) AND estado = :estado AND autorizacion IS NOT NULL');
         $stmt->execute([
-            'tipo_curso1' => $tipo_cursos[0], 
-            'tipo_curso2' => $tipo_cursos[1], 
+            'tipo_curso1' => $tipo_cursos[0],
+            'tipo_curso2' => $tipo_cursos[1],
             'estado' => $estado
         ]);
     } else {
         // Si no se especifica un tipo de curso, filtrar solo por estado
-        $stmt = $db->prepare('SELECT * FROM cursos.cursos WHERE estado = :estado');
+        $stmt = $db->prepare('SELECT * FROM cursos.cursos WHERE estado = :estado AND autorizacion IS NOT NULL');
         $stmt->execute(['estado' => true]);
     }
 
@@ -44,7 +44,7 @@ try {
         $stmt2 = $db->prepare('SELECT * FROM cursos.certificaciones WHERE curso_id = :curso_id AND id_usuario = :id_usuario');
         $stmt2->execute(['curso_id' => $curso['id_curso'], 'id_usuario' => $_SESSION['user_id']]);
         $inscripcion = $stmt2->fetch();
-    
+
         // Si el usuario no está inscrito en el curso, mostrarlo
         if (!$inscripcion) {
             echo '<div class="col-md-4">';
@@ -57,7 +57,7 @@ try {
             echo '</div>';
             echo '</div>';
         }
-    }    
+    }
     echo '</div>';
     echo '</div>';
 } catch (PDOException $e) {

@@ -21,90 +21,221 @@ $id_curso = $_GET['id_curso'];
 $curso_editar = $curso->obtener_curso($id_curso);
 
 // Mostrar un formulario para editar el curso con los datos actuales
-echo '<div class="main-content">';
-echo '<h3>Editar curso</h3>';
-echo '<form action="../controllers/curso_controlador.php" method="post">';
-echo '<input type="hidden" name="action" value="editar">';
-echo '<input type="hidden" name="id_curso" value="' . $id_curso . '">';
-echo '<p>Nombre del curso: <input type="text" name="nombre_curso" value="' . htmlspecialchars($curso_editar['nombre_curso']) . '" required></p>';
-echo '<p>Descripción: <textarea name="descripcion" required>' . htmlspecialchars($curso_editar['descripcion']) . '</textarea></p>';
-echo '<p>Semanas: <input type="number" name="tiempo_asignado" value="' . htmlspecialchars($curso_editar['tiempo_asignado']) . '" min="1" required></p>';
-echo '<p>Fecha de inicio: <input type="date" name="inicio_mes" value="' . htmlspecialchars($curso_editar['inicio_mes']) . '" required></p>';
-echo '<p>Tipo de curso: <select name="tipo_curso" required>';
-echo '<option value="masterclass"' . ($curso_editar['tipo_curso'] == 'masterclass' ? ' selected' : '') . '>Masterclass</option>';
-echo '<option value="seminario"' . ($curso_editar['tipo_curso'] == 'seminario' ? ' selected' : '') . '>Seminario</option>';
-echo '<option value="diplomado"' . ($curso_editar['tipo_curso'] == 'diplomado' ? ' selected' : '') . '>Diplomado</option>';
-echo '<option value="congreso"' . ($curso_editar['tipo_curso'] == 'congreso' ? ' selected' : '') . '>Congreso</option>';
-echo '<option value="charla"' . ($curso_editar['tipo_curso'] == 'charla' ? ' selected' : '') . '>Charla</option>';
-echo '<option value="taller"' . ($curso_editar['tipo_curso'] == 'taller' ? ' selected' : '') . '>taller</option>';
-echo '<option value="curso"' . ($curso_editar['tipo_curso'] == 'curso' ? ' selected' : '') . '>Curso</option>';
-echo '<option value="masterclass_rectoria"' . ($curso_editar['tipo_curso'] == 'masterclass_rectoria' ? ' selected' : '') . '>Masterclass Rectoría</option>';
-echo '<option value="seminario_rectoria"' . ($curso_editar['tipo_curso'] == 'seminario_rectoria' ? ' selected' : '') . '>Seminario Rectoría</option>';
-echo '<option value="diplomado_rectoria"' . ($curso_editar['tipo_curso'] == 'diplomado_rectoria' ? ' selected' : '') . '>Diplomado Rectoría</option>';
-echo '<option value="congreso_rectoria"' . ($curso_editar['tipo_curso'] == 'congreso_rectoria' ? ' selected' : '') . '>Congreso Rectoría</option>';
-echo '<option value="charla_rectoria"' . ($curso_editar['tipo_curso'] == 'charla_rectoria' ? ' selected' : '') . '>Charla Rectoría</option>';
-echo '<option value="taller_rectoria"' . ($curso_editar['tipo_curso'] == 'taller_rectoria' ? ' selected' : '') . '>Taller Rectoría</option>';
-echo '<option value="curso_rectoria"' . ($curso_editar['tipo_curso'] == 'curso_rectoria' ? ' selected' : '') . '>Curso Rectoría</option>';
-echo '</select></p>';
-echo '<p>Límite de inscripciones: <input type="number" name="limite_inscripciones" value="' . htmlspecialchars($curso_editar['limite_inscripciones']) . '" min="1" required></p>';
-echo '<p>Días de clase:</p>';
-$dias_clase = explode(',', trim($curso_editar['dias_clase'], '{}'));
-$dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-foreach ($dias as $dia) {
-    echo '<p><input type="checkbox" name="dias_clase[]" value="' . $dia . '"' . (in_array($dia, $dias_clase) ? ' checked' : '') . '> ' . $dia . '</p>';
-}
-echo '<p>Horario de inicio: <input type="time" name="horario_inicio" value="' . htmlspecialchars($curso_editar['horario_inicio']) . '" required></p>';
-echo '<p>Horario de fin: <input type="time" name="horario_fin" value="' . htmlspecialchars($curso_editar['horario_fin']) . '" required></p>';
-echo '<p>Nivel del curso: <select name="nivel_curso" required>';
-echo '<option value="introductorio"' . ($curso_editar['nivel_curso'] == 'introductorio' ? ' selected' : '') . '>Introductorio</option>';
-echo '<option value="medio"' . ($curso_editar['nivel_curso'] == 'medio' ? ' selected' : '') . '>Medio</option>';
-echo '<option value="avanzado"' . ($curso_editar['nivel_curso'] == 'avanzado' ? ' selected' : '') . '>Avanzado</option>';
-echo '</select></p>';
-echo '<p>Estado: <select name="estado" required>';
-echo '<option value="1"' . ($curso_editar['estado'] == true ? ' selected' : '') . '>Activo</option>';
-echo '<option value="0"' . ($curso_editar['estado'] == false ? ' selected' : '') . '>Inactivo / Finalizado</option>';
-echo '</select></p>';
-echo '<p>Costo: <input type="number" name="costo" value="' . htmlspecialchars($curso_editar['costo']) . '" step="0.01" required></p>';
-echo '<p>Conocimientos previos: <textarea name="conocimientos_previos" required>' . htmlspecialchars($curso_editar['conocimientos_previos']) . '</textarea></p>';
-echo '<p>Requerimientos e implementos: <textarea name="requerimientos_implementos" required>' . htmlspecialchars($curso_editar['requerimientos_implemento']) . '</textarea></p>';
-echo '<p>Desempeño al concluir: <textarea name="desempeño_al_concluir" required>' . htmlspecialchars($curso_editar['desempeno_al_concluir']) . '</textarea></p>';
-
-// Mostrar los módulos del curso
-echo '<h4>Módulos del curso</h4>';
-echo '<div id="moduleContainer">';
-
-// Ajuste en el formulario para añadir campos ocultos
-foreach ($curso_editar['modulos'] as $modulo) {
-    echo '<div class="module">';
-    echo '<input type="hidden" name="id_modulo[]" value="' . htmlspecialchars($modulo['id_modulo']) . '">';
-    echo '<input type="hidden" name="id_curso_modulo[]" value="' . htmlspecialchars($id_curso) . '">';
-    echo '<p>Nombre del módulo: <input type="text" name="nombre_modulo[]" value="' . htmlspecialchars($modulo['nombre_modulo']) . '" required></p>';
-    echo '<div class="container-contenido">';
-    $contenidos = explode('][', trim($modulo['contenido'], '[]'));
-    foreach ($contenidos as $contenido) {
-        echo '<textarea name="contenido[]" required>' . htmlspecialchars($contenido) . '</textarea>';
-        // Añadir campo oculto para el número y ID del módulo
-        echo '<input type="hidden" name="numero_modulo_contenido[]" value="' . htmlspecialchars($modulo['numero']) . '">';
-        echo '<input type="hidden" name="id_modulo_contenido[]" value="' . htmlspecialchars($modulo['id_modulo']) . '">';
-        echo '<button type="button" onclick="quitarContenido(this)">Quitar contenido</button>';
-    }
-    echo '</div>';
-    echo '<button type="button" onclick="agregarContenido(this)">Agregar contenido</button>';
-    echo '<p>Actividad: <input type="text" name="actividad_modulo[]" value="' . htmlspecialchars($modulo['actividad']) . '" required></p>';
-    echo '<p>Instrumento: <input type="text" name="instrumento_modulo[]" value="' . htmlspecialchars($modulo['instrumento']) . '" required></p>';
-    echo '<p>Número: <input type="number" name="numero_modulo[]" value="' . htmlspecialchars($modulo['numero']) . '" required></p>';
-    echo '</div>';
-}
-
-echo '</div>'; // Fin de moduleContainer
-
-// Botón para agregar nuevos módulos
-echo '<button type="button" id="addModuleBtn" class="btn btn-secondary">Agregar Módulo</button>';
-
-echo '<p><input type="submit" value="Editar curso"></p>';
-echo '</form>';
-echo '</div>';
 ?>
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="h3 text-gray-800">Editar Postulación: <?= htmlspecialchars($curso_editar['nombre_curso']) ?></h3>
+        <button type="button" class="btn btn-secondary btn-sm"
+            onclick="loadPage('../public/gestion_cursos.php', {action: 'ver'})"><i class="fas fa-arrow-left me-1"></i>
+            Volver a Postulaciones</button>
+    </div>
+
+    <form id="crearCursoForm" method="post">
+        <input type="hidden" name="action" value="editar">
+        <input type="hidden" name="id_curso" value="<?= $id_curso ?>">
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Información General</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Nombre del curso:</label>
+                    <input type="text" class="form-control" name="nombre_curso"
+                        value="<?= htmlspecialchars($curso_editar['nombre_curso']) ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Descripción:</label>
+                    <textarea class="form-control" name="descripcion"
+                        required><?= htmlspecialchars($curso_editar['descripcion']) ?></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Tipo de curso:</label>
+                        <select class="form-select" name="tipo_curso" required>
+                            <?php $tipos = ['masterclass', 'seminario', 'diplomado', 'congreso', 'charla', 'taller', 'curso', 'masterclass_rectoria', 'seminario_rectoria', 'diplomado_rectoria', 'congreso_rectoria', 'charla_rectoria', 'taller_rectoria', 'curso_rectoria']; ?>
+                            <?php foreach ($tipos as $tipo): ?>
+                                <option value="<?= $tipo ?>" <?= ($curso_editar['tipo_curso'] == $tipo) ? 'selected' : '' ?>>
+                                    <?= ucfirst(str_replace('_', ' ', $tipo)) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Nivel del curso:</label>
+                        <select class="form-select" name="nivel_curso" required>
+                            <option value="introductorio" <?= ($curso_editar['nivel_curso'] == 'introductorio' ? 'selected' : '') ?>>Introductorio</option>
+                            <option value="medio" <?= ($curso_editar['nivel_curso'] == 'medio' ? 'selected' : '') ?>>Medio
+                            </option>
+                            <option value="avanzado" <?= ($curso_editar['nivel_curso'] == 'avanzado' ? 'selected' : '') ?>>
+                                Avanzado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Estado:</label>
+                        <select class="form-select" name="estado" required>
+                            <option value="1" <?= ($curso_editar['estado'] == true ? 'selected' : '') ?>>Activo</option>
+                            <option value="0" <?= ($curso_editar['estado'] == false ? 'selected' : '') ?>>Inactivo /
+                                Finalizado</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Fechas y Horarios</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Fecha de inicio:</label>
+                        <input class="form-control" type="date" name="inicio_mes"
+                            value="<?= htmlspecialchars($curso_editar['inicio_mes']) ?>" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Duración (semanas):</label>
+                        <input class="form-control" type="number" name="tiempo_asignado"
+                            value="<?= htmlspecialchars($curso_editar['tiempo_asignado']) ?>" min="1" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Horario de inicio:</label>
+                        <input class="form-control" type="time" name="horario_inicio"
+                            value="<?= htmlspecialchars($curso_editar['horario_inicio']) ?>" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Horario de fin:</label>
+                        <input class="form-control" type="time" name="horario_fin"
+                            value="<?= htmlspecialchars($curso_editar['horario_fin']) ?>" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label d-block">Días de clase:</label>
+                    <div class="p-2 border rounded bg-light">
+                        <?php
+                        $dias_clase = explode(',', trim($curso_editar['dias_clase'], '{}'));
+                        $dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+                        foreach ($dias as $dia): ?>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="dias_clase[]" value="<?= $dia ?>"
+                                    id="dia_<?= $dia ?>" <?= (in_array($dia, $dias_clase) ? 'checked' : '') ?>>
+                                <label class="form-check-label" for="dia_<?= $dia ?>"><?= ucfirst($dia) ?></label>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Detalles Académicos</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Límite de inscripciones:</label>
+                        <input class="form-control" type="number" name="limite_inscripciones"
+                            value="<?= htmlspecialchars($curso_editar['limite_inscripciones']) ?>" min="1" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Costo:</label>
+                        <input class="form-control" type="number" name="costo"
+                            value="<?= htmlspecialchars($curso_editar['costo']) ?>" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Conocimientos previos:</label>
+                    <textarea class="form-control" name="conocimientos_previos"
+                        required><?= htmlspecialchars($curso_editar['conocimientos_previos']) ?></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Requerimientos e implementos:</label>
+                    <textarea class="form-control" name="requerimientos_implementos"
+                        required><?= htmlspecialchars($curso_editar['requerimientos_implemento']) ?></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Desempeño al concluir:</label>
+                    <textarea class="form-control" name="desempeño_al_concluir"
+                        required><?= htmlspecialchars($curso_editar['desempeno_al_concluir']) ?></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Módulos del Curso</h6>
+                <button type="button" id="addModuleBtn" class="btn btn-success btn-sm"><i class="fas fa-plus"></i>
+                    Agregar Módulo</button>
+            </div>
+            <div class="card-body">
+                <div id="moduleContainer">
+                    <?php foreach ($curso_editar['modulos'] as $modulo): ?>
+                        <div class="module p-3 border rounded border-left-info bg-light mb-3">
+                            <input type="hidden" name="id_modulo[]" value="<?= htmlspecialchars($modulo['id_modulo']) ?>">
+                            <input type="hidden" name="id_curso_modulo[]" value="<?= htmlspecialchars($id_curso) ?>">
+
+                            <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label">Nombre del módulo:</label>
+                                    <input type="text" class="form-control" name="nombre_modulo[]"
+                                        value="<?= htmlspecialchars($modulo['nombre_modulo']) ?>" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Número:</label>
+                                    <input type="number" class="form-control" name="numero_modulo[]"
+                                        value="<?= htmlspecialchars($modulo['numero']) ?>" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label d-flex justify-content-between">Contenido <button type="button"
+                                        class="btn btn-secondary btn-sm" onclick="agregarContenido(this)"><i
+                                            class="fas fa-plus"></i></button></label>
+                                <div class="container-contenido">
+                                    <?php $contenidos = explode('][', trim($modulo['contenido'], '[]')); ?>
+                                    <?php foreach ($contenidos as $contenido): ?>
+                                        <div class="d-flex mb-2">
+                                            <textarea class="form-control me-2" name="contenido[]" rows="2"
+                                                required><?= htmlspecialchars($contenido) ?></textarea>
+                                            <input type="hidden" name="numero_modulo_contenido[]"
+                                                value="<?= htmlspecialchars($modulo['numero']) ?>">
+                                            <input type="hidden" name="id_modulo_contenido[]"
+                                                value="<?= htmlspecialchars($modulo['id_modulo']) ?>">
+                                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                                onclick="quitarContenido(this)"><i class="fas fa-minus"></i></button>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Actividad:</label>
+                                    <input type="text" class="form-control" name="actividad_modulo[]"
+                                        value="<?= htmlspecialchars($modulo['actividad']) ?>" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Instrumento:</label>
+                                    <input type="text" class="form-control" name="instrumento_modulo[]"
+                                        value="<?= htmlspecialchars($modulo['instrumento']) ?>" required>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-end mb-4">
+            <button type="submit" class="btn btn-primary btn-lg shadow"><i class="fas fa-save me-2"></i>Guardar
+                Cambios</button>
+        </div>
+    </form>
+</div>
+
 
 <script>
     document.getElementById('addModuleBtn').addEventListener('click', addModuleFields);
@@ -118,7 +249,7 @@ echo '</div>';
         var buttonQuitarContenido = document.createElement('button');
         buttonQuitarContenido.type = 'button';
         buttonQuitarContenido.textContent = 'Quitar contenido';
-        buttonQuitarContenido.onclick = function() {
+        buttonQuitarContenido.onclick = function () {
             containerContenido.removeChild(newTextArea);
             containerContenido.removeChild(buttonQuitarContenido);
         };
@@ -146,40 +277,40 @@ echo '</div>';
     }
 
     function combineContentsBeforeSubmit() {
-    var modules = document.getElementsByClassName('module');
-    for (var i = 0; i < modules.length; i++) {
-        var containerContenido = modules[i].getElementsByClassName('container-contenido')[0];
-        var textareas = containerContenido.getElementsByTagName('textarea');
-        var combinedContent = '';
-        for (var j = 0; j < textareas.length; j++) {
-            combinedContent += '[' + textareas[j].value + ']';
-        }
-        if (textareas.length > 0) {
-            textareas[0].value = combinedContent;
-            while (textareas.length > 1) {
-                containerContenido.removeChild(textareas[1]);
+        var modules = document.getElementsByClassName('module');
+        for (var i = 0; i < modules.length; i++) {
+            var containerContenido = modules[i].getElementsByClassName('container-contenido')[0];
+            var textareas = containerContenido.getElementsByTagName('textarea');
+            var combinedContent = '';
+            for (var j = 0; j < textareas.length; j++) {
+                combinedContent += '[' + textareas[j].value + ']';
+            }
+            if (textareas.length > 0) {
+                textareas[0].value = combinedContent;
+                while (textareas.length > 1) {
+                    containerContenido.removeChild(textareas[1]);
+                }
             }
         }
     }
-}
 
-document.getElementById('crearCursoForm').onsubmit = function(e) {
-    e.preventDefault();
-    combineContentsBeforeSubmit(); // Combinar contenidos antes de enviar
-    var formData = new FormData(this);
-    $.ajax({
-        url: '../controllers/curso_controlador.php',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-            alert(response);
-            window.location.href = '../public/perfil.php?seccion=ver_postulaciones';
-        },
-        error: function() {
-            alert('Error al crear el curso.');
-        }
-    });
-};
+    document.getElementById('crearCursoForm').onsubmit = function (e) {
+        e.preventDefault();
+        combineContentsBeforeSubmit(); // Combinar contenidos antes de enviar
+        var formData = new FormData(this);
+        $.ajax({
+            url: '../controllers/curso_controlador.php',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                alert(response);
+                loadPage('../public/gestion_cursos.php', { action: 'ver' });
+            },
+            error: function () {
+                alert('Error al editar el curso.');
+            }
+        });
+    };
 </script>

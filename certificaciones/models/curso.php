@@ -16,12 +16,24 @@ class Curso
     }
 
     public function crearCursoCompleto(
-        $nombre, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso,
-        $limite_inscripciones, $dias_clase, $horario_inicio, $horario_fin,
-        $nivel_curso, $costo, $conocimientos_previos, $requerimientos_implemento,
-        $desempeno_al_concluir, $promotor_id, $modulos = [], $configuracion_firmas = []
-        )
-    {
+        $nombre,
+        $descripcion,
+        $tiempo_asignado,
+        $inicio_mes,
+        $tipo_curso,
+        $limite_inscripciones,
+        $dias_clase,
+        $horario_inicio,
+        $horario_fin,
+        $nivel_curso,
+        $costo,
+        $conocimientos_previos,
+        $requerimientos_implemento,
+        $desempeno_al_concluir,
+        $promotor_id,
+        $modulos = [],
+        $configuracion_firmas = []
+    ) {
         // Iniciamos la transacción. O todo se guarda, o nada se guarda.
         $this->pdo->beginTransaction();
 
@@ -31,14 +43,21 @@ class Curso
 
             $stmt_curso = $this->pdo->prepare($sql_curso);
             $stmt_curso->execute([
-                'nombre_curso' => $nombre, 'descripcion' => $descripcion,
-                'tiempo_asignado' => $tiempo_asignado, 'inicio_mes' => $inicio_mes,
-                'tipo_curso' => $tipo_curso, 'limite_inscripciones' => $limite_inscripciones,
-                'dias_clase' => $dias_clase, 'horario_inicio' => $horario_inicio,
-                'horario_fin' => $horario_fin, 'nivel_curso' => $nivel_curso,
-                'costo' => $costo, 'conocimientos_previos' => $conocimientos_previos,
+                'nombre_curso' => $nombre,
+                'descripcion' => $descripcion,
+                'tiempo_asignado' => $tiempo_asignado,
+                'inicio_mes' => $inicio_mes,
+                'tipo_curso' => $tipo_curso,
+                'limite_inscripciones' => $limite_inscripciones,
+                'dias_clase' => $dias_clase,
+                'horario_inicio' => $horario_inicio,
+                'horario_fin' => $horario_fin,
+                'nivel_curso' => $nivel_curso,
+                'costo' => $costo,
+                'conocimientos_previos' => $conocimientos_previos,
                 'requerimientos_implemento' => $requerimientos_implemento,
-                'desempeno_al_concluir' => $desempeno_al_concluir, 'promotor' => $promotor_id
+                'desempeno_al_concluir' => $desempeno_al_concluir,
+                'promotor' => $promotor_id
             ]);
             $curso_id = $stmt_curso->fetchColumn();
 
@@ -84,8 +103,7 @@ class Curso
             $this->pdo->commit();
             return true; // Devolvemos true para indicar éxito
 
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             // Si algo falló en cualquier punto, revertimos todos los cambios.
             $this->pdo->rollBack();
             error_log("Error al crear curso completo: " . $e->getMessage());
@@ -109,8 +127,7 @@ class Curso
                 ':instrumento' => $instrumento,
                 ':numero' => $numero
             ]);
-        }
-        catch (PDOException $e) {
+        } catch (PDOException $e) {
             // Lanza la excepción para que sea capturada por el rollBack del método editar().
             throw $e;
         }
@@ -131,19 +148,33 @@ class Curso
     }
 
     public function editar(
-        $id_curso, $nombre_curso, $descripcion, $tiempo_asignado, $inicio_mes, $tipo_curso,
-        $limite_inscripciones, $promotor, $dias_clase_pg, $horario_inicio, $horario_fin,
-        $nivel_curso, $costo, $conocimientos_previos,
+        $id_curso,
+        $nombre_curso,
+        $descripcion,
+        $tiempo_asignado,
+        $inicio_mes,
+        $tipo_curso,
+        $limite_inscripciones,
+        $promotor,
+        $dias_clase_pg,
+        $horario_inicio,
+        $horario_fin,
+        $nivel_curso,
+        $costo,
+        $conocimientos_previos,
         // Módulos a Editar (EXISTENTES)
         $modulos_a_editar,
-        $requerimientos_implemento, $desempeno_al_concluir, $horas_cronologicas,
-        $fecha_finalizacion, $firma_digital,
-        $autorizacion = null, $configuracion_firmas = [],
+        $requerimientos_implemento,
+        $desempeno_al_concluir,
+        $horas_cronologicas,
+        $fecha_finalizacion,
+        $firma_digital,
+        $autorizacion = null,
+        $configuracion_firmas = [],
         // IDs de Módulos a Eliminar (NUEVO)
         $modulos_a_eliminar_ids = '',
         $estado = '1'
-        )
-    {
+    ) {
 
         // Restauramos la transacción para un guardado seguro
         $this->pdo->beginTransaction();
@@ -151,12 +182,22 @@ class Curso
         try {
             // PASO 1: Actualizar la tabla principal 'cursos'
             $params = [
-                ':nombre_curso' => $nombre_curso, ':descripcion' => $descripcion, ':promotor' => $promotor,
-                ':tiempo_asignado' => $tiempo_asignado, ':inicio_mes' => $inicio_mes, ':tipo_curso' => $tipo_curso,
-                ':limite_inscripciones' => $limite_inscripciones, ':dias_clase' => $dias_clase_pg, ':horario_inicio' => $horario_inicio,
-                ':horario_fin' => $horario_fin, ':nivel_curso' => $nivel_curso, ':costo' => $costo,
-                ':conocimientos_previos' => $conocimientos_previos, ':requerimientos_implemento' => $requerimientos_implemento,
-                ':desempeno_al_concluir' => $desempeno_al_concluir, ':horas_cronologicas' => $horas_cronologicas,
+                ':nombre_curso' => $nombre_curso,
+                ':descripcion' => $descripcion,
+                ':promotor' => $promotor,
+                ':tiempo_asignado' => $tiempo_asignado,
+                ':inicio_mes' => $inicio_mes,
+                ':tipo_curso' => $tipo_curso,
+                ':limite_inscripciones' => $limite_inscripciones,
+                ':dias_clase' => $dias_clase_pg,
+                ':horario_inicio' => $horario_inicio,
+                ':horario_fin' => $horario_fin,
+                ':nivel_curso' => $nivel_curso,
+                ':costo' => $costo,
+                ':conocimientos_previos' => $conocimientos_previos,
+                ':requerimientos_implemento' => $requerimientos_implemento,
+                ':desempeno_al_concluir' => $desempeno_al_concluir,
+                ':horas_cronologicas' => $horas_cronologicas,
                 ':fecha_finalizacion' => $fecha_finalizacion,
                 ':firma_digital' => $firma_digital ? 'true' : 'false',
                 ':estado' => $estado == '1' || $estado == 'true' || $estado === true ? 'true' : 'false',
@@ -231,8 +272,7 @@ class Curso
             $this->pdo->commit();
             return true;
 
-        }
-        catch (PDOException $e) {
+        } catch (PDOException $e) {
             // Si algo falló, revertimos todos los cambios para no dejar datos corruptos.
             $this->pdo->rollBack();
             error_log("Error al editar curso: " . $e->getMessage()); // Registrar el error en el log del servidor
@@ -253,8 +293,7 @@ class Curso
             $stmt = $this->pdo->prepare('DELETE FROM cursos.cursos WHERE id_curso = :id');
             $stmt->execute(['id' => $id_curso]);
 
-        }
-        catch (PDOException $e) {
+        } catch (PDOException $e) {
             echo '<p>Error al eliminar el curso: ' . $e->getMessage() . '</p>';
         }
     }
@@ -266,8 +305,7 @@ class Curso
         try {
             $stmt = $this->pdo->prepare('UPDATE cursos.cursos SET estado = :estado WHERE id_curso = :id');
             $stmt->execute(['estado' => 'FALSE', 'id' => $id_curso]);
-        }
-        catch (PDOException $e) {
+        } catch (PDOException $e) {
             // Mostrar un mensaje de error al usuario
             echo '<p>Ha ocurrido un error al finalizar el curso: ' . $e->getMessage() . '</p>';
         }
@@ -352,6 +390,37 @@ class Curso
 
     public function obtener_nota($id_curso, $id_usuario)
     {
+        // 1. Verificar si es diplomado y tiene nota global calculada
+        $stmt_tipo = $this->pdo->prepare("SELECT tipo_curso FROM cursos.cursos WHERE id_curso = :id_curso");
+        $stmt_tipo->execute([':id_curso' => $id_curso]);
+        $tipo = $stmt_tipo->fetchColumn();
+
+        if ($tipo && in_array(strtolower($tipo), ['diplomado', 'diplomado_rectoria'])) {
+            $sql_stats = "
+                SELECT AVG(promedio_materia) as promedio_decimal
+                FROM (
+                    SELECT SUM(np.calificacion_obtenida * (ac.ponderacion_porcentaje / 100.0)) as promedio_materia
+                    FROM cursos.notas_participante np
+                    JOIN cursos.actividades_config ac ON np.id_actividad_config = ac.id_actividad_config
+                    JOIN cursos.materias_bimestre m ON ac.id_materia_bimestre = m.id_materia_bimestre
+                    WHERE m.id_curso = :id_curso AND np.id_usuario = :id_usuario
+                    GROUP BY m.id_materia_bimestre
+                ) as promedios_por_materia
+            ";
+            $stmt_calc = $this->pdo->prepare($sql_stats);
+            $stmt_calc->execute([':id_curso' => $id_curso, ':id_usuario' => $id_usuario]);
+            $promedio = $stmt_calc->fetchColumn();
+
+            if ($promedio !== null) {
+                // Actualizar retroactivamente la tabla certificaciones si fue calculada
+                $nota_redondeada = round((float) $promedio);
+                $stmt_upd = $this->pdo->prepare("UPDATE cursos.certificaciones SET nota = :nota WHERE curso_id = :id_curso AND id_usuario = :id_usuario");
+                $stmt_upd->execute([':nota' => $nota_redondeada, ':id_curso' => $id_curso, ':id_usuario' => $id_usuario]);
+                return $nota_redondeada;
+            }
+        }
+
+        // 2. Si no es diplomado o no tiene promedio calculado, buscar nota manual
         $stmt = $this->pdo->prepare("SELECT nota FROM cursos.certificaciones WHERE curso_id = :id_curso AND id_usuario = :id_usuario");
         $stmt->execute([':id_curso' => $id_curso, ':id_usuario' => $id_usuario]);
         return $stmt->fetch(PDO::FETCH_ASSOC)['nota'];
@@ -381,8 +450,7 @@ class Curso
         try {
             $stmt = $this->pdo->prepare('UPDATE cursos.cursos SET estado = :estado WHERE id_curso = :id');
             $stmt->execute(['estado' => true, 'id' => $id_curso]);
-        }
-        catch (PDOException $e) {
+        } catch (PDOException $e) {
             // Mostrar un mensaje de error al usuario
             echo '<p>Ha ocurrido un error al iniciar el curso: ' . $e->getMessage() . '</p>';
         }
@@ -411,7 +479,7 @@ class Curso
         $stmt->bindParam(':id_usuario', $id_usuario, PDO::PARAM_INT);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ? (bool)$result['pago'] : false;
+        return $result ? (bool) $result['pago'] : false;
     }
 
     public function actualizar_pagado($id_curso, $id_usuario, $pagado)
@@ -514,8 +582,7 @@ class Curso
                     $data_firmante['nombre_cargo_certificado'] = 'Facilitador';
                 }
 
-            }
-            elseif ($config['id_cargo_firmante']) {
+            } elseif ($config['id_cargo_firmante']) {
                 // Esta parte busca otros firmantes desde la tabla 'cargos', la dejamos igual
                 $stmt_cargo = $this->pdo->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE id_cargo = :id");
                 $stmt_cargo->execute([':id' => $config['id_cargo_firmante']]);
@@ -543,8 +610,7 @@ class Curso
                         $imageData = file_get_contents($ruta_absoluta);
                         $imageType = mime_content_type($ruta_absoluta);
                         $firmante_info['firma_base64'] = 'data:' . $imageType . ';base64,' . base64_encode($imageData);
-                    }
-                    else {
+                    } else {
                         $firmante_info['cargo'] .= ' (Firma no encontrada)';
                     }
                 }
@@ -574,7 +640,7 @@ class Curso
                u.nombre AS nombre_promotor, u.apellido AS apellido_promotor, u.correo, u.cedula,
                m.id_modulo, m.nombre_modulo
         FROM cursos.cursos AS c
-        JOIN cursos.usuarios AS u ON c.promotor = u.id
+        JOIN cursos.usuarios AS u ON NULLIF(c.promotor, \'\')::integer = u.id
         LEFT JOIN cursos.modulos AS m ON c.id_curso = m.id_curso
         WHERE c.id_curso = :id_curso
     ');
@@ -599,21 +665,19 @@ class Curso
         $stmt = $this->pdo->prepare($sql);
 
         // Verificar y manejar valores vacíos
-        $tomo = !empty($tomo) ? (int)$tomo : null;
-        $folio = !empty($folio) ? (int)$folio : null;
+        $tomo = !empty($tomo) ? (int) $tomo : null;
+        $folio = !empty($folio) ? (int) $folio : null;
 
         // Manejar valores null
         if ($tomo === null) {
             $stmt->bindValue(':tomo', null, PDO::PARAM_NULL);
-        }
-        else {
+        } else {
             $stmt->bindValue(':tomo', $tomo, PDO::PARAM_INT);
         }
 
         if ($folio === null) {
             $stmt->bindValue(':folio', null, PDO::PARAM_NULL);
-        }
-        else {
+        } else {
             $stmt->bindValue(':folio', $folio, PDO::PARAM_INT);
         }
 
