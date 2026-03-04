@@ -43,8 +43,7 @@ function h($str)
         <div class="col-lg-5 mb-4">
             <div class="card shadow mb-4">
                 <div class="card-header py-3 bg-dark text-white">
-                    <h6 class="m-0 font-weight-bold"><i class="fas fa-university me-2"></i> Cuentas Destino (Dónde
-                        pagar)</h6>
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-university me-2"></i> Cuentas Destino (Dónde pagar)</h6>
                 </div>
                 <div class="card-body">
                     <?php if (empty($cuentasActivas)): ?>
@@ -79,8 +78,7 @@ function h($str)
                                             <?php endif; ?>
 
                                             <?php if (!empty($cuenta['numero_cuenta'])): ?>
-                                                <p class="mb-1"><strong>N° de Cuenta:</strong> <?= h($cuenta['numero_cuenta']) ?>
-                                                </p>
+                                                <p class="mb-1"><strong>N° de Cuenta:</strong> <?= h($cuenta['numero_cuenta']) ?></p>
                                             <?php endif; ?>
                                         </div>
                                     </div>
@@ -95,8 +93,7 @@ function h($str)
         <div class="col-lg-7 mb-4">
             <div class="card shadow mb-4 border-bottom-success">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-success"><i class="fas fa-file-upload me-2"></i> Reportar Pago
-                    </h6>
+                    <h6 class="m-0 font-weight-bold text-success"><i class="fas fa-file-upload me-2"></i> Reportar Pago</h6>
                 </div>
                 <div class="card-body">
                     <form id="formSubirPago" enctype="multipart/form-data">
@@ -113,33 +110,35 @@ function h($str)
                                     $costoTexto = $c['costo'] > 0 ? '$' . number_format($c['costo'], 2) : 'Gratis';
                                     ?>
                                     <option value="<?= $c['id_curso'] ?>">
-                                        <?= h($c['nombre_curso']) ?> - <?= $costoTexto ?>     <?= $estadoPago ?>
+                                        <?= h($c['nombre_curso']) ?> - <?= $costoTexto ?>    <?= $estadoPago ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
 
-                        <!-- Contenedor dinámico de materias -->
                         <div class="form-group mb-3" id="contenedorMaterias" style="display: none;">
-                            <label class="font-weight-bold">Seleccione la Materia (Opcional - Solo para pagos
-                                individuales):</label>
+                            <label class="font-weight-bold">Seleccione la Materia (Opcional - Solo para pagos individuales):</label>
                             <select name="id_materia_bimestre" id="select_materia" class="form-control">
                                 <option value="">-- Pago general del diplomado --</option>
                             </select>
-                            <small class="form-text text-muted">Si va a pagar una materia individual, selecciónela aquí.
-                                De lo contrario, déjelo en "Pago general del diplomado".</small>
+                            <small class="form-text text-muted">Si va a pagar una materia individual, selecciónela aquí. De lo contrario, déjelo en "Pago general del diplomado".</small>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 form-group mb-3">
-                                <label>Banco de Origen:</label>
-                                <input type="text" name="banco_origen" class="form-control"
-                                    placeholder="Ej: Banesco, Mercantil, Zelle" required>
+                            <div class="col-md-4 form-group mb-3">
+                                <label>Moneda:</label>
+                                <select name="moneda" id="select_moneda" class="form-control" required onchange="toggleReferencia()">
+                                    <option value="Bs">Bolívares (Bs)</option>
+                                    <option value="Divisas">Divisas ($)</option>
+                                </select>
                             </div>
-                            <div class="col-md-6 form-group mb-3">
+                            <div class="col-md-4 form-group mb-3">
+                                <label>Banco de Origen:</label>
+                                <input type="text" name="banco_origen" class="form-control" placeholder="Ej: Banesco, Zelle" required>
+                            </div>
+                            <div class="col-md-4 form-group mb-3" id="grupo_referencia">
                                 <label>N° de Referencia / Operación:</label>
-                                <input type="text" name="numero_operacion" class="form-control"
-                                    placeholder="Ej: 12345678" required>
+                                <input type="text" name="numero_operacion" id="input_numero_operacion" class="form-control" placeholder="Ej: 12345678" required>
                             </div>
                         </div>
 
@@ -147,9 +146,7 @@ function h($str)
                             <div class="col-md-6 form-group mb-3">
                                 <label>Monto Pagado:</label>
                                 <div class="input-group">
-                                    <div class="input-group-prepend"><span class="input-group-text">$</span></div>
-                                    <input type="number" step="0.01" name="monto" class="form-control"
-                                        placeholder="0.00" required>
+                                    <input type="number" step="0.01" name="monto" class="form-control" placeholder="0.00" required>
                                 </div>
                             </div>
                             <div class="col-md-6 form-group mb-3">
@@ -159,14 +156,12 @@ function h($str)
                         </div>
 
                         <div class="form-group mb-4">
-                            <label>Adjuntar Comprobante (PDF, JPG, PNG):</label>
-                            <input type="file" name="comprobante_archivo" class="form-control-file border p-2 rounded"
-                                accept=".pdf,.jpg,.jpeg,.png" required>
+                            <label>Adjuntar Comprobante (PDF, JPG, PNG) <span class="text-muted">(Opcional)</span>:</label>
+                            <input type="file" name="comprobante_archivo" class="form-control-file border p-2 rounded" accept=".pdf,.jpg,.jpeg,.png">
                         </div>
 
                         <div class="text-right">
-                            <button type="button" class="btn btn-success btn-lg shadow-sm"
-                                onclick="subirComprobantePago()">
+                            <button type="button" class="btn btn-success btn-lg shadow-sm" onclick="subirComprobantePago()">
                                 <i class="fas fa-paper-plane me-2"></i> Enviar Comprobante
                             </button>
                         </div>
@@ -203,42 +198,37 @@ function h($str)
                                 <tr>
                                     <td data-sort="<?= date('Y-m-d', strtotime($pago['fecha_subida'] ?? 'now')) ?>">
                                         <?= date('d/m/Y', strtotime($pago['fecha_pago'] ?? 'now')) ?><br>
-                                        <small class="text-muted">Subido:
-                                            <?= date('d/m/Y H:i', strtotime($pago['fecha_subida'] ?? 'now')) ?></small>
+                                        <small class="text-muted">Subido: <?= date('d/m/Y H:i', strtotime($pago['fecha_subida'] ?? 'now')) ?></small>
                                     </td>
                                     <td class="text-left font-weight-bold"><?= h($pago['nombre_curso']) ?></td>
-                                    <td><?= h($pago['numero_operacion']) ?><br><small
-                                            class="text-muted"><?= h($pago['banco_origen']) ?></small></td>
-                                    <td>$<?= number_format($pago['monto'], 2) ?></td>
+                                    <td><?= h($pago['numero_operacion']) ?><br><small class="text-muted"><?= h($pago['banco_origen']) ?></small></td>
+                                    <td>
+                                        <?= (isset($pago['moneda']) && $pago['moneda'] === 'Divisas') ? '$' : 'Bs. ' ?><?= number_format($pago['monto'], 2) ?>
+                                    </td>
                                     <td>
                                         <?php
                                         $badgeClass = 'badge-warning';
-                                        if ($pago['estado'] === 'Comprobado')
-                                            $badgeClass = 'badge-success';
-                                        if ($pago['estado'] === 'Rechazado')
-                                            $badgeClass = 'badge-danger';
+                                        if ($pago['estado'] === 'Comprobado') $badgeClass = 'badge-success';
+                                        if ($pago['estado'] === 'Rechazado') $badgeClass = 'badge-danger';
                                         ?>
                                         <span class="badge <?= $badgeClass ?> p-2 px-3"><?= h($pago['estado']) ?></span>
                                         <?php if (!empty($pago['observacion'])): ?>
-                                            <div class="mt-2 small text-muted font-italic text-wrap text-break"
-                                                style="max-width: 150px; margin: 0 auto; line-height: 1.1;">
+                                            <div class="mt-2 small text-muted font-italic text-wrap text-break" style="max-width: 150px; margin: 0 auto; line-height: 1.1;">
                                                 <?= h($pago['observacion']) ?>
                                             </div>
                                         <?php endif; ?>
                                     </td>
                                     <td>
                                         <div class="d-flex flex-column gap-1">
-                                            <a href="../public/<?= h($pago['archivo_ruta']) ?>" target="_blank"
-                                                class="btn btn-sm btn-info shadow-sm mb-1">
+                                            <a href="../public/<?= h($pago['archivo_ruta']) ?>" target="_blank" class="btn btn-sm btn-info shadow-sm mb-1">
                                                 <i class="fas fa-eye"></i> Ver
                                             </a>
                                             <?php if ($pago['estado'] === 'Pendiente' || $pago['estado'] === 'Rechazado'): ?>
                                                 <button type="button" class="btn btn-sm btn-warning shadow-sm mb-1 text-dark"
-                                                    onclick="abrirModalEditComprobante(<?= $pago['id_comprobante'] ?>, '<?= h($pago['banco_origen']) ?>', '<?= h($pago['numero_operacion']) ?>', <?= $pago['monto'] ?>, '<?= date('Y-m-d', strtotime($pago['fecha_pago'])) ?>')">
+                                                    onclick="abrirModalEditComprobante(<?= $pago['id_comprobante'] ?>, '<?= h($pago['banco_origen']) ?>', '<?= h($pago['numero_operacion']) ?>', <?= $pago['monto'] ?>, '<?= date('Y-m-d', strtotime($pago['fecha_pago'])) ?>', '<?= h($pago['moneda'] ?? 'Bs') ?>')">
                                                     <i class="fas fa-edit"></i> Editar
                                                 </button>
-                                                <button type="button" class="btn btn-sm btn-danger shadow-sm mb-1"
-                                                    onclick="eliminarMiComprobante(<?= $pago['id_comprobante'] ?>)">
+                                                <button type="button" class="btn btn-sm btn-danger shadow-sm mb-1" onclick="eliminarMiComprobante(<?= $pago['id_comprobante'] ?>)">
                                                     <i class="fas fa-trash"></i> Eliminar
                                                 </button>
                                             <?php endif; ?>
@@ -254,10 +244,8 @@ function h($str)
     </div>
 </div>
 
-<!-- Modal para Editar Comprobante -->
-<div class="modal fade" id="modalEditarComprobante" tabindex="-1" role="dialog" aria-hidden="true"
-    data-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<div class="modal fade" id="modalEditarComprobante" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-warning">
                 <h5 class="modal-title text-dark"><i class="fas fa-edit me-2"></i> Editar Pago</h5>
@@ -272,14 +260,20 @@ function h($str)
                     <input type="hidden" name="id_comprobante" id="edit_id_comprobante">
 
                     <div class="row">
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3">
+                            <label>Moneda:</label>
+                            <select name="moneda" id="edit_moneda" class="form-control" required onchange="toggleReferenciaEdit()">
+                                <option value="Bs">Bolívares (Bs)</option>
+                                <option value="Divisas">Divisas ($)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
                             <label>Banco de Origen:</label>
                             <input type="text" name="banco_origen" id="edit_banco_origen" class="form-control" required>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3" id="edit_grupo_referencia">
                             <label>N° de Referencia:</label>
-                            <input type="text" name="numero_operacion" id="edit_numero_operacion" class="form-control"
-                                required>
+                            <input type="text" name="numero_operacion" id="edit_numero_operacion" class="form-control" required>
                         </div>
                     </div>
 
@@ -287,9 +281,7 @@ function h($str)
                         <div class="col-md-6 form-group mb-3">
                             <label>Monto Pagado:</label>
                             <div class="input-group">
-                                <div class="input-group-prepend"><span class="input-group-text">$</span></div>
-                                <input type="number" step="0.01" name="monto" id="edit_monto" class="form-control"
-                                    required>
+                                <input type="number" step="0.01" name="monto" id="edit_monto" class="form-control" required>
                             </div>
                         </div>
                         <div class="col-md-6 form-group mb-3">
@@ -299,11 +291,9 @@ function h($str)
                     </div>
 
                     <div class="form-group mb-2">
-                        <label>Actualizar Archivo (Opcional):</label>
-                        <input type="file" name="comprobante_archivo" class="form-control-file border p-2 rounded"
-                            accept=".pdf,.jpg,.jpeg,.png">
-                        <small class="text-muted">Si no seleccionas un archivo, se mantendrá el comprobante
-                            actual.</small>
+                        <label>Actualizar Archivo <span class="text-muted">(Opcional)</span>:</label>
+                        <input type="file" name="comprobante_archivo" class="form-control-file border p-2 rounded" accept=".pdf,.jpg,.jpeg,.png">
+                        <small class="text-muted">Si no seleccionas un archivo, se mantendrá el comprobante actual.</small>
                     </div>
                 </form>
             </div>
@@ -318,6 +308,36 @@ function h($str)
 </div>
 
 <script>
+    // Ocultar al reportar nuevo
+    function toggleReferencia() {
+        var moneda = document.getElementById('select_moneda').value;
+        var grupo = document.getElementById('grupo_referencia');
+        var refer = document.getElementById('input_numero_operacion');
+        if(moneda === 'Divisas') {
+            grupo.style.display = 'none';
+            refer.removeAttribute('required');
+            refer.value = '';
+        } else {
+            grupo.style.display = 'block';
+            refer.setAttribute('required', 'required');
+        }
+    }
+
+    // Ocultar al editar
+    function toggleReferenciaEdit() {
+        var moneda = document.getElementById('edit_moneda').value;
+        var grupo = document.getElementById('edit_grupo_referencia');
+        var refer = document.getElementById('edit_numero_operacion');
+        if(moneda === 'Divisas') {
+            grupo.style.display = 'none';
+            refer.removeAttribute('required');
+            refer.value = '';
+        } else {
+            grupo.style.display = 'block';
+            refer.setAttribute('required', 'required');
+        }
+    }
+
     function eliminarMiComprobante(idComprobante) {
         if (!confirm('¿Seguro que deseas eliminar este comprobante? Tendrás que reportar el pago de nuevo.')) {
             return;
@@ -343,20 +363,17 @@ function h($str)
         });
     }
 
-    function abrirModalEditComprobante(id, banco, operacion, monto, fecha) {
-        document.getElementById('edit_id_comprobante').value = id;
-        document.getElementById('edit_banco_origen').value = banco;
-        document.getElementById('edit_numero_operacion').value = operacion;
-        document.getElementById('edit_monto').value = monto;
-        document.getElementById('edit_fecha_pago').value = fecha;
-
-        // Limpiamos opcional file input
+    function abrirModalEditComprobante(id, banco, operacion, monto, fecha, moneda) {
         document.getElementById('formEditarPago').reset();
+        
         document.getElementById('edit_id_comprobante').value = id;
         document.getElementById('edit_banco_origen').value = banco;
         document.getElementById('edit_numero_operacion').value = operacion;
         document.getElementById('edit_monto').value = monto;
         document.getElementById('edit_fecha_pago').value = fecha;
+        document.getElementById('edit_moneda').value = moneda;
+
+        toggleReferenciaEdit(); // Ejecuta la lógica visual de ocultar/mostrar dependiendo de la moneda
 
         $('#modalEditarComprobante').modal('show');
     }
@@ -422,11 +439,9 @@ function h($str)
             dataType: 'json',
             success: function (response) {
                 if (response.success && response.data && response.data.length > 0) {
-                    // Llenar datos y mostrar
                     response.data.forEach(function (materia) {
                         var option = document.createElement('option');
                         option.value = materia.id_materia_bimestre;
-                        // Mostrar bimestre (lapso) y nombre de materia
                         option.text = 'Bimestre ' + materia.lapso_academico + ' - ' + materia.nombre_materia;
                         selectMateria.appendChild(option);
                     });
@@ -440,7 +455,6 @@ function h($str)
     }
 
     function subirComprobantePago() {
-        // Validar HTML5 nativo antes de enviar
         var form = document.getElementById('formSubirPago');
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -452,8 +466,6 @@ function h($str)
         }
 
         var formData = new FormData(form);
-
-        // Deshabilitar el botón para evitar dobles envíos
         var btnSubmit = form.querySelector('button');
         var btnOriginalText = btnSubmit.innerHTML;
         btnSubmit.disabled = true;
@@ -463,13 +475,12 @@ function h($str)
             url: '../controllers/pagos_controlador.php',
             type: 'POST',
             data: formData,
-            processData: false, // Fundamental para enviar archivos
-            contentType: false, // Fundamental para enviar archivos
+            processData: false, 
+            contentType: false, 
             dataType: 'json',
             success: function (response) {
                 if (response.success) {
                     alert(response.message);
-                    // Recargar la vista actual para reflejar la tabla actualizada
                     loadPage('../views/mis_pagos.php');
                 } else {
                     alert('Error: ' + response.message);

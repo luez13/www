@@ -26,8 +26,8 @@ $action = $_POST['action'] ?? $_GET['action'] ?? '';
 switch ($action) {
 
     case 'subir_comprobante':
-        // Validar que se hayan enviado los datos requeridos
-        $requeridos = ['id_curso', 'numero_operacion', 'banco_origen', 'monto', 'fecha_pago'];
+        // Validar que se hayan enviado los datos básicos
+        $requeridos = ['id_curso', 'monto', 'fecha_pago'];
         foreach ($requeridos as $campo) {
             if (empty($_POST[$campo])) {
                 echo json_encode(['success' => false, 'message' => "El campo $campo es obligatorio."]);
@@ -35,58 +35,65 @@ switch ($action) {
             }
         }
 
-        // Validar el archivo
-        if (!isset($_FILES['comprobante_archivo']) || $_FILES['comprobante_archivo']['error'] !== UPLOAD_ERR_OK) {
-            echo json_encode(['success' => false, 'message' => 'Error al subir el archivo o no se seleccionó ninguno.']);
-            exit;
+        // Validar el archivo (opcional)
+        $rutaBD = null;
+        if (isset($_FILES['comprobante_archivo']) && $_FILES['comprobante_archivo']['error'] === UPLOAD_ERR_OK) {
+            $archivo = $_FILES['comprobante_archivo'];
+            $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+            $permitidas = ['pdf', 'jpg', 'jpeg', 'png'];
+
+            if (!in_array($extension, $permitidas)) {
+                echo json_encode(['success' => false, 'message' => 'Formato de archivo no permitido. Usa PDF, JPG, JPEG o PNG.']);
+                exit;
+            }
+
+            // Preparar directorio de subida
+            $directorioDestino = '../public/assets/comprobantes/';
+            if (!file_exists($directorioDestino)) {
+                mkdir($directorioDestino, 0777, true);
+            }
+
+            // Generar nombre único: idUsuario_idCurso_timestamp.ext
+            $id_usuario = $_SESSION['user_id'];
+            $id_curso = $_POST['id_curso'];
+            $nombreUnico = $id_usuario . '_' . $id_curso . '_' . time() . '.' . $extension;
+            $rutaFisica = $directorioDestino . $nombreUnico;
+
+            if (move_uploaded_file($archivo['tmp_name'], $rutaFisica)) {
+                // La ruta que guardaremos en BD (relativa a public)
+                $rutaBD = 'assets/comprobantes/' . $nombreUnico;
+            }
+            else {
+                echo json_encode(['success' => false, 'message' => 'Error al mover el archivo al servidor.']);
+                exit;
+            }
         }
 
-        $archivo = $_FILES['comprobante_archivo'];
-        $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
-        $permitidas = ['pdf', 'jpg', 'jpeg', 'png'];
-
-        if (!in_array($extension, $permitidas)) {
-            echo json_encode(['success' => false, 'message' => 'Formato de archivo no permitido. Usa PDF, JPG, JPEG o PNG.']);
-            exit;
-        }
-
-        // Preparar directorio de subida
-        $directorioDestino = '../public/assets/comprobantes/';
-        if (!file_exists($directorioDestino)) {
-            mkdir($directorioDestino, 0777, true);
-        }
-
-        // Generar nombre único: idUsuario_idCurso_timestamp.ext
+        // Archivo procesado (o nulo), procedemos a registrar en BD
         $id_usuario = $_SESSION['user_id'];
         $id_curso = $_POST['id_curso'];
-        $nombreUnico = $id_usuario . '_' . $id_curso . '_' . time() . '.' . $extension;
-        $rutaFisica = $directorioDestino . $nombreUnico;
 
-        // La ruta que guardaremos en BD (relativa a public)
-        $rutaBD = 'assets/comprobantes/' . $nombreUnico;
+        $datosPago = [
+            'id_usuario' => $id_usuario,
+            'id_curso' => $id_curso,
+            'id_materia_bimestre' => !empty($_POST['id_materia_bimestre']) ? intval($_POST['id_materia_bimestre']) : null,
+            'archivo_ruta' => $rutaBD,
+            'numero_operacion' => !empty($_POST['numero_operacion']) ? trim($_POST['numero_operacion']) : null,
+            'banco_origen' => !empty($_POST['banco_origen']) ? trim($_POST['banco_origen']) : null,
+            'monto' => floatval($_POST['monto']),
+            'fecha_pago' => $_POST['fecha_pago'],
+            'moneda' => $_POST['moneda'] ?? 'Bs'
+        ];
 
-        if (move_uploaded_file($archivo['tmp_name'], $rutaFisica)) {
-            // Archivo guardado físicamente, procedemos a registrar en BD
-            $datosPago = [
-                'id_usuario' => $id_usuario,
-                'id_curso' => $id_curso,
-                'id_materia_bimestre' => !empty($_POST['id_materia_bimestre']) ? intval($_POST['id_materia_bimestre']) : null,
-                'archivo_ruta' => $rutaBD,
-                'numero_operacion' => trim($_POST['numero_operacion']),
-                'banco_origen' => trim($_POST['banco_origen']),
-                'monto' => floatval($_POST['monto']),
-                'fecha_pago' => $_POST['fecha_pago']
-            ];
-
-            if ($pagoModel->registrarComprobante($datosPago)) {
-                echo json_encode(['success' => true, 'message' => 'Comprobante subido y registrado exitosamente.']);
-            } else {
-                // Si falla la BD, es buena práctica borrar el archivo huérfano
-                unlink($rutaFisica);
-                echo json_encode(['success' => false, 'message' => 'Error al guardar el registro en la base de datos.']);
+        if ($pagoModel->registrarComprobante($datosPago)) {
+            echo json_encode(['success' => true, 'message' => 'Pago registrado exitosamente.']);
+        }
+        else {
+            // Si falla la BD, es buena práctica borrar el archivo huérfano si existe
+            if ($rutaBD && file_exists('../public/' . $rutaBD)) {
+                unlink('../public/' . $rutaBD);
             }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Error al mover el archivo al servidor.']);
+            echo json_encode(['success' => false, 'message' => 'Error al guardar el registro en la base de datos.']);
         }
         break;
 
@@ -126,7 +133,8 @@ switch ($action) {
 
         if ($pagoModel->actualizarEstadoComprobante($id_comprobante, $estado, $observacion)) {
             echo json_encode(['success' => true, 'message' => "El estado del comprobante cambió a $estado."]);
-        } else {
+        }
+        else {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar el estado en la base de datos.']);
         }
         break;
@@ -152,17 +160,19 @@ switch ($action) {
         if ($es_admin || ($es_propietario && $estado_permitido)) {
             if ($pagoModel->eliminarComprobante($id_comprobante)) {
                 echo json_encode(['success' => true, 'message' => 'Comprobante eliminado con éxito.']);
-            } else {
+            }
+            else {
                 echo json_encode(['success' => false, 'message' => 'Error al eliminar el comprobante de la base de datos.']);
             }
-        } else {
+        }
+        else {
             echo json_encode(['success' => false, 'message' => 'No tienes permisos para eliminar este comprobante (está comprobado o no te pertenece).']);
         }
         break;
 
     case 'editar_comprobante':
         // Validar requeridos básicos
-        $requeridos = ['id_comprobante', 'numero_operacion', 'banco_origen', 'monto', 'fecha_pago'];
+        $requeridos = ['id_comprobante', 'monto', 'fecha_pago'];
         foreach ($requeridos as $campo) {
             if (empty($_POST[$campo])) {
                 echo json_encode(['success' => false, 'message' => "El campo $campo es obligatorio."]);
@@ -193,11 +203,12 @@ switch ($action) {
 
         $datosActualizar = [
             'id_comprobante' => $id_comprobante,
-            'numero_operacion' => trim($_POST['numero_operacion']),
-            'banco_origen' => trim($_POST['banco_origen']),
+            'numero_operacion' => !empty($_POST['numero_operacion']) ? trim($_POST['numero_operacion']) : null,
+            'banco_origen' => !empty($_POST['banco_origen']) ? trim($_POST['banco_origen']) : null,
             'monto' => floatval($_POST['monto']),
             'fecha_pago' => $_POST['fecha_pago'],
             'archivo_ruta' => null,
+            'moneda' => $_POST['moneda'] ?? 'Bs',
             'estado' => $estado_final
         ];
 
@@ -228,7 +239,8 @@ switch ($action) {
                         unlink($rutaAntigua);
                     }
                 }
-            } else {
+            }
+            else {
                 echo json_encode(['success' => false, 'message' => 'Error al subir el nuevo comprobante.']);
                 exit;
             }
@@ -236,7 +248,8 @@ switch ($action) {
 
         if ($pagoModel->actualizarComprobante($datosActualizar)) {
             echo json_encode(['success' => true, 'message' => 'Comprobante actualizado correctamente.']);
-        } else {
+        }
+        else {
             // Revertir
             if ($datosActualizar['archivo_ruta']) {
                 unlink('../public/' . $datosActualizar['archivo_ruta']);
@@ -271,10 +284,12 @@ switch ($action) {
                 // Eliminar el archivo temporal
                 unlink($archivo_tar);
                 exit;
-            } else {
+            }
+            else {
                 die('Error al generar el archivo TAR.');
             }
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             die('Error creando el backup: ' . $e->getMessage());
         }
         break;
@@ -288,7 +303,8 @@ switch ($action) {
 
         if ($pagoModel->vaciarComprobantes()) {
             echo json_encode(['success' => true, 'message' => 'Se han borrado todos los comprobantes físicos y registros.']);
-        } else {
+        }
+        else {
             echo json_encode(['success' => false, 'message' => 'Error al vaciar los comprobantes.']);
         }
         break;
@@ -326,10 +342,12 @@ switch ($action) {
         if ($action === 'crear_cuenta') {
             if ($pagoModel->crearCuenta($datosCuenta)) {
                 echo json_encode(['success' => true, 'message' => 'Cuenta bancaria creada exitosamente.']);
-            } else {
+            }
+            else {
                 echo json_encode(['success' => false, 'message' => 'Error al guardar la nueva cuenta bancaria.']);
             }
-        } else {
+        }
+        else {
             // actualizar_cuenta
             if (empty($_POST['id_cuenta'])) {
                 echo json_encode(['success' => false, 'message' => 'El ID de la cuenta es obligatorio para actualizar.']);
@@ -339,7 +357,8 @@ switch ($action) {
 
             if ($pagoModel->actualizarCuenta($datosCuenta)) {
                 echo json_encode(['success' => true, 'message' => 'Cuenta bancaria actualizada correctamente.']);
-            } else {
+            }
+            else {
                 echo json_encode(['success' => false, 'message' => 'Error al actualizar la cuenta bancaria.']);
             }
         }

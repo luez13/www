@@ -44,7 +44,6 @@ foreach ($todos_comprobantes as $comp) {
 asort($cursos_filtros);
 ?>
 
-<!-- Dependencias de DataTables CSS (movidas a header.php para carga estable) -->
 <style>
     /* Efecto hover/seleccionado para filas clickeables */
     table.dataTable tbody tr.selected {
@@ -62,7 +61,6 @@ asort($cursos_filtros);
         <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-money-check-alt me-2"></i> Administración de Pagos</h1>
     </div>
 
-    <!-- MANTENIMIENTO DEL SERVIDOR -->
     <?php
     $directorio_comprobantes = '../public/assets/comprobantes';
     $archivos_comprobantes = glob($directorio_comprobantes . '/*');
@@ -105,7 +103,6 @@ asort($cursos_filtros);
         </div>
     </div>
 
-    <!-- Filtros Avanzados -->
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-filter"></i> Filtros y Exportación</h6>
@@ -228,7 +225,10 @@ asort($cursos_filtros);
                                     </td>
                                     <td class="align-middle">
                                         <span class="text-success font-weight-bold" style="font-size: 1.1rem;">
-                                            $<?= number_format($comp['monto'], 2) ?>
+                                            <?php 
+                                            $simbolo = (isset($comp['moneda']) && $comp['moneda'] === 'Divisas') ? '$' : 'Bs.';
+                                            echo $simbolo . number_format($comp['monto'], 2);
+                                            ?>
                                         </span>
                                     </td>
                                     <td>
@@ -258,14 +258,12 @@ asort($cursos_filtros);
                                                 </button>
                                             <?php endif; ?>
 
-                                            <!-- Botón Editar para Administradores -->
                                             <button type="button" class="btn btn-sm btn-secondary shadow-sm"
-                                                onclick="abrirModalEditComprobanteAdmin(<?= $comp['id_comprobante'] ?>, '<?= h($comp['banco_origen']) ?>', '<?= h($comp['numero_operacion']) ?>', <?= $comp['monto'] ?>, '<?= date('Y-m-d', strtotime($comp['fecha_pago'])) ?>', this)"
+                                                onclick="abrirModalEditComprobanteAdmin(<?= $comp['id_comprobante'] ?>, '<?= h($comp['banco_origen']) ?>', '<?= h($comp['numero_operacion']) ?>', <?= $comp['monto'] ?>, '<?= date('Y-m-d', strtotime($comp['fecha_pago'])) ?>', '<?= h($comp['moneda'] ?? 'Bs') ?>', this)"
                                                 title="Modificar datos del pago">
                                                 <i class="fas fa-edit"></i>
                                             </button>
 
-                                            <!-- Nuevo Botón Eliminar para Administradores -->
                                             <button type="button" class="btn btn-sm btn-dark shadow-sm"
                                                 onclick="eliminarComprobanteAdmin(<?= $comp['id_comprobante'] ?>)"
                                                 title="Eliminar permanentemente">
@@ -311,7 +309,6 @@ asort($cursos_filtros);
     </div>
 </div>
 
-<!-- Modal para Editar Comprobante (Admin) -->
 <div class="modal fade" id="modalEditarComprobanteAdmin" tabindex="-1" role="dialog" aria-hidden="true"
     data-backdrop="static">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -328,12 +325,19 @@ asort($cursos_filtros);
                     <input type="hidden" name="id_comprobante" id="admin_edit_id_comprobante">
 
                     <div class="row">
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3">
+                            <label>Moneda:</label>
+                            <select name="moneda" id="admin_edit_moneda" class="form-control" onchange="toggleReferenciaAdmin()" required>
+                                <option value="Bs" selected>Bolívares (Bs)</option>
+                                <option value="Divisas">Divisas ($)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
                             <label>Banco de Origen:</label>
                             <input type="text" name="banco_origen" id="admin_edit_banco_origen" class="form-control"
                                 required>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3" id="admin_grupo_referencia">
                             <label>N° de Referencia:</label>
                             <input type="text" name="numero_operacion" id="admin_edit_numero_operacion"
                                 class="form-control" required>
@@ -374,8 +378,6 @@ asort($cursos_filtros);
         </div>
     </div>
 </div>
-
-<!-- Scripts de DataTables y Exportación (Movidos a footer.php para evitar errores AJAX TypeError: ext is undefined) -->
 
 <script>
     $(document).ready(function () {
@@ -672,7 +674,7 @@ asort($cursos_filtros);
         }
     }
 
-    function abrirModalEditComprobanteAdmin(id, banco, operacion, monto, fecha, btnObj) {
+     function abrirModalEditComprobanteAdmin(id, banco, operacion, monto, fecha, moneda, btnObj) {
         window.filaEditadaAdmin = $(btnObj).closest('tr');
         document.getElementById('formEditarPagoAdmin').reset();
         document.getElementById('admin_edit_id_comprobante').value = id;
@@ -680,8 +682,28 @@ asort($cursos_filtros);
         document.getElementById('admin_edit_numero_operacion').value = operacion;
         document.getElementById('admin_edit_monto').value = monto;
         document.getElementById('admin_edit_fecha_pago').value = fecha;
+        
+        var editMoneda = document.getElementById('admin_edit_moneda');
+        if(editMoneda) {
+            editMoneda.value = moneda || 'Bs';
+            toggleReferenciaAdmin();
+        }
 
         $('#modalEditarComprobanteAdmin').modal('show');
+    }
+
+    function toggleReferenciaAdmin() {
+        var moneda = document.getElementById('admin_edit_moneda').value;
+        var grupo = document.getElementById('admin_grupo_referencia');
+        var refer = document.getElementById('admin_edit_numero_operacion');
+        if(moneda === 'Divisas') {
+            grupo.style.display = 'none';
+            refer.removeAttribute('required');
+            refer.value = '';
+        } else {
+            grupo.style.display = 'block';
+            refer.setAttribute('required', 'required');
+        }
     }
 
     function guardarEdicionComprobanteAdmin() {
@@ -720,12 +742,15 @@ asort($cursos_filtros);
                         let data = row.data();
 
                         let nuevoBanco = formData.get('banco_origen');
-                        let nuevaRef = formData.get('numero_operacion');
+                        let nuevaRef = formData.get('numero_operacion') || '';
                         let nuevoMonto = parseFloat(formData.get('monto')).toFixed(2);
                         let nuevaFecha = formData.get('fecha_pago');
                         let partes = nuevaFecha.split('-');
                         let fechaFormat = `${partes[2]}/${partes[1]}/${partes[0]}`;
 
+                        let nuevoMoneda = formData.get('moneda');
+                        let simbolo = (nuevoMoneda === 'Divisas') ? '$' : 'Bs. ';
+                        
                         let oldSubido = data[1].includes('Subido:') ? data[1].split('Subido:')[1].split('<')[0] : '';
                         data[1] = `${fechaFormat}<br><small class="text-muted">Subido:${oldSubido}</small>`;
                         data[0] = nuevaFecha;
@@ -734,21 +759,23 @@ asort($cursos_filtros);
                         if (data[4].includes('<b>Obs:</b>')) {
                             oldObs = data[4].substring(data[4].indexOf('<hr class="m-1">'));
                         }
-                        data[4] = `<strong>${nuevaRef}</strong><br><small class="text-muted">${nuevoBanco}</small>${oldObs}`;
-                        data[5] = `<span class="text-success font-weight-bold" style="font-size: 1.1rem;">$${nuevoMonto}</span>`;
+                        
+                        let refMostrar = nuevaRef ? nuevaRef : '';
+                        data[4] = `<strong>${refMostrar}</strong><br><small class="text-muted">${nuevoBanco}</small>${oldObs}`;
+                        data[5] = `<span class="text-success font-weight-bold" style="font-size: 1.1rem;">${simbolo}${nuevoMonto}</span>`;
 
                         row.data(data).draw(false);
 
                         let editBtn = tr.find('button[title="Modificar datos del pago"]');
                         if (editBtn.length) {
-                            editBtn.attr('onclick', `abrirModalEditComprobanteAdmin(${formData.get('id_comprobante')}, '${nuevoBanco}', '${nuevaRef}', ${nuevoMonto}, '${nuevaFecha}', this)`);
+                            editBtn.attr('onclick', `abrirModalEditComprobanteAdmin(${formData.get('id_comprobante')}, '${nuevoBanco}', '${nuevaRef}', ${nuevoMonto}, '${nuevaFecha}', '${nuevoMoneda}', this)`);
                         }
                     }
                 } else {
                     alert('Error: ' + response.message);
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerHTML = originalText;
                 }
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = originalText;
             },
             error: function (xhr) {
                 console.error(xhr.responseText);

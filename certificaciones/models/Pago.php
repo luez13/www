@@ -79,19 +79,20 @@ class Pago
     public function registrarComprobante($datos)
     {
         $sql = "INSERT INTO cursos.comprobantes_pago 
-                (id_usuario, id_curso, id_materia_bimestre, archivo_ruta, numero_operacion, banco_origen, monto, estado, fecha_pago, fecha_subida) 
+                (id_usuario, id_curso, id_materia_bimestre, archivo_ruta, numero_operacion, banco_origen, monto, estado, fecha_pago, fecha_subida, moneda) 
                 VALUES 
-                (:id_usuario, :id_curso, :id_materia_bimestre, :archivo_ruta, :numero_operacion, :banco_origen, :monto, 'Pendiente', :fecha_pago, CURRENT_TIMESTAMP)";
+                (:id_usuario, :id_curso, :id_materia_bimestre, :archivo_ruta, :numero_operacion, :banco_origen, :monto, 'Pendiente', :fecha_pago, CURRENT_TIMESTAMP, :moneda)";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             'id_usuario' => $datos['id_usuario'],
             'id_curso' => $datos['id_curso'],
             'id_materia_bimestre' => $datos['id_materia_bimestre'],
             'archivo_ruta' => $datos['archivo_ruta'],
-            'numero_operacion' => $datos['numero_operacion'],
-            'banco_origen' => $datos['banco_origen'],
+            'numero_operacion' => !empty($datos['numero_operacion']) ? $datos['numero_operacion'] : null,
+            'banco_origen' => !empty($datos['banco_origen']) ? $datos['banco_origen'] : null,
             'monto' => $datos['monto'],
-            'fecha_pago' => $datos['fecha_pago']
+            'fecha_pago' => $datos['fecha_pago'],
+            'moneda' => $datos['moneda'] ?? 'Bs'
         ]);
     }
 
@@ -104,32 +105,37 @@ class Pago
                         monto = :monto, 
                         fecha_pago = :fecha_pago, 
                         archivo_ruta = :archivo_ruta,
+                        moneda = :moneda,
                         estado = COALESCE(:estado, estado) 
                     WHERE id_comprobante = :id_comprobante";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([
-                'numero_operacion' => $datos['numero_operacion'],
-                'banco_origen' => $datos['banco_origen'],
+                'numero_operacion' => !empty($datos['numero_operacion']) ? $datos['numero_operacion'] : null,
+                'banco_origen' => !empty($datos['banco_origen']) ? $datos['banco_origen'] : null,
                 'monto' => $datos['monto'],
                 'fecha_pago' => $datos['fecha_pago'],
                 'archivo_ruta' => $datos['archivo_ruta'],
+                'moneda' => $datos['moneda'] ?? 'Bs',
                 'estado' => $datos['estado'] ?? null,
                 'id_comprobante' => $datos['id_comprobante']
             ]);
-        } else {
+        }
+        else {
             $sql = "UPDATE cursos.comprobantes_pago 
                     SET numero_operacion = :numero_operacion, 
                         banco_origen = :banco_origen, 
                         monto = :monto, 
                         fecha_pago = :fecha_pago,
+                        moneda = :moneda,
                         estado = COALESCE(:estado, estado)
                     WHERE id_comprobante = :id_comprobante";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([
-                'numero_operacion' => $datos['numero_operacion'],
-                'banco_origen' => $datos['banco_origen'],
+                'numero_operacion' => !empty($datos['numero_operacion']) ? $datos['numero_operacion'] : null,
+                'banco_origen' => !empty($datos['banco_origen']) ? $datos['banco_origen'] : null,
                 'monto' => $datos['monto'],
                 'fecha_pago' => $datos['fecha_pago'],
+                'moneda' => $datos['moneda'] ?? 'Bs',
                 'estado' => $datos['estado'] ?? null,
                 'id_comprobante' => $datos['id_comprobante']
             ]);
@@ -211,7 +217,8 @@ class Pago
             $this->db->commit();
             return true;
 
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             // Si algo falla, revertimos todo
             $this->db->rollBack();
             return false;
@@ -275,7 +282,8 @@ class Pago
                 }
             }
             return true;
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             return false;
         }
     }
