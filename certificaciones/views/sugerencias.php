@@ -97,7 +97,7 @@ try {
                                                 onsubmit="return confirm('¿Estás seguro que deseas eliminar esta sugerencia? Esta acción no se puede deshacer.');">
                                                 <input type="hidden" name="action" value="delete">
                                                 <input type="hidden" name="id"
-                                                    value="<?= $sug['id_sugerencia'] ?? $sug['id'] ?>">
+                                                    value="<?= isset($sug['id_sugerencia']) ? $sug['id_sugerencia'] : $sug['id'] ?>">
                                                 <button type="submit"
                                                     class="btn btn-sm btn-outline-danger rounded-circle shadow-sm"
                                                     style="width: 35px; height: 35px;" title="Eliminar">

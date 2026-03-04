@@ -47,7 +47,7 @@ class Pago
             'correo' => $datos['correo'],
             'tipo_cuenta' => $datos['tipo_cuenta'],
             'numero_cuenta' => $datos['numero_cuenta'],
-            'activo' => $datos['activo'] ?? true // Por defecto true
+            'activo' => isset($datos['activo']) ? $datos['activo'] : true // Por defecto true
         ]);
     }
 
@@ -113,7 +113,7 @@ class Pago
                 'monto' => $datos['monto'],
                 'fecha_pago' => $datos['fecha_pago'],
                 'archivo_ruta' => $datos['archivo_ruta'],
-                'estado' => $datos['estado'] ?? null,
+                'estado' => isset($datos['estado']) ? $datos['estado'] : null,
                 'id_comprobante' => $datos['id_comprobante']
             ]);
         } else {
@@ -130,7 +130,7 @@ class Pago
                 'banco_origen' => $datos['banco_origen'],
                 'monto' => $datos['monto'],
                 'fecha_pago' => $datos['fecha_pago'],
-                'estado' => $datos['estado'] ?? null,
+                'estado' => isset($datos['estado']) ? $datos['estado'] : null,
                 'id_comprobante' => $datos['id_comprobante']
             ]);
         }

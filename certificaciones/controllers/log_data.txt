@@ -1,2 +1,246 @@
-prueba2
-prueba3
+Entorno de trabajo.
+Lenguaje de consultas SQL.
+Uso del cliente gráfico PHPMYADMIN.
+Uso del cliente gráfico HEIDISQL.
+Ejercicios prácticos.
+Proyecto final.
+Introducción a la electrónica y electricidad.
+Introducción a los componentes electrónicos.
+Diseño y planos de circuitos.
+Amplificadores de potencia.
+Montaje de circuitos de protoboard.
+Las tecnologías de la información y la comunicación en el ámbito educativo.
+Ambientes virtuales de aprendizaje.
+Inteligencia artificial.
+Hábitos de seguridad laboral en el trabajo educativo (ergonomía).
+LOPCYMAT.
+Presentación final donde se expone todo lo aprendido en el diplomado (clase magistral, en aula)
+Word.
+Powepont.
+Excel.
+Losas macizas.
+Losas nervadas.
+Introducción.
+Análisis y diseño de losa macizas y nervadas.
+Ejemplos prácticos.
+Word.
+Power point.
+Excel.
+Toma de medidas.
+Creación de básico de corpiño femenino.
+Escalado de corpiño.
+Interpretación de modas.
+Moldes sombre medidas.
+Moldes sobre tallas comerciales.
+Conceptos y principios de la redacción
+Importancia de la redacción en el ámbito académico y profesional
+Introducción a la estructura básica de textos (tipos de textos) 
+Inteligencia Artificial, definición y conceptos básicos
+Historia y Origen de la IA
+Tipos de inteligencia artificial
+Aplicaciones actuales de la IA en la educación y la escritura
+Fundamentos de la Investigación académica
+Búsqueda y Análisis de Antecedentes
+Herramientas de IA para Investigación
+Uso de asistentes virtuales, motores de búsqueda inteligentes y organizadores de información basados en IA
+Técnicas de prompting para optimizar la interacción con IA en la investigación y redacción
+Uso de herramientas de IA para generación, corrección y mejora de textos.
+Estrategias para mejorar coherencia, cohesión y estilo con IA.
+redacción y revisión de un oficio o informe con apoyo de IA
+Ética y buenas prácticas en el uso de IA para la escritura e investigación
+Creatividad y personalización de textos con IA
+Impacto de la IA en la educación y el trabajo académico
+herramientas digitales
+redacción
+uso de las IA
+aplicación de la IA en la mejora y redacción como apoyo
+introducción al chocolate criollo
+fundamentos de la evaluación sensorial
+reglas de cata de chocolate
+pruebas sensoriales y métodos estadísticos
+análisis e interpretación de resultados
+aplicación en la industria y tendencias
+fundamentos de la redacción clara y eficiente
+introducción a la inteligencia artificial (AI)
+investigación académica y herramientas de IA la búsqueda de información
+aplicación practica de IA en la redacción y revisión de textos
+ética creatividad y proyecto final
+la enseñanza
+el aprendizaje
+introducción a la teoría conductista, cognitivista, constructivismo, humanismo, aprendizaje social
+aplicación en el entorno pedagógico y andrológico
+conceptos y características
+las tres estructuras del aprendizaje
+factores que influyen en el aprendizaje
+proyectos del aprendizaje: trabajo en equipo
+diferentes autores como Sócrates
+educación del siglo XXI
+didáctica
+andragogia 
+aprender a aprender
+aprender a hacer
+aprender a ser
+aprender a convivir
+sistema educativo universitario de la republica bolivariana de Venezuela
+articulo 102.
+la ley orgánica de educación (2009).
+la ley de ciencia, tecnología e innovación (2010)
+ley de universidades
+reglamentos de los institutos y colegios universitarios
+reglamentos internos de evaluación del rendimiento estudiantil (RIERE)
+gaceta oficial de la republica bolivariana de Venezuela
+programas nacionales de formación (PNF)
+políticas educativas
+plan de la patria periodo 2019-2025
+introducción a la ética profesional
+fundamentos de la ética profesional
+responsabilidad profesional
+dilemas éticos en el trabajo
+ética profesional en diversas disciplinas
+cultivando una cultura ética en las organizaciones
+tendencias actuales y retos de la ética profesional
+evaluación y reflexión ética
+introducción a la planificación educativa
+definición y relevancia de la planificación en contextos educativos
+tipologías de planificación
+teorías de la planificación
+teoría tradicional vs enfoques contemporáneos
+modelos de planificación
+teorías del aprendizaje
+implicación de cada teoría en la planificación educativa
+relación entre teorías de la planificación y teorías del aprendizaje
+¿Cómo influencian las teorías del aprendizaje en el diseño de la planificación educativa?
+ejemplos de aplicación en diferentes contextos educativos
+estudios de casos
+antecedentes históricos de la planificación educativa
+evolución del concepto de la planificación a lo largo del tiempo
+componentes del marco teórico
+objetivos educativos: clasificación y formulación
+contenidos: selección y organización de contenidos según la teoría seleccionada
+metodologías de enseñanzas: enfoques y estrategias a adoptar
+evaluación: criterios y herramientas
+contextualización de la planificación
+importancia del contexto cultural y social en la planificación
+adaptación de la planificación a la diversidad del alumnado
+marco legal y normativo
+debates actuales sobre la planificación
+la autonomía docente en la planificación
+conceptos y objetivos del PNF
+estructuras y componentes del PNF
+criterios de elaboración de planeación bajo el PNF
+formatos de planificación
+estructura básica de un plan de clases
+formatos de planificación
+estructura básica de un plan de clases
+elementos a incluir: objetivos, contenidos, metodologías y evaluaciones
+implementación practica
+identificas los principales grupos de microorganismos que componen los ME
+identificar los principales grupos de microorganismos que componen los ME
+explicar los mecanismos de acción de los ME en la mejora de la salud del suelo y el crecimiento vegetal
+describir las aplicaciones practicas de los ME en las agriculturas y el medio ambiente
+elaborar sus propios bioinsumos a base de ME
+identificar las plagas y enfermedades mas comunes en los cultivos
+explicar los principios del manejo integrado de plagas (MIP)
+describir los métodos orgánicos y biológicos para el control de plagas y enfermedades
+elaborar un composteo casero utilizando materiales orgánicos disponibles
+evaluar la calidad del composteo final a través de indicadores visuales y olfativos
+identificar las principales familias de hortalizas y sus requerimientos básicos
+describir las etapas clave en el ciclo de vida de un cultivo de cielo corto desde la siembra hasta la cosecha
+aplicar técnicas de manejo agronómico adecuadas para optimizar el crecimiento de las hortalizas
+planificar y diseñar la siembra en un huerto o espacio de cultivo reducido
+evaluar el rendimiento y calidad del producto final basándose en indicadores agronómicos
+identificar los síntomas y signos de enfermedades y plagas en muestras vegetales
+utilizar herramientas de laboratorio para el diagnostico fitosanitario (microscopio, lupa)
+elaborar un informe técnico detallado sobre el diagnostico de una muestra
+comprender la importancia del instituto nacional de salud agrícola integral (INSAI) en el control fitosanitario en Venezuela
+reconocer los métodos de muestreo adecuados para el diagnostico de plagas y enfermedades
+identificar las pantas medicinales de uso común en Venezuela
+describir las técnicas de manejo y cultivos apropiados para plantas medicinales, desde la siembra hasta la cosecha
+explicar los principios de la agricultura de precisión agroecológicas
+relacionar la agricultura de precisión con los objetivos del plan de la patria en materia de soberanía agroalimentaria
+comprender los conceptos fundamentales y las diferencias entre pedagogía y andragogia
+identificar las características y necesidades de los estudiantes en sus diferentes etapas de desarrollo
+diseñar estrategias de enseñanza innovadores y adaptadas a diferentes contextos educativos
+aplicar técnicas de evaluación que promuevan el aprendizaje significativo
+seleccionar y utilizar recursos didácticos de manera efectiva
+elaboración de un plan de aplicación y monitoreo de nano-formulaciones de trichoderma en un cultivo de interés
+comprender los fundamentos de la nanotecnología aplicada a la agricultura y a la biología del hongo trichoderma
+comprender los fundamentos epistemológia de la agroecología como ciencia, movimiento y practica
+Investigación educativa.
+Modalidades de la investigación educativa.
+Investigación acción participativa y transformadora.
+Como iniciar un programa: Variables, tipos de datos, salida por pantalla, entrada de datos, operadores relacionales, lógicos, aritméticos.
+Sentencias if-elif-else, Sentencias pass. Sentencia mach-case.
+Creación de sentencias condicionales.
+Evaluación de expresiones condicionales.
+Sentencia for. Sentencia while.
+Creación de ciclos.
+Evaluación de expresiones condicionales de ciclo: ruptura.
+Creación de listas.
+Creación de tuplas.
+Recorrido de listas y tuplas.
+operaciones y funciones sobre listas y tuplas.
+Creación de conjuntos.
+Creación de diccionarios.
+Recorrido y manejo de conjuntos y diccionarios.
+Operaciones y funciones sobre conjuntos y diccionarios.
+Naturaleza y utilidad de una funciones.
+Creación e invocación de una función.
+Manejo de parámetros.
+Devolución de favores con la clausula return.
+Razón de utilizar archivos de texto.
+Apertura de un archivo (solo lectura, escritura, para agregar información).
+Recorrido de las líneas de un archivo de texto.
+Carga de datos de un archivo de texto a listas o diccionarios.
+Elaboración de un programa de python que aplique todos los contenidos vistos en el curso.
+conceptos básicos de voltaje, corriente y resistencia y como medir esas magnitudes.
+Circuito para iluminación para área residencial y comercial.
+Determinación de fallas comunes y primeros pasos de reparación.
+Uso del voltímetro, amperímetros y herramientas adecuadas para el trabajo con electricidad.
+Metodología STEM (Science, Technology, Engineering and mathematic).
+Introducción a la electrónica, mecánica e informática, principios y conceptos básicos.
+Estructura de los microcontroladores atmega328p.
+Estructura y funcionamiento de la tarjeta de hardware libre Arduino UNO.
+Uso de polaridades, VCC, GND, TX, RX.
+Estructura, conexión y uso de los componentes básicos de la electrónica: Led, resistencias, potenciómetros, protoboard, relay, entre otros.
+Uso y estructura de las señales digitales y analógicas, de entrada y salida emuladas (PWM).
+Implementación de sensores y actuadores.
+Desarrollo de proyectos: semáforos robotizados, luces de policía con señales digitales, luces aleatorias con señales analógicas, basurero robotizado, estacionamiento robotizado, Smart car base.
+Metodología STEM (Science, Technology, Engineering and mathematic).
+Introducción a la electrónica, mecánica e informática, principios y conceptos básicos.
+Estructura y funcionamiento de la tarjeta de hardware libre Arduino UNO.
+Uso de polaridades, VCC, GND, TX, RX.
+Estructura, conexión y uso de los componentes básicos de la electrónica: Led, resistencias, potenciómetros, protoboard, relay, entre otros.
+Uso y estructura de las señales digitales y analógicas, de entrada y salida emuladas (PWM).
+Implementación de sensores y actuadores.
+Desarrollo de proyectos prácticos.
+Fundamentos y Marco Regulatorio de la Contabilidad Pública.
+Gestión Presupuestaria y Control de la Ejecución.
+Contabilidad Financiera y Elaboración de Estados Financieros.
+Análisis e Interpretación de Estados Financieros y Control de Gestión.
+Presentación final donde se expone todo lo aprendido en el diplomado (clase magistral, en aula).
+Estrategias didácticas.
+Los medios de enseñanza y de aprendizaje.
+La evaluación.
+La planificación y evaluación de los aprendizajes.
+Evolución histórica de DDHH hitos internacionales y
+nacionales.
+Instrumentos CEDAW
+Convención de Belen doPara
+Agenda 2030
+Derechos Civiles
+Derechos Políticos
+Derechos Economicos
+Derechos Sociales
+Derechos Culturales, sexuales y reproductivos
+Violencia Basada en Género y sus manifestaciones en
+distintos ambitos
+Marco Legal (protección contra la Violencia en
+Venezuela y Latinoamerica
+Protocolos de atención y rutas de denuncia
+Definición Igualdad y equidad
+Brechas de Género en Universidades y comunidades
+Liderazgo femenino y juvenil como agente de cambio
+Educación con perspectiva de Género
+Articulación de Politicas Publicas que promueven el
+liderazgo feminismo

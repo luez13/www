@@ -360,7 +360,7 @@ try {
                                                 <div>
                                                     <small class="text-muted d-block font-weight-bold">Cédula</small>
                                                     <strong
-                                                        class="text-dark"><?= htmlspecialchars($user['cedula'] ?? 'No registrada') ?></strong>
+                                                        class="text-dark"><?= htmlspecialchars(isset($user['cedula']) && $user['cedula'] !== '' ? $user['cedula'] : 'No registrada') ?></strong>
                                                 </div>
                                             </div>
                                         </div>
@@ -456,7 +456,7 @@ try {
                     <div class="modal-body p-4 p-md-5 bg-light">
                         <form id="editUserForm" action="../controllers/autenticacion.php" method="post">
                             <input type="hidden" name="action" value="editar_perfil">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                            <input type="hidden" name="csrf_token" value="<?= isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '' ?>">
 
                             <div class="form-floating mb-3">
                                 <input type="text" id="nombreInput" name="nombre" class="form-control rounded-pill px-4"

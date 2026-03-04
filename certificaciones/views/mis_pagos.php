@@ -30,7 +30,7 @@ $historialPagos = $pagoModel->obtenerComprobantesPorUsuario($user_id);
 // Función auxiliar para sanitizar salidas HTML
 function h($str)
 {
-    return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars(isset($str) ? $str : '', ENT_QUOTES, 'UTF-8');
 }
 ?>
 
@@ -201,10 +201,11 @@ function h($str)
                         <?php else: ?>
                             <?php foreach ($historialPagos as $pago): ?>
                                 <tr>
-                                    <td data-sort="<?= date('Y-m-d', strtotime($pago['fecha_subida'] ?? 'now')) ?>">
-                                        <?= date('d/m/Y', strtotime($pago['fecha_pago'] ?? 'now')) ?><br>
+                                    <td
+                                        data-sort="<?= date('Y-m-d', strtotime(isset($pago['fecha_subida']) ? $pago['fecha_subida'] : 'now')) ?>">
+                                        <?= date('d/m/Y', strtotime(isset($pago['fecha_pago']) ? $pago['fecha_pago'] : 'now')) ?><br>
                                         <small class="text-muted">Subido:
-                                            <?= date('d/m/Y H:i', strtotime($pago['fecha_subida'] ?? 'now')) ?></small>
+                                            <?= date('d/m/Y H:i', strtotime(isset($pago['fecha_subida']) ? $pago['fecha_subida'] : 'now')) ?></small>
                                     </td>
                                     <td class="text-left font-weight-bold"><?= h($pago['nombre_curso']) ?></td>
                                     <td><?= h($pago['numero_operacion']) ?><br><small

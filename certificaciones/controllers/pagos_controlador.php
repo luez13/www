@@ -20,7 +20,7 @@ $db = new DB();
 $pagoModel = new Pago($db);
 
 // 4. Capturar la acción
-$action = $_POST['action'] ?? $_GET['action'] ?? '';
+$action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ? $_GET['action'] : '');
 
 // 5. Procesar las peticiones
 switch ($action) {
@@ -95,7 +95,7 @@ switch ($action) {
             echo json_encode(['success' => false, 'message' => 'Falta el id del curso.']);
             exit;
         }
-        $id_curso = $_POST['id_curso'] ?? $_GET['id_curso'];
+        $id_curso = isset($_POST['id_curso']) ? $_POST['id_curso'] : (isset($_GET['id_curso']) ? $_GET['id_curso'] : null);
         require_once '../models/Materia.php';
         $materiaModel = new Materia($db);
         $materias = $materiaModel->getMateriasByCurso($id_curso);
@@ -188,7 +188,7 @@ switch ($action) {
             exit;
         }
 
-        $origen_peticion = $_POST['origen'] ?? '';
+        $origen_peticion = isset($_POST['origen']) ? $_POST['origen'] : '';
         $estado_final = ($origen_peticion === 'usuario') ? 'Pendiente' : ($es_admin ? null : 'Pendiente');
 
         $datosActualizar = [
@@ -303,13 +303,13 @@ switch ($action) {
 
         // Recopilar datos comunes
         $datosCuenta = [
-            'banco' => $_POST['banco'] ?? '',
-            'titular' => $_POST['titular'] ?? '',
-            'cedula_rif' => $_POST['cedula_rif'] ?? '',
-            'telefono' => $_POST['telefono'] ?? '',
-            'correo' => $_POST['correo'] ?? '',
-            'tipo_cuenta' => $_POST['tipo_cuenta'] ?? '',
-            'numero_cuenta' => $_POST['numero_cuenta'] ?? '',
+            'banco' => isset($_POST['banco']) ? $_POST['banco'] : '',
+            'titular' => isset($_POST['titular']) ? $_POST['titular'] : '',
+            'cedula_rif' => isset($_POST['cedula_rif']) ? $_POST['cedula_rif'] : '',
+            'telefono' => isset($_POST['telefono']) ? $_POST['telefono'] : '',
+            'correo' => isset($_POST['correo']) ? $_POST['correo'] : '',
+            'tipo_cuenta' => isset($_POST['tipo_cuenta']) ? $_POST['tipo_cuenta'] : '',
+            'numero_cuenta' => isset($_POST['numero_cuenta']) ? $_POST['numero_cuenta'] : '',
             // Los checkboxes HTML no envían nada si no están marcados
             'activo' => isset($_POST['activo']) ? true : false
         ];

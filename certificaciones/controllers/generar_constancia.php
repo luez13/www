@@ -177,7 +177,7 @@ $encabezado = '../public/assets/img/vector membrete 1-01.png';
             const nombreCoord = "<?php echo $nombre_coordinador; ?>";
             const cargoCoord = "Coordinación de Formación Permanente";
 
-            const nombreVice = "<?php echo $nombre_vicerrector ?? 'Vicerrectorado Académico'; ?>";
+            const nombreVice = "<?php echo isset($nombre_vicerrector) ? $nombre_vicerrector : 'Vicerrectorado Académico'; ?>";
             const cargoVice = "Vicerrectorado Académico";
 
             // Texto de Atentamente centrado

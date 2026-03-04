@@ -5,9 +5,10 @@ require_once '../config/model.php';
 
 try {
     $db = new DB();
+    $pdo = $db->getConn(); // <-- Extraemos el objeto PDO real
 
-    // Traer imágenes del carrusel
-    $stmtC = $db->prepare("SELECT * FROM cursos.landing_carrusel WHERE activo = true ORDER BY id_carrusel ASC");
+    // Traer imágenes del carrusel usando el $pdo, no el wrapper $db
+    $stmtC = $pdo->prepare("SELECT * FROM cursos.landing_carrusel WHERE activo = true ORDER BY id_carrusel ASC");
     $stmtC->execute();
     $carrusel_items = $stmtC->fetchAll(PDO::FETCH_ASSOC);
 
@@ -18,13 +19,16 @@ try {
         ];
     }
 
-    // Traer todos los cursos autorizados
-    $stmtCur = $db->prepare("SELECT id_curso, nombre_curso, descripcion, tipo_curso, imagen_portada FROM cursos.cursos WHERE estado = true AND autorizacion IS NOT NULL ORDER BY id_curso DESC");
+    // Traer todos los cursos autorizados usando $pdo
+    $stmtCur = $pdo->prepare("SELECT id_curso, nombre_curso, descripcion, tipo_curso, imagen_portada FROM cursos.cursos WHERE estado = true AND autorizacion IS NOT NULL ORDER BY id_curso DESC");
     $stmtCur->execute();
     $cursosTodos = $stmtCur->fetchAll(PDO::FETCH_ASSOC);
 
-} catch (Exception $e) {
-    // Si hay error de BD continuar con arreglos vacíos para no romper la web
+} catch (Exception $e) { // <-- Throwable atrapa Exceptions y Fatal Errors
+    // Registrar el error en el log del servidor para depuración
+    error_log("Error crítico en el Index: " . $e->getMessage());
+    
+    // Si hay error continuar con arreglos vacíos para no romper la web
     $carrusel_items = [];
     $cursosTodos = [];
 }
@@ -212,7 +216,7 @@ function renderizarCursos($cursosArray)
                 </div>
                 <form class="user" action="../controllers/autenticacion.php" method="post">
                     <input type="hidden" name="action" value="login">
-                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                    <input type="hidden" name="csrf_token" value="<?= isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '' ?>">
 
                     <div class="form-floating mb-3">
                         <input type="email" class="form-control rounded-pill px-4" id="floatingInputCorreo"

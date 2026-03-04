@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 value: "#0B1120" // Un fondo oscuro muy moderno y elegante (azul medianoche)
             }
         },
-        fpsLimit: 60,
+        fpsLimit: 30,
         interactivity: {
             events: {
                 onClick: {
@@ -13,10 +13,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     mode: "push" // Al hacer click agrega más puntos
                 },
                 onHover: {
-                    enable: true,
+                    enable: false,
                     mode: "repulse", // Al pasar el mouse los puntos se apartan
                     parallax: {
-                        enable: true,
+                        enable: false,
                         force: 60,
                         smooth: 10
                     }
@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
             links: {
                 color: "#38bdf8",
                 distance: 150,
-                enable: true,
+                enable: false,
                 opacity: 0.4,
                 width: 1.5
             },
@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     default: "bounce"
                 },
                 random: true,
-                speed: 1.5,
+                speed: 0.5,
                 straight: false
             },
             number: {
@@ -62,13 +62,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     enable: true,
                     area: 800
                 },
-                limit: 120, // <-- NUEVO: Límite máximo de partículas en pantalla para proteger el rendimiento
-                value: 80 // Cantidad equilibrada inicial
+                limit: 40, // <-- NUEVO: Límite máximo de partículas en pantalla para proteger el rendimiento
+                value: 30 // Cantidad equilibrada inicial
             },
             opacity: {
                 value: { min: 0.3, max: 0.7 },
                 animation: {
-                    enable: true,
+                    enable: false,
                     speed: 1,
                     minimumValue: 0.1
                 }
@@ -79,12 +79,12 @@ document.addEventListener("DOMContentLoaded", function () {
             size: {
                 value: { min: 1, max: 3 },
                 animation: {
-                    enable: true,
+                    enable: false,
                     speed: 2,
                     minimumValue: 0.5
                 }
             }
         },
-        detectRetina: true
+        detectRetina: false
     });
 });

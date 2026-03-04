@@ -432,7 +432,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                                                     class="fas fa-plus"></i></button></label>
                                                         <div class="contenidos-container">
                                                             <?php
-                                                            $raw_content = trim($modulo['contenido'] ?? '', '[]');
+                                                            $raw_content = trim(isset($modulo['contenido']) ? $modulo['contenido'] : '', '[]');
                                                             $contenidos = explode('][', $raw_content);
                                                             if (empty($raw_content))
                                                                 $contenidos = [''];

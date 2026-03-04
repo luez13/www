@@ -32,8 +32,8 @@ try {
                 throw new Exception('Error al subir la imagen.');
             }
 
-            $titulo = $_POST['titulo'] ?? '';
-            $descripcion = $_POST['descripcion'] ?? '';
+            $titulo = isset($_POST['titulo']) ? $_POST['titulo'] : '';
+            $descripcion = isset($_POST['descripcion']) ? $_POST['descripcion'] : '';
 
             // Directorio temporal
             $file = $_FILES['imagen'];

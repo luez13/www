@@ -31,7 +31,7 @@ foreach ($todos_comprobantes as $comp) {
 // Función auxiliar para escape seguro de HTML
 function h($str)
 {
-    return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars(isset($str) ? $str : '', ENT_QUOTES, 'UTF-8');
 }
 
 // Extraer cursos únicos para rellenar el filtro dinámicamente
