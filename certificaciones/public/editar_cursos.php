@@ -6,7 +6,7 @@ include '../config/model.php';
 include '../models/curso.php';
 
 $user_id = $_SESSION['user_id'];
-$pagina_actual = 'editar_cursos.php';
+$pagina_actual = '../public/editar_cursos.php';
 
 require_once '../controllers/autenticacion.php';
 if (!esPerfil3($user_id) && !esPerfil4($user_id)) {

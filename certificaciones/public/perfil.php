@@ -158,7 +158,7 @@ try {
                     <div class="bg-white py-2 collapse-inner rounded shadow-sm">
 
                         <h6 class="collapse-header text-primary">Gestión de Personas:</h6>
-                        <a class="collapse-item" href="#" onclick="loadPage('../public/usuarios.php')">Verificación de
+                        <a class="collapse-item" href="#" onclick="loadPage('../views/usuarios.php')">Verificación de
                             Usuarios</a>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/gestionar_cargos.php')">Directorio y
                             Cargos</a>
@@ -286,9 +286,11 @@ try {
                                     src="../public/assets/img/undraw_profile.svg"
                                     style="width: 3.5rem; height: 3.5rem;">
                                 <h6 class="text-dark font-weight-bold mb-0">
-                                    <?= htmlspecialchars($_SESSION['nombre'] . ' ' . $_SESSION['apellido']) ?></h6>
+                                    <?= htmlspecialchars($_SESSION['nombre'] . ' ' . $_SESSION['apellido']) ?>
+                                </h6>
                                 <p class="text-muted small mb-0 text-truncate" style="max-width: 13rem;">
-                                    <?= htmlspecialchars($_SESSION['correo']) ?></p>
+                                    <?= htmlspecialchars($_SESSION['correo']) ?>
+                                </p>
                             </div>
                             <div class="dropdown-divider my-0"></div>
                             <a class="dropdown-item py-2 px-4 mt-2 custom-hover-btn" href="#" data-toggle="modal"
@@ -324,7 +326,8 @@ try {
                                     <i class="fas fa-user-circle fa-5x mb-3 shadow-sm rounded-circle bg-white text-primary"
                                         style="padding: 2px;"></i>
                                     <h3 class="mb-0 fw-bold">
-                                        <?= htmlspecialchars($user['nombre'] . ' ' . $user['apellido']) ?></h3>
+                                        <?= htmlspecialchars($user['nombre'] . ' ' . $user['apellido']) ?>
+                                    </h3>
                                     <p class="mb-0 text-white-50 mt-1"><i
                                             class="fas fa-id-badge me-2"></i><?= strtoupper(htmlspecialchars($user['nombre_rol'])) ?>
                                     </p>
@@ -401,13 +404,13 @@ try {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="exampleModalLabel">¿Deseas cerrar?</h5>
-                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <button class="close" type="button" data-bs-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">×</span>
                         </button>
                     </div>
                     <div class="modal-body">Estas cerrando la sesión como usuario</div>
                     <div class="modal-footer">
-                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
+                        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
                         <form class="form-inline" action="../controllers/autenticacion.php" method="post">
                             <input type="hidden" name="action" value="logout">
                             <input class="btn btn-primary" type="submit" value="Cerrar sesión">
@@ -424,7 +427,7 @@ try {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="confirmationModalLabel">Confirmación</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -432,7 +435,7 @@ try {
                         <p id="modalMessage"></p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="button" class="btn btn-primary" id="modalConfirm">Aceptar</button>
                     </div>
                 </div>
@@ -446,7 +449,7 @@ try {
                 <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
                     <div class="modal-header bg-primary text-white text-center py-4 border-0 d-block position-relative">
                         <button type="button" class="close text-white position-absolute" style="top: 15px; right: 20px;"
-                            data-dismiss="modal" aria-label="Close">
+                            data-bs-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                         <i class="fas fa-user-edit fa-3x mb-3 text-white-50"></i>
@@ -456,7 +459,8 @@ try {
                     <div class="modal-body p-4 p-md-5 bg-light">
                         <form id="editUserForm" action="../controllers/autenticacion.php" method="post">
                             <input type="hidden" name="action" value="editar_perfil">
-                            <input type="hidden" name="csrf_token" value="<?= isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '' ?>">
+                            <input type="hidden" name="csrf_token"
+                                value="<?= isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '' ?>">
 
                             <div class="form-floating mb-3">
                                 <input type="text" id="nombreInput" name="nombre" class="form-control rounded-pill px-4"

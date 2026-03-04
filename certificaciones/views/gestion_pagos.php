@@ -318,7 +318,7 @@ asort($cursos_filtros);
         <div class="modal-content">
             <div class="modal-header bg-dark text-white">
                 <h5 class="modal-title"><i class="fas fa-edit me-2"></i> Editar Pago (Admin)</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -366,7 +366,7 @@ asort($cursos_filtros);
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-success" onclick="guardarEdicionComprobanteAdmin()">
                     <i class="fas fa-save me-2"></i> Guardar Cambios
                 </button>

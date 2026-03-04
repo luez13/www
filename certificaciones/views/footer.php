@@ -2,11 +2,11 @@
 <div class="suggestion-form-container position-fixed bottom-0 end-0 p-3"
     style="z-index: 1050; margin-bottom: 2rem; margin-right: 1.5rem;">
     <!-- Botón Flotante (FAB) -->
-    <button
-        class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center custom-hover-btn"
+    <button class="btn btn-primary shadow-lg d-flex align-items-center justify-content-center custom-hover-btn"
         type="button" data-bs-toggle="collapse" data-bs-target="#suggestionFormContainer" aria-expanded="false"
-        aria-controls="suggestionFormContainer" style="width: 60px; height: 60px; font-size: 1.5rem;">
-        <i class="fas fa-lightbulb"></i>
+        aria-controls="suggestionFormContainer"
+        style="height: 60px; padding: 0 20px; font-size: 1.1rem; border-radius: 30px;">
+        <i class="fas fa-lightbulb me-2"></i> Sugerencias
     </button>
 
     <!-- Contenedor del Formulario -->
@@ -49,6 +49,12 @@
                         <label for="suggestion_sugerencia" class="text-muted small">Escribe tu sugerencia
                             aquí...</label>
                     </div>
+
+                    <!-- Información de Contacto Dinámica -->
+                    <div class="text-center mb-3 px-2">
+                        <small class="text-muted" id="contactInfoText">Si tienes dudas, contáctanos.</small>
+                    </div>
+
                     <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm custom-hover-btn">
                         <i class="fas fa-paper-plane me-2"></i>Enviar Sugerencia
                     </button>
@@ -109,8 +115,22 @@
             },
             error: function (xhr, status, error) {
                 console.error('Error al obtener los datos del usuario:', error);
-                console.log(xhr.responseText); // Añadir esto para ver el error completo
             }
+        });
+
+        // Cargar datos de contacto de la universidad dinámicamente
+        $.getJSON('../controllers/ConfigSistemaController.php', { action: 'obtener_config_clave', clave: 'TELEFONO_CONTACTO_POR_DEFECTO' }).done(function (resT) {
+            $.getJSON('../controllers/ConfigSistemaController.php', { action: 'obtener_config_clave', clave: 'CORREO_CONTACTO_POR_DEFECTO' }).done(function (resC) {
+                let tel = (resT.success && resT.data) ? resT.data.valor_config : '';
+                let cor = (resC.success && resC.data) ? resC.data.valor_config : '';
+                if (tel || cor) {
+                    let text = 'Si tienes dudas, contáctanos a: ';
+                    if (tel) text += '<strong>' + tel + '</strong>';
+                    if (tel && cor) text += ' o ';
+                    if (cor) text += '<a href="mailto:' + cor + '" class="text-primary text-decoration-none fw-bold">' + cor + '</a>';
+                    $('#contactInfoText').html(text);
+                }
+            });
         });
 
         // Manejar el envío del formulario de sugerencias
@@ -127,7 +147,7 @@
                 dataType: 'json', // Añadir tipo de datos esperado
                 success: function (response) {
                     $btn.prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Enviar Sugerencia');
-                    
+
                     if (response.success) {
                         // Mostrar mensaje de agradecimiento
                         $('#suggestionForm').slideUp();

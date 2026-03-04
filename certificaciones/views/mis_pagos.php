@@ -262,7 +262,7 @@ function h($str)
         <div class="modal-content">
             <div class="modal-header bg-warning">
                 <h5 class="modal-title text-dark"><i class="fas fa-edit me-2"></i> Editar Pago</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -309,7 +309,7 @@ function h($str)
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-success" onclick="guardarEdicionComprobante()">
                     <i class="fas fa-save me-2"></i> Guardar Cambios
                 </button>
