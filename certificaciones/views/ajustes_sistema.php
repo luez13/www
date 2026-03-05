@@ -39,11 +39,10 @@ if ($_SESSION['id_rol'] != 4) {
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Firmante por Defecto: Vicerrectorado</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Firmante por Defecto: Encargado del area</h6>
         </div>
         <div class="card-body">
-            <p>Selecciona la persona que ocupará el cargo de "Vicerrectorado Académico o Encargado del del Área de
-                Formación Permanente" por defecto.</p>
+            <p>Selecciona la persona que ocupará el cargo de "Encargado del Area de Formación Permanente" por defecto.</p>
 
             <form id="formAjustesVicerrectora">
                 <input type="hidden" name="action" value="guardar_config">
