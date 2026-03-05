@@ -49,7 +49,7 @@ if ($_SESSION['id_rol'] != 4) {
                 <input type="hidden" name="clave_config" value="ID_CARGO_VICERRECTORADO_POR_DEFECTO">
                 <div class="row align-items-end">
                     <div class="col-md-8">
-                        <label for="selectVicerrectoraPorDefecto" class="form-label">Vicerrectora Académica:</label>
+                        <label for="selectVicerrectoraPorDefecto" class="form-label">Encargado del Area:</label>
                         <select class="form-select" id="selectVicerrectoraPorDefecto" name="valor_config" required>
                             <option value="">Cargando firmantes...</option>
                         </select>
