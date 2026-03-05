@@ -26,8 +26,15 @@ $action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ?
 switch ($action) {
 
     case 'subir_comprobante':
-        // Validar que se hayan enviado los datos requeridos
-        $requeridos = ['id_curso', 'numero_operacion', 'banco_origen', 'monto', 'fecha_pago'];
+        $moneda = isset($_POST['moneda']) ? $_POST['moneda'] : 'Bs';
+
+        // Validar que se hayan enviado los datos requeridos básicos
+        $requeridos = ['id_curso', 'monto', 'fecha_pago'];
+        if ($moneda === 'Bs') {
+            $requeridos[] = 'numero_operacion';
+            $requeridos[] = 'banco_origen';
+        }
+
         foreach ($requeridos as $campo) {
             if (empty($_POST[$campo])) {
                 echo json_encode(['success' => false, 'message' => "El campo $campo es obligatorio."]);
@@ -35,58 +42,66 @@ switch ($action) {
             }
         }
 
-        // Validar el archivo
-        if (!isset($_FILES['comprobante_archivo']) || $_FILES['comprobante_archivo']['error'] !== UPLOAD_ERR_OK) {
-            echo json_encode(['success' => false, 'message' => 'Error al subir el archivo o no se seleccionó ninguno.']);
-            exit;
-        }
+        $rutaBD = null;
 
-        $archivo = $_FILES['comprobante_archivo'];
-        $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
-        $permitidas = ['pdf', 'jpg', 'jpeg', 'png'];
+        // Validar el archivo si se envió (ahora es opcional)
+        if (isset($_FILES['comprobante_archivo']) && $_FILES['comprobante_archivo']['error'] === UPLOAD_ERR_OK) {
+            $archivo = $_FILES['comprobante_archivo'];
+            $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+            $permitidas = ['pdf', 'jpg', 'jpeg', 'png'];
 
-        if (!in_array($extension, $permitidas)) {
-            echo json_encode(['success' => false, 'message' => 'Formato de archivo no permitido. Usa PDF, JPG, JPEG o PNG.']);
-            exit;
-        }
+            if (!in_array($extension, $permitidas)) {
+                echo json_encode(['success' => false, 'message' => 'Formato de archivo no permitido. Usa PDF, JPG, JPEG o PNG.']);
+                exit;
+            }
 
-        // Preparar directorio de subida
-        $directorioDestino = '../public/assets/comprobantes/';
-        if (!file_exists($directorioDestino)) {
-            mkdir($directorioDestino, 0777, true);
-        }
+            // Preparar directorio de subida
+            $directorioDestino = '../public/assets/comprobantes/';
+            if (!file_exists($directorioDestino)) {
+                mkdir($directorioDestino, 0777, true);
+            }
 
-        // Generar nombre único: idUsuario_idCurso_timestamp.ext
-        $id_usuario = $_SESSION['user_id'];
-        $id_curso = $_POST['id_curso'];
-        $nombreUnico = $id_usuario . '_' . $id_curso . '_' . time() . '.' . $extension;
-        $rutaFisica = $directorioDestino . $nombreUnico;
+            // Generar nombre único: idUsuario_idCurso_timestamp.ext
+            $id_usuario = $_SESSION['user_id'];
+            $id_curso = $_POST['id_curso'];
+            $nombreUnico = $id_usuario . '_' . $id_curso . '_' . time() . '.' . $extension;
+            $rutaFisica = $directorioDestino . $nombreUnico;
 
-        // La ruta que guardaremos en BD (relativa a public)
-        $rutaBD = 'assets/comprobantes/' . $nombreUnico;
-
-        if (move_uploaded_file($archivo['tmp_name'], $rutaFisica)) {
-            // Archivo guardado físicamente, procedemos a registrar en BD
-            $datosPago = [
-                'id_usuario' => $id_usuario,
-                'id_curso' => $id_curso,
-                'id_materia_bimestre' => !empty($_POST['id_materia_bimestre']) ? intval($_POST['id_materia_bimestre']) : null,
-                'archivo_ruta' => $rutaBD,
-                'numero_operacion' => trim($_POST['numero_operacion']),
-                'banco_origen' => trim($_POST['banco_origen']),
-                'monto' => floatval($_POST['monto']),
-                'fecha_pago' => $_POST['fecha_pago']
-            ];
-
-            if ($pagoModel->registrarComprobante($datosPago)) {
-                echo json_encode(['success' => true, 'message' => 'Comprobante subido y registrado exitosamente.']);
+            // La ruta que guardaremos en BD (relativa a public)
+            if (move_uploaded_file($archivo['tmp_name'], $rutaFisica)) {
+                $rutaBD = 'assets/comprobantes/' . $nombreUnico;
             } else {
-                // Si falla la BD, es buena práctica borrar el archivo huérfano
-                unlink($rutaFisica);
-                echo json_encode(['success' => false, 'message' => 'Error al guardar el registro en la base de datos.']);
+                echo json_encode(['success' => false, 'message' => 'Error al mover el archivo al servidor.']);
+                exit;
             }
         } else {
-            echo json_encode(['success' => false, 'message' => 'Error al mover el archivo al servidor.']);
+            $id_usuario = $_SESSION['user_id'];
+            $id_curso = $_POST['id_curso'];
+        }
+
+        $banco_origen = ($moneda === 'Divisas') ? 'Taquilla de la Universidad' : trim($_POST['banco_origen']);
+
+        // Archivo guardado físicamente o no se subió, procedemos a registrar en BD
+        $datosPago = [
+            'id_usuario' => $id_usuario,
+            'id_curso' => $id_curso,
+            'id_materia_bimestre' => !empty($_POST['id_materia_bimestre']) ? intval($_POST['id_materia_bimestre']) : null,
+            'archivo_ruta' => $rutaBD,
+            'numero_operacion' => isset($_POST['numero_operacion']) ? trim($_POST['numero_operacion']) : null,
+            'banco_origen' => $banco_origen,
+            'monto' => floatval($_POST['monto']),
+            'fecha_pago' => $_POST['fecha_pago'],
+            'moneda' => $moneda
+        ];
+
+        if ($pagoModel->registrarComprobante($datosPago)) {
+            echo json_encode(['success' => true, 'message' => 'Comprobante registrado exitosamente.']);
+        } else {
+            // Si falla la BD, borrar el archivo huérfano si existe
+            if ($rutaBD && isset($rutaFisica) && file_exists($rutaFisica)) {
+                unlink($rutaFisica);
+            }
+            echo json_encode(['success' => false, 'message' => 'Error al guardar el registro en la base de datos.']);
         }
         break;
 
@@ -161,8 +176,15 @@ switch ($action) {
         break;
 
     case 'editar_comprobante':
+        $moneda = isset($_POST['moneda']) ? $_POST['moneda'] : 'Bs';
+
         // Validar requeridos básicos
-        $requeridos = ['id_comprobante', 'numero_operacion', 'banco_origen', 'monto', 'fecha_pago'];
+        $requeridos = ['id_comprobante', 'monto', 'fecha_pago'];
+        if ($moneda === 'Bs') {
+            $requeridos[] = 'numero_operacion';
+            $requeridos[] = 'banco_origen';
+        }
+
         foreach ($requeridos as $campo) {
             if (empty($_POST[$campo])) {
                 echo json_encode(['success' => false, 'message' => "El campo $campo es obligatorio."]);
@@ -191,14 +213,17 @@ switch ($action) {
         $origen_peticion = isset($_POST['origen']) ? $_POST['origen'] : '';
         $estado_final = ($origen_peticion === 'usuario') ? 'Pendiente' : ($es_admin ? null : 'Pendiente');
 
+        $banco_origen = ($moneda === 'Divisas') ? 'Taquilla de la Universidad' : trim($_POST['banco_origen']);
+
         $datosActualizar = [
             'id_comprobante' => $id_comprobante,
-            'numero_operacion' => trim($_POST['numero_operacion']),
-            'banco_origen' => trim($_POST['banco_origen']),
+            'numero_operacion' => isset($_POST['numero_operacion']) ? trim($_POST['numero_operacion']) : null,
+            'banco_origen' => $banco_origen,
             'monto' => floatval($_POST['monto']),
             'fecha_pago' => $_POST['fecha_pago'],
             'archivo_ruta' => null,
-            'estado' => $estado_final
+            'estado' => $estado_final,
+            'moneda' => $moneda
         ];
 
         // Manejar subida de archivo opcional

@@ -189,6 +189,7 @@ asort($cursos_filtros);
                                 <th>Fecha</th>
                                 <th>Usuario</th>
                                 <th>Curso / Diplomado</th>
+                                <th>Moneda</th>
                                 <th>Referencia / Banco</th>
                                 <th>Monto</th>
                                 <th>Acciones</th>
@@ -217,7 +218,14 @@ asort($cursos_filtros);
                                         <?= h($comp['nombre_curso']) ?>
                                     </td>
                                     <td>
-                                        <strong><?= h($comp['numero_operacion']) ?></strong><br>
+                                        <?php if (isset($comp['moneda']) && $comp['moneda'] === 'Divisas'): ?>
+                                            <span class="badge badge-success">Divisas</span>
+                                        <?php else: ?>
+                                            <span class="badge badge-primary">Bs.</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <strong><?= h($comp['numero_operacion'] ? $comp['numero_operacion'] : 'N/A') ?></strong><br>
                                         <small class="text-muted"><?= h($comp['banco_origen']) ?></small>
                                         <?php if (!empty($comp['observacion'])): ?>
                                             <hr class="m-1">
@@ -260,7 +268,7 @@ asort($cursos_filtros);
 
                                             <!-- Botón Editar para Administradores -->
                                             <button type="button" class="btn btn-sm btn-secondary shadow-sm"
-                                                onclick="abrirModalEditComprobanteAdmin(<?= $comp['id_comprobante'] ?>, '<?= h($comp['banco_origen']) ?>', '<?= h($comp['numero_operacion']) ?>', <?= $comp['monto'] ?>, '<?= date('Y-m-d', strtotime($comp['fecha_pago'])) ?>', this)"
+                                                onclick="abrirModalEditComprobanteAdmin(<?= $comp['id_comprobante'] ?>, '<?= h($comp['banco_origen']) ?>', '<?= h($comp['numero_operacion'] ? $comp['numero_operacion'] : '') ?>', <?= $comp['monto'] ?>, '<?= date('Y-m-d', strtotime($comp['fecha_pago'])) ?>', '<?= isset($comp['moneda']) ? $comp['moneda'] : 'Bs' ?>', this)"
                                                 title="Modificar datos del pago">
                                                 <i class="fas fa-edit"></i>
                                             </button>
@@ -328,12 +336,19 @@ asort($cursos_filtros);
                     <input type="hidden" name="id_comprobante" id="admin_edit_id_comprobante">
 
                     <div class="row">
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3">
+                            <label>Moneda:</label>
+                            <select name="moneda" id="admin_edit_moneda" class="form-control" required>
+                                <option value="Bs">Bolívares (Bs.)</option>
+                                <option value="Divisas">Divisas ($)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
                             <label>Banco de Origen:</label>
                             <input type="text" name="banco_origen" id="admin_edit_banco_origen" class="form-control"
                                 required>
                         </div>
-                        <div class="col-md-6 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3" id="admin_edit_div_numero_operacion">
                             <label>N° de Referencia:</label>
                             <input type="text" name="numero_operacion" id="admin_edit_numero_operacion"
                                 class="form-control" required>
@@ -672,7 +687,25 @@ asort($cursos_filtros);
         }
     }
 
-    function abrirModalEditComprobanteAdmin(id, banco, operacion, monto, fecha, btnObj) {
+    function alternarCamposMonedaAdmin() {
+        const moneda = $('#admin_edit_moneda').val();
+        if (moneda === 'Divisas') {
+            $('#admin_edit_div_numero_operacion').hide();
+            $('#admin_edit_numero_operacion').removeAttr('required');
+            $('#admin_edit_banco_origen').val('Taquilla de la Universidad').prop('readonly', true);
+        } else {
+            $('#admin_edit_div_numero_operacion').show();
+            $('#admin_edit_numero_operacion').attr('required', true);
+            if ($('#admin_edit_banco_origen').val() === 'Taquilla de la Universidad') {
+                $('#admin_edit_banco_origen').val('');
+            }
+            $('#admin_edit_banco_origen').prop('readonly', false);
+        }
+    }
+
+    $(document).on('change', '#admin_edit_moneda', alternarCamposMonedaAdmin);
+
+    function abrirModalEditComprobanteAdmin(id, banco, operacion, monto, fecha, moneda, btnObj) {
         window.filaEditadaAdmin = $(btnObj).closest('tr');
         document.getElementById('formEditarPagoAdmin').reset();
         document.getElementById('admin_edit_id_comprobante').value = id;
@@ -680,6 +713,8 @@ asort($cursos_filtros);
         document.getElementById('admin_edit_numero_operacion').value = operacion;
         document.getElementById('admin_edit_monto').value = monto;
         document.getElementById('admin_edit_fecha_pago').value = fecha;
+
+        $('#admin_edit_moneda').val(moneda || 'Bs').trigger('change');
 
         $('#modalEditarComprobanteAdmin').modal('show');
     }

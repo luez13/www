@@ -79,9 +79,9 @@ class Pago
     public function registrarComprobante($datos)
     {
         $sql = "INSERT INTO cursos.comprobantes_pago 
-                (id_usuario, id_curso, id_materia_bimestre, archivo_ruta, numero_operacion, banco_origen, monto, estado, fecha_pago, fecha_subida) 
+                (id_usuario, id_curso, id_materia_bimestre, archivo_ruta, numero_operacion, banco_origen, monto, estado, fecha_pago, fecha_subida, moneda) 
                 VALUES 
-                (:id_usuario, :id_curso, :id_materia_bimestre, :archivo_ruta, :numero_operacion, :banco_origen, :monto, 'Pendiente', :fecha_pago, CURRENT_TIMESTAMP)";
+                (:id_usuario, :id_curso, :id_materia_bimestre, :archivo_ruta, :numero_operacion, :banco_origen, :monto, 'Pendiente', :fecha_pago, CURRENT_TIMESTAMP, :moneda)";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             'id_usuario' => $datos['id_usuario'],
@@ -91,7 +91,8 @@ class Pago
             'numero_operacion' => $datos['numero_operacion'],
             'banco_origen' => $datos['banco_origen'],
             'monto' => $datos['monto'],
-            'fecha_pago' => $datos['fecha_pago']
+            'fecha_pago' => $datos['fecha_pago'],
+            'moneda' => isset($datos['moneda']) ? $datos['moneda'] : 'Bs'
         ]);
     }
 
@@ -104,7 +105,8 @@ class Pago
                         monto = :monto, 
                         fecha_pago = :fecha_pago, 
                         archivo_ruta = :archivo_ruta,
-                        estado = COALESCE(:estado, estado) 
+                        estado = COALESCE(:estado, estado),
+                        moneda = COALESCE(:moneda, moneda)
                     WHERE id_comprobante = :id_comprobante";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([
@@ -114,6 +116,7 @@ class Pago
                 'fecha_pago' => $datos['fecha_pago'],
                 'archivo_ruta' => $datos['archivo_ruta'],
                 'estado' => isset($datos['estado']) ? $datos['estado'] : null,
+                'moneda' => isset($datos['moneda']) ? $datos['moneda'] : null,
                 'id_comprobante' => $datos['id_comprobante']
             ]);
         } else {
@@ -122,7 +125,8 @@ class Pago
                         banco_origen = :banco_origen, 
                         monto = :monto, 
                         fecha_pago = :fecha_pago,
-                        estado = COALESCE(:estado, estado)
+                        estado = COALESCE(:estado, estado),
+                        moneda = COALESCE(:moneda, moneda)
                     WHERE id_comprobante = :id_comprobante";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([
@@ -131,6 +135,7 @@ class Pago
                 'monto' => $datos['monto'],
                 'fecha_pago' => $datos['fecha_pago'],
                 'estado' => isset($datos['estado']) ? $datos['estado'] : null,
+                'moneda' => isset($datos['moneda']) ? $datos['moneda'] : null,
                 'id_comprobante' => $datos['id_comprobante']
             ]);
         }
