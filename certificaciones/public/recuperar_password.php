@@ -13,7 +13,8 @@
                     <div class="card-body p-4 p-md-5">
                         <form action="../controllers/autenticacion.php" method="post">
                             <input type="hidden" name="action" value="recuperar">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                            <input type="hidden" name="csrf_token"
+                                value="<?= isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '' ?>">
 
                             <div class="form-floating mb-4">
                                 <input type="email" class="form-control rounded-pill px-4" name="correo"

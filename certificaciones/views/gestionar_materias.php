@@ -5,12 +5,14 @@ include '../controllers/init.php';
 require_once('../config/model.php');
 require_once('../models/Materia.php');
 
-if (!isset($_SESSION['user_id'])) { die('Acceso denegado.'); }
+if (!isset($_SESSION['user_id'])) {
+    die('Acceso denegado.');
+}
 
-$db = new DB(); 
+$db = new DB();
 $materiaModel = new Materia($db->getConn());
 
-$id_curso = isset($_REQUEST['id_curso']) ? (int)$_REQUEST['id_curso'] : 0;
+$id_curso = isset($_REQUEST['id_curso']) ? (int) $_REQUEST['id_curso'] : 0;
 
 if ($id_curso === 0) {
     echo '<div class="alert alert-danger">Error: ID de curso perdido.</div>';
@@ -44,19 +46,22 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">Materias de: <?= htmlspecialchars($nombre_curso) ?></h6>
-            <button class="btn btn-success btn-sm" onclick="abrirModalMateria()"><i class="fas fa-plus"></i> Nueva Materia</button>
+            <button class="btn btn-success btn-sm" onclick="abrirModalMateria()"><i class="fas fa-plus"></i> Nueva
+                Materia</button>
         </div>
         <div class="card-body">
             <?php if (empty($materias)): ?>
-                <div class="text-center py-5"><p class="text-gray-500">No hay materias registradas.</p></div>
+                <div class="text-center py-5">
+                    <p class="text-gray-500">No hay materias registradas.</p>
+                </div>
             <?php else: ?>
-                
+
                 <?php foreach ($materiasPorLapso as $lapso => $grupoMaterias): ?>
                     <div class="alert alert-secondary mt-3 mb-2 py-1">
                         <strong>
-                            <?php 
-                                // Lógica de etiqueta visual
-                                echo "Periodo Académico " . $lapso; 
+                            <?php
+                            // Lógica de etiqueta visual
+                            echo "Periodo Académico " . $lapso;
                             ?>
                         </strong>
                     </div>
@@ -74,23 +79,29 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                             </thead>
                             <tbody>
                                 <?php foreach ($grupoMaterias as $mat): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($mat['nombre_materia']) ?></td>
-                                    <td><?= htmlspecialchars($mat['duracion_bimestres']) ?></td>
-                                    <td><?= htmlspecialchars($mat['modalidad']) ?></td>
-                                    <td><?= htmlspecialchars($mat['nombre_docente'] . ' ' . $mat['apellido_docente']) ?></td>
-                                    <td class="text-center" style="width: 150px;">
-                                        <button class="btn btn-warning btn-sm" onclick="editarMateria(<?= $mat['id_materia_bimestre'] ?>)" title="Editar"><i class="fas fa-edit"></i></button>
-                                        
-                                            <a href="../views/generar_acta_materia.php?id_materia=<?= $mat['id_materia_bimestre'] ?>" 
-                                            target="_blank" 
-                                            class="btn btn-info btn-sm" 
-                                            title="Acta de Cierre">
-                                            <i class="fas fa-file-contract"></i>
+                                    <tr>
+                                        <td><?= htmlspecialchars($mat['nombre_materia']) ?></td>
+                                        <td><?= htmlspecialchars($mat['duracion_bimestres']) ?></td>
+                                        <td><?= htmlspecialchars($mat['modalidad']) ?></td>
+                                        <td><?= htmlspecialchars($mat['nombre_docente'] . ' ' . $mat['apellido_docente']) ?></td>
+                                        <td class="text-center" style="width: 180px;">
+                                            <button class="btn btn-warning btn-sm"
+                                                onclick="editarMateria(<?= $mat['id_materia_bimestre'] ?>)" title="Editar"><i
+                                                    class="fas fa-edit"></i></button>
+
+                                            <a href="../views/generar_acta_materia.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"
+                                                target="_blank" class="btn btn-info btn-sm" title="Acta de Cierre">
+                                                <i class="fas fa-file-contract"></i>
                                             </a>
-                                        <button class="btn btn-danger btn-sm" onclick="eliminarMateria(<?= $mat['id_materia_bimestre'] ?>)" title="Eliminar"><i class="fas fa-trash"></i></button>
-                                    </td>
-                                </tr>
+                                            <a href="../controllers/generar_constancia_facilitador.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"
+                                                target="_blank" class="btn btn-success btn-sm" title="Constancia de Docencia">
+                                                <i class="fas fa-certificate"></i>
+                                            </a>
+                                            <button class="btn btn-danger btn-sm"
+                                                onclick="eliminarMateria(<?= $mat['id_materia_bimestre'] ?>)" title="Eliminar"><i
+                                                    class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
@@ -130,18 +141,19 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                         <label>Nombre Materia</label>
                         <input type="text" class="form-control" name="nombre_materia" id="nombre_materia" required>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-6 mb-3">
                             <label>Duración (Texto)</label>
-                            <input type="text" class="form-control" name="duracion_bimestres" id="duracion_bimestres" placeholder="Ej: 1 Bimestre" required>
+                            <input type="text" class="form-control" name="duracion_bimestres" id="duracion_bimestres"
+                                placeholder="Ej: 1 Bimestre" required>
                         </div>
                         <div class="col-6 mb-3">
                             <label>Horas</label>
                             <input type="number" class="form-control" name="total_horas" id="total_horas" required>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label>Modalidad</label>
                         <select class="form-select" name="modalidad" id="modalidad">
@@ -150,13 +162,15 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                             <option value="Mixta">Mixta</option>
                         </select>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label>Docente</label>
                         <div class="input-group">
                             <input type="hidden" name="docente_id" id="docente_id">
-                            <input type="text" class="form-control" id="docente_nombre" readonly placeholder="Buscar..." required>
-                            <button class="btn btn-outline-primary" type="button" onclick="abrirBuscadorDocente()"><i class="fas fa-search"></i></button>
+                            <input type="text" class="form-control" id="docente_nombre" readonly placeholder="Buscar..."
+                                required>
+                            <button class="btn btn-outline-primary" type="button" onclick="abrirBuscadorDocente()"><i
+                                    class="fas fa-search"></i></button>
                         </div>
                     </div>
                 </div>
@@ -170,26 +184,31 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
 </div>
 
 <div class="modal fade" id="modalBuscarDocente" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header bg-info text-white"><h5 class="modal-title">Buscar Docente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">
-        <div class="input-group mb-3">
-            <input type="text" class="form-control" id="inputBusquedaDocente">
-            <button class="btn btn-info" onclick="ejecutarBusquedaDocente()">Buscar</button>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Buscar Docente</h5><button type="button" class="btn-close"
+                    data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="inputBusquedaDocente">
+                    <button class="btn btn-info" onclick="ejecutarBusquedaDocente()">Buscar</button>
+                </div>
+                <table class="table table-sm">
+                    <tbody id="tablaResultadosDocente"></tbody>
+                </table>
+            </div>
         </div>
-        <table class="table table-sm"><tbody id="tablaResultadosDocente"></tbody></table>
-      </div>
     </div>
-  </div>
 </div>
 
 <script>
     var ID_CURSO_ACTUAL = <?= $id_curso ?>;
 
     function guardarMateriaAJAX() {
-        if($('#nombre_materia').val() == '') { alert('Falta el nombre'); return; }
-        if($('#docente_id').val() == '') { alert('Falta el docente'); return; }
+        if ($('#nombre_materia').val() == '') { alert('Falta el nombre'); return; }
+        if ($('#docente_id').val() == '') { alert('Falta el docente'); return; }
 
         var datos = $('#formMateria').serialize();
 
@@ -198,20 +217,20 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
             type: 'POST',
             data: datos,
             dataType: 'text',
-            success: function(raw) {
+            success: function (raw) {
                 try {
                     var res = JSON.parse(raw);
-                    if(res.success) {
+                    if (res.success) {
                         alert(res.message);
                         $('#modalMateria').modal('hide');
-                        $('.modal-backdrop').remove(); 
+                        $('.modal-backdrop').remove();
                         loadPage('../views/gestionar_materias.php', { id_curso: ID_CURSO_ACTUAL });
                     } else {
                         alert("Error: " + res.message);
                     }
-                } catch(e) { alert("Error crítico:\n" + raw); }
+                } catch (e) { alert("Error crítico:\n" + raw); }
             },
-            error: function() { alert("Error de conexión"); }
+            error: function () { alert("Error de conexión"); }
         });
     }
 
@@ -230,8 +249,8 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
             type: 'POST',
             data: { action: 'obtener', id_materia: id },
             dataType: 'json',
-            success: function(res) {
-                if(res.success) {
+            success: function (res) {
+                if (res.success) {
                     var d = res.data;
                     $('#id_materia').val(d.id_materia_bimestre);
                     $('#nombre_materia').val(d.nombre_materia);
@@ -242,7 +261,7 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                     $('#docente_nombre').val(d.nombre_docente);
                     // Cargar el lapso guardado
                     $('#lapso_academico').val(d.lapso_academico || 1);
-                    
+
                     $('#modalMateria').modal('show');
                 }
             }
@@ -250,12 +269,12 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
     }
 
     function eliminarMateria(id) {
-        if(confirm('¿Eliminar?')) {
+        if (confirm('¿Eliminar?')) {
             $.ajax({
                 url: '../controllers/gestion_materia.php',
                 type: 'POST',
                 data: { action: 'eliminar', id_materia: id },
-                success: function() {
+                success: function () {
                     loadPage('../views/gestionar_materias.php', { id_curso: ID_CURSO_ACTUAL });
                 }
             });
@@ -263,18 +282,18 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
     }
 
     function abrirBuscadorDocente() { $('#modalBuscarDocente').modal('show'); }
-    
+
     function ejecutarBusquedaDocente() {
         var q = $('#inputBusquedaDocente').val();
         $.ajax({
             url: '../controllers/buscar_usuarios_ajax.php',
             data: { q: q },
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
                 var html = '';
-                if(data.length) {
-                    data.forEach(function(u) {
-                        html += '<tr><td>'+u.nombre+' '+u.apellido+'</td><td><button class="btn btn-sm btn-success" onclick="selDocente('+u.id+', \''+u.nombre+' '+u.apellido+'\')">✓</button></td></tr>';
+                if (data.length) {
+                    data.forEach(function (u) {
+                        html += '<tr><td>' + u.nombre + ' ' + u.apellido + '</td><td><button class="btn btn-sm btn-success" onclick="selDocente(' + u.id + ', \'' + u.nombre + ' ' + u.apellido + '\')">✓</button></td></tr>';
                     });
                 } else { html = '<tr><td>No encontrado</td></tr>'; }
                 $('#tablaResultadosDocente').html(html);

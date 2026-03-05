@@ -2,10 +2,10 @@
 // Incluir el archivo header.php
 include '../views/header.php';
 
-$fm_nombre = $_SESSION['form_data']['nombre'] ?? '';
-$fm_apellido = $_SESSION['form_data']['apellido'] ?? '';
-$fm_cedula = $_SESSION['form_data']['cedula'] ?? '';
-$fm_correo = $_SESSION['form_data']['correo'] ?? '';
+$fm_nombre = isset($_SESSION['form_data']['nombre']) ? $_SESSION['form_data']['nombre'] : '';
+$fm_apellido = isset($_SESSION['form_data']['apellido']) ? $_SESSION['form_data']['apellido'] : '';
+$fm_cedula = isset($_SESSION['form_data']['cedula']) ? $_SESSION['form_data']['cedula'] : '';
+$fm_correo = isset($_SESSION['form_data']['correo']) ? $_SESSION['form_data']['correo'] : '';
 unset($_SESSION['form_data']);
 ?>
 
@@ -24,7 +24,8 @@ unset($_SESSION['form_data']);
                         <form class="user" id="registerForm" action="../controllers/autenticacion.php" method="post">
                             <input type="hidden" name="action" value="registro">
                             <!-- Token CSRF -->
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                            <input type="hidden" name="csrf_token"
+                                value="<?= isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '' ?>">
 
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6 form-floating">

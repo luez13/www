@@ -6,7 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
 // Generar Token CSRF global si no existe para proteger los formularios
 if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    $_SESSION['csrf_token'] = bin2hex(openssl_random_pseudo_bytes(32));
 }
 
 $current_page = basename($_SERVER['PHP_SELF']);

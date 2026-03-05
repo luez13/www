@@ -20,7 +20,8 @@ $token = htmlspecialchars($_GET['token']);
                     <div class="card-body p-4 p-md-5">
                         <form id="resetForm" action="../controllers/autenticacion.php" method="post">
                             <input type="hidden" name="action" value="reset">
-                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                            <input type="hidden" name="csrf_token"
+                                value="<?= isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '' ?>">
                             <input type="hidden" name="token" value="<?= $token ?>">
 
                             <div class="form-floating mb-3 position-relative">

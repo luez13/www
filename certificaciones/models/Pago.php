@@ -47,7 +47,7 @@ class Pago
             'correo' => $datos['correo'],
             'tipo_cuenta' => $datos['tipo_cuenta'],
             'numero_cuenta' => $datos['numero_cuenta'],
-            'activo' => $datos['activo'] ?? true // Por defecto true
+            'activo' => isset($datos['activo']) ? $datos['activo'] : true // Por defecto true
         ]);
     }
 
@@ -92,7 +92,11 @@ class Pago
             'banco_origen' => !empty($datos['banco_origen']) ? $datos['banco_origen'] : null,
             'monto' => $datos['monto'],
             'fecha_pago' => $datos['fecha_pago'],
+<<<<<<< HEAD
             'moneda' => $datos['moneda'] ?? 'Bs'
+=======
+            'moneda' => isset($datos['moneda']) ? $datos['moneda'] : 'Bs'
+>>>>>>> a36c9933a7dd692c01d2eebc6c6f456c203d7e0a
         ]);
     }
 
@@ -105,8 +109,13 @@ class Pago
                         monto = :monto, 
                         fecha_pago = :fecha_pago, 
                         archivo_ruta = :archivo_ruta,
+<<<<<<< HEAD
                         moneda = :moneda,
                         estado = COALESCE(:estado, estado) 
+=======
+                        estado = COALESCE(:estado, estado),
+                        moneda = COALESCE(:moneda, moneda)
+>>>>>>> a36c9933a7dd692c01d2eebc6c6f456c203d7e0a
                     WHERE id_comprobante = :id_comprobante";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([
@@ -115,8 +124,13 @@ class Pago
                 'monto' => $datos['monto'],
                 'fecha_pago' => $datos['fecha_pago'],
                 'archivo_ruta' => $datos['archivo_ruta'],
+<<<<<<< HEAD
                 'moneda' => $datos['moneda'] ?? 'Bs',
                 'estado' => $datos['estado'] ?? null,
+=======
+                'estado' => isset($datos['estado']) ? $datos['estado'] : null,
+                'moneda' => isset($datos['moneda']) ? $datos['moneda'] : null,
+>>>>>>> a36c9933a7dd692c01d2eebc6c6f456c203d7e0a
                 'id_comprobante' => $datos['id_comprobante']
             ]);
         }
@@ -126,8 +140,13 @@ class Pago
                         banco_origen = :banco_origen, 
                         monto = :monto, 
                         fecha_pago = :fecha_pago,
+<<<<<<< HEAD
                         moneda = :moneda,
                         estado = COALESCE(:estado, estado)
+=======
+                        estado = COALESCE(:estado, estado),
+                        moneda = COALESCE(:moneda, moneda)
+>>>>>>> a36c9933a7dd692c01d2eebc6c6f456c203d7e0a
                     WHERE id_comprobante = :id_comprobante";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([
@@ -135,8 +154,13 @@ class Pago
                 'banco_origen' => !empty($datos['banco_origen']) ? $datos['banco_origen'] : null,
                 'monto' => $datos['monto'],
                 'fecha_pago' => $datos['fecha_pago'],
+<<<<<<< HEAD
                 'moneda' => $datos['moneda'] ?? 'Bs',
                 'estado' => $datos['estado'] ?? null,
+=======
+                'estado' => isset($datos['estado']) ? $datos['estado'] : null,
+                'moneda' => isset($datos['moneda']) ? $datos['moneda'] : null,
+>>>>>>> a36c9933a7dd692c01d2eebc6c6f456c203d7e0a
                 'id_comprobante' => $datos['id_comprobante']
             ]);
         }

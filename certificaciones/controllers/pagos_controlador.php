@@ -20,14 +20,26 @@ $db = new DB();
 $pagoModel = new Pago($db);
 
 // 4. Capturar la acción
-$action = $_POST['action'] ?? $_GET['action'] ?? '';
+$action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ? $_GET['action'] : '');
 
 // 5. Procesar las peticiones
 switch ($action) {
 
     case 'subir_comprobante':
+<<<<<<< HEAD
         // Validar que se hayan enviado los datos básicos
         $requeridos = ['id_curso', 'monto', 'fecha_pago'];
+=======
+        $moneda = isset($_POST['moneda']) ? $_POST['moneda'] : 'Bs';
+
+        // Validar que se hayan enviado los datos requeridos básicos
+        $requeridos = ['id_curso', 'monto', 'fecha_pago'];
+        if ($moneda === 'Bs') {
+            $requeridos[] = 'numero_operacion';
+            $requeridos[] = 'banco_origen';
+        }
+
+>>>>>>> a36c9933a7dd692c01d2eebc6c6f456c203d7e0a
         foreach ($requeridos as $campo) {
             if (empty($_POST[$campo])) {
                 echo json_encode(['success' => false, 'message' => "El campo $campo es obligatorio."]);
@@ -35,6 +47,7 @@ switch ($action) {
             }
         }
 
+<<<<<<< HEAD
         // Validar el archivo (opcional)
         $rutaBD = null;
         if (isset($_FILES['comprobante_archivo']) && $_FILES['comprobante_archivo']['error'] === UPLOAD_ERR_OK) {
@@ -93,6 +106,67 @@ switch ($action) {
             if ($rutaBD && file_exists('../public/' . $rutaBD)) {
                 unlink('../public/' . $rutaBD);
             }
+=======
+        $rutaBD = null;
+
+        // Validar el archivo si se envió (ahora es opcional)
+        if (isset($_FILES['comprobante_archivo']) && $_FILES['comprobante_archivo']['error'] === UPLOAD_ERR_OK) {
+            $archivo = $_FILES['comprobante_archivo'];
+            $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+            $permitidas = ['pdf', 'jpg', 'jpeg', 'png'];
+
+            if (!in_array($extension, $permitidas)) {
+                echo json_encode(['success' => false, 'message' => 'Formato de archivo no permitido. Usa PDF, JPG, JPEG o PNG.']);
+                exit;
+            }
+
+            // Preparar directorio de subida
+            $directorioDestino = '../public/assets/comprobantes/';
+            if (!file_exists($directorioDestino)) {
+                mkdir($directorioDestino, 0777, true);
+            }
+
+            // Generar nombre único: idUsuario_idCurso_timestamp.ext
+            $id_usuario = $_SESSION['user_id'];
+            $id_curso = $_POST['id_curso'];
+            $nombreUnico = $id_usuario . '_' . $id_curso . '_' . time() . '.' . $extension;
+            $rutaFisica = $directorioDestino . $nombreUnico;
+
+            // La ruta que guardaremos en BD (relativa a public)
+            if (move_uploaded_file($archivo['tmp_name'], $rutaFisica)) {
+                $rutaBD = 'assets/comprobantes/' . $nombreUnico;
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error al mover el archivo al servidor.']);
+                exit;
+            }
+        } else {
+            $id_usuario = $_SESSION['user_id'];
+            $id_curso = $_POST['id_curso'];
+        }
+
+        $banco_origen = ($moneda === 'Divisas') ? 'Taquilla de la Universidad' : trim($_POST['banco_origen']);
+
+        // Archivo guardado físicamente o no se subió, procedemos a registrar en BD
+        $datosPago = [
+            'id_usuario' => $id_usuario,
+            'id_curso' => $id_curso,
+            'id_materia_bimestre' => !empty($_POST['id_materia_bimestre']) ? intval($_POST['id_materia_bimestre']) : null,
+            'archivo_ruta' => $rutaBD,
+            'numero_operacion' => isset($_POST['numero_operacion']) ? trim($_POST['numero_operacion']) : null,
+            'banco_origen' => $banco_origen,
+            'monto' => floatval($_POST['monto']),
+            'fecha_pago' => $_POST['fecha_pago'],
+            'moneda' => $moneda
+        ];
+
+        if ($pagoModel->registrarComprobante($datosPago)) {
+            echo json_encode(['success' => true, 'message' => 'Comprobante registrado exitosamente.']);
+        } else {
+            // Si falla la BD, borrar el archivo huérfano si existe
+            if ($rutaBD && isset($rutaFisica) && file_exists($rutaFisica)) {
+                unlink($rutaFisica);
+            }
+>>>>>>> a36c9933a7dd692c01d2eebc6c6f456c203d7e0a
             echo json_encode(['success' => false, 'message' => 'Error al guardar el registro en la base de datos.']);
         }
         break;
@@ -102,7 +176,7 @@ switch ($action) {
             echo json_encode(['success' => false, 'message' => 'Falta el id del curso.']);
             exit;
         }
-        $id_curso = $_POST['id_curso'] ?? $_GET['id_curso'];
+        $id_curso = isset($_POST['id_curso']) ? $_POST['id_curso'] : (isset($_GET['id_curso']) ? $_GET['id_curso'] : null);
         require_once '../models/Materia.php';
         $materiaModel = new Materia($db);
         $materias = $materiaModel->getMateriasByCurso($id_curso);
@@ -171,8 +245,18 @@ switch ($action) {
         break;
 
     case 'editar_comprobante':
+        $moneda = isset($_POST['moneda']) ? $_POST['moneda'] : 'Bs';
+
         // Validar requeridos básicos
         $requeridos = ['id_comprobante', 'monto', 'fecha_pago'];
+<<<<<<< HEAD
+=======
+        if ($moneda === 'Bs') {
+            $requeridos[] = 'numero_operacion';
+            $requeridos[] = 'banco_origen';
+        }
+
+>>>>>>> a36c9933a7dd692c01d2eebc6c6f456c203d7e0a
         foreach ($requeridos as $campo) {
             if (empty($_POST[$campo])) {
                 echo json_encode(['success' => false, 'message' => "El campo $campo es obligatorio."]);
@@ -198,11 +282,14 @@ switch ($action) {
             exit;
         }
 
-        $origen_peticion = $_POST['origen'] ?? '';
+        $origen_peticion = isset($_POST['origen']) ? $_POST['origen'] : '';
         $estado_final = ($origen_peticion === 'usuario') ? 'Pendiente' : ($es_admin ? null : 'Pendiente');
+
+        $banco_origen = ($moneda === 'Divisas') ? 'Taquilla de la Universidad' : trim($_POST['banco_origen']);
 
         $datosActualizar = [
             'id_comprobante' => $id_comprobante,
+<<<<<<< HEAD
             'numero_operacion' => !empty($_POST['numero_operacion']) ? trim($_POST['numero_operacion']) : null,
             'banco_origen' => !empty($_POST['banco_origen']) ? trim($_POST['banco_origen']) : null,
             'monto' => floatval($_POST['monto']),
@@ -210,6 +297,15 @@ switch ($action) {
             'archivo_ruta' => null,
             'moneda' => $_POST['moneda'] ?? 'Bs',
             'estado' => $estado_final
+=======
+            'numero_operacion' => isset($_POST['numero_operacion']) ? trim($_POST['numero_operacion']) : null,
+            'banco_origen' => $banco_origen,
+            'monto' => floatval($_POST['monto']),
+            'fecha_pago' => $_POST['fecha_pago'],
+            'archivo_ruta' => null,
+            'estado' => $estado_final,
+            'moneda' => $moneda
+>>>>>>> a36c9933a7dd692c01d2eebc6c6f456c203d7e0a
         ];
 
         // Manejar subida de archivo opcional
@@ -319,13 +415,13 @@ switch ($action) {
 
         // Recopilar datos comunes
         $datosCuenta = [
-            'banco' => $_POST['banco'] ?? '',
-            'titular' => $_POST['titular'] ?? '',
-            'cedula_rif' => $_POST['cedula_rif'] ?? '',
-            'telefono' => $_POST['telefono'] ?? '',
-            'correo' => $_POST['correo'] ?? '',
-            'tipo_cuenta' => $_POST['tipo_cuenta'] ?? '',
-            'numero_cuenta' => $_POST['numero_cuenta'] ?? '',
+            'banco' => isset($_POST['banco']) ? $_POST['banco'] : '',
+            'titular' => isset($_POST['titular']) ? $_POST['titular'] : '',
+            'cedula_rif' => isset($_POST['cedula_rif']) ? $_POST['cedula_rif'] : '',
+            'telefono' => isset($_POST['telefono']) ? $_POST['telefono'] : '',
+            'correo' => isset($_POST['correo']) ? $_POST['correo'] : '',
+            'tipo_cuenta' => isset($_POST['tipo_cuenta']) ? $_POST['tipo_cuenta'] : '',
+            'numero_cuenta' => isset($_POST['numero_cuenta']) ? $_POST['numero_cuenta'] : '',
             // Los checkboxes HTML no envían nada si no están marcados
             'activo' => isset($_POST['activo']) ? true : false
         ];

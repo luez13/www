@@ -391,8 +391,8 @@ switch ($action) {
             exit;
         }
 
-        $id_curso = $_POST['id_curso'] ?? null;
-        $estado = $_POST['estado'] ?? null;
+        $id_curso = isset($_POST['id_curso']) ? $_POST['id_curso'] : null;
+        $estado = isset($_POST['estado']) ? $_POST['estado'] : null;
 
         if ($id_curso !== null && $estado !== null) {
             $query = "UPDATE cursos.cursos SET estado = :estado WHERE id_curso = :id_curso";

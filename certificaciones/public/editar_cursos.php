@@ -6,7 +6,7 @@ include '../config/model.php';
 include '../models/curso.php';
 
 $user_id = $_SESSION['user_id'];
-$pagina_actual = 'editar_cursos.php';
+$pagina_actual = '../public/editar_cursos.php';
 
 require_once '../controllers/autenticacion.php';
 if (!esPerfil3($user_id) && !esPerfil4($user_id)) {
@@ -41,16 +41,35 @@ $posiciones_firma = $stmt_posiciones->fetchAll(PDO::FETCH_ASSOC);
 
 // --- BÚSQUEDA Y PAGINACIÓN ---
 $busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
+$filtro_tipo = isset($_GET['tipo']) ? trim($_GET['tipo']) : '';
+$filtro_estado = isset($_GET['estado']) ? trim($_GET['estado']) : '';
 $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $limit = 10;
 $offset = ($page - 1) * $limit;
 
-$sql_base = "FROM cursos.cursos";
+$sql_base = "FROM cursos.cursos WHERE 1=1";
 $params = [];
 
 if (!empty($busqueda)) {
-    $sql_base .= " WHERE nombre_curso ILIKE :busqueda OR CAST(id_curso AS TEXT) LIKE :busqueda";
+    $sql_base .= " AND (nombre_curso ILIKE :busqueda OR CAST(id_curso AS TEXT) LIKE :busqueda)";
     $params[':busqueda'] = '%' . $busqueda . '%';
+}
+
+if (!empty($filtro_tipo)) {
+    $sql_base .= " AND tipo_curso = :tipo";
+    $params[':tipo'] = $filtro_tipo;
+}
+
+if ($filtro_estado !== '') {
+    if ($filtro_estado === 'activos') {
+        $sql_base .= " AND estado = true";
+    } elseif ($filtro_estado === 'inactivos') {
+        $sql_base .= " AND estado = false";
+    } elseif ($filtro_estado === 'autorizados') {
+        $sql_base .= " AND autorizacion = 'true'"; // Autorizacion seems to be varchar, but we treat carefully
+    } elseif ($filtro_estado === 'no_autorizados') {
+        $sql_base .= " AND (autorizacion = 'false' OR autorizacion IS NULL)";
+    }
 }
 
 $stmt_total = $db->prepare("SELECT COUNT(*) $sql_base");
@@ -58,7 +77,14 @@ $stmt_total->execute($params);
 $total_cursos = $stmt_total->fetchColumn();
 $total_pages = ceil($total_cursos / $limit);
 
-$sql_final = "SELECT * $sql_base ORDER BY nombre_curso ASC LIMIT :limit OFFSET :offset";
+$sql_final = "SELECT * $sql_base ORDER BY 
+    CASE 
+        WHEN estado = true AND autorizacion = 'true' THEN 1
+        WHEN estado = true AND (autorizacion = 'false' OR autorizacion IS NULL) THEN 2
+        WHEN estado = false AND autorizacion = 'true' THEN 3
+        ELSE 4
+    END ASC,
+    nombre_curso ASC LIMIT :limit OFFSET :offset";
 $stmt_cursos = $db->prepare($sql_final);
 foreach ($params as $key => $val)
     $stmt_cursos->bindValue($key, $val);
@@ -78,23 +104,25 @@ function diasToArray($dias_str)
     }, $array_dias));
 }
 
-function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda)
+function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda, $tipo, $estado)
 {
     if ($total_pages <= 1)
         return '';
     $q = addslashes($busqueda);
+    $t = addslashes($tipo);
+    $e = addslashes($estado);
     $html = '<nav aria-label="Page navigation"><ul class="pagination justify-content-center">';
     if ($current_page > 1) {
-        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page - 1) . ', busqueda: \'' . $q . '\' }); return false;">&laquo;</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page - 1) . ', busqueda: \'' . $q . '\', tipo: \'' . $t . '\', estado: \'' . $e . '\' }); return false;">&laquo;</a></li>';
     }
     $start = max(1, $current_page - 2);
     $end = min($total_pages, $current_page + 2);
     for ($i = $start; $i <= $end; $i++) {
         $active = $i == $current_page ? 'active' : '';
-        $html .= '<li class="page-item ' . $active . '"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . $i . ', busqueda: \'' . $q . '\' }); return false;">' . $i . '</a></li>';
+        $html .= '<li class="page-item ' . $active . '"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . $i . ', busqueda: \'' . $q . '\', tipo: \'' . $t . '\', estado: \'' . $e . '\' }); return false;">' . $i . '</a></li>';
     }
     if ($current_page < $total_pages) {
-        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page + 1) . ', busqueda: \'' . $q . '\' }); return false;">&raquo;</a></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="#" onclick="loadPage(\'' . $pagina_actual . '\', { page: ' . ($current_page + 1) . ', busqueda: \'' . $q . '\', tipo: \'' . $t . '\', estado: \'' . $e . '\' }); return false;">&raquo;</a></li>';
     }
     $html .= '</ul></nav>';
     return $html;
@@ -128,21 +156,40 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
 </style>
 
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 text-gray-800">Editar Cursos</h1>
-        <div class="input-group" style="width: 300px;">
-            <input type="text" id="busquedaCursoGlobal" class="form-control bg-light border-0 small"
-                placeholder="Buscar curso o ID..." value="<?= h($busqueda) ?>" onkeyup="filtrarCursosDinamico(event)">
-            <div class="input-group-append">
-                <button class="btn btn-primary" type="button" onclick="ejecutarBusquedaCurso()"><i
-                        class="fas fa-search fa-sm"></i></button>
-            </div>
-            <?php if (!empty($busqueda)): ?>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <h1 class="h3 text-gray-800 m-0">Editar Cursos</h1>
+        <div class="d-flex flex-wrap gap-2">
+            <select id="filtroTipoCurso" class="form-select bg-light border-0 small" style="width: auto;" onchange="ejecutarBusquedaCurso()">
+                <option value="">Todos los Tipos</option>
+                <option value="diplomado" <?= $filtro_tipo == 'diplomado' ? 'selected' : '' ?>>Diplomados</option>
+                <option value="curso" <?= $filtro_tipo == 'curso' ? 'selected' : '' ?>>Cursos</option>
+                <option value="taller" <?= $filtro_tipo == 'taller' ? 'selected' : '' ?>>Talleres</option>
+                <option value="masterclass" <?= $filtro_tipo == 'masterclass' ? 'selected' : '' ?>>Masterclass</option>
+                <option value="congreso" <?= $filtro_tipo == 'congreso' ? 'selected' : '' ?>>Congresos</option>
+                <option value="charla" <?= $filtro_tipo == 'charla' ? 'selected' : '' ?>>Charlas</option>
+                <option value="seminario" <?= $filtro_tipo == 'seminario' ? 'selected' : '' ?>>Seminarios</option>
+            </select>
+            <select id="filtroEstadoCurso" class="form-select bg-light border-0 small" style="width: auto;" onchange="ejecutarBusquedaCurso()">
+                <option value="">Cualquier Estado</option>
+                <option value="activos" <?= $filtro_estado == 'activos' ? 'selected' : '' ?>>Activos</option>
+                <option value="inactivos" <?= $filtro_estado == 'inactivos' ? 'selected' : '' ?>>Inactivos</option>
+                <option value="autorizados" <?= $filtro_estado == 'autorizados' ? 'selected' : '' ?>>Autorizados</option>
+                <option value="no_autorizados" <?= $filtro_estado == 'no_autorizados' ? 'selected' : '' ?>>Por Autorizar</option>
+            </select>
+            <div class="input-group" style="width: 250px;">
+                <input type="text" id="busquedaCursoGlobal" class="form-control bg-light border-0 small"
+                    placeholder="Buscar curso o ID..." value="<?= h($busqueda) ?>" onkeyup="filtrarCursosDinamico(event)">
                 <div class="input-group-append">
-                    <button class="btn btn-danger" type="button" onclick="limpiarBusquedaCurso()"><i
-                            class="fas fa-times fa-sm"></i></button>
+                    <button class="btn btn-primary" type="button" onclick="ejecutarBusquedaCurso()"><i
+                            class="fas fa-search fa-sm"></i></button>
                 </div>
-            <?php endif; ?>
+                <?php if (!empty($busqueda) || !empty($filtro_tipo) || !empty($filtro_estado)): ?>
+                    <div class="input-group-append">
+                        <button class="btn btn-danger" type="button" onclick="limpiarBusquedaCurso()"><i
+                                class="fas fa-times fa-sm"></i></button>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 
@@ -432,7 +479,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                                                     class="fas fa-plus"></i></button></label>
                                                         <div class="contenidos-container">
                                                             <?php
-                                                            $raw_content = trim($modulo['contenido'] ?? '', '[]');
+                                                            $raw_content = trim(isset($modulo['contenido']) ? $modulo['contenido'] : '', '[]');
                                                             $contenidos = explode('][', $raw_content);
                                                             if (empty($raw_content))
                                                                 $contenidos = [''];
@@ -574,7 +621,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
         <?php endif; ?>
     </div>
     <?php if ($total_pages > 1)
-        echo renderPagination($total_pages, $page, $pagina_actual, $busqueda); ?>
+        echo renderPagination($total_pages, $page, $pagina_actual, $busqueda, $filtro_tipo, $filtro_estado); ?>
 </div>
 
 <?php foreach ($cursos as $curso): ?>
@@ -640,8 +687,8 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(function () { ejecutarBusquedaCurso(); }, 600);
     }
-    function ejecutarBusquedaCurso() { loadPage('../public/editar_cursos.php', { busqueda: document.getElementById('busquedaCursoGlobal').value, page: 1 }); }
-    function limpiarBusquedaCurso() { loadPage('../public/editar_cursos.php', { busqueda: '', page: 1 }); }
+    function ejecutarBusquedaCurso() { loadPage('../public/editar_cursos.php', { busqueda: document.getElementById('busquedaCursoGlobal').value, tipo: document.getElementById('filtroTipoCurso').value, estado: document.getElementById('filtroEstadoCurso').value, page: 1 }); }
+    function limpiarBusquedaCurso() { loadPage('../public/editar_cursos.php', { busqueda: '', tipo: '', estado: '', page: 1 }); }
 
     // --- LÓGICA MÓDULOS JS (igual que antes) ---
     var newModuleCounter = 0;

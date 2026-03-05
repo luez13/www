@@ -20,7 +20,7 @@ $stmt->execute(['user_id' => $user_id]);
 $materias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 function h($string) {
-    return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars(isset($string) ? $string : '', ENT_QUOTES, 'UTF-8');
 }
 ?>
 
