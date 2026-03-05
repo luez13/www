@@ -174,10 +174,16 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                                         </a>
                                     </td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary shadow-sm" title="Editar Usuario"
-                                            onclick="event.stopPropagation(); abrirModalEdicion(<?= htmlspecialchars($usuario['id']); ?>)">
-                                            <i class="fas fa-edit"></i> Editar
-                                        </button>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-sm btn-outline-primary shadow-sm" title="Editar Usuario"
+                                                onclick="event.stopPropagation(); abrirModalEdicion(<?= htmlspecialchars($usuario['id']); ?>)">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger shadow-sm btn-delete-usuario"
+                                                title="Eliminar Usuario" data-id="<?= htmlspecialchars($usuario['id']); ?>">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -560,4 +566,43 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
         });
     });
 
+        // Lógica para el Botón de Eliminar en la tabla (Doble Verificación)
+    $(document).off('click', '.btn-delete-usuario').on('click', '.btn-delete-usuario', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const userId = $(this).data('id');
+
+        // Primera Validación
+        if (confirm("¿Está seguro de que desea eliminar este usuario? Esta acción es irreversible.")) {
+            // Segunda Validación
+            if (confirm("⚠️ ¡ADVERTENCIA FINAL! ⚠️\n\n¿Estás ABSOLUTAMENTE SEGURO de eliminar al usuario? Se perderá todo su historial en el sistema.")) {
+                
+                // Mostrar estado de carga en el botón
+                const originalHtml = $(this).html();
+                $(this).html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+
+                $.ajax({
+                    url: '../controllers/usuarios_controlador.php',
+                    type: 'POST',
+                    data: {
+                        action: 'eliminar_usuario',
+                        id: userId
+                    },
+                    success: function (response) {
+                        alert("Usuario eliminado correctamente.");
+                        // Recargar la lista
+                        var page = $('.pagination .active .page-link').text() || 1;
+                        var busqueda = $('#busqueda-input').val();
+                        loadPage('../views/usuarios.php', { page: page, busqueda: busqueda });
+                    },
+                    error: function (xhr) {
+                        alert('Error al intentar eliminar el usuario: ' + xhr.responseText);
+                        // Restaurar botón
+                        $(`.btn-delete-usuario[data-id="${userId}"]`).html(originalHtml).prop('disabled', false);
+                    }
+                });
+            }
+        }
+    });
 </script>

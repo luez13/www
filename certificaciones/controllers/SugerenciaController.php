@@ -38,6 +38,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    if (isset($_POST['action']) && $_POST['action'] === 'delete_ajax') {
+        header('Content-Type: application/json');
+        if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 4) {
+            echo json_encode(['success' => false, 'error' => 'No autorizado']);
+            exit;
+        }
+
+        $id = $_POST['id'];
+        try {
+            $sugerenciaModel->eliminarSugerencia($id);
+            echo json_encode(['success' => true]);
+        }
+        catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit;
+    }
+
     // Normal suggestion submission via AJAX
     $nombre = $_POST['nombre'];
     $apellido = $_POST['apellido'];
@@ -51,7 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
     echo json_encode(['success' => $success, 'error' => $success ? null : 'Error al agregar sugerencia']);
     exit();
-} else {
+}
+else {
     // Para solicitudes GET, devolver los datos del usuario
     header('Content-Type: application/json');
     echo json_encode(['user_data' => $user_data]);

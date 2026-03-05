@@ -60,6 +60,9 @@ include '../controllers/init.php';
                 if (!confirm("¿Está seguro de que desea eliminar este usuario? Esta acción es irreversible.")) {
                     return;
                 }
+                if (!confirm("⚠️ ¡ADVERTENCIA FINAL! ⚠️\n\n¿Estás ABSOLUTAMENTE SEGURO de eliminar al usuario? Se perderá todo su historial en el sistema.")) {
+                    return;
+                }
             }
 
             // Añadimos la acción al FormData

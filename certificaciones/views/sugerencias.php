@@ -93,17 +93,11 @@ try {
                                                 style="width: 45px; height: 45px;">
                                                 <i class="fas fa-quote-right"></i>
                                             </div>
-                                            <form method="POST" action="../controllers/SugerenciaController.php"
-                                                onsubmit="return confirm('¿Estás seguro que deseas eliminar esta sugerencia? Esta acción no se puede deshacer.');">
-                                                <input type="hidden" name="action" value="delete">
-                                                <input type="hidden" name="id"
-                                                    value="<?= isset($sug['id_sugerencia']) ? $sug['id_sugerencia'] : $sug['id'] ?>">
-                                                <button type="submit"
-                                                    class="btn btn-sm btn-outline-danger rounded-circle shadow-sm"
-                                                    style="width: 35px; height: 35px;" title="Eliminar">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-sm btn-outline-danger rounded-circle shadow-sm btn-delete-sugerencia"
+                                                data-id="<?= isset($sug['id_sugerencia']) ? $sug['id_sugerencia'] : $sug['id'] ?>"
+                                                style="width: 35px; height: 35px;" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </div>
                                     </div>
                                     <div class="position-relative">
@@ -139,7 +133,7 @@ try {
 
 <?php if (!empty($sugerencias)): ?>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        (function () {
             const searchInput = document.getElementById('searchInput');
             const cards = Array.from(document.querySelectorAll('.suggestion-card'));
             const paginationList = document.getElementById('paginationList');
@@ -203,6 +197,40 @@ try {
                 }
             });
 
+            // Escuchar clicks en los botones de eliminar sugerencias (con delegación de eventos)
+            document.getElementById('suggestionsContainer').addEventListener('click', function(e) {
+                // Buscar si el click fue en el botón o en el ícono dentro del botón
+                const button = e.target.closest('.btn-delete-sugerencia');
+                
+                if (button) {
+                    if (confirm('¿Estás seguro que deseas eliminar esta sugerencia? Esta acción no se puede deshacer.')) {
+                        const id = button.getAttribute('data-id');
+                        
+                        $.ajax({
+                            url: '../controllers/SugerenciaController.php',
+                            type: 'POST',
+                            data: {
+                                action: 'delete_ajax',
+                                id: id
+                            },
+                            dataType: 'json',
+                            success: function(response) {
+                                if(response.success) {
+                                    alert('Sugerencia eliminada correctamente.');
+                                    // Recargar a través del SPA
+                                    loadPage('../views/sugerencias.php');
+                                } else {
+                                    alert('Error al eliminar: ' + response.error);
+                                }
+                            },
+                            error: function() {
+                                alert('Error de conexión al intentar eliminar la sugerencia. Verifica en la red.');
+                            }
+                        });
+                    }
+                }
+            });
+
             // Escuchar búsqueda en vivo
             searchInput.addEventListener('input', function () {
                 const query = this.value.toLowerCase();
@@ -218,6 +246,6 @@ try {
 
             // Inicializar
             renderCards();
-        });
+        })();
     </script>
 <?php endif; ?>
