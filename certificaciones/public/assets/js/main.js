@@ -62,7 +62,17 @@ function loadPage(page, params = {}, isGoingBack = false) {
         url = (page === 'buscar.php') ? '../controllers/' + page : '../views/' + page;
     }
 
-    // 3. Petición AJAX
+    // 3. Preservar Foco Activo
+    let activeId = document.activeElement ? document.activeElement.id : null;
+    let selectionStart = 0, selectionEnd = 0;
+    if (activeId && document.activeElement.tagName === 'INPUT') {
+        try {
+            selectionStart = document.activeElement.selectionStart;
+            selectionEnd = document.activeElement.selectionEnd;
+        } catch (e) { }
+    }
+
+    // 4. Petición AJAX
     $.ajax({
         url: url,
         method: 'GET',
@@ -73,7 +83,18 @@ function loadPage(page, params = {}, isGoingBack = false) {
             currentViewData = { page: page, params: params };
             reapplyEvents();
 
-            // 4. Restaurar Scroll y Estado Visual
+            // 5. Restaurar Foco
+            if (activeId) {
+                let activeEl = document.getElementById(activeId);
+                if (activeEl && activeEl.tagName === 'INPUT') {
+                    activeEl.focus();
+                    try {
+                        activeEl.setSelectionRange(selectionStart, selectionEnd);
+                    } catch (e) { }
+                }
+            }
+
+            // 6. Restaurar Scroll y Estado Visual
             if (isGoingBack && params.savedScrollY !== undefined) {
                 setTimeout(() => window.scrollTo(0, params.savedScrollY), 50);
             } else if (params.scrollTo) {
@@ -138,13 +159,7 @@ function reapplyEvents() {
 
     $(document).off('change', '.usuario-checkbox').on('change', '.usuario-checkbox', handleUsuarioCheckbox);
 
-    // Paginación AJAX
-    $(document).off('click', '.pagination-link').on('click', '.pagination-link', function (e) {
-        e.preventDefault();
-        var page = $(this).data('page');
-        var busqueda = $('#busqueda-input').val();
-        loadPage('../controllers/usuarios_controlador.php', { page: page, busqueda: busqueda });
-    });
+    // (El manejador de .pagination-link se delega a las vistas específicas como usuarios.php)
 
     $('form[id^="inscripcionForm"]').off('submit').on('submit', handleInscripcionForm);
     $('.editar-usuario-form').off('submit').on('submit', handleUsuarioEdition);

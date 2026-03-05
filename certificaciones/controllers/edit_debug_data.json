@@ -1,45 +1,43 @@
 {
     "course_data": {
         "action": "editar",
-        "id_curso": "5",
+        "id_curso": "4",
         "modulos_a_eliminar": "",
-        "nombre_curso": "Diplomado de Testing Avanzado 3",
-        "descripcion": "algo",
-        "tipo_curso": "diplomado",
-        "nivel_curso": "medio",
-        "inicio_mes": "2026-03-11",
-        "fecha_finalizacion": "2026-03-26T16:01",
-        "tiempo_asignado": "6",
-        "horario_inicio": "16:01:00",
-        "horario_fin": "19:01:00",
+        "nombre_curso": "Diplomado de Testing Avanzado 2",
+        "descripcion": "fdsfsdf",
+        "tipo_curso": "charla",
+        "nivel_curso": "inicial",
+        "inicio_mes": "2026-03-02",
+        "fecha_finalizacion": "2026-03-26T16:53",
+        "tiempo_asignado": "3",
+        "horario_inicio": "16:53:00",
+        "horario_fin": "21:53:00",
         "dias_clase": [
-            "lunes",
-            "sabado"
+            "martes"
         ],
-        "costo": "90.15",
-        "horas_cronologicas": "42",
-        "limite_inscripciones": "600",
-        "conocimientos_previos": "ninguno",
-        "requerimientos_implementos": "alguno",
-        "desempe\u00f1o_al_concluir": "algo",
+        "costo": "60.33",
+        "horas_cronologicas": "3",
+        "limite_inscripciones": "60",
+        "conocimientos_previos": "asdasd",
+        "requerimientos_implementos": "asdad",
+        "desempe\u00f1o_al_concluir": "asdad",
         "promotor": "2",
-        "autorizacion": "2",
         "estado": "1",
         "modulos": {
-            "3": {
-                "id_modulo": "3",
-                "nombre_modulo": "algo",
+            "4": {
+                "id_modulo": "4",
+                "nombre_modulo": "asdasd",
                 "numero": "1",
                 "contenido": [
-                    "algo"
+                    "dasda"
                 ],
-                "actividad": "algo",
-                "instrumento": "algo"
+                "actividad": "asdasd",
+                "instrumento": "adasd"
             }
         },
         "config_firmas": {
             "1": {
-                "id_cargo_firmante": ""
+                "id_cargo_firmante": "2"
             },
             "2": {
                 "id_cargo_firmante": "1"
@@ -61,13 +59,13 @@
     },
     "modules_edit": [
         {
-            "id_modulo": 3,
-            "id_curso": "5",
-            "nombre_modulo": "algo",
-            "contenido": "[algo]",
+            "id_modulo": 4,
+            "id_curso": "4",
+            "nombre_modulo": "asdasd",
+            "contenido": "[dasda]",
             "numero": "1",
-            "actividad": "algo",
-            "instrumento": "algo"
+            "actividad": "asdasd",
+            "instrumento": "adasd"
         }
     ],
     "modules_new": [],

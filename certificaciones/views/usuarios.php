@@ -39,10 +39,10 @@ $stmt_usuarios->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt_usuarios->execute();
 $usuarios = $stmt_usuarios->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch active courses for modal
-$stmt_cursos = $db->prepare("SELECT id_curso, nombre_curso, descripcion, estado, autorizacion FROM cursos.cursos ORDER BY id_curso DESC");
-$stmt_cursos->execute();
-$cursos = $stmt_cursos->fetchAll(PDO::FETCH_ASSOC);
+// Fetch roles for edit modal
+$stmt_roles = $db->prepare("SELECT id_rol, nombre_rol FROM cursos.roles ORDER BY id_rol ASC");
+$stmt_roles->execute();
+$roles = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
 
 function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
 {
@@ -85,12 +85,14 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
 ?>
 
 <div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h3 class="h3 mb-2 text-gray-800"><i class="fas fa-users-cog me-2 text-primary"></i>Verificación de Usuarios
         </h3>
-        <button id="abrir-modal-btn" class="btn btn-primary shadow-sm mb-2">
-            <i class="fas fa-user-plus me-1"></i> Inscribir Seleccionados
-        </button>
+        <div class="d-flex gap-2 mb-2 flex-wrap">
+            <button type="button" class="btn btn-success shadow-sm" data-toggle="modal" data-target="#modalImportarCSV">
+                <i class="fas fa-file-csv me-1"></i> Importar CSV
+            </button>
+        </div>
     </div>
 
     <!-- Buscador -->
@@ -102,14 +104,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                             class="fas fa-search"></i></span>
                     <input type="text" class="form-control border-start-0 ps-0" name="busqueda" id="busqueda-input"
                         placeholder="Buscar por nombre, apellido, cédula o correo..."
-                        value="<?= htmlspecialchars($busqueda); ?>">
-                    <button class="btn btn-primary" type="submit"
-                        onclick="$('#user-list-container').load('../views/usuarios.php?busqueda=' + encodeURIComponent($('#busqueda-input').val()));">Buscar</button>
-                    <?php if (!empty($busqueda)): ?>
-                        <button class="btn btn-outline-secondary" type="button"
-                            onclick="$('#user-list-container').load('../views/usuarios.php');"><i class="fas fa-times"></i>
-                            Limpiar</button>
-                    <?php endif; ?>
+                        value="<?= htmlspecialchars($busqueda); ?>" onkeyup="buscarUsuariosDinamico(event)">
                 </div>
             </form>
         </div>
@@ -129,10 +124,10 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th scope="col" class="text-center" style="width: 50px;">Sel</th>
                             <th scope="col">Usuario</th>
                             <th scope="col">Cédula</th>
                             <th scope="col">Contacto</th>
+                            <th scope="col" class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -151,15 +146,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                                 $a = !empty($usuario['apellido']) ? $usuario['apellido'] : '';
                                 $iniciales = mb_strtoupper(mb_substr($n, 0, 1) . mb_substr($a, 0, 1));
                                 ?>
-                                <tr onclick="toggleCheckbox(this, event)">
-                                    <td class="text-center" style="cursor: pointer;">
-                                        <div class="form-check d-flex justify-content-center m-0">
-                                            <input class="form-check-input usuario-checkbox" type="checkbox"
-                                                data-id="<?= htmlspecialchars($usuario['id']); ?>"
-                                                style="transform: scale(1.3); cursor: pointer;"
-                                                onclick="event.stopPropagation(); actualizarContadorModal();">
-                                        </div>
-                                    </td>
+                                <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3 shadow-sm"
@@ -186,6 +173,12 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                                             <i class="fas fa-envelope me-1"></i> <?= htmlspecialchars($usuario['correo']); ?>
                                         </a>
                                     </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-primary shadow-sm" title="Editar Usuario"
+                                            onclick="event.stopPropagation(); abrirModalEdicion(<?= htmlspecialchars($usuario['id']); ?>)">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </button>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -200,53 +193,161 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
         <?php endif; ?>
     </div>
 
-    <!-- Modal para seleccionar curso -->
-    <div class="modal fade" id="seleccionarCursoModal" tabindex="-1" aria-labelledby="seleccionarCursoModalLabel"
+    <!-- Modal para Editar Usuario -->
+    <div class="modal fade" id="editarUsuarioModal" tabindex="-1" aria-labelledby="editarUsuarioModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white border-0">
-                    <h5 class="modal-title" id="seleccionarCursoModalLabel"><i
-                            class="fas fa-graduation-cap me-2"></i>Inscribir en Curso</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                <div class="modal-header bg-dark text-white border-0">
+                    <h5 class="modal-title" id="editarUsuarioModalLabel"><i class="fas fa-user-edit me-2"></i> Editar
+                        Usuario</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
                 </div>
-                <div class="modal-body p-4 bg-light">
-                    <div class="alert alert-info border-0 shadow-sm d-flex align-items-center">
-                        <i class="fas fa-info-circle fa-2x me-3"></i>
-                        <div>
-                            Selecciona el curso al que deseas inscribir a los <strong><span id="countSelectedBadge"
-                                    class="badge bg-primary rounded-pill px-2">0</span></strong> usuarios marcados.
+                <form id="formEditarUsuario" onsubmit="guardarUsuarioAjax(event)">
+                    <div class="modal-body p-4 bg-light">
+                        <input type="hidden" id="edit_id_usuario" name="id_usuario">
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Nombres</label>
+                                <input type="text" class="form-control" id="edit_nombre" name="nombre" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Apellidos</label>
+                                <input type="text" class="form-control" id="edit_apellido" name="apellido" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Cédula</label>
+                                <input type="text" class="form-control" id="edit_cedula" name="cedula" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Correo Electrónico</label>
+                                <input type="email" class="form-control" id="edit_correo" name="correo" required>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="fw-bold text-primary mb-3">Seguridad y Acceso</h6>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Rol en el Sistema</label>
+                                <select class="form-select" id="edit_id_rol" name="id_rol" required>
+                                    <?php foreach ($roles as $rol): ?>
+                                        <option value="<?= htmlspecialchars($rol['id_rol']) ?>">
+                                            <?= htmlspecialchars($rol['nombre_rol']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Nueva Contraseña
+                                    <small>(Opcional)</small></label>
+                                <input type="password" class="form-control" id="edit_nueva_password"
+                                    name="nueva_password" placeholder="Dejar en blanco para no cambiar">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="fw-bold text-success mb-3">Datos Universitarios (Facilitadores/Promotores)</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Título Institucional</label>
+                                <input type="text" class="form-control" id="edit_titulo" name="titulo"
+                                    placeholder="Ej: Lcdo. MgSc.">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Cargo</label>
+                                <input type="text" class="form-control" id="edit_cargo" name="cargo"
+                                    placeholder="Dejar vacío si aplica base">
+                            </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label small fw-bold text-muted">Firma Digital (Imagen
+                                    JPG/PNG)</label>
+                                <input class="form-control" type="file" id="edit_firma_digital" name="firma_digital"
+                                    accept="image/png, image/jpeg, image/jpg">
+                                <div class="form-text mt-2"><i class="fas fa-info-circle"></i> Sube una nueva imagen
+                                    transparente de la firma si deseas reemplazar la actual. Necesaria para promotores
+                                    para que sus cursos generen constancias.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 py-3">
+                        <button type="button" class="btn btn-secondary shadow-sm" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary px-4 shadow-sm" id="btnGuardarCambios"><i
+                                class="fas fa-save me-1"></i> Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Importar CSV -->
+    <div class="modal fade" id="modalImportarCSV" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content shadow">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fas fa-file-csv me-2"></i>Importación Masiva de Usuarios</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-7">
+                            <p class="mb-1"><strong>Paso 1:</strong> Descarga la plantilla CSV y llénala con los datos
+                                correspondientes.</p>
+                            <p class="mb-0 text-muted small">La contraseña será auto-generada (NombreApellido20). El
+                                correo,
+                                de no proveerse, también será generado automáticamente.</p>
+                        </div>
+                        <div class="col-md-5 text-md-end mt-2 mt-md-0">
+                            <a href="../public/plantillas/plantilla_usuarios.csv" download
+                                class="btn btn-outline-success border-2 shadow-sm">
+                                <i class="fas fa-download me-1"></i> Descargar Plantilla
+                            </a>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-7">
+                            <p class="mb-1"><strong>Paso 2:</strong> Sube el archivo completado para su validación.</p>
+                            <form id="formCargarCSV">
+                                <div class="input-group">
+                                    <input type="file" class="form-control" id="archivoCSV" accept=".csv" required>
+                                    <button class="btn btn-primary" type="submit" id="btnProcesarCSV"><i
+                                            class="fas fa-upload me-1"></i> Procesar</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
 
-                    <div class="input-group mb-3 shadow-sm rounded">
-                        <span class="input-group-text bg-white border-end-0"><i
-                                class="fas fa-search text-muted"></i></span>
-                        <input type="text" id="buscar-curso-input" class="form-control border-start-0 ps-0"
-                            placeholder="Buscar curso para inscribir...">
-                    </div>
-
-                    <div class="form-floating shadow-sm rounded">
-                        <select id="curso-id" class="form-select border-0" style="height: 60px;">
-                            <?php foreach ($cursos as $curso): ?>
-                                <?php
-                                $statusTxt = $curso['estado'] ? 'Activo' : 'Inac.';
-                                $authTxt = $curso['autorizacion'] ? 'Aut.' : 'Pend.';
-                                ?>
-                                <option value="<?= htmlspecialchars($curso['id_curso']); ?>">
-                                    <?= htmlspecialchars($curso['nombre_curso']); ?> [<?= $statusTxt ?>][<?= $authTxt ?>]
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <label for="curso-id">Curso Destino</label>
+                    <!-- Vista Previa de la Importación -->
+                    <div id="vistaPreviaCSV" style="display:none;">
+                        <h6 class="font-weight-bold text-primary mb-3">Vista Previa de Importación</h6>
+                        <div class="alert alert-warning d-none" id="alertaErroresCSV"></div>
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-sm table-bordered mb-0">
+                                <thead class="table-dark sticky-top">
+                                    <tr>
+                                        <th>Cédula</th>
+                                        <th>Nombres</th>
+                                        <th>Apellidos</th>
+                                        <th>Correo Asignado</th>
+                                        <th>Contraseña Asignada</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablaVistaPreviaCSV">
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0 bg-light">
-                    <button type="button" class="btn btn-secondary text-dark bg-white border"
-                        data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" id="inscribir-usuarios-btn" class="btn btn-primary px-4 shadow-sm"><i
-                            class="fas fa-user-plus me-1"></i> Inscribir a Todos</button>
+                <div class="modal-footer bg-white border-top">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success px-4 disabled" id="btnConfirmarImportacion"><i
+                            class="fas fa-check-circle me-1"></i> Confirmar Importación</button>
                 </div>
             </div>
         </div>
@@ -265,126 +366,198 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
         }
     }
 
-    // Filtrar los cursos en tiempo real dentro del modal
-    document.getElementById('buscar-curso-input').addEventListener('input', function () {
-        var filter = this.value.toLowerCase();
-        var options = document.getElementById('curso-id').getElementsByTagName('option');
-        for (var i = 0; i < options.length; i++) {
-            var option = options[i];
-            var optionText = option.textContent.toLowerCase();
-            if (optionText.indexOf(filter) > -1) {
-                option.style.display = "";
-            } else {
-                option.style.display = "none";
-            }
-        }
-    });
-
-    // Seleccionar todos los checkboxes
-    document.getElementById('selectAllUsers').addEventListener('change', function () {
-        var isChecked = this.checked;
-        document.querySelectorAll('.usuario-checkbox').forEach(function (checkbox) {
-            checkbox.checked = isChecked;
-        });
-        actualizarContadorModal();
-    });
-
-    // Actualizar contador del modal
-    function actualizarContadorModal() {
-        var count = document.querySelectorAll('.usuario-checkbox:checked').length;
-        document.getElementById('countSelectedBadge').textContent = count;
-
-        // Sincronizar el "Seleccionar Todos"
-        var total = document.querySelectorAll('.usuario-checkbox').length;
-        var selectAll = document.getElementById('selectAllUsers');
-        if (selectAll && total > 0) {
-            selectAll.checked = (count === total);
-        }
-    }
-
-    // Escuchar cambios en checkboxes individuales (usado por el onclick en linea también)
-    document.querySelectorAll('.usuario-checkbox').forEach(function (checkbox) {
-        checkbox.addEventListener('change', actualizarContadorModal);
-    });
-
-    // Manejar el botón para abrir el modal
-    document.getElementById('abrir-modal-btn').addEventListener('click', function () {
-        actualizarContadorModal();
-        var count = document.querySelectorAll('.usuario-checkbox:checked').length;
-        if (count === 0) {
-            alert('Por favor, selecciona al menos un usuario de la lista para inscribir.');
-            return;
-        }
-        var modal = new bootstrap.Modal(document.getElementById('seleccionarCursoModal'));
-        modal.show();
-    });
-
     // Manejar la paginación con AJAX o recarga
-    $('.pagination-link').on('click', function (e) {
+    $(document).off('click', '.pagination-link').on('click', '.pagination-link', function (e) {
         e.preventDefault();
         var page = $(this).data('page');
         var busqueda = $('#busqueda-input').val();
-
-        // Animacion sencilla de carga
-        $('#user-list-container').css('opacity', '0.5');
-
-        if ($('#user-list-container').length) {
-            $('#user-list-container').load('../views/usuarios.php?page=' + page + '&busqueda=' + encodeURIComponent(busqueda), function () {
-                $('#user-list-container').css('opacity', '1');
-            });
-        } else {
-            window.location.href = '?page=' + page + '&busqueda=' + encodeURIComponent(busqueda);
-        }
+        loadPage('../views/usuarios.php', { page: page, busqueda: busqueda });
     });
 
-    // Manejar el botón para inscribir usuarios seleccionados
-    document.getElementById('inscribir-usuarios-btn').addEventListener('click', function () {
-        var selectedUsers = [...document.querySelectorAll('.usuario-checkbox:checked')].map(cb => cb.dataset.id);
-        if (selectedUsers.length > 0) {
-            var cursoId = document.getElementById('curso-id').value;
 
-            if (!cursoId) {
-                alert("Debes seleccionar un curso de destino.");
-                return;
+
+    // Búsqueda dinámica con Debounce
+    let timeoutBusquedaUsuarios;
+    function buscarUsuariosDinamico(event) {
+        clearTimeout(timeoutBusquedaUsuarios);
+        timeoutBusquedaUsuarios = setTimeout(function () {
+            loadPage('../views/usuarios.php', { busqueda: $('#busqueda-input').val() });
+        }, 500); // Esperar medio segundo después de que deja de escribir
+    }
+
+    // --- LÓGICA DE EDICIÓN DE USUARIOS ---
+    function abrirModalEdicion(id) {
+        // Obtenemos los datos del usuario mediante AJAX
+        $.ajax({
+            url: '../controllers/obtener_datos_usuario_ajax.php',
+            type: 'GET',
+            data: { id: id },
+            dataType: 'json',
+            success: function (user) {
+                // Poblamos los campos del modal
+                document.getElementById('edit_id_usuario').value = user.id;
+                document.getElementById('edit_nombre').value = user.nombre || '';
+                document.getElementById('edit_apellido').value = user.apellido || '';
+                document.getElementById('edit_cedula').value = user.cedula || '';
+                document.getElementById('edit_correo').value = user.correo || '';
+                document.getElementById('edit_id_rol').value = user.id_rol;
+                document.getElementById('edit_nueva_password').value = ''; // Siempre limpiar contraseña
+
+                // Campos de autoridades
+                document.getElementById('edit_titulo').value = user.titulo || '';
+                document.getElementById('edit_cargo').value = user.cargo || '';
+
+                // Limpiar el validador de archivo de firma por seguridad
+                document.getElementById('edit_firma_digital').value = '';
+
+                // Abrimos el modal
+                var modal = new bootstrap.Modal(document.getElementById('editarUsuarioModal'));
+                modal.show();
+            },
+            error: function () {
+                alert('No se pudieron recuperar los datos del usuario. Intente nuevamente.');
             }
+        });
+    }
 
-            var btn = this;
-            var originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Inscribiendo...';
-            btn.disabled = true;
+    function guardarUsuarioAjax(event) {
+        event.preventDefault();
+        var form = document.getElementById('formEditarUsuario');
+        var formData = new FormData(form);
 
-            $.ajax({
-                url: '../controllers/usuarios_controlador.php',
-                method: 'POST',
-                data: {
-                    action: 'inscribir_usuarios',
-                    usuarios: selectedUsers,
-                    curso_id: cursoId
-                },
-                success: function (response) {
-                    alert('Acción completada con éxito. Los usuarios han sido inscritos en el curso seleccionado.');
+        var btn = document.getElementById('btnGuardarCambios');
+        var originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        btn.disabled = true;
 
-                    var modalEl = document.getElementById('seleccionarCursoModal');
-                    var modal = bootstrap.Modal.getInstance(modalEl);
-                    if (modal) modal.hide();
+        $.ajax({
+            url: '../controllers/admin_usuarios_ajax.php',
+            type: 'POST',
+            data: formData,
+            contentType: false, // Requerido para FormData con archivos
+            processData: false, // Requerido para FormData con archivos
+            success: function (response) {
+                alert(response);
 
-                    $('.modal-backdrop').remove();
-                    $('body').removeClass('modal-open').css('padding-right', '');
+                // Ocultar modal y recargar la lista
+                var modalEl = document.getElementById('editarUsuarioModal');
+                var modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open').css('padding-right', '');
 
-                    if ($('#user-list-container').length) {
-                        $('#user-list-container').load('../views/usuarios.php?page=<?= $page ?>&busqueda=<?= urlencode($busqueda) ?>');
+                loadPage('../views/usuarios.php', { page: <?= $page ?>, busqueda: '<?= addslashes($busqueda) ?>' });
+            },
+            error: function (xhr) {
+                alert('Ocurrió un error al guardar los cambios: ' + xhr.responseText);
+            },
+            complete: function () {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // --- LÓGICA IMPORTACIÓN CSV ---
+    let usuariosConfirmadosCSV = [];
+
+    document.getElementById('formCargarCSV').addEventListener('submit', function (e) {
+        e.preventDefault();
+        let fileInput = document.getElementById('archivoCSV');
+        if (!fileInput.files.length) return;
+
+        let btn = document.getElementById('btnProcesarCSV');
+        let originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+        btn.disabled = true;
+
+        let formData = new FormData();
+        formData.append('csv_file', fileInput.files[0]);
+
+        $.ajax({
+            url: '../controllers/importar_usuarios_ajax.php',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            dataType: 'json',
+            success: function (res) {
+                $('#vistaPreviaCSV').fadeIn();
+                let tbody = document.getElementById('tablaVistaPreviaCSV');
+                tbody.innerHTML = '';
+                usuariosConfirmadosCSV = [];
+                let errores = 0;
+
+                res.forEach(row => {
+                    let tr = document.createElement('tr');
+                    let icon = row.valido ? '<i class="fas fa-check-circle text-success"></i> Válido' : `<i class="fas fa-times-circle text-danger"></i> ${row.error}`;
+                    tr.className = row.valido ? 'table-success' : 'table-danger';
+
+                    if (row.valido) {
+                        usuariosConfirmadosCSV.push(row);
                     } else {
-                        location.reload();
+                        errores++;
                     }
-                },
-                error: function () {
-                    alert('Hubo un error de validación o del servidor al registrar los usuarios. Verifica que no estén inscritos previamente.');
-                },
-                complete: function () {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
+
+                    tr.innerHTML = `
+                        <td>${row.cedula || ''}</td>
+                        <td>${row.nombre || ''}</td>
+                        <td>${row.apellido || ''}</td>
+                        <td>${row.correo || ''}</td>
+                        <td>${row.password || ''}</td>
+                        <td class="small fw-bold">${icon}</td>
+                    `;
+                    // Prepend errors so they show at the top
+                    if (row.valido) tbody.appendChild(tr);
+                    else tbody.insertBefore(tr, tbody.firstChild);
+                });
+
+                let btnConfirmar = document.getElementById('btnConfirmarImportacion');
+                if (usuariosConfirmadosCSV.length > 0) {
+                    btnConfirmar.classList.remove('disabled');
+                    if (errores > 0) {
+                        $('#alertaErroresCSV').html(`<strong>Atención:</strong> Encontramos <b>${errores}</b> filas con errores provocados por duplicidad. Solo los <b>${usuariosConfirmadosCSV.length}</b> registros válidos serán procesados.`).removeClass('d-none');
+                    } else {
+                        $('#alertaErroresCSV').addClass('d-none');
+                    }
+                } else {
+                    btnConfirmar.classList.add('disabled');
+                    $('#alertaErroresCSV').html(`<strong>Error:</strong> Ninguna fila en el archivo es válida para importar.`).removeClass('d-none');
                 }
-            });
-        }
+            },
+            error: function () {
+                alert('Error crítico al procesar el archivo CSV.');
+            },
+            complete: function () {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
     });
+
+    document.getElementById('btnConfirmarImportacion').addEventListener('click', function () {
+        if (usuariosConfirmadosCSV.length === 0) return;
+        if (!confirm(`¿Estás completamente seguro de importar estos ${usuariosConfirmadosCSV.length} usuarios a la base de datos?`)) return;
+
+        let btn = this;
+        let originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        btn.disabled = true;
+
+        $.ajax({
+            url: '../controllers/procesar_importacion_usuarios.php',
+            type: 'POST',
+            data: { usuarios: JSON.stringify(usuariosConfirmadosCSV) },
+            success: function (res) {
+                alert(res);
+                location.reload();
+            },
+            error: function () {
+                alert('Error al intentar guardar los usuarios en la base de datos.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+    });
+
 </script>
