@@ -125,11 +125,11 @@ $encabezado = '../public/assets/img/vector membrete 1-01.png';
 
             // Texto del cuerpo
             let contenido = `
-            Por medio de la presente, hacemos constar que el ciudadano **${datos.nombre_promotor}**, titular de la cédula de identidad N° V-**${datos.cedula}**, se encuentra actualmente participando como estudiante en la unidad curricular / curso titulado **${datos.nombre_curso}**, el cual es organizado por la **Coordinación de Formación Permanente** de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira.
+            Por medio de la presente, hacemos constar que el/la ciudadano(a) **${datos.nombre_promotor}**, titular de la cédula de identidad N° V-**${datos.cedula}**, participó en calidad de **Facilitador / Promotor** en la unidad curricular / curso titulado **${datos.nombre_curso}**, el cual es organizado por la **Coordinación de Formación Permanente** de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira.
             
             La presente constancia se expide en San Cristóbal, a los ${fechaInicio}.
             
-            Agradecemos su participación y compromiso con la formación continua.
+            Agradecemos su valiosa participación y compromiso con la formación continua.
         `;
             // Nota: He ajustado ligeramente el texto para que tenga sentido como "Constancia de Estudio" (Estudiante Activo)
             // en lugar de "participó como facilitador" (Pasado/Ponente), ya que dijiste que era para inscritos.
