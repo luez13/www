@@ -89,6 +89,10 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
         <h3 class="h3 mb-2 text-gray-800"><i class="fas fa-users-cog me-2 text-primary"></i>Verificación de Usuarios
         </h3>
         <div class="d-flex gap-2 mb-2 flex-wrap">
+            <button type="button" class="btn btn-primary shadow-sm" data-toggle="modal"
+                data-target="#crearUsuarioModal">
+                <i class="fas fa-user-plus me-1"></i> Añadir Usuario
+            </button>
             <button type="button" class="btn btn-success shadow-sm" data-toggle="modal" data-target="#modalImportarCSV">
                 <i class="fas fa-file-csv me-1"></i> Importar CSV
             </button>
@@ -289,6 +293,96 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
         </div>
     </div>
 
+    <!-- Modal Crear Usuario -->
+    <div class="modal fade" id="crearUsuarioModal" tabindex="-1" role="dialog" aria-labelledby="crearUsuarioModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-primary text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold" id="crearUsuarioModalLabel"><i
+                            class="fas fa-user-plus me-2"></i>Añadir Nuevo Usuario</h5>
+                    <button type="button" class="btn-close btn-close-white" data-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <form id="formCrearUsuario" onsubmit="guardarNuevoUsuarioAjax(event)" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="crear_admin">
+                    <div class="modal-body p-4 bg-light">
+                        <div class="row g-3">
+                            <!-- Datos Personales -->
+                            <div class="col-12">
+                                <h6 class="text-primary fw-bold mb-0 border-bottom pb-2">Datos Personales</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted mb-1">Nombre</label>
+                                <input type="text" class="form-control rounded-3" name="nombre" id="crear_nombre"
+                                    required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted mb-1">Apellido</label>
+                                <input type="text" class="form-control rounded-3" name="apellido" id="crear_apellido"
+                                    required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted mb-1">Cédula</label>
+                                <input type="text" class="form-control rounded-3" name="cedula" id="crear_cedula"
+                                    required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted mb-1">Correo Electrónico</label>
+                                <input type="email" class="form-control rounded-3" name="correo" id="crear_correo"
+                                    required>
+                            </div>
+                            <!-- La contraseña será autogenerada, se avisa al usuario -->
+                            <div class="col-12 mt-2">
+                                <div class="alert alert-info py-2 small mb-0"><i class="fas fa-info-circle me-1"></i>La
+                                    contraseña se generará automáticamente con el formato <code>nombreapellido20</code>
+                                    y todo en minúsculas.</div>
+                            </div>
+                            <!-- Roles y Autoridades -->
+                            <div class="col-12 mt-4">
+                                <h6 class="text-primary fw-bold mb-0 border-bottom pb-2">Roles y Cargo Universitario
+                                </h6>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted mb-1">Rol en Sistema</label>
+                                <select class="form-select rounded-3" name="id_rol" id="crear_id_rol" required>
+                                    <option value="1">Usuario Base</option>
+                                    <option value="2">Facilitador</option>
+                                    <option value="3">Coordinador</option>
+                                    <option value="4">Administrador Superior</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted mb-1">Título</label>
+                                <input type="text" class="form-control rounded-3" name="titulo" id="crear_titulo"
+                                    placeholder="Ej. Lcdo.">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted mb-1">Cargo Universitario</label>
+                                <input type="text" class="form-control rounded-3" name="cargo" id="crear_cargo"
+                                    placeholder="Dejar vacío si no aplica">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-muted mb-1">Firma Digital (Opcional)</label>
+                                <input type="file" class="form-control rounded-3" name="firma_digital"
+                                    id="crear_firma_digital" accept="image/png, image/jpeg">
+                                <small class="text-muted d-block mt-1">Sugerido: Imagen PNG transparente para firmas en
+                                    certificados.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-white border-0 py-3">
+                        <button type="button" class="btn btn-light px-4 rounded-pill"
+                            data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary px-4 rounded-pill shadow-sm"
+                            id="btnCrearUsuario"><i class="fas fa-save me-2"></i>Crear Usuario</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Modal para Importar CSV -->
     <div class="modal fade" id="modalImportarCSV" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-xl">
@@ -300,24 +394,10 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                 </div>
                 <div class="modal-body bg-light">
                     <div class="row align-items-center mb-4">
-                        <div class="col-md-7">
-                            <p class="mb-1"><strong>Paso 1:</strong> Descarga la plantilla CSV y llénala con los datos
-                                correspondientes.</p>
-                            <p class="mb-0 text-muted small">La contraseña será auto-generada (NombreApellido20). El
-                                correo,
-                                de no proveerse, también será generado automáticamente.</p>
-                        </div>
-                        <div class="col-md-5 text-md-end mt-2 mt-md-0">
-                            <a href="../public/plantillas/plantilla_usuarios.csv" download
-                                class="btn btn-outline-success border-2 shadow-sm">
-                                <i class="fas fa-download me-1"></i> Descargar Plantilla
-                            </a>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row align-items-center mb-4">
-                        <div class="col-md-7">
-                            <p class="mb-1"><strong>Paso 2:</strong> Sube el archivo completado para su validación.</p>
+                        <div class="col-12">
+                            <div class="alert alert-info py-2 small mb-3">
+                                <i class="fas fa-magic me-1"></i> El sistema leerá automáticamente tu CSV. Asegúrate de incluir cabeceras en la primera fila (ej. Nombre, Apellido, Cédula, Correo).
+                            </div>
                             <form id="formCargarCSV">
                                 <div class="input-group">
                                     <input type="file" class="form-control" id="archivoCSV" accept=".csv" required>
@@ -383,7 +463,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
 
 
     // Búsqueda dinámica con Debounce
-    let timeoutBusquedaUsuarios;
+    window.timeoutBusquedaUsuarios = window.timeoutBusquedaUsuarios || null;
     function buscarUsuariosDinamico(event) {
         clearTimeout(timeoutBusquedaUsuarios);
         timeoutBusquedaUsuarios = setTimeout(function () {
@@ -417,8 +497,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                 document.getElementById('edit_firma_digital').value = '';
 
                 // Abrimos el modal
-                var modal = new bootstrap.Modal(document.getElementById('editarUsuarioModal'));
-                modal.show();
+                $('#editarUsuarioModal').modal('show');
             },
             error: function () {
                 alert('No se pudieron recuperar los datos del usuario. Intente nuevamente.');
@@ -446,9 +525,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                 alert(response);
 
                 // Ocultar modal y recargar la lista
-                var modalEl = document.getElementById('editarUsuarioModal');
-                var modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
+                $('#editarUsuarioModal').modal('hide');
                 $('.modal-backdrop').remove();
                 $('body').removeClass('modal-open').css('padding-right', '');
 
@@ -464,8 +541,42 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
         });
     }
 
+    // --- LÓGICA DE CREACIÓN MANUAL DE USUARIO ---
+    function guardarNuevoUsuarioAjax(event) {
+        event.preventDefault();
+        var form = document.getElementById('formCrearUsuario');
+        var formData = new FormData(form);
+
+        var btn = document.getElementById('btnCrearUsuario');
+        var originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+        btn.disabled = true;
+
+        $.ajax({
+            url: '../controllers/admin_usuarios_ajax.php',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (response) {
+                alert(response);
+                $('#crearUsuarioModal').modal('hide');
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open').css('padding-right', '');
+                loadPage('../views/usuarios.php', { page: <?= $page ?>, busqueda: '<?= addslashes($busqueda) ?>' });
+            },
+            error: function (xhr) {
+                alert('Ocurrió un error al crear al usuario: ' + xhr.responseText);
+            },
+            complete: function () {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+    }
+
     // --- LÓGICA IMPORTACIÓN CSV ---
-    let usuariosConfirmadosCSV = [];
+    window.usuariosConfirmadosCSV = window.usuariosConfirmadosCSV || [];
 
     document.getElementById('formCargarCSV').addEventListener('submit', function (e) {
         e.preventDefault();
@@ -566,7 +677,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
         });
     });
 
-        // Lógica para el Botón de Eliminar en la tabla (Doble Verificación)
+    // Lógica para el Botón de Eliminar en la tabla (Doble Verificación)
     $(document).off('click', '.btn-delete-usuario').on('click', '.btn-delete-usuario', function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -577,7 +688,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
         if (confirm("¿Está seguro de que desea eliminar este usuario? Esta acción es irreversible.")) {
             // Segunda Validación
             if (confirm("⚠️ ¡ADVERTENCIA FINAL! ⚠️\n\n¿Estás ABSOLUTAMENTE SEGURO de eliminar al usuario? Se perderá todo su historial en el sistema.")) {
-                
+
                 // Mostrar estado de carga en el botón
                 const originalHtml = $(this).html();
                 $(this).html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);

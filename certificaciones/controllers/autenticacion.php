@@ -130,8 +130,7 @@ function verificar_sesion()
             header('Location: ../public/index.php');
             exit();
         }
-    }
-    else {
+    } else {
         // Obtener el rol del usuario y almacenarlo en la sesión
         $db = new DB();
         $stmt = $db->prepare('SELECT id_rol FROM cursos.usuarios WHERE id = :id_usuario');
@@ -241,15 +240,13 @@ if (isset($_POST['action'])) {
                     $_SESSION['auth_success'] = "Te has registrado correctamente. Por favor, inicia sesión.";
                     header('Location: ../public/register.php');
                     exit;
-                }
-                catch (PDOException $e) {
+                } catch (PDOException $e) {
                     $_SESSION['auth_error'] = "Ha ocurrido un error al registrarte. Es posible que el correo o cédula ya estén registrados.";
                     $_SESSION['form_data'] = ['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'cedula' => $cedula];
                     header('Location: ../public/register.php');
                     exit;
                 }
-            }
-            else {
+            } else {
                 $_SESSION['auth_error'] = $validacion['message'];
                 $_SESSION['form_data'] = ['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'cedula' => $cedula];
                 header('Location: ../public/register.php');
@@ -280,26 +277,22 @@ if (isset($_POST['action'])) {
                             $_SESSION['cedula'] = $user['cedula'];
                             // Redirigir al usuario a la página de perfil
                             redirigir_login();
-                        }
-                        else {
+                        } else {
                             $_SESSION['auth_error'] = "La contraseña es incorrecta.";
                             header('Location: ../public/index.php');
                             exit;
                         }
-                    }
-                    else {
+                    } else {
                         $_SESSION['auth_error'] = "El usuario no existe o no está confirmado.";
                         header('Location: ../public/index.php');
                         exit;
                     }
-                }
-                catch (PDOException $e) {
+                } catch (PDOException $e) {
                     $_SESSION['auth_error'] = "Ha ocurrido un error al iniciar sesión: " . $e->getMessage();
                     header('Location: ../public/index.php');
                     exit;
                 }
-            }
-            else {
+            } else {
                 $_SESSION['auth_error'] = "Los datos de inicio de sesión son inválidos. Revisa tu correo o contraseña.";
                 header('Location: ../public/index.php');
                 exit;
@@ -333,13 +326,11 @@ if (isset($_POST['action'])) {
                     // Mostrar un mensaje de éxito al usuario
                     echo '<p>Tus datos se han actualizado correctamente</p>';
                     redirigir_perfilUsuario();
-                }
-                catch (PDOException $e) {
+                } catch (PDOException $e) {
                     // Mostrar un mensaje de error al usuario
                     echo '<p>Ha ocurrido un error al actualizar tus datos: ' . $e->getMessage() . '</p>';
                 }
-            }
-            else {
+            } else {
                 // Mostrar un mensaje de error al usuario
                 echo '<p>Los datos de edición son inválidos</p>';
             }
@@ -368,36 +359,28 @@ if (isset($_POST['action'])) {
                         $stmt = $db->prepare('UPDATE cursos.usuarios SET token = :token WHERE correo = :correo');
                         $stmt->execute(['token' => $token, 'correo' => $correo]);
 
-                        // Construir el enlace
-                        $base_dir = dirname($_SERVER['PHP_SELF'], 2); // Sube dos niveles desde /controllers
-                        if ($base_dir === '\\' || $base_dir === '/')
-                            $base_dir = '';
-                        $link = "http://" . $_SERVER['HTTP_HOST'] . $base_dir . "/public/reset_password.php?token=" . $token;
+                        // Construir el enlace en duro (Hardcoded para el servidor)
+                        $link = "https://certificaciones.uptaivirtualsarec.com/certifuptaisarec/public/reset_password.php?token=" . $token;
 
-                        // NOTA: Como estamos en Laragon local, mandamos el alert directamente para facilitar las pruebas
-                        // En producción aquí iría la función mail()
                         $asunto = 'Recuperar Contraseña';
                         $mensaje = "Hola " . $user['nombre'] . ".\n\nHaz clic aquí para restablecer tu contraseña:\n" . $link;
                         $cabeceras = "From: no-reply@gestioncursos.com\r\nReply-To: no-reply@gestioncursos.com\r\n";
                         @mail($correo, $asunto, $mensaje, $cabeceras);
 
-                        $_SESSION['auth_success'] = "Se ha enviado un enlace de recuperación a tu correo. (COMO ES LOCAL, EL ENLACE ES: $link)";
+                        $_SESSION['auth_success'] = "Se ha enviado un enlace de recuperación a tu correo electrónico.";
                         header('Location: ../public/index.php');
                         exit;
-                    }
-                    else {
+                    } else {
                         $_SESSION['auth_error'] = "El correo no está registrado o no está confirmado.";
                         header('Location: ../public/recuperar_password.php');
                         exit;
                     }
-                }
-                catch (PDOException $e) {
+                } catch (PDOException $e) {
                     $_SESSION['auth_error'] = "Error de base de datos: " . $e->getMessage();
                     header('Location: ../public/recuperar_password.php');
                     exit;
                 }
-            }
-            else {
+            } else {
                 $_SESSION['auth_error'] = "Debes ingresar tu correo electrónico.";
                 header('Location: ../public/recuperar_password.php');
                 exit;
@@ -444,14 +427,12 @@ if (isset($_POST['action'])) {
                     $_SESSION['auth_success'] = "¡Contraseña actualizada con éxito! Ya puedes iniciar sesión.";
                     header('Location: ../public/index.php');
                     exit;
-                }
-                else {
+                } else {
                     $_SESSION['auth_error'] = "El enlace es inválido o ya ha expirado.";
                     header('Location: ../public/index.php');
                     exit;
                 }
-            }
-            catch (PDOException $e) {
+            } catch (PDOException $e) {
                 $_SESSION['auth_error'] = "Error: " . $e->getMessage();
                 header('Location: ' . $_SERVER['HTTP_REFERER']);
                 exit;

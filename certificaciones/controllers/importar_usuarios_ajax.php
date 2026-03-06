@@ -107,25 +107,62 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["csv_file"])) {
         $delimiter = strpos($first_line, ';') !== false ? ';' : ',';
         rewind($handle);
 
-        $header = fgetcsv($handle, 1000, $delimiter); // Skip header
-        while (($data = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
-            $cedula = trim($data[0] ?? '');
-            $nombre = trim($data[1] ?? '');
-            $apellido = trim($data[2] ?? '');
-            $correo = trim($data[3] ?? '');
+        $header = fgetcsv($handle, 1000, $delimiter); // Lee cabecera
+        if (!$header) {
+            die("Error leyendo cabecera del CSV");
+        }
 
-            if (empty($cedula) || empty($nombre) || empty($apellido)) {
+        // --- MAPEO DINÁMICO DE COLUMNAS ---
+        $col_cedula = -1;
+        $col_nombre = -1;
+        $col_apellido = -1;
+        $col_correo = -1;
+
+        // Limpiar cabeceras para matcheo fácil
+        $clean_header = array_map(function ($val) {
+            return strtolower(preg_replace('/[^a-zA-Z]/', '', removeAccents($val)));
+        }, $header);
+
+        foreach ($clean_header as $index => $colName) {
+            if (strpos($colName, 'ced') !== false || strpos($colName, 'ide') !== false || strpos($colName, 'ci') !== false) {
+                $col_cedula = $index;
+            } elseif (strpos($colName, 'nom') !== false) {
+                $col_nombre = $index;
+            } elseif (strpos($colName, 'ape') !== false) {
+                $col_apellido = $index;
+            } elseif (strpos($colName, 'cor') !== false || strpos($colName, 'mail') !== false) {
+                $col_correo = $index;
+            }
+        }
+
+        // Si no detectó nombre ni apellido, aborta
+        if ($col_nombre === -1 || $col_apellido === -1 || $col_cedula === -1) {
+            die(json_encode(["error" => "No se pudieron identificar las columnas requeridas (Nombres, Apellidos, Cédula). Cabeceras detectadas: " . implode(", ", $header)]));
+        }
+
+        while (($data = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
+            // Leer usando mapeo dinámico
+            $raw_cedula = isset($data[$col_cedula]) ? trim($data[$col_cedula]) : '';
+            $raw_nombre = isset($data[$col_nombre]) ? trim($data[$col_nombre]) : '';
+            $raw_apellido = isset($data[$col_apellido]) ? trim($data[$col_apellido]) : '';
+            $raw_correo = ($col_correo !== -1 && isset($data[$col_correo])) ? trim($data[$col_correo]) : '';
+
+            if (empty($raw_cedula) || empty($raw_nombre) || empty($raw_apellido)) {
                 continue; // Skip invalid bare-minimum blank rows
             }
 
-            // Generate clean names
-            $firstName = utf8_encode(explode(' ', $nombre)[0]);
-            $firstSurname = utf8_encode(explode(' ', $apellido)[0]);
+            // LIMPIEZA EXTREMA
+            $cedula = preg_replace('/[^0-9]/', '', $raw_cedula); // Solo números, quita V-, E-, puntos
+            $nombre = preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/u', '', utf8_encode($raw_nombre));
+            $apellido = preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/u', '', utf8_encode($raw_apellido));
+            $correo = strtolower(str_replace(' ', '', $raw_correo)); // Sin espacios minúscula
 
+            // Generate defaults if missing
+            $firstName = explode(' ', trim($nombre))[0];
+            $firstSurname = explode(' ', trim($apellido))[0];
             $cleanFirstName = strtolower(removeAccents($firstName));
             $cleanFirstSurname = strtolower(removeAccents($firstSurname));
 
-            // Generate defaults if missing
             $generatedPassword = $cleanFirstName . $cleanFirstSurname . '20';
             if (empty($correo)) {
                 $correo = $generatedPassword . '@gmail.com';
@@ -133,8 +170,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["csv_file"])) {
 
             $userArray = [
                 'cedula' => htmlspecialchars($cedula),
-                'nombre' => htmlspecialchars(utf8_encode($nombre)),
-                'apellido' => htmlspecialchars(utf8_encode($apellido)),
+                'nombre' => htmlspecialchars(trim($nombre)),
+                'apellido' => htmlspecialchars(trim($apellido)),
                 'correo' => htmlspecialchars($correo),
                 'password' => $generatedPassword,
                 'valido' => true,
