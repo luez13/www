@@ -151,10 +151,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["csv_file"])) {
                 continue; // Skip invalid bare-minimum blank rows
             }
 
+            // Asegurar UTF-8 sin doble-codificar si el archivo ya viene en UTF-8 moderno (CSV UTF-8 de Excel)
+            $raw_nombre = mb_check_encoding($raw_nombre, 'UTF-8') ? $raw_nombre : utf8_encode($raw_nombre);
+            $raw_apellido = mb_check_encoding($raw_apellido, 'UTF-8') ? $raw_apellido : utf8_encode($raw_apellido);
+
             // LIMPIEZA EXTREMA
             $cedula = preg_replace('/[^0-9]/', '', $raw_cedula); // Solo números, quita V-, E-, puntos
-            $nombre = preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/u', '', utf8_encode($raw_nombre));
-            $apellido = preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/u', '', utf8_encode($raw_apellido));
+            $nombre = preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/u', '', $raw_nombre);
+            $apellido = preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/u', '', $raw_apellido);
             $correo = strtolower(str_replace(' ', '', $raw_correo)); // Sin espacios minúscula
 
             // Generate defaults if missing
