@@ -143,11 +143,16 @@ function verificar_sesion()
 // Crear una función para enviar un correo electrónico de confirmación
 function enviar_correo_confirmacion($correo, $nombre, $token)
 {
+    $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+    $host = $_SERVER['HTTP_HOST'];
+    $app_path = explode('/controllers/', $_SERVER['PHP_SELF'])[0];
+    $base_url = $protocolo . "://" . $host . $app_path;
+
     // Definir el asunto del correo
     $asunto = 'Confirmación de registro';
     // Definir el mensaje del correo
     $mensaje = "Hola, $nombre. Gracias por registrarte en nuestro sistema. Para confirmar tu cuenta, haz clic en el siguiente enlace:\n";
-    $mensaje .= "http://localhost/public/confirmar.php?correo=$correo&token=$token\n";
+    $mensaje .= $base_url . "/public/confirmar.php?correo=$correo&token=$token\n";
     $mensaje .= "Si no has solicitado este registro, ignora este mensaje.\n";
     $mensaje .= "Saludos, el equipo de gestión de cursos y certificaciones.";
     // Definir las cabeceras del correo
@@ -359,8 +364,12 @@ if (isset($_POST['action'])) {
                         $stmt = $db->prepare('UPDATE cursos.usuarios SET token = :token WHERE correo = :correo');
                         $stmt->execute(['token' => $token, 'correo' => $correo]);
 
-                        // Construir el enlace en duro (Hardcoded para el servidor)
-                        $link = "https://certificaciones.uptaivirtualsarec.com/certifuptaisarec/public/reset_password.php?token=" . $token;
+                        // Construir el enlace dinámico
+                        $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+                        $host = $_SERVER['HTTP_HOST'];
+                        $app_path = explode('/controllers/', $_SERVER['PHP_SELF'])[0];
+                        $base_url = $protocolo . "://" . $host . $app_path;
+                        $link = $base_url . "/public/reset_password.php?token=" . $token;
 
                         $asunto = 'Recuperar Contraseña';
                         $mensaje = "Hola " . $user['nombre'] . ".\n\nHaz clic aquí para restablecer tu contraseña:\n" . $link;

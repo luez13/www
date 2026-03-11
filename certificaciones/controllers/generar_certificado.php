@@ -38,7 +38,7 @@ if (isset($_GET['valor_unico'])) {
             'horas_cronologicas' => $horas_cronologicas,
             'modulos' => isset($datos_completos['modulos']) ? $datos_completos['modulos'] : array(),
             'articulo_tipo_curso' => ($datos_completos['tipo_curso'] === "charla" || $datos_completos['tipo_curso'] === "masterclass") ? "la" : "el",
-            'certificadoUrl' => "http://{$_SERVER['HTTP_HOST']}/certifuptaisarec/controllers/generar_certificado.php?valor_unico={$valor_unico}",
+            'certificadoUrl' => (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}" . explode('/controllers/', $_SERVER['PHP_SELF'])[0] . "/controllers/generar_certificado.php?valor_unico={$valor_unico}",
             'imagePath' => '../public/assets/img/marca_agua.png',
             'bannerPath' => '../public/assets/img/banner_certificado.jpg',
             'footerPath' => '../public/assets/img/footer.jpg',

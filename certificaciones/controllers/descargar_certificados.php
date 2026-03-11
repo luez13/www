@@ -24,9 +24,14 @@ $zip = new ZipArchive();
 $tempZip = tempnam(sys_get_temp_dir(), "certificados_") . ".zip";
 $zip->open($tempZip, ZipArchive::CREATE);
 
+$protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'];
+$app_path = explode('/controllers/', $_SERVER['PHP_SELF'])[0];
+$base_url = $protocolo . "://" . $host . $app_path;
+
 foreach ($certificados as $certificado) {
-    // Usar una URL absoluta en lugar de una ruta relativa
-    $certificadoUrl = "http://localhost/certificaciones/controllers/generar_certificado.php?valor_unico=" . $certificado['valor_unico'];
+    // Usar una URL absoluta dinámica
+    $certificadoUrl = $base_url . "/controllers/generar_certificado.php?valor_unico=" . $certificado['valor_unico'];
 
     // Obtener contenido del PDF
     $pdfContent = file_get_contents($certificadoUrl);
