@@ -33,6 +33,10 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
     $stmt_pos3->execute();
     $id_posicion_3 = $stmt_pos3->fetchColumn();
 
+    $stmt_plantillas = $db->prepare("SELECT id, nombre, es_defecto FROM cursos.plantillas_certificados ORDER BY es_defecto DESC, nombre ASC");
+    $stmt_plantillas->execute();
+    $plantillas_certificados = $stmt_plantillas->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
     <h1 class="h3 mb-4 text-gray-800">Postular una Nueva Propuesta de Curso</h1>
     
@@ -78,6 +82,16 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                             <option value="avanzado">Avanzado</option>
                         </select>
                     </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Plantilla del Certificado a emitir:</label>
+                    <select class="form-select" name="id_plantilla">
+                        <option value="">-- Usar Diseño por Defecto Global --</option>
+                        <?php foreach ($plantillas_certificados as $plantilla): ?>
+                            <option value="<?= $plantilla['id'] ?>"><?= htmlspecialchars($plantilla['nombre']) ?> <?= $plantilla['es_defecto'] ? ' (Por Defecto Actual)' : '' ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div class="form-text">Si se deja vacío, el curso usará la plantilla que esté configurada como global.</div>
                 </div>
             </div>
         </div>
@@ -268,6 +282,7 @@ foreach ($cursos as $curso) {
     echo '<li><a class="dropdown-item" href="#" onclick="loadPage(\'../public/detalles_curso.php\', {id: ' . $curso['id_curso'] . '}); return false;"><i class="fas fa-info-circle me-2 text-secondary"></i>Detalles del curso</a></li>';
     echo '<li><a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target="#modulos-' . $curso['id_curso'] . '"><i class="fas fa-list me-2 text-secondary"></i>Ver Módulos</a></li>';
     echo '<li><a class="dropdown-item" href="#" onclick="generarConstancia(' . $curso['id_curso'] . '); return false;"><i class="fas fa-file-signature me-2 text-secondary"></i>Generar constancia</a></li>';
+    echo '<li><a class="dropdown-item" href="#" onclick="duplicarCurso(' . $curso['id_curso'] . '); return false;"><i class="fas fa-copy me-2 text-secondary"></i>Duplicar Curso</a></li>';
     
     // Sección Exclusiva de Diplomados
     $es_diplomado = in_array(strtolower($curso['tipo_curso']), ['diplomado', 'diplomado_rectoria']);
@@ -367,6 +382,23 @@ function generarConstancia(idCurso) {
                 alert('Error al cambiar el estado del curso.');
             }
         });
+    }
+
+    function duplicarCurso(id_curso) {
+        if(confirm("¿Estás seguro de que deseas duplicar este curso? (Aparecerá como una copia vacía de cupos y fechas)")) {
+            $.ajax({
+                url: '../controllers/curso_controlador.php',
+                type: 'POST',
+                data: { id_curso: id_curso, action: 'duplicar' },
+                success: function(response) {
+                    alert(response);
+                    window.location.href = '../public/perfil.php?seccion=ver_postulaciones';
+                },
+                error: function() {
+                    alert('Error al duplicar el curso. Es posible que el servidor haya devuelto un error o el tiempo de espera se haya agotado.');
+                }
+            });
+        }
     }
 
     document.getElementById('numero_modulos').onblur = addModuleFields;

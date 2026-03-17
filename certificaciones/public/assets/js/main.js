@@ -77,6 +77,7 @@ function loadPage(page, params = {}, isGoingBack = false) {
         url: url,
         method: 'GET',
         data: params,
+        cache: false,
         success: function (data) {
             $('#page-content').html(data);
 

@@ -1,0 +1,62 @@
+[
+    {
+        "table_name": "auditoria"
+    },
+    {
+        "table_name": "usuario_documentos"
+    },
+    {
+        "table_name": "roles"
+    },
+    {
+        "table_name": "certificaciones"
+    },
+    {
+        "table_name": "cursos"
+    },
+    {
+        "table_name": "modulos"
+    },
+    {
+        "table_name": "buzon_sugerencias"
+    },
+    {
+        "table_name": "posiciones_firma"
+    },
+    {
+        "table_name": "usuarios"
+    },
+    {
+        "table_name": "cursos_config_firmas"
+    },
+    {
+        "table_name": "config_sistema"
+    },
+    {
+        "table_name": "cargos"
+    },
+    {
+        "table_name": "actividades_config"
+    },
+    {
+        "table_name": "notas_participante"
+    },
+    {
+        "table_name": "actas_cierre"
+    },
+    {
+        "table_name": "cuentas_bancarias"
+    },
+    {
+        "table_name": "materias_bimestre"
+    },
+    {
+        "table_name": "comprobantes_pago"
+    },
+    {
+        "table_name": "landing_carrusel"
+    },
+    {
+        "table_name": "plantillas_certificados"
+    }
+]

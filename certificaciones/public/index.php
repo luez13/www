@@ -61,7 +61,7 @@ function renderizarCursos($cursosArray)
                     <p class="card-text text-muted">' . $desc . '</p>
                 </div>
                 <div class="card-footer bg-transparent border-0 pt-0">
-                    <button class="btn btn-outline-primary w-100 fw-bold rounded-pill" data-bs-toggle="modal" data-bs-target="#loginModal">Más Información</button>
+                    <button class="btn btn-outline-primary w-100 fw-bold rounded-pill btn-mas-info" data-id="' . $curso['id_curso'] . '">Más Información</button>
                 </div>
             </div>
         </div>';
@@ -197,7 +197,144 @@ function renderizarCursos($cursosArray)
     </section>
 </main>
 
+<!-- Modal de Detalles del Curso -->
+<div class="modal fade" id="courseDetailsModal" tabindex="-1" aria-labelledby="courseDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white border-bottom-0 pb-3">
+                <h5 class="modal-title fw-bold" id="courseDetailsModalLabel"><i class="fas fa-book-open me-2"></i> Detalles del Programa</h5>
+                <button type="button" class="btn-close btn-close-white" onclick="cerrarModalDetalles()" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <div class="text-center my-5 d-none" id="courseLoading">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-3 text-muted fw-bold">Cargando detalles...</p>
+                </div>
+                
+                <div id="courseContent" style="display: none;">
+                    <img src="" id="courseModalImg" class="img-fluid rounded-3 shadow-sm mb-4 w-100" style="max-height: 250px; object-fit: cover; display: none;">
+                    
+                    <h3 id="courseModalTitle" class="fw-bold text-dark mb-2"></h3>
+                    <p class="badge bg-info text-dark mb-4 fs-6 px-3 py-2 rounded-pill shadow-sm" id="courseModalType" style="letter-spacing: 0.5px;"></p>
+                    
+                    <div class="bg-white p-4 rounded-3 shadow-sm mb-4">
+                        <h5 class="fw-bold text-primary border-bottom pb-2 mb-3"><i class="fas fa-info-circle me-2"></i>Descripción</h5>
+                        <p id="courseModalDesc" class="text-secondary m-0" style="white-space: pre-wrap; font-size: 1.05rem; line-height: 1.6;"></p>
+                    </div>
+                    
+                    <div id="courseModalReqContainer" style="display: none;" class="bg-white p-4 rounded-3 shadow-sm mb-4 border-start border-4 border-warning">
+                        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-clipboard-list text-warning me-2"></i>Requisitos</h5>
+                        <p id="courseModalReq" class="text-secondary m-0" style="white-space: pre-wrap; font-size: 1rem;"></p>
+                    </div>
 
+                    <div id="courseModalModContainer" style="display: none;" class="bg-white p-4 rounded-3 shadow-sm mb-2">
+                        <h5 class="fw-bold text-success border-bottom pb-2 mb-3"><i class="fas fa-layer-group me-2"></i>Contenido / Módulos</h5>
+                        <div class="accordion accordion-flush" id="accordionModules">
+                            <!-- Modulos renderizados dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white pt-3 pb-3 px-4 border-top-0 d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-4" onclick="cerrarModalDetalles()">Cerrar</button>
+                <div class="text-end">
+                    <small class="text-muted d-block mb-2"><i class="fas fa-user-lock me-1"></i>Para matricularte, requieres una cuenta.</small>
+                    <button type="button" class="btn btn-success fw-bold px-4 py-2 rounded-pill shadow-sm" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal" style="transition: all 0.3s ease;" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">
+                        <i class="fas fa-sign-in-alt me-2"></i>Inscribirse / Acceder
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const courseModal = new bootstrap.Modal(document.getElementById('courseDetailsModal'));
+    
+    window.cerrarModalDetalles = function() {
+        courseModal.hide();
+    };
+
+    document.body.addEventListener('click', function(e) {
+        if(e.target && (e.target.classList.contains('btn-mas-info') || e.target.closest('.btn-mas-info'))) {
+            const btn = e.target.classList.contains('btn-mas-info') ? e.target : e.target.closest('.btn-mas-info');
+            const courseId = btn.getAttribute('data-id');
+            const loading = document.getElementById('courseLoading');
+            const content = document.getElementById('courseContent');
+            
+            // UI reset
+            loading.classList.remove('d-none');
+            content.style.display = 'none';
+            document.getElementById('accordionModules').innerHTML = '';
+            
+            courseModal.show();
+            
+            fetch(`api_curso_detalles.php?id_curso=${courseId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.error) {
+                        alert(data.error);
+                        courseModal.hide();
+                        return;
+                    }
+                    
+                    document.getElementById('courseModalTitle').textContent = data.nombre_curso;
+                    document.getElementById('courseModalType').textContent = (data.tipo_curso || '').replace('_', ' ').toUpperCase();
+                    document.getElementById('courseModalDesc').textContent = data.descripcion || 'Sin descripción detallada.';
+                    
+                    if(data.imagen_portada) {
+                        const img = document.getElementById('courseModalImg');
+                        img.src = data.imagen_portada;
+                        img.style.display = 'block';
+                    } else {
+                        document.getElementById('courseModalImg').style.display = 'none';
+                    }
+                    
+                    const reqContainer = document.getElementById('courseModalReqContainer');
+                    if(data.requisitos && data.requisitos.trim() !== '') {
+                        document.getElementById('courseModalReq').textContent = data.requisitos;
+                        reqContainer.style.display = 'block';
+                    } else {
+                        reqContainer.style.display = 'none';
+                    }
+                    
+                    const modContainer = document.getElementById('courseModalModContainer');
+                    if(data.modulos && data.modulos.length > 0) {
+                        let html = '';
+                        data.modulos.forEach((m, idx) => {
+                            html += `
+                            <div class="accordion-item shadow-sm mb-2 rounded border-0">
+                                <h2 class="accordion-header" id="headingMod${idx}">
+                                    <button class="accordion-button collapsed fw-bold text-dark rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMod${idx}">
+                                        <i class="fas fa-bookmark text-primary me-2"></i> ${m.numero}: ${m.nombre_modulo}
+                                    </button>
+                                </h2>
+                                <div id="collapseMod${idx}" class="accordion-collapse collapse" data-bs-parent="#accordionModules">
+                                    <div class="accordion-body text-secondary" style="white-space: pre-wrap; border-left: 3px solid #0d6efd; margin-left: 10px;">${m.contenido ? m.contenido : 'Sin detalles específicos.'}</div>
+                                </div>
+                            </div>`;
+                        });
+                        document.getElementById('accordionModules').innerHTML = html;
+                        modContainer.style.display = 'block';
+                    } else {
+                        modContainer.style.display = 'none';
+                    }
+                    
+                    loading.classList.add('d-none');
+                    content.style.display = 'block';
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Error al cargar detalles. Contacte al administrador.");
+                    courseModal.hide();
+                });
+        }
+    });
+});
+</script>
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem; overflow: hidden;">

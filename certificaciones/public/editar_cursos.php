@@ -39,6 +39,10 @@ $stmt_posiciones = $db->prepare("SELECT id_posicion, codigo_posicion, descripcio
 $stmt_posiciones->execute();
 $posiciones_firma = $stmt_posiciones->fetchAll(PDO::FETCH_ASSOC);
 
+$stmt_plantillas = $db->prepare("SELECT id, nombre, es_defecto FROM cursos.plantillas_certificados ORDER BY es_defecto DESC, nombre ASC");
+$stmt_plantillas->execute();
+$plantillas_certificados = $stmt_plantillas->fetchAll(PDO::FETCH_ASSOC);
+
 // --- BÚSQUEDA Y PAGINACIÓN ---
 $busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
 $filtro_tipo = isset($_GET['tipo']) ? trim($_GET['tipo']) : '';
@@ -273,6 +277,16 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                                 <input type="text" class="form-control" name="nivel_curso"
                                                     value="<?= h($curso['nivel_curso']) ?>" required>
                                             </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Plantilla del Certificado a emitir:</label>
+                                            <select class="form-select" name="id_plantilla">
+                                                <option value="">-- Usar Diseño por Defecto Global --</option>
+                                                <?php foreach ($plantillas_certificados as $plantilla): ?>
+                                                    <option value="<?= $plantilla['id'] ?>" <?= ($curso['id_plantilla'] == $plantilla['id']) ? 'selected' : '' ?>><?= h($plantilla['nombre']) ?> <?= $plantilla['es_defecto'] ? ' (Por Defecto Actual)' : '' ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <div class="form-text">Si se deja vacío, el curso usará la plantilla que esté configurada como global.</div>
                                         </div>
                                     </div>
                                 </div>
@@ -609,6 +623,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                         <button type="button" class="btn <?= $btn_class ?>"
                                             onclick="cambiarEstadoCursoEvaluar(<?= $curso['id_curso'] ?>, '<?= $action_estado ?>')"><i
                                                 class="<?= $icono_estado ?> me-1"></i> <?= $estado_texto ?></button>
+                                        <button type="button" class="btn btn-secondary text-white fw-bold" onclick="duplicarCurso(<?= $curso['id_curso'] ?>)" title="Duplicar Curso / Promoción"><i class="fas fa-copy me-1"></i> Duplicar</button>
                                     </div>
                                     <button type="submit" class="btn btn-primary btn-lg shadow"><i
                                             class="fas fa-save me-2"></i>Guardar Cambios</button>
@@ -777,6 +792,22 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
             },
             error: function () {
                 alert('Error al intentar cambiar el estado del curso.');
+            }
+        });
+    }
+
+    function duplicarCurso(id_curso) {
+        if (!confirm('¿Estás seguro de que deseas duplicar este curso? (No se copiarán fechas ni cupos)')) return;
+        $.ajax({
+            url: '../controllers/curso_controlador.php',
+            type: 'POST',
+            data: { id_curso: id_curso, action: 'duplicar' },
+            success: function(response) {
+                alert('El curso se ha duplicado con éxito. Por favor busque la copia en sus borradores o inactivos.');
+                loadPage('../public/editar_cursos.php');
+            },
+            error: function(xhr) {
+                alert('Error al duplicar el curso.');
             }
         });
     }

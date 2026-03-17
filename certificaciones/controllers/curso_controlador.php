@@ -142,6 +142,7 @@ switch ($action) {
         $requerimientos_implemento = isset($_POST['requerimientos_implementos']) ? $_POST['requerimientos_implementos'] : '';
         $desempeno_al_concluir = isset($_POST['desempeño_al_concluir']) ? $_POST['desempeño_al_concluir'] : '';
 
+        $id_plantilla = isset($_POST['id_plantilla']) && $_POST['id_plantilla'] !== '' ? $_POST['id_plantilla'] : null;
         $configuracion_firmas = isset($_POST['config_firmas']) ? $_POST['config_firmas'] : array();
 
         // Hacemos lo mismo para todos los arrays de módulos
@@ -182,6 +183,7 @@ switch ($action) {
             $requerimientos_implemento,
             $desempeno_al_concluir,
             $promotor_id,
+            $id_plantilla,
             $modulos_a_crear,
             $configuracion_firmas
         );
@@ -227,6 +229,7 @@ switch ($action) {
         $fecha_finalizacion = $_POST['fecha_finalizacion'];
         $firma_digital = isset($_POST['firma_digital']) ? true : false;
         $estado = isset($_POST['estado']) ? $_POST['estado'] : '1';
+        $id_plantilla = isset($_POST['id_plantilla']) && $_POST['id_plantilla'] !== '' ? $_POST['id_plantilla'] : null;
 
         // Lógica de autorización
         $autorizacion_post = isset($_POST['autorizacion']) ? $_POST['autorizacion'] : null;
@@ -312,7 +315,7 @@ switch ($action) {
             // Nota: Aquí pasamos null o el ID de autorización según corresponda
             $auth_param = ($is_admin_or_authorizer) ? $autorizacion_final : null;
 
-            $curso->editar(
+            $resultado_edicion = $curso->editar(
                 $id_curso,
                 $nombre_curso,
                 $descripcion,
@@ -336,17 +339,26 @@ switch ($action) {
                 $auth_param, // Autorización
                 $configuracion_firmas,
                 $modulos_a_eliminar_ids, // IDs a eliminar
-                $estado
+                $estado,
+                $id_plantilla
             );
 
-            echo '<script>
-                        alert("El curso se ha editado correctamente");
-                        if(document.referrer) {
-                            window.location.href = document.referrer;
-                        } else {
-                            window.location.href = "../public/index.php";
-                        }
-                    </script>';
+            if ($resultado_edicion) {
+                echo '<script>
+                            alert("El curso se ha editado correctamente");
+                            if(document.referrer) {
+                                window.location.href = document.referrer;
+                            } else {
+                                window.location.href = "../public/index.php";
+                            }
+                        </script>';
+            } else {
+                echo '<script>
+                            alert("Error crítico: No se pudieron guardar los cambios en la base de datos.");
+                            // Retornar a la página anterior
+                            window.history.back();
+                      </script>';
+            }
         } else {
             // Si falla la validación, no se ha guardado nada en la BD
             $errorDetails = json_encode($_POST, JSON_HEX_APOS | JSON_HEX_QUOT);
@@ -367,6 +379,16 @@ switch ($action) {
         $curso->eliminar($id_curso);
         // Devolver mensaje de éxito
         echo 'El curso se ha eliminado correctamente';
+        break;
+    case 'duplicar':
+        $id_curso = $_POST['id_curso'];
+        $nuevo_id = $curso->duplicar($id_curso);
+        if ($nuevo_id) {
+            echo "El curso se ha duplicado correctamente.";
+        } else {
+            http_response_code(500);
+            echo "Ha ocurrido un error al duplicar el curso.";
+        }
         break;
     case 'finalizar':
         // Obtener el id del curso del formulario

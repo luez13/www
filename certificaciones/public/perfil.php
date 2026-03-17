@@ -190,6 +190,8 @@ try {
                                 class="fas fa-sliders-h me-2 text-muted"></i>Configuración Global</a>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/ajustes_landing.php')"><i
                                 class="fas fa-image me-2 text-muted"></i>Ajustes de Landing</a>
+                        <a class="collapse-item" href="#" onclick="loadPage('../public/plantillas.php')"><i
+                                class="fas fa-certificate me-2 text-muted"></i>Plantillas Certificados</a>
                         <div class="dropdown-divider"></div>
                         <h6 class="collapse-header text-warning">Retroalimentación:</h6>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/sugerencias.php')"><i
@@ -540,4 +542,16 @@ try {
         include '../views/footer.php';
         ?>
 
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const modulo = urlParams.get('modulo');
+                if(modulo === 'plantillas') {
+                    // Wait slightly for main.js to be ready and initApp to run
+                    setTimeout(() => {
+                        window.loadPage('../public/plantillas.php');
+                    }, 100);
+                }
+            });
+        </script>
         <script src="../public/assets/js/main.js"></script>

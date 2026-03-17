@@ -1,152 +1,49 @@
 /*
 ====================================================================================
- PARTE 1: SCRIPT DE ACTUALIZACIÓN (PARA ENVIAR Y EJECUTAR EN EL SERVIDOR)
+ PARTE 1: SCRIPT DE CONSOLIDACIÓN (POSTGRESQL 10.23)
 ====================================================================================
-NOTA: Este es el script con las últimas modificaciones que necesitas enviar.
-Contiene la creación de las tablas de Diplomados, Notas y el Módulo de Pagos,
-además de los ajustes a tablas existentes y los permisos necesarios.
+NOTA: Las tablas y columnas ya existen en producción. Este script se enfoca 
+estrictamente en asegurar la integridad referencial (Foreign Keys) y los permisos.
 */
 
 DO $$
 BEGIN
-    -- Añadir columna id_curso si no existe
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'cursos' AND table_name = 'usuario_documentos' AND column_name = 'id_curso') THEN
-        ALTER TABLE cursos.usuario_documentos ADD COLUMN id_curso INTEGER;
-    END IF;
-
-    -- Añadir Foreign Key de forma segura
+    -- 1. Asegurar FK en usuario_documentos
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_usuario_documentos_curso') THEN
         ALTER TABLE cursos.usuario_documentos 
         ADD CONSTRAINT fk_usuario_documentos_curso FOREIGN KEY (id_curso) REFERENCES cursos.cursos (id_curso) ON DELETE SET NULL;
     END IF;
 
-    GRANT ALL ON TABLE cursos.usuario_documentos TO uptaivir_certificacion2;
-END $$;
-
--- Tablas de Diplomados y Notas
-CREATE TABLE IF NOT EXISTS cursos.materias_bimestre (
-    id_materia_bimestre SERIAL PRIMARY KEY,
-    id_curso INTEGER NOT NULL REFERENCES cursos.cursos (id_curso) ON DELETE CASCADE,
-    nombre_materia VARCHAR(255) NOT NULL,
-    duracion_bimestres VARCHAR(50) NOT NULL,
-    total_horas INTEGER NOT NULL,
-    modalidad VARCHAR(255) NOT NULL DEFAULT 'Virtual',
-    docente_id INTEGER NOT NULL REFERENCES cursos.usuarios (id) ON DELETE RESTRICT
-);
-
-CREATE TABLE IF NOT EXISTS cursos.actividades_config (
-    id_actividad_config SERIAL PRIMARY KEY,
-    id_materia_bimestre INTEGER NOT NULL REFERENCES cursos.materias_bimestre (id_materia_bimestre) ON DELETE CASCADE,
-    nombre_actividad VARCHAR(255) NOT NULL,
-    ponderacion_porcentaje NUMERIC(5, 2) NOT NULL CHECK (ponderacion_porcentaje > 0 AND ponderacion_porcentaje <= 100)
-);
-
-CREATE TABLE IF NOT EXISTS cursos.notas_participante (
-    id_nota SERIAL PRIMARY KEY,
-    id_usuario INTEGER NOT NULL REFERENCES cursos.usuarios (id) ON DELETE CASCADE,
-    id_actividad_config INTEGER NOT NULL REFERENCES cursos.actividades_config (id_actividad_config) ON DELETE CASCADE,
-    calificacion_obtenida NUMERIC(4, 2) NOT NULL,
-    UNIQUE (id_usuario, id_actividad_config)
-);
-
-CREATE TABLE IF NOT EXISTS cursos.actas_cierre (
-    id_acta SERIAL PRIMARY KEY,
-    id_materia_bimestre INTEGER NOT NULL REFERENCES cursos.materias_bimestre (id_materia_bimestre) ON DELETE CASCADE,
-    fecha_cierre TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
-    participantes_inscritos INTEGER NOT NULL DEFAULT 0,
-    participantes_aprobados INTEGER NOT NULL DEFAULT 0,
-    firmante_vicerrector_id INTEGER REFERENCES cursos.usuarios (id) ON DELETE SET NULL,
-    firmante_coord_id INTEGER REFERENCES cursos.usuarios (id) ON DELETE SET NULL
-);
-
-GRANT ALL ON TABLE cursos.materias_bimestre, cursos.actividades_config, cursos.notas_participante, cursos.actas_cierre TO uptaivir_certificacion2;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
-
--- Periodos/Lapsos Académicos
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'cursos' AND table_name = 'materias_bimestre' AND column_name = 'lapso_academico') THEN
-        ALTER TABLE cursos.materias_bimestre ADD COLUMN lapso_academico SMALLINT NOT NULL DEFAULT 1;
-        COMMENT ON COLUMN cursos.materias_bimestre.lapso_academico IS 'Indica el orden del periodo: 1, 2 o 3 (Bimestre o Trimestre según el curso)';
-    END IF;
-    GRANT ALL PRIVILEGES ON TABLE cursos.materias_bimestre TO uptaivir_certificacion2;
-END $$;
-
--- Módulo de Pagos y Cuentas Bancarias
-CREATE TABLE IF NOT EXISTS cursos.cuentas_bancarias (
-    id_cuenta SERIAL PRIMARY KEY,
-    banco VARCHAR(100) NOT NULL,
-    titular VARCHAR(100) NOT NULL,
-    cedula_rif VARCHAR(50) NOT NULL,
-    telefono VARCHAR(50), 
-    correo VARCHAR(100), 
-    tipo_cuenta VARCHAR(50), 
-    numero_cuenta VARCHAR(50),
-    activo BOOLEAN NOT NULL DEFAULT TRUE
-);
-
-CREATE TABLE IF NOT EXISTS cursos.comprobantes_pago (
-    id_comprobante SERIAL PRIMARY KEY,
-    id_usuario INTEGER NOT NULL REFERENCES cursos.usuarios(id) ON DELETE CASCADE,
-    id_curso INTEGER NOT NULL REFERENCES cursos.cursos(id_curso) ON DELETE CASCADE,
-    archivo_ruta VARCHAR(255) NOT NULL,
-    numero_operacion VARCHAR(100) NOT NULL,
-    banco_origen VARCHAR(100),
-    monto NUMERIC(10, 2) NOT NULL,
-    estado VARCHAR(50) NOT NULL DEFAULT 'Pendiente',
-    fecha_pago DATE NOT NULL,
-    fecha_subida TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
-);
-
-GRANT ALL PRIVILEGES ON TABLE cursos.cuentas_bancarias TO uptaivir_certificacion2;
-GRANT ALL PRIVILEGES ON TABLE cursos.comprobantes_pago TO uptaivir_certificacion2;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
-
--- Buzón de Sugerencias
-CREATE TABLE IF NOT EXISTS cursos.buzon_sugerencias (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(100),
-    apellido VARCHAR(100),
-    correo VARCHAR(100),
-    cedula VARCHAR(100),
-    sugerencia TEXT,
-    fecha_envio TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    id_usuario INTEGER REFERENCES cursos.usuarios(id) ON DELETE SET NULL
-);
-
-GRANT ALL PRIVILEGES ON TABLE cursos.buzon_sugerencias TO uptaivir_certificacion2;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
-
--- Agregar nuevas columnas faltantes en producción
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'cursos' AND table_name = 'cursos' AND column_name = 'imagen_portada') THEN
-        ALTER TABLE cursos.cursos ADD COLUMN imagen_portada VARCHAR(255);
-    END IF;
-END $$;
-
--- Asegurar Foreign Key explícita en buzon_sugerencias
-DO $$
-BEGIN
+    -- 2. Asegurar FK en buzon_sugerencias
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'buzon_sugerencias_id_usuario_fkey') THEN
         ALTER TABLE cursos.buzon_sugerencias 
         ADD CONSTRAINT buzon_sugerencias_id_usuario_fkey FOREIGN KEY (id_usuario) REFERENCES cursos.usuarios (id) ON DELETE SET NULL;
     END IF;
+
+    -- 3. Asegurar FK en comprobantes_pago
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_comprobantes_pago_materia') THEN
+        ALTER TABLE cursos.comprobantes_pago 
+        ADD CONSTRAINT fk_comprobantes_pago_materia FOREIGN KEY (id_materia_bimestre) REFERENCES cursos.materias_bimestre (id_materia_bimestre) ON DELETE CASCADE;
+    END IF;
+
+    -- Nota: Si faltan más FK de las tablas base (como materias_bimestre -> cursos), 
+    -- deben agregarse a este bloque usando la misma lógica.
 END $$;
 
--- Tabla Landing Carrusel (Para la pantalla de inicio / publicidad)
-CREATE TABLE IF NOT EXISTS cursos.landing_carrusel (
-    id_carrusel SERIAL PRIMARY KEY,
-    ruta_imagen VARCHAR(255) NOT NULL,
-    titulo VARCHAR(255),
-    descripcion TEXT,
-    activo BOOLEAN NOT NULL DEFAULT TRUE,
-    fecha_creacion TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
-);
+-- 4. Asegurar todos los privilegios de forma masiva
+GRANT ALL PRIVILEGES ON TABLE 
+    cursos.usuario_documentos, 
+    cursos.materias_bimestre, 
+    cursos.actividades_config, 
+    cursos.notas_participante, 
+    cursos.actas_cierre, 
+    cursos.cuentas_bancarias, 
+    cursos.comprobantes_pago, 
+    cursos.buzon_sugerencias, 
+    cursos.landing_carrusel 
+TO uptaivir_certificacion2;
 
-GRANT ALL PRIVILEGES ON TABLE cursos.landing_carrusel TO uptaivir_certificacion2;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
-
 
 /*
 ====================================================================================

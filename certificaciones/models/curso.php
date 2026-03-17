@@ -31,6 +31,7 @@ class Curso
         $requerimientos_implemento,
         $desempeno_al_concluir,
         $promotor_id,
+        $id_plantilla = null,
         $modulos = [],
         $configuracion_firmas = []
     ) {
@@ -39,7 +40,7 @@ class Curso
 
         try {
             // PASO 1: Insertar el curso principal y obtener su nuevo ID
-            $sql_curso = 'INSERT INTO cursos.cursos (nombre_curso, descripcion, tiempo_asignado, inicio_mes, tipo_curso, limite_inscripciones, dias_clase, horario_inicio, horario_fin, nivel_curso, costo, conocimientos_previos, requerimientos_implemento, desempeno_al_concluir, promotor) VALUES (:nombre_curso, :descripcion, :tiempo_asignado, :inicio_mes, :tipo_curso, :limite_inscripciones, :dias_clase, :horario_inicio, :horario_fin, :nivel_curso, :costo, :conocimientos_previos, :requerimientos_implemento, :desempeno_al_concluir, :promotor) RETURNING id_curso';
+            $sql_curso = 'INSERT INTO cursos.cursos (nombre_curso, descripcion, tiempo_asignado, inicio_mes, tipo_curso, limite_inscripciones, dias_clase, horario_inicio, horario_fin, nivel_curso, costo, conocimientos_previos, requerimientos_implemento, desempeno_al_concluir, promotor, id_plantilla) VALUES (:nombre_curso, :descripcion, :tiempo_asignado, :inicio_mes, :tipo_curso, :limite_inscripciones, :dias_clase, :horario_inicio, :horario_fin, :nivel_curso, :costo, :conocimientos_previos, :requerimientos_implemento, :desempeno_al_concluir, :promotor, :id_plantilla) RETURNING id_curso';
 
             $stmt_curso = $this->pdo->prepare($sql_curso);
             $stmt_curso->execute([
@@ -57,7 +58,8 @@ class Curso
                 'conocimientos_previos' => $conocimientos_previos,
                 'requerimientos_implemento' => $requerimientos_implemento,
                 'desempeno_al_concluir' => $desempeno_al_concluir,
-                'promotor' => $promotor_id
+                'promotor' => $promotor_id,
+                'id_plantilla' => $id_plantilla
             ]);
             $curso_id = $stmt_curso->fetchColumn();
 
@@ -173,7 +175,8 @@ class Curso
         $configuracion_firmas = [],
         // IDs de Módulos a Eliminar (NUEVO)
         $modulos_a_eliminar_ids = '',
-        $estado = '1'
+        $estado = '1',
+        $id_plantilla = null
     ) {
 
         // Restauramos la transacción para un guardado seguro
@@ -201,6 +204,7 @@ class Curso
                 ':fecha_finalizacion' => $fecha_finalizacion,
                 ':firma_digital' => $firma_digital ? 'true' : 'false',
                 ':estado' => $estado == '1' || $estado == 'true' || $estado === true ? 'true' : 'false',
+                ':id_plantilla' => $id_plantilla,
                 ':id_curso' => $id_curso
             ];
 
@@ -210,7 +214,8 @@ class Curso
                         dias_clase = :dias_clase, horario_inicio = :horario_inicio, horario_fin = :horario_fin, 
                         nivel_curso = :nivel_curso, costo = :costo, conocimientos_previos = :conocimientos_previos, 
                         requerimientos_implemento = :requerimientos_implemento, desempeno_al_concluir = :desempeno_al_concluir, 
-                        horas_cronologicas = :horas_cronologicas, fecha_finalizacion = :fecha_finalizacion, firma_digital = :firma_digital, estado = :estado";
+                        horas_cronologicas = :horas_cronologicas, fecha_finalizacion = :fecha_finalizacion, firma_digital = :firma_digital, estado = :estado,
+                        id_plantilla = :id_plantilla";
 
             if ($autorizacion !== null) {
                 $sql .= ', autorizacion = :autorizacion';
@@ -285,7 +290,13 @@ class Curso
     public function eliminar($id_curso)
     {
         try {
-            // Primero eliminar referencias en certificaciones
+            // Eliminar referencias
+            $stmt = $this->pdo->prepare('DELETE FROM cursos.cursos_config_firmas WHERE id_curso = :id');
+            $stmt->execute(['id' => $id_curso]);
+
+            $stmt = $this->pdo->prepare('DELETE FROM cursos.modulos WHERE id_curso = :id');
+            $stmt->execute(['id' => $id_curso]);
+
             $stmt = $this->pdo->prepare('DELETE FROM cursos.certificaciones WHERE curso_id = :id');
             $stmt->execute(['id' => $id_curso]);
 
@@ -295,6 +306,101 @@ class Curso
 
         } catch (PDOException $e) {
             echo '<p>Error al eliminar el curso: ' . $e->getMessage() . '</p>';
+        }
+    }
+
+    // Crear un método para duplicar un curso
+    public function duplicar($id_curso)
+    {
+        $this->pdo->beginTransaction();
+        try {
+            // 1. Obtener datos del curso original
+            $stmt = $this->pdo->prepare('SELECT * FROM cursos.cursos WHERE id_curso = :id_curso');
+            $stmt->execute(['id_curso' => $id_curso]);
+            $cursoOriginal = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$cursoOriginal) throw new Exception("Curso no encontrado");
+
+            // 2. Insertar nuevo curso (copia de casi todo)
+            $sql = 'INSERT INTO cursos.cursos (
+                        nombre_curso, descripcion, promotor, tiempo_asignado, inicio_mes, tipo_curso, 
+                        limite_inscripciones, dias_clase, horario_inicio, horario_fin, nivel_curso, costo, 
+                        conocimientos_previos, requerimientos_implemento, desempeno_al_concluir, 
+                        horas_cronologicas, fecha_finalizacion, firma_digital, estado, id_plantilla
+                    ) VALUES (
+                        :nombre, :descripcion, :promotor, :tiempo, :inicio, :tipo, 
+                        :limite, :dias, :h_inicio, :h_fin, :nivel, :costo, 
+                        :conocimientos, :requerimientos, :desempeno, 
+                        :horas, :fin, :firma, :estado, :plantilla
+                    ) RETURNING id_curso';
+
+            $stmtNuevo = $this->pdo->prepare($sql);
+            
+            // Exceptuamos: fecha_inicio (inicio_mes -> dejemos vacio o el mismo?), cupos (limite_inscripciones -> dejemos null o el mismo?). 
+            // El usuario pidió exceptuar explícitamente: fecha de inicio, cupos, precio (costo), fecha de finalización.
+            $stmtNuevo->execute([
+                'nombre' => $cursoOriginal['nombre_curso'] . ' (Copia)',
+                'descripcion' => $cursoOriginal['descripcion'],
+                'promotor' => $cursoOriginal['promotor'],
+                'tiempo' => $cursoOriginal['tiempo_asignado'],
+                'inicio' => null, // Excepto fecha inicio
+                'tipo' => $cursoOriginal['tipo_curso'],
+                'limite' => 0, // Excepto cupos
+                'dias' => $cursoOriginal['dias_clase'],
+                'h_inicio' => $cursoOriginal['horario_inicio'],
+                'h_fin' => $cursoOriginal['horario_fin'],
+                'nivel' => $cursoOriginal['nivel_curso'],
+                'costo' => 0, // Excepto precio
+                'conocimientos' => $cursoOriginal['conocimientos_previos'],
+                'requerimientos' => $cursoOriginal['requerimientos_implemento'],
+                'desempeno' => $cursoOriginal['desempeno_al_concluir'],
+                'horas' => $cursoOriginal['horas_cronologicas'],
+                'fin' => null, // Excepto fecha fin
+                'firma' => $cursoOriginal['firma_digital'] ? 'true' : 'false',
+                'estado' => 'true', // O falso?
+                'plantilla' => $cursoOriginal['id_plantilla'],
+            ]);
+            $nuevo_id = $stmtNuevo->fetchColumn();
+
+            // 3. Duplicar módulos
+            $stmtModulos = $this->pdo->prepare('SELECT * FROM cursos.modulos WHERE id_curso = :id');
+            $stmtModulos->execute(['id' => $id_curso]);
+            $modulos = $stmtModulos->fetchAll(PDO::FETCH_ASSOC);
+
+            $stmtInsMod = $this->pdo->prepare('INSERT INTO cursos.modulos (id_curso, nombre_modulo, contenido, actividad, instrumento, numero) VALUES (:id_curso, :nombre, :contenido, :actividad, :instrumento, :num)');
+            foreach ($modulos as $mod) {
+                $stmtInsMod->execute([
+                    'id_curso' => $nuevo_id,
+                    'nombre' => $mod['nombre_modulo'],
+                    'contenido' => $mod['contenido'],
+                    'actividad' => $mod['actividad'],
+                    'instrumento' => $mod['instrumento'],
+                    'num' => $mod['numero']
+                ]);
+            }
+
+            // 4. Duplicar configuracion de firmas
+            $stmtFirmas = $this->pdo->prepare('SELECT * FROM cursos.cursos_config_firmas WHERE id_curso = :id');
+            $stmtFirmas->execute(['id' => $id_curso]);
+            $firmas = $stmtFirmas->fetchAll(PDO::FETCH_ASSOC);
+
+            $stmtInsFirma = $this->pdo->prepare('INSERT INTO cursos.cursos_config_firmas (id_curso, id_posicion, id_cargo_firmante, usar_promotor_curso) VALUES (:id_curso, :posicion, :cargo, :promotor)');
+            foreach ($firmas as $firma) {
+                $stmtInsFirma->execute([
+                    'id_curso' => $nuevo_id,
+                    'posicion' => $firma['id_posicion'],
+                    'cargo' => $firma['id_cargo_firmante'],
+                    'promotor' => $firma['usar_promotor_curso'] ? 'true' : 'false'
+                ]);
+            }
+
+            $this->pdo->commit();
+            return $nuevo_id;
+
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            error_log("Error al duplicar curso: " . $e->getMessage());
+            return false;
         }
     }
 
@@ -525,10 +631,11 @@ class Curso
                c.promotor, c.fecha_finalizacion,
                u.nombre AS nombre_estudiante, u.apellido AS apellido_estudiante, u.cedula,
                cert.fecha_inscripcion, cert.tomo, cert.folio,
-               cert.nota, cert.completado
+               cert.nota, cert.completado, p.archivo_vista
         FROM cursos.cursos AS c
         JOIN cursos.certificaciones AS cert ON cert.curso_id = c.id_curso
         JOIN cursos.usuarios AS u ON cert.id_usuario = u.id
+        LEFT JOIN cursos.plantillas_certificados AS p ON c.id_plantilla = p.id
         WHERE cert.valor_unico = :valor_unico
     ');
         $stmt->execute(['valor_unico' => $valor_unico]);
@@ -628,7 +735,7 @@ class Curso
 
         return $datos_principales;
     }
-public function obtener_datos_constancia_por_curso($id_curso)
+    public function obtener_datos_constancia_por_curso($id_curso)
     {
         $stmt = $this->pdo->prepare("
         SELECT c.id_curso, c.nombre_curso, c.descripcion, c.tipo_curso,
@@ -646,6 +753,40 @@ public function obtener_datos_constancia_por_curso($id_curso)
     ");
         $stmt->execute(['id_curso' => $id_curso]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtener_datos_constancia_dinamica($id_curso, $id_usuario)
+    {
+        // Verificar si es el promotor (Facilitador)
+        $stmt_promotor = $this->pdo->prepare("SELECT id_curso FROM cursos.cursos WHERE id_curso = :id_curso AND promotor = :id_usuario");
+        $stmt_promotor->execute(['id_curso' => $id_curso, 'id_usuario' => $id_usuario]);
+        $es_promotor = $stmt_promotor->fetch() ? true : false;
+        
+        // Verificar si está en la tabla de certificaciones (Participante)
+        if (!$es_promotor) {
+            $stmt_inscrito = $this->pdo->prepare("SELECT curso_id FROM cursos.certificaciones WHERE curso_id = :id_curso AND id_usuario = :id_usuario");
+            $stmt_inscrito->execute(['id_curso' => $id_curso, 'id_usuario' => $id_usuario]);
+            if (!$stmt_inscrito->fetch()) {
+                return null; // Ni es facilitador ni está inscrito
+            }
+        }
+
+        $rol = $es_promotor ? "Facilitador" : "Participante";
+
+        $stmt = $this->pdo->prepare("
+            SELECT c.id_curso, c.nombre_curso, c.horas_cronologicas, u.nombre, u.apellido, u.cedula, u.correo
+            FROM cursos.cursos c
+            CROSS JOIN cursos.usuarios u
+            WHERE c.id_curso = :id_curso AND u.id = :id_usuario
+        ");
+        $stmt->execute(['id_curso' => $id_curso, 'id_usuario' => $id_usuario]);
+        $datos = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if($datos) {
+            $datos['rol'] = $rol;
+        }
+        
+        return $datos;
     }
     public function obtener_tomo($id_curso, $id_usuario)
     {
