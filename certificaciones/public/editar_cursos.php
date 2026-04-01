@@ -788,7 +788,10 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
             data: { id_curso: id_curso, action: action },
             success: function (response) {
                 alert(response.replace(/<[^>]*>?/gm, '')); // Remover HTML tags si los hay
-                loadPage('../public/editar_cursos.php');
+                var b = $('#busquedaCursoGlobal').val() || '';
+                var t = $('#filtroTipoCurso').val() || '';
+                var e = $('#filtroEstadoCurso').val() || '';
+                loadPage('../public/editar_cursos.php', { busqueda: b, tipo: t, estado: e });
             },
             error: function () {
                 alert('Error al intentar cambiar el estado del curso.');
@@ -804,7 +807,10 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
             data: { id_curso: id_curso, action: 'duplicar' },
             success: function(response) {
                 alert('El curso se ha duplicado con éxito. Por favor busque la copia en sus borradores o inactivos.');
-                loadPage('../public/editar_cursos.php');
+                var b = $('#busquedaCursoGlobal').val() || '';
+                var t = $('#filtroTipoCurso').val() || '';
+                var e = $('#filtroEstadoCurso').val() || '';
+                loadPage('../public/editar_cursos.php', { busqueda: b, tipo: t, estado: e });
             },
             error: function(xhr) {
                 alert('Error al duplicar el curso.');
