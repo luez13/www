@@ -19,7 +19,8 @@
 
         .constancia-container {
             width: 100%;
-            height: 100%;
+            height: 1036px;
+            /* <---- Ajusta este número (980px, 1000px, etc.) para empujar el pie de página hacia arriba o hacia abajo en la hoja */
             position: relative;
             background-color: #fff;
         }
@@ -30,7 +31,8 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 80px; /* Ajusta este valor si es más ancho en tu diseño real */
+            height: 80px;
+            /* Ajusta este valor si es más ancho en tu diseño real */
             object-fit: contain;
         }
 
@@ -39,7 +41,8 @@
             bottom: 0px;
             left: 0;
             width: 100%;
-            height: 60px; /* Ajusta este valor si es más ancho */
+            height: 60px;
+            z-index: 10;
             object-fit: contain;
         }
 
@@ -115,7 +118,7 @@
         /* Información de Contacto Inferior */
         .contacto-info {
             position: absolute;
-            bottom: 75px; 
+            bottom: 100px;
             left: 10%;
             font-size: 11px;
             color: #333;
@@ -139,13 +142,22 @@
             $cedula = htmlspecialchars($data['cedula']);
             ?>
 
+            <?php
+            $rolV = isset($data['rol']) && !empty($data['rol']) ? mb_strtoupper($data['rol'], 'UTF-8') : 'PARTICIPANTE';
+            ?>
             <p class="texto-principal">
-                Por medio de la presente, hacemos constar que el/la ciudadano(a) 
-                <strong><?php echo htmlspecialchars($nombre_promotor); ?></strong>, titular de la cédula de identidad N° V-<strong><?php echo $cedula; ?></strong>, participó en calidad de <strong><?php echo htmlspecialchars($data['rol']); ?></strong> en la unidad curricular / curso titulado <strong><?php echo htmlspecialchars($nombre_curso); ?></strong>, el cual es organizado por la <strong>Coordinación de Formación Permanente</strong> de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira.
+                Por medio de la presente, hacemos constar que el/la ciudadano(a)
+                <strong><?php echo htmlspecialchars($nombre_promotor); ?></strong>, titular de la cédula de identidad N°
+                V-<strong><?php echo $cedula; ?></strong>, participó en calidad de
+                <strong><?php echo htmlspecialchars($rolV); ?></strong> en la unidad curricular / curso titulado
+                <strong><?php echo htmlspecialchars($nombre_curso); ?></strong>, el cual es organizado por la
+                <strong>Coordinación de Formación Permanente</strong> de la Universidad Politécnica Territorial
+                Agroindustrial del Estado Táchira.
             </p>
 
             <?php
-            function formatearFechaConstancia() {
+            function formatearFechaConstancia()
+            {
                 $meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
                 $d = date('d');
                 $m = $meses[date('n') - 1];
@@ -171,7 +183,9 @@
                 </div>
                 <div class="firma-box">
                     <div class="firma-linea"></div>
-                    <div class="firma-nombre"><?php echo htmlspecialchars($data['nombre_vicerrector'] ?? 'Vicerrectorado Académico'); ?></div>
+                    <div class="firma-nombre">
+                        <?php echo htmlspecialchars(isset($data['nombre_vicerrector']) ? $data['nombre_vicerrector'] : 'Vicerrectorado Académico'); ?>
+                    </div>
                     <div class="firma-cargo">Vicerrectorado Académico</div>
                 </div>
             </div>

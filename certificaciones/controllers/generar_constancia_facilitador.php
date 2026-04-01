@@ -73,7 +73,7 @@ $nombre_curso = $datos['nombre_curso'];
 $nombre_materia = $datos['nombre_materia'];
 $nombre_docente = trim($datos['nombre_docente'] . ' ' . $datos['apellido_docente']);
 $cedula = $datos['cedula'];
-$lapso_academico = $datos['lapso_academico'] ?? '1';
+$lapso_academico = isset($datos['lapso_academico']) ? $datos['lapso_academico'] : '1';
 
 $nombre_curso_capitalizado = ucwords(strtolower($nombre_curso));
 $nombre_materia_capitalizado = ucwords(strtolower($nombre_materia));
@@ -90,8 +90,8 @@ $data = [
     'nombre_docente' => $nombre_docente,
     'cedula' => $cedula,
     'lapso_academico' => $lapso_academico,
-    'correo_contacto' => $correo_contacto ?? 'No disponible',
-    'telefono_contacto' => $telefono_contacto ?? 'No disponible',
+    'correo_contacto' => isset($correo_contacto) ? $correo_contacto : 'No disponible',
+    'telefono_contacto' => isset($telefono_contacto) ? $telefono_contacto : 'No disponible',
     'nombre_coordinador' => $nombre_coordinador,
     'nombre_vicerrector' => isset($nombre_vicerrector) ? $nombre_vicerrector : 'Vicerrectorado Académico'
 ];

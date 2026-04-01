@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('America/Caracas');
+
 // Definir las constantes de configuración de la base de datos
 if (!defined('DB_HOST')) {
     define('DB_HOST', 'localhost');

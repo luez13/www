@@ -19,7 +19,8 @@
 
         .constancia-container {
             width: 100%;
-            height: 100%;
+            height: 1036px;
+            /* <---- Ajusta este número para manipular a qué altura reposa el pie de página */
             position: relative;
             background-color: #fff;
         }
@@ -30,7 +31,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 80px; 
+            height: 80px;
             object-fit: contain;
         }
 
@@ -39,8 +40,8 @@
             bottom: 0px;
             left: 0;
             width: 100%;
-            height: 60px; 
-            object-fit: contain;
+            height: 60px;
+            z-index: 10;
         }
 
         /* Área de contenido de la constancia */
@@ -115,7 +116,7 @@
         /* Información de Contacto Inferior */
         .contacto-info {
             position: absolute;
-            bottom: 75px; 
+            bottom: 100px;
             left: 10%;
             font-size: 11px;
             color: #333;
@@ -142,12 +143,20 @@
             ?>
 
             <p class="texto-principal">
-                Por medio de la presente, hacemos constar que el/la ciudadano(a) 
-                <strong><?php echo htmlspecialchars($nombre_docente); ?></strong>, titular de la cédula de identidad N° V-<strong><?php echo $cedula; ?></strong>, se encuentra actualmente desempeñándose en calidad de <strong>Facilitador / Docente</strong> en la unidad curricular <strong><?php echo htmlspecialchars($nombre_materia); ?></strong>, correspondiente al <strong>Periodo Académico N° <?php echo $lapso_academico; ?></strong> del programa formativo titulado <strong><?php echo htmlspecialchars($nombre_curso); ?></strong>, organizado por la <strong>Coordinación de Formación Permanente</strong> de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira.
+                Por medio de la presente, hacemos constar que el/la ciudadano(a)
+                <strong><?php echo htmlspecialchars($nombre_docente); ?></strong>, titular de la cédula de identidad N°
+                V-<strong><?php echo $cedula; ?></strong>, se encuentra actualmente desempeñándose en calidad de
+                <strong>Facilitador / Docente</strong> en la unidad curricular
+                <strong><?php echo htmlspecialchars($nombre_materia); ?></strong>, correspondiente al <strong>Periodo
+                    Académico N° <?php echo $lapso_academico; ?></strong> del programa formativo titulado
+                <strong><?php echo htmlspecialchars($nombre_curso); ?></strong>, organizado por la <strong>Coordinación
+                    de Formación Permanente</strong> de la Universidad Politécnica Territorial Agroindustrial del Estado
+                Táchira.
             </p>
 
             <?php
-            function formatearFechaConstanciaDocente() {
+            function formatearFechaConstanciaDocente()
+            {
                 $meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
                 $d = date('d');
                 $m = $meses[date('n') - 1];
@@ -173,7 +182,9 @@
                 </div>
                 <div class="firma-box">
                     <div class="firma-linea"></div>
-                    <div class="firma-nombre"><?php echo htmlspecialchars($data['nombre_vicerrector'] ?? 'Vicerrectorado Académico'); ?></div>
+                    <div class="firma-nombre">
+                        <?php echo htmlspecialchars(isset($data['nombre_vicerrector']) ? $data['nombre_vicerrector'] : 'Vicerrectorado Académico'); ?>
+                    </div>
                     <div class="firma-cargo">Vicerrectorado Académico</div>
                 </div>
             </div>

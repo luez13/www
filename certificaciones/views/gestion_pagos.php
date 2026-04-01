@@ -267,11 +267,7 @@ asort($cursos_filtros);
                                             <?php endif; ?>
 
                                             <button type="button" class="btn btn-sm btn-secondary shadow-sm"
-<<<<<<< HEAD
-                                                onclick="abrirModalEditComprobanteAdmin(<?= $comp['id_comprobante'] ?>, '<?= h($comp['banco_origen']) ?>', '<?= h($comp['numero_operacion']) ?>', <?= $comp['monto'] ?>, '<?= date('Y-m-d', strtotime($comp['fecha_pago'])) ?>', '<?= h($comp['moneda'] ?? 'Bs') ?>', this)"
-=======
-                                                onclick="abrirModalEditComprobanteAdmin(<?= $comp['id_comprobante'] ?>, '<?= h($comp['banco_origen']) ?>', '<?= h($comp['numero_operacion'] ? $comp['numero_operacion'] : '') ?>', <?= $comp['monto'] ?>, '<?= date('Y-m-d', strtotime($comp['fecha_pago'])) ?>', '<?= isset($comp['moneda']) ? $comp['moneda'] : 'Bs' ?>', this)"
->>>>>>> a36c9933a7dd692c01d2eebc6c6f456c203d7e0a
+                                                onclick="abrirModalEditComprobanteAdmin(<?= $comp['id_comprobante'] ?>, '<?= h($comp['banco_origen']) ?>', '<?= h(isset($comp['numero_operacion']) ? $comp['numero_operacion'] : '') ?>', <?= $comp['monto'] ?>, '<?= date('Y-m-d', strtotime($comp['fecha_pago'])) ?>', '<?= isset($comp['moneda']) ? $comp['moneda'] : 'Bs' ?>', this)"
                                                 title="Modificar datos del pago">
                                                 <i class="fas fa-edit"></i>
                                             </button>
@@ -339,13 +335,8 @@ asort($cursos_filtros);
                     <div class="row">
                         <div class="col-md-4 form-group mb-3">
                             <label>Moneda:</label>
-<<<<<<< HEAD
                             <select name="moneda" id="admin_edit_moneda" class="form-control" onchange="toggleReferenciaAdmin()" required>
-                                <option value="Bs" selected>Bolívares (Bs)</option>
-=======
-                            <select name="moneda" id="admin_edit_moneda" class="form-control" required>
-                                <option value="Bs">Bolívares (Bs.)</option>
->>>>>>> a36c9933a7dd692c01d2eebc6c6f456c203d7e0a
+                                <option value="Bs" selected>Bolívares (Bs.)</option>
                                 <option value="Divisas">Divisas ($)</option>
                             </select>
                         </div>
@@ -354,11 +345,7 @@ asort($cursos_filtros);
                             <input type="text" name="banco_origen" id="admin_edit_banco_origen" class="form-control"
                                 required>
                         </div>
-<<<<<<< HEAD
                         <div class="col-md-4 form-group mb-3" id="admin_grupo_referencia">
-=======
-                        <div class="col-md-4 form-group mb-3" id="admin_edit_div_numero_operacion">
->>>>>>> a36c9933a7dd692c01d2eebc6c6f456c203d7e0a
                             <label>N° de Referencia:</label>
                             <input type="text" name="numero_operacion" id="admin_edit_numero_operacion"
                                 class="form-control" required>
@@ -369,7 +356,7 @@ asort($cursos_filtros);
                         <div class="col-md-6 form-group mb-3">
                             <label>Monto Pagado:</label>
                             <div class="input-group">
-                                <div class="input-group-prepend"><span class="input-group-text">$</span></div>
+                                <div class="input-group-prepend"><span class="input-group-text" id="admin_edit_monto_simbolo">$</span></div>
                                 <input type="number" step="0.01" name="monto" id="admin_edit_monto" class="form-control"
                                     required>
                             </div>
@@ -414,25 +401,43 @@ asort($cursos_filtros);
                 let fechaFin = $('#fechaHasta').val();
                 let cursoFiltrado = $('#cursoFiltro').val();
 
-                // Columna 0 contiene la fecha YYYY-MM-DD oculta para filtrado estricto
-                // Columna 3 (indice 3 apunte al 4to th real, que es curso)
-                let rowDate = data[0] || "";
-                let rowCourse = data[3] || "";
+                // Usamos una expresión regular para extraer extraer la primera fecha DD/MM/YYYY de la columna visible 1
+                // (Debido a que DataTables puede vaciar data[0] si tiene searchable: false)
+                let rowDateStr = "";
+                let match = (data[1] || "").match(/(\d{2})\/(\d{2})\/(\d{4})/);
+                if (match) {
+                    rowDateStr = match[3] + "-" + match[2] + "-" + match[1]; // YYYY-MM-DD
+                }
+
+                let rowCourse = (data[3] || "").trim();
+
+                let ocultar = false;
 
                 // Filtro por Curso
                 if (cursoFiltrado !== "" && rowCourse !== cursoFiltrado) {
-                    return false;
+                    ocultar = true;
                 }
 
-                // Filtro por Fecha Rango
-                if (fechaInicio !== "") {
-                    if (rowDate < fechaInicio) return false;
-                }
-                if (fechaFin !== "") {
-                    if (rowDate > fechaFin) return false;
+                // Filtro por Fecha (sólo si logramos extraer la fecha de la celda)
+                if (rowDateStr) {
+                    let rowTs = new Date(rowDateStr + "T00:00:00").getTime();
+                    
+                    if (fechaInicio !== "") {
+                        let inicioTs = new Date(fechaInicio + "T00:00:00").getTime();
+                        if (!isNaN(rowTs) && !isNaN(inicioTs) && rowTs < inicioTs) {
+                            ocultar = true;
+                        }
+                    }
+                    
+                    if (fechaFin !== "") {
+                        let finTs = new Date(fechaFin + "T23:59:59").getTime();
+                        if (!isNaN(rowTs) && !isNaN(finTs) && rowTs > finTs) {
+                            ocultar = true;
+                        }
+                    }
                 }
 
-                return true;
+                return !ocultar;
             }
         );
 
@@ -695,29 +700,7 @@ asort($cursos_filtros);
         }
     }
 
-<<<<<<< HEAD
-     function abrirModalEditComprobanteAdmin(id, banco, operacion, monto, fecha, moneda, btnObj) {
-=======
-    function alternarCamposMonedaAdmin() {
-        const moneda = $('#admin_edit_moneda').val();
-        if (moneda === 'Divisas') {
-            $('#admin_edit_div_numero_operacion').hide();
-            $('#admin_edit_numero_operacion').removeAttr('required');
-            $('#admin_edit_banco_origen').val('Taquilla de la Universidad').prop('readonly', true);
-        } else {
-            $('#admin_edit_div_numero_operacion').show();
-            $('#admin_edit_numero_operacion').attr('required', true);
-            if ($('#admin_edit_banco_origen').val() === 'Taquilla de la Universidad') {
-                $('#admin_edit_banco_origen').val('');
-            }
-            $('#admin_edit_banco_origen').prop('readonly', false);
-        }
-    }
-
-    $(document).on('change', '#admin_edit_moneda', alternarCamposMonedaAdmin);
-
     function abrirModalEditComprobanteAdmin(id, banco, operacion, monto, fecha, moneda, btnObj) {
->>>>>>> a36c9933a7dd692c01d2eebc6c6f456c203d7e0a
         window.filaEditadaAdmin = $(btnObj).closest('tr');
         document.getElementById('formEditarPagoAdmin').reset();
         document.getElementById('admin_edit_id_comprobante').value = id;
@@ -741,13 +724,17 @@ asort($cursos_filtros);
         var moneda = document.getElementById('admin_edit_moneda').value;
         var grupo = document.getElementById('admin_grupo_referencia');
         var refer = document.getElementById('admin_edit_numero_operacion');
+        var simbolo = document.getElementById('admin_edit_monto_simbolo');
+
         if(moneda === 'Divisas') {
             grupo.style.display = 'none';
             refer.removeAttribute('required');
             refer.value = '';
+            if (simbolo) simbolo.innerText = '$';
         } else {
             grupo.style.display = 'block';
             refer.setAttribute('required', 'required');
+            if (simbolo) simbolo.innerText = 'Bs.';
         }
     }
 
@@ -800,14 +787,16 @@ asort($cursos_filtros);
                         data[1] = `${fechaFormat}<br><small class="text-muted">Subido:${oldSubido}</small>`;
                         data[0] = nuevaFecha;
 
+                        data[4] = (nuevoMoneda === 'Divisas') ? '<span class="badge badge-success">Divisas</span>' : '<span class="badge badge-primary">Bs.</span>';
+
                         let oldObs = '';
-                        if (data[4].includes('<b>Obs:</b>')) {
-                            oldObs = data[4].substring(data[4].indexOf('<hr class="m-1">'));
+                        if (data[5] && data[5].includes('<b>Obs:</b>')) {
+                            oldObs = data[5].substring(data[5].indexOf('<hr class="m-1">'));
                         }
                         
                         let refMostrar = nuevaRef ? nuevaRef : '';
-                        data[4] = `<strong>${refMostrar}</strong><br><small class="text-muted">${nuevoBanco}</small>${oldObs}`;
-                        data[5] = `<span class="text-success font-weight-bold" style="font-size: 1.1rem;">${simbolo}${nuevoMonto}</span>`;
+                        data[5] = `<strong>${refMostrar}</strong><br><small class="text-muted">${nuevoBanco}</small>${oldObs}`;
+                        data[6] = `<span class="text-success font-weight-bold" style="font-size: 1.1rem;">${simbolo}${nuevoMonto}</span>`;
 
                         row.data(data).draw(false);
 

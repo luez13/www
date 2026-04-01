@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </button>
                                 </h2>
                                 <div id="collapseMod${idx}" class="accordion-collapse collapse" data-bs-parent="#accordionModules">
-                                    <div class="accordion-body text-secondary" style="white-space: pre-wrap; border-left: 3px solid #0d6efd; margin-left: 10px;">${m.contenido ? m.contenido : 'Sin detalles específicos.'}</div>
+                                    <div class="accordion-body text-secondary" style="white-space: pre-wrap; border-left: 3px solid #0d6efd; margin-left: 10px;">${m.contenido ? m.contenido.replace(/[\[\]"']/g, '').replace(/,/g, ', ').trim() : 'Sin detalles específicos.'}</div>
                                 </div>
                             </div>`;
                         });

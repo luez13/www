@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Certificado</title>
@@ -10,6 +11,7 @@
             font-weight: normal;
             font-style: normal;
         }
+
         @font-face {
             font-family: 'Cambria';
             src: url('<?php echo realpath(__DIR__ . '/../../public/assets/vendor/Cambria-Font-For-Windows.ttf'); ?>') format('truetype');
@@ -38,6 +40,7 @@
             z-index: -100;
             opacity: 0.15;
         }
+
         .watermark-container img {
             width: 450px;
         }
@@ -51,10 +54,11 @@
 
         .footer-banner {
             position: absolute;
-            bottom: 0;
+            bottom: 0px;
             left: 0;
             width: 100%;
             height: auto;
+            z-index: -1;
         }
 
         .content-wrap {
@@ -80,6 +84,8 @@
             color: rgb(173, 4, 4);
             margin: 10px 0;
             font-weight: normal;
+            display: block;
+            text-align: center;
         }
 
         .cedula {
@@ -111,31 +117,70 @@
             width: 250px;
             text-align: center;
         }
-        .firma-box img {
-            height: 60px;
-            display: block;
-            margin: 0 auto 5px auto;
+
+        .firma-box-img-wrapper {
+            height: 40px;
+            text-align: center;
+            overflow: visible;
+            position: relative;
         }
+        
+        .firma-box img {
+            max-height: 65px;
+            max-width: 90%;
+            position: absolute;
+            bottom: 55px; /* Control de altura forzado */
+            left: 35px;
+            right: 0;
+            margin: auto;
+            z-index: 10;
+        }
+
         .firma-nombre {
             font-weight: bold;
             font-size: 14px;
             margin: 0;
             line-height: 1.2;
         }
+
         .firma-cargo {
             font-size: 13px;
             font-weight: bold;
             margin: 0;
         }
 
-        /* Ajuste de posiciones Dompdf no soporta transform translateX bien, asi que usamos margin-left negativo o left calc */
-        .pos-p1-inf-izq { left: 40px; bottom: 120px; }
-        .pos-p1-inf-cen { left: 50%; margin-left: -125px; bottom: 120px; }
-        .pos-p1-inf-der { right: 40px; bottom: 120px; }
+        /* Ajuste de posiciones */
+        .pos-p1-inf-izq {
+            left: 40px;
+            bottom: 120px;
+        }
 
-        .pos-p2-inf-izq { left: 40px; bottom: 60px; }
-        .pos-p2-inf-cen { left: 50%; margin-left: -125px; bottom: 60px; }
-        .pos-p2-inf-der { right: 40px; bottom: 60px; }
+        .pos-p1-inf-cen {
+            left: 50%;
+            margin-left: -125px;
+            bottom: 120px;
+        }
+
+        .pos-p1-inf-der {
+            right: 40px;
+            bottom: 120px;
+        }
+
+        .pos-p2-inf-izq {
+            left: 40px;
+            bottom: 60px;
+        }
+
+        .pos-p2-inf-cen {
+            left: 50%;
+            margin-left: -125px;
+            bottom: 60px;
+        }
+
+        .pos-p2-inf-der {
+            right: 40px;
+            bottom: 60px;
+        }
 
 
         .page-break {
@@ -150,7 +195,7 @@
             margin-left: 20px;
             margin-bottom: 20px;
         }
-        
+
         .qr-layer img {
             width: 120px;
         }
@@ -188,127 +233,141 @@
         }
     </style>
 </head>
+
 <body>
 
-<!-- ================= PÁGINA 1 ================= -->
-<div style="position: relative; height: 100%;">
-    
-    <!-- Marca de agua FIJA -->
-    <div class="watermark-container">
-        <img src="<?php echo $data['imagePath']; ?>">
-    </div>
+    <!-- ================= PÁGINA 1 ================= -->
+    <div style="position: relative; width: 100%; height: 735px;">
 
-    <img src="<?php echo $data['bannerPath']; ?>" class="header-banner">
+        <!-- Marca de agua FIJA -->
+        <div class="watermark-container">
+            <img src="<?php echo $data['imagePath']; ?>">
+        </div>
 
-    <div class="content-wrap">
-        <p class="republic-titulos">REPÚBLICA BOLIVARIANA DE VENEZUELA</p>
-        <p class="republic-titulos">MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN UNIVERSITARIA</p>
-        <p class="republic-titulos">UNIVERSIDAD POLITÉCNICA TERRITORIAL AGROINDUSTRIAL DEL ESTADO TÁCHIRA</p>
+        <img src="<?php echo $data['bannerPath']; ?>" class="header-banner">
 
-        <p class="otorga">Otorga el presente certificado al ciudadano (a):</p>
+        <div class="content-wrap">
+            <p class="republic-titulos">REPÚBLICA BOLIVARIANA DE VENEZUELA</p>
+            <p class="republic-titulos">MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN UNIVERSITARIA</p>
+            <p class="republic-titulos">UNIVERSIDAD POLITÉCNICA TERRITORIAL AGROINDUSTRIAL DEL ESTADO TÁCHIRA</p>
 
-        <?php 
-            $nombreC = mb_convert_case($data['nombreEstudiante'] . ' ' . $data['apellidoEstudiante'], MB_CASE_TITLE, "UTF-8"); 
-        ?>
-        <h1 class="nombre-estudiante"><?php echo htmlspecialchars($nombreC); ?></h1>
-        <p class="cedula">C.I. V- <?php echo htmlspecialchars($data['cedula']); ?></p>
+            <p class="otorga">Otorga el presente certificado al ciudadano (a):</p>
 
-        <?php
+            <?php
+            $nombreC = mb_convert_case($data['nombreEstudiante'] . ' ' . $data['apellidoEstudiante'], MB_CASE_TITLE, "UTF-8");
+            ?>
+            <h1 class="nombre-estudiante"><?php echo htmlspecialchars($nombreC); ?></h1>
+            <p class="cedula">C.I. V- <?php echo htmlspecialchars($data['cedula']); ?></p>
+
+            <?php
             $esParticipacion = ($data['paso'] === "aprobado" && (empty($data['nota']) || $data['nota'] == 0));
             $textoAntesPaso = $esParticipacion ? "Por su " : "Por haber ";
             $pasoTexto = mb_strtoupper($esParticipacion ? "PARTICIPACION" : $data['paso'], 'UTF-8');
             $tipoCursoF = str_replace('_rectoria', '', $data['tipo_curso']);
             $articulo = $data['articulo_tipo_curso'];
             $nombreCurso = mb_strtoupper($data['nombre_curso'], 'UTF-8');
-        ?>
-        
-        <div class="certificacion-texto">
-            <?php echo $textoAntesPaso; ?> <b><?php echo htmlspecialchars($pasoTexto); ?></b> en <?php echo $articulo; ?> <?php echo htmlspecialchars($tipoCursoF); ?> de <b><?php echo htmlspecialchars($nombreCurso); ?></b>.
-        </div>
+            ?>
 
-        <?php
-            function formatearFecha($f) {
-                if(!$f) return "Fecha no proporcionada";
-                $m = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+            <div class="certificacion-texto">
+                <?php echo $textoAntesPaso; ?> <b><?php echo htmlspecialchars($pasoTexto); ?></b> en
+                <?php echo $articulo; ?> <?php echo htmlspecialchars($tipoCursoF); ?> de
+                <b><?php echo htmlspecialchars($nombreCurso); ?></b>.
+            </div>
+
+            <?php
+            function formatearFecha($f)
+            {
+                if (!$f)
+                    return "Fecha no proporcionada";
+                $m = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
                 $ts = strtotime($f);
-                if(!$ts) return $f;
-                return "los " . date('d', $ts) . " días del mes de " . $m[date('n', $ts)-1] . " de " . date('Y', $ts);
+                if (!$ts)
+                    return $f;
+                return "los " . date('d', $ts) . " días del mes de " . $m[date('n', $ts) - 1] . " de " . date('Y', $ts);
             }
-        ?>
-        <p class="fecha-expedicion">Certificación expedida en la Ciudad de San Cristóbal, <?php echo formatearFecha($data['fechaInscripcion']); ?></p>
-    </div>
-
-    <!-- Firmas Pag 1 -->
-    <?php foreach($data['firmantes'] as $f): 
-        if($f['pagina'] == 1):
-            $clasePos = 'pos-' . strtolower(str_replace('_', '-', $f['posicion_codigo']));
-            $nombreF = !empty($f['titulo']) ? $f['titulo'] . ' ' . $f['nombre'] : $f['nombre'];
-            $nombreF = mb_convert_case($nombreF, MB_CASE_TITLE, "UTF-8");
-    ?>
-        <div class="firma-box <?php echo $clasePos; ?>">
-            <?php if(!empty($f['firma_base64'])): ?>
-                <img src="<?php echo $f['firma_base64']; ?>">
-            <?php else: ?>
-                <div style="height: 65px;"></div>
-            <?php endif; ?>
-            <p class="firma-nombre"><?php echo htmlspecialchars($nombreF); ?></p>
-            <p class="firma-cargo"><?php echo htmlspecialchars(mb_convert_case($f['cargo'], MB_CASE_TITLE, "UTF-8")); ?></p>
+            ?>
+            <p class="fecha-expedicion">Certificación expedida en la Ciudad de San Cristóbal,
+                <?php echo formatearFecha($data['fechaInscripcion']); ?>
+            </p>
         </div>
-    <?php endif; endforeach; ?>
 
-    <img src="<?php echo $data['footerPath']; ?>" class="footer-banner">
-</div>
+        <!-- Firmas Pag 1 -->
+        <?php foreach ($data['firmantes'] as $f):
+            if ($f['pagina'] == 1):
+                $clasePos = 'pos-' . strtolower(str_replace('_', '-', $f['posicion_codigo']));
+                $nombreF = !empty($f['titulo']) ? $f['titulo'] . ' ' . $f['nombre'] : $f['nombre'];
+                $nombreF = mb_convert_case($nombreF, MB_CASE_TITLE, "UTF-8");
+                ?>
+                <div class="firma-box <?php echo $clasePos; ?>">
+                    <?php if (!empty($f['firma_base64'])): ?>
+                        <img src="<?php echo $f['firma_base64']; ?>">
+                    <?php else: ?>
+                        <div style="height: 65px;"></div>
+                    <?php endif; ?>
+                    <p class="firma-nombre"><?php echo htmlspecialchars($nombreF); ?></p>
+                    <p class="firma-cargo"><?php echo htmlspecialchars(mb_convert_case($f['cargo'], MB_CASE_TITLE, "UTF-8")); ?>
+                    </p>
+                </div>
+            <?php endif; endforeach; ?>
 
-<!-- ================= PÁGINA 2 ================= -->
-<div class="page-break"></div>
-
-<div style="position: relative; height: 100%;">
-    
-    <!-- Marca de agua FIJA -->
-    <div class="watermark-container">
-        <img src="<?php echo $data['imagePath']; ?>">
+        <img src="<?php echo $data['footerPath']; ?>" class="footer-banner">
     </div>
 
-    <div class="qr-layer">
-        <img src="<?php echo $qr; ?>" alt="QR Code">
-    </div>
+    <!-- ================= PÁGINA 2 ================= -->
+    <div class="page-break"></div>
 
-    <p class="titulo-contenido">CONTENIDO:</p>
+    <div style="position: relative; width: 100%; height: 600px;">
 
-    <div class="modulos-lista">
-        <?php foreach($data['modulos'] as $i => $mod): ?>
-            <div><?php echo ($i + 1) . ". " . htmlspecialchars($mod['nombre_modulo']); ?></div>
-        <?php endforeach; ?>
-    </div>
+        <!-- Marca de agua FIJA -->
+        <div class="watermark-container">
+            <img src="<?php echo $data['imagePath']; ?>">
+        </div>
 
-    <div class="texto-inferior">
-        <p>Registrado en formación permanente tomo <?php echo htmlspecialchars($data['tomo'] ?? ''); ?> y folio <?php echo htmlspecialchars($data['folio'] ?? ''); ?>.</p>
-        
-        <?php if(!empty($data['nota']) && $data['nota'] != 0): ?>
-            <p>Presentando una calificación final de <?php echo htmlspecialchars($data['nota']); ?> de una nota máxima (20).</p>
-        <?php endif; ?>
+        <div class="qr-layer">
+            <img src="<?php echo $qr; ?>" alt="QR Code">
+        </div>
 
-        <p>El programa tuvo una duración de <?php echo htmlspecialchars($data['horas_cronologicas']); ?> horas cronológicas.</p>
-        
-        <?php 
+        <p class="titulo-contenido">CONTENIDO:</p>
+
+        <div class="modulos-lista">
+            <?php foreach ($data['modulos'] as $i => $mod): ?>
+                <div><?php echo ($i + 1) . ". " . htmlspecialchars($mod['nombre_modulo']); ?></div>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="texto-inferior">
+            <p>Registrado en formación permanente tomo
+                <?php echo htmlspecialchars(isset($data['tomo']) ? $data['tomo'] : ''); ?> y folio
+                <?php echo htmlspecialchars(isset($data['folio']) ? $data['folio'] : ''); ?>.
+            </p>
+
+            <?php if (!empty($data['nota']) && $data['nota'] != 0): ?>
+                <p>Presentando una calificación final de <?php echo htmlspecialchars($data['nota']); ?> de una nota máxima
+                    (20).</p>
+            <?php endif; ?>
+
+            <p>El programa tuvo una duración de <?php echo htmlspecialchars($data['horas_cronologicas']); ?> horas
+                cronológicas.</p>
+
+            <?php
             $fInicio = formatearFecha($data['inicioMesCurso']);
             $fFin = formatearFecha($data['fechaFinalizacionCurso']);
-            if($data['tipo_curso'] === 'masterclass') {
+            if ($data['tipo_curso'] === 'masterclass') {
                 echo "<p>Curso desarrollado el $fInicio.</p>";
             } else {
                 echo "<p>Curso desarrollado entre $fInicio y $fFin.</p>";
             }
-        ?>
-    </div>
+            ?>
+        </div>
 
-    <!-- Firmas Pag 2 -->
-    <?php 
+        <!-- Firmas Pag 2 -->
+        <?php
         $esRectoria = strpos($data['tipo_curso'], '_rectoria') !== false;
-        
-        if($esRectoria) {
+
+        if ($esRectoria) {
             $facilitador = null;
-            foreach($data['firmantes'] as $f) {
-                if(strtolower($f['cargo']) === 'facilitador') {
+            foreach ($data['firmantes'] as $f) {
+                if (strtolower($f['cargo']) === 'facilitador') {
                     $facilitador = $f;
                     break;
                 }
@@ -317,39 +376,43 @@
             $director = [
                 'nombre' => 'Msc. Emilio Losada',
                 'cargo' => 'Director de PNF en Electrónica',
-                'firma_base64' => $data['firma_director_rectoria_b64'] ?? '',
+                'firma_base64' => isset($data['firma_director_rectoria_b64']) ? $data['firma_director_rectoria_b64'] : '',
                 'posicion_codigo' => 'P2_INF_DER'
             ];
 
             $firmasP2 = [$director];
-            if($facilitador) {
+            if ($facilitador) {
                 $facilitador['posicion_codigo'] = 'P2_INF_IZQ';
                 $firmasP2[] = $facilitador;
             }
         } else {
-            $firmasP2 = array_filter($data['firmantes'], function($f) {
+            $firmasP2 = array_filter($data['firmantes'], function ($f) {
                 return $f['pagina'] == 2;
             });
         }
-    ?>
+        ?>
 
-    <?php foreach($firmasP2 as $f): 
-        $clasePos = 'pos-' . strtolower(str_replace('_', '-', $f['posicion_codigo']));
-        $nombreF = !empty($f['titulo']) ? $f['titulo'] . ' ' . $f['nombre'] : $f['nombre'];
-        $nombreF = mb_convert_case($nombreF, MB_CASE_TITLE, "UTF-8");
-    ?>
-        <div class="firma-box <?php echo $clasePos; ?>">
-            <?php if(!empty($f['firma_base64'])): ?>
-                <img src="<?php echo $f['firma_base64']; ?>">
+        <?php foreach ($firmasP2 as $f):
+            $clasePos = 'pos-' . strtolower(str_replace('_', '-', $f['posicion_codigo']));
+            $nombreF = !empty($f['titulo']) ? $f['titulo'] . ' ' . $f['nombre'] : $f['nombre'];
+            $nombreF = mb_convert_case($nombreF, MB_CASE_TITLE, "UTF-8");
+            ?>
+            <div class="firma-box <?php echo $clasePos; ?>">
+                <?php if (!empty($f['firma_base64'])): ?>
+                <div class="firma-box-img-wrapper">
+                    <img src="<?php echo $f['firma_base64']; ?>">
+                </div>
             <?php else: ?>
-                <div style="height: 65px;"></div>
+                <div style="height: 40px;"></div>
             <?php endif; ?>
-            <p class="firma-nombre"><?php echo htmlspecialchars($nombreF); ?></p>
-            <p class="firma-cargo"><?php echo htmlspecialchars(mb_convert_case($f['cargo'], MB_CASE_TITLE, "UTF-8")); ?></p>
-        </div>
-    <?php endforeach; ?>
+                <p class="firma-nombre"><?php echo htmlspecialchars($nombreF); ?></p>
+                <p class="firma-cargo"><?php echo htmlspecialchars(mb_convert_case($f['cargo'], MB_CASE_TITLE, "UTF-8")); ?>
+                </p>
+            </div>
+        <?php endforeach; ?>
 
-</div>
+    </div>
 
 </body>
+
 </html>

@@ -84,9 +84,9 @@ $data = [
     'nombre_curso' => $nombre_curso,
     'nombre_promotor' => $nombre_promotor,
     'cedula' => $cedula,
-    'rol' => $rol_usuario,
-    'correo_contacto' => $correo_contacto ?? 'No disponible',
-    'telefono_contacto' => $telefono_contacto ?? 'No disponible',
+    'rol' => isset($rol_usuario) ? $rol_usuario : 'Participante',
+    'correo_contacto' => isset($correo_contacto) ? $correo_contacto : 'No disponible',
+    'telefono_contacto' => isset($telefono_contacto) ? $telefono_contacto : 'No disponible',
     'nombre_coordinador' => $nombre_coordinador,
     'nombre_vicerrector' => isset($nombre_vicerrector) ? $nombre_vicerrector : 'Vicerrectorado Académico'
 ];

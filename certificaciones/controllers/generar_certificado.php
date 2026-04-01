@@ -6,8 +6,7 @@ require_once __DIR__ . '/../models/curso.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
-use chillerlan\QRCode\QRCode;
-use chillerlan\QRCode\QROptions;
+use Endroid\QrCode\QrCode;
 
 $certificateData = null;
 $error_message = null;
@@ -66,16 +65,12 @@ if (!$certificateData) {
     die("Error crítico: No se pudieron cargar los datos del certificado.");
 }
 
-// 1. Generación de QR en Base64 para inyectarlo en la vista
-$qrOptions = new QROptions([
-    'version'      => \chillerlan\QRCode\Common\Version::AUTO, // Omitir la versión forzada o usar AUTO
-    'outputType'   => QRCode::OUTPUT_IMAGE_PNG,
-    'eccLevel'     => QRCode::ECC_L,
-    'scale'        => 5,
-    'imageBase64'  => true,
-]);
-$qrcode = new QRCode($qrOptions);
-$qrCodeBase64 = $qrcode->render($certificateData['certificadoUrl']);
+// 1. Generación de QR en Base64 para inyectarlo en la vista con endroid/qr-code v2.5
+$qrCode = new QrCode($certificateData['certificadoUrl']);
+$qrCode->setSize(150);
+$qrCode->setMargin(5);
+$qrCode->setWriterByName('png');
+$qrCodeBase64 = 'data:image/png;base64,' . base64_encode($qrCode->writeString());
 
 // Variables globales para la vista
 $data = $certificateData;
@@ -90,7 +85,7 @@ if (!$rutaVista || !file_exists($rutaVista)) {
 require $rutaVista;
 $html = ob_get_clean();
 
-// 3. Configuración de Dompdf
+// 3. Configuración de Dompdf (Adaptado para 0.8.3)
 $options = new Options();
 $options->set('isRemoteEnabled', true);
 $options->set('isHtml5ParserEnabled', true);

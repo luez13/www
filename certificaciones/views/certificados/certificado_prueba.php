@@ -41,13 +41,19 @@ if (!isset($data)) {
         /* Contenedor Principal. Tamaño Carta Horizontal */
         .certificado-container {
             width: 100%;
-            height: 100%;
+            height: 750px;
+            /* Safe bounds to prevent page jump */
             position: relative;
-            background-image: url('data:image/jpeg;base64,<?php echo base64_encode(file_get_contents(realpath(__DIR__ . '/../../public/assets/img/certificado_mujeres.jpeg'))); ?>');
-            background-size: 100% 100%;
-            /* Forzar a que encaje en toda la hoja sin recortar márgenes */
-            background-repeat: no-repeat;
-            background-position: center center;
+        }
+
+        .bg-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 816px;
+            /* Overflow deliberately to fill the paper */
+            z-index: 0;
         }
 
         /* Marca de agua centrada debajo del texto sin transform */
@@ -70,12 +76,11 @@ if (!isset($data)) {
         /* Area de Texto donde se inscribirán los nombres */
         .text-area {
             position: absolute;
-            top: 18%;
-            left: 10%;
-            width: 80%;
+            top: 20%;
+            left: 17%;
+            width: 75%;
             text-align: center;
             z-index: 2;
-            /* Para asegurar que el texto se dibuja sobre la marca de agua */
             line-height: 1.2;
         }
 
@@ -104,7 +109,8 @@ if (!isset($data)) {
             font-size: 70px;
             color: #722f8a;
             /* Púrpura */
-            margin: 10px 0 5px 0;
+            margin: 10px 0 5px 220px;
+            /* Shift to the right explicitly to center visually */
             border-bottom: 2px solid #722f8a;
             /* Línea morada */
             display: inline-block;
@@ -138,7 +144,7 @@ if (!isset($data)) {
         /* Firmas flotantes abajo */
         .firmas-container {
             position: absolute;
-            bottom: 40px;
+            bottom: 45px;
             width: 90%;
             left: 5%;
             text-align: center;
@@ -153,10 +159,23 @@ if (!isset($data)) {
             margin: 0 0.5%;
         }
 
+        .firma-box-img-wrapper {
+            height: 40px;
+            text-align: center;
+            overflow: visible;
+            position: relative;
+        }
+
         .firma-img {
-            height: 50px;
-            display: block;
-            margin: 0 auto 5px auto;
+            max-height: 70px;
+            max-width: 90%;
+            position: absolute;
+            bottom: 55px;
+            /* Modifica este valor para subir o bajar la firma rompiendo las reglas del texto base */
+            left: 35;
+            right: 0;
+            margin: auto;
+            z-index: 10;
         }
 
         .firma-linea {
@@ -233,6 +252,8 @@ if (!isset($data)) {
 
 <body>
     <div class="certificado-container">
+        <img src="data:image/jpeg;base64,<?php echo base64_encode(file_get_contents(realpath(__DIR__ . '/../../public/assets/img/certificado_mujeres.jpeg'))); ?>"
+            class="bg-img">
 
         <div class="text-area">
             <p class="republic-titulos">REPÚBLICA BOLIVARIANA DE VENEZUELA</p>
@@ -314,7 +335,7 @@ if (!isset($data)) {
     <!-- ================= PÁGINA 2 ================= -->
     <div class="page-break"></div>
 
-    <div style="position: relative; height: 100%;">
+    <div style="position: relative; width: 100%; height: 600px;">
 
         <!-- Capa de marca de agua (se pone primero para quedar detrás del texto) -->
         <div class="marca-agua-container">
@@ -335,8 +356,9 @@ if (!isset($data)) {
         </div>
 
         <div class="texto-inferior">
-            <p>Registrado en formación permanente tomo <?php echo htmlspecialchars($data['tomo'] ?? ''); ?> y folio
-                <?php echo htmlspecialchars($data['folio'] ?? ''); ?>.
+            <p>Registrado en formación permanente tomo
+                <?php echo htmlspecialchars(isset($data['tomo']) ? $data['tomo'] : ''); ?> y folio
+                <?php echo htmlspecialchars(isset($data['folio']) ? $data['folio'] : ''); ?>.
             </p>
 
             <?php if (!empty($data['nota']) && $data['nota'] != 0): ?>
@@ -375,7 +397,7 @@ if (!isset($data)) {
                 $director = [
                     'nombre' => 'Msc. Emilio Losada',
                     'cargo' => 'Director de PNF en Electrónica',
-                    'firma_base64' => $data['firma_director_rectoria_b64'] ?? '',
+                    'firma_base64' => isset($data['firma_director_rectoria_b64']) ? $data['firma_director_rectoria_b64'] : '',
                     'titulo' => ''
                 ];
 
@@ -395,9 +417,11 @@ if (!isset($data)) {
                 ?>
                 <div class="firma-box">
                     <?php if (!empty($f['firma_base64'])): ?>
-                        <img src="<?php echo $f['firma_base64']; ?>" class="firma-img">
+                        <div class="firma-box-img-wrapper">
+                            <img src="<?php echo $f['firma_base64']; ?>" class="firma-img">
+                        </div>
                     <?php else: ?>
-                        <div style="height: 55px;"></div>
+                        <div style="height: 40px;"></div>
                     <?php endif; ?>
                     <div class="firma-linea"></div>
                     <div class="firma-nombre"><?php echo htmlspecialchars(trim($nombreF)); ?></div>
