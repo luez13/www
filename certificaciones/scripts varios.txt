@@ -8,42 +8,53 @@ estrictamente en asegurar la integridad referencial (Foreign Keys) y los permiso
 
 DO $$
 BEGIN
-    -- 1. Asegurar FK en usuario_documentos
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_usuario_documentos_curso') THEN
-        ALTER TABLE cursos.usuario_documentos 
-        ADD CONSTRAINT fk_usuario_documentos_curso FOREIGN KEY (id_curso) REFERENCES cursos.cursos (id_curso) ON DELETE SET NULL;
+    -- =========================================================================
+    -- 1. CREACIÓN DEL MÓDULO DE PLANTILLAS (FALTANTE EN PRODUCCIÓN)
+    -- =========================================================================
+    CREATE TABLE IF NOT EXISTS cursos.plantillas_certificados (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(255) NOT NULL,
+        imagen_fondo VARCHAR(255),
+        es_defecto BOOLEAN DEFAULT FALSE,
+        archivo_vista VARCHAR(255) DEFAULT 'certificado_base.php'
+    );
+
+    -- Añadir columna de relación en la tabla cursos
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'cursos' AND table_name = 'cursos' AND column_name = 'id_plantilla') THEN
+        ALTER TABLE cursos.cursos ADD COLUMN id_plantilla INTEGER;
     END IF;
 
-    -- 2. Asegurar FK en buzon_sugerencias
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'buzon_sugerencias_id_usuario_fkey') THEN
-        ALTER TABLE cursos.buzon_sugerencias 
-        ADD CONSTRAINT buzon_sugerencias_id_usuario_fkey FOREIGN KEY (id_usuario) REFERENCES cursos.usuarios (id) ON DELETE SET NULL;
+    -- Llave foránea para las plantillas (Aquí sí aplica SET NULL: si borras el diseño, el curso queda sin diseño, no se borra)
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'cursos_id_plantilla_fkey') THEN
+        ALTER TABLE cursos.cursos
+        ADD CONSTRAINT cursos_id_plantilla_fkey FOREIGN KEY (id_plantilla) REFERENCES cursos.plantillas_certificados(id) ON DELETE SET NULL;
     END IF;
 
-    -- 3. Asegurar FK en comprobantes_pago
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_comprobantes_pago_materia') THEN
-        ALTER TABLE cursos.comprobantes_pago 
-        ADD CONSTRAINT fk_comprobantes_pago_materia FOREIGN KEY (id_materia_bimestre) REFERENCES cursos.materias_bimestre (id_materia_bimestre) ON DELETE CASCADE;
-    END IF;
+    -- =========================================================================
+    -- 2. CORRECCIÓN CRÍTICA DE INTEGRIDAD FINANCIERA (COMPROBANTES DE PAGO)
+    -- =========================================================================
+    -- Destruir las llaves actuales que permiten borrado en cascada
+    ALTER TABLE cursos.comprobantes_pago DROP CONSTRAINT IF EXISTS comprobantes_pago_id_curso_fkey;
+    ALTER TABLE cursos.comprobantes_pago DROP CONSTRAINT IF EXISTS comprobantes_pago_id_usuario_fkey;
+    ALTER TABLE cursos.comprobantes_pago DROP CONSTRAINT IF EXISTS fk_comprobantes_materia;
 
-    -- Nota: Si faltan más FK de las tablas base (como materias_bimestre -> cursos), 
-    -- deben agregarse a este bloque usando la misma lógica.
+    -- Recrear las llaves foráneas con protección estricta (RESTRICT)
+    ALTER TABLE cursos.comprobantes_pago 
+    ADD CONSTRAINT comprobantes_pago_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES cursos.cursos(id_curso) ON DELETE RESTRICT;
+
+    ALTER TABLE cursos.comprobantes_pago 
+    ADD CONSTRAINT comprobantes_pago_id_usuario_fkey FOREIGN KEY (id_usuario) REFERENCES cursos.usuarios(id) ON DELETE RESTRICT;
+
+    -- La materia sí puede quedar en NULL porque el curso base y el usuario mantienen la trazabilidad del dinero
+    ALTER TABLE cursos.comprobantes_pago 
+    ADD CONSTRAINT fk_comprobantes_materia FOREIGN KEY (id_materia_bimestre) REFERENCES cursos.materias_bimestre(id_materia_bimestre) ON DELETE SET NULL;
+
+    -- =========================================================================
+    -- 3. ASIGNACIÓN DE PRIVILEGIOS
+    -- =========================================================================
+    GRANT ALL ON TABLE cursos.plantillas_certificados TO uptaivir_certificacion2;
+    GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
 END $$;
-
--- 4. Asegurar todos los privilegios de forma masiva
-GRANT ALL PRIVILEGES ON TABLE 
-    cursos.usuario_documentos, 
-    cursos.materias_bimestre, 
-    cursos.actividades_config, 
-    cursos.notas_participante, 
-    cursos.actas_cierre, 
-    cursos.cuentas_bancarias, 
-    cursos.comprobantes_pago, 
-    cursos.buzon_sugerencias, 
-    cursos.landing_carrusel 
-TO uptaivir_certificacion2;
-
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA cursos TO uptaivir_certificacion2;
 
 /*
 ====================================================================================
