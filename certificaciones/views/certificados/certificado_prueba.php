@@ -1,436 +1,249 @@
 <?php
-// Evitar ejecución directa
-if (!isset($data)) {
-    die("Acceso directo denegado.");
+/**
+ * FPDF Template: Certificado Prueba (Edición Violeta / Mujeres)
+ * ---------------------------------------------------------
+ * Reglas Estrictas:
+ * 1. Usar utf8_decode() en todo el texto.
+ * 2. Usar fuentes Core (Times, Arial).
+ */
+
+// PAGINA 1: FRONTAL
+$pdf->AddPage();
+
+// 1. CARGAMOS LA FUENTE EDWARDIAN
+$pdf->AddFont('Edwardian', '', 'edwardianscriptitc.php');
+
+// 1. Fondo Específico (certificado_mujeres.jpeg)
+$rutaMujeres = realpath(__DIR__ . '/../../public/assets/img/certificado_mujeres.jpeg');
+if ($rutaMujeres && file_exists($rutaMujeres)) {
+    $pdf->Image($rutaMujeres, 0, 0, 279.4, 215.9);
+} else if (file_exists($data['fondoPath'])) {
+    $pdf->Image($data['fondoPath'], 0, 0, 279.4, 215.9);
+}
+
+// 2. Encabezados (Y = 38mm, Interlineado reducido)
+$pdf->SetFont('Times', 'B', 11);
+$pdf->SetTextColor(28, 35, 49); 
+$pdf->SetXY(0, 40);
+$pdf->Cell(279.4, 4, utf8_decode('REPÚBLICA BOLIVARIANA DE VENEZUELA'), 0, 1, 'C');
+$pdf->Cell(279.4, 4, utf8_decode('MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN UNIVERSITARIA'), 0, 1, 'C');
+$pdf->Cell(279.4, 4, utf8_decode('UNIVERSIDAD POLITÉCNICA TERRITORIAL AGROINDUSTRIAL DEL ESTADO TÁCHIRA'), 0, 1, 'C');
+
+// 3. Texto de Otorga (Y = 75mm)
+$pdf->SetFont('Arial', '', 14);
+$pdf->SetXY(0, 75);
+$pdf->Cell(279.4, 8, utf8_decode('Otorga el presente certificado al ciudadano (a):'), 0, 1, 'C');
+
+// 4. Nombre del Estudiante (Y = 90mm)
+$pdf->SetFont('Edwardian', '', 45); // FUENTE ELEGANTE
+$pdf->SetTextColor(114, 47, 138); // Púrpura (#722f8a) - Restaurado
+$pdf->SetXY(0, 90);
+$pdf->Cell(279.4, 20, utf8_decode($data['nombreEstudiante']), 0, 1, 'C');
+// Dibujar línea debajo del nombre (MORADA - Y = 110mm)
+$pdf->SetDrawColor(114, 47, 138);
+$pdf->SetLineWidth(0.5);
+$pdf->Line(60, 110, 219.4, 110);
+
+// 5. Cédula (Y = 115mm)
+$pdf->SetFont('Arial', 'B', 12);
+$pdf->SetTextColor(0, 0, 0);
+$pdf->SetXY(0, 115);
+// Verificamos si la cédula ya trae el prefijo 'V-'
+$cedulaLimpia = str_replace('V-', '', $data['cedula']);
+$pdf->Cell(279.4, 6, utf8_decode('C.I. V- ' . trim($cedulaLimpia)), 0, 1, 'C');
+
+// 6. Párrafo de aprobación (Y = 125mm) - ARQUITECTURA ROBUSTA (MultiCell)
+$pdf->SetTextColor(0, 0, 0);
+
+$esParticipacion = ($data['paso'] === "aprobado" && (empty($data['nota']) || $data['nota'] == 0));
+$textoAntesPaso = $esParticipacion ? "Por su " : "Por haber ";
+$pasoTexto = mb_strtoupper($esParticipacion ? "PARTICIPACION" : $data['paso'], 'UTF-8');
+$textoIntermedio = " en {$data['articulo_tipo_curso']} {$data['tipo_curso']} de:";
+$cursoTexto = mb_strtoupper($data['nombre_curso'], 'UTF-8');
+
+// --- LÍNEA 1: Texto introductorio (Centrado matemático puro) ---
+$pdf->SetFont('Arial', '', 14);
+$w1 = $pdf->GetStringWidth(utf8_decode($textoAntesPaso));
+$pdf->SetFont('Arial', 'B', 14);
+$w2 = $pdf->GetStringWidth(utf8_decode($pasoTexto));
+$pdf->SetFont('Arial', '', 14);
+$w3 = $pdf->GetStringWidth(utf8_decode($textoIntermedio));
+$wLinea1 = $w1 + $w2 + $w3;
+
+$pdf->SetXY((279.4 - $wLinea1) / 2, 125); 
+$pdf->SetFont('Arial', '', 14);
+$pdf->Write(8, utf8_decode($textoAntesPaso));
+$pdf->SetFont('Arial', 'B', 14);
+$pdf->Write(8, utf8_decode($pasoTexto));
+$pdf->SetFont('Arial', '', 14);
+$pdf->Write(8, utf8_decode($textoIntermedio));
+
+// --- LÍNEA 2: Nombre del Curso (MultiCell se encarga del auto-wrap y centrado) ---
+$pdf->SetXY(30, 133); // Bajamos 8mm para la siguiente línea
+$pdf->SetFont('Arial', 'B', 14);
+$pdf->MultiCell(219.4, 8, utf8_decode($cursoTexto), 0, 'C');
+
+// 7. Fecha (Y = 155mm)
+if (!function_exists('f_FechaC')) {
+    function f_FechaC($f) {
+        if (!$f) return "no proporcionada";
+        $m = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        $ts = strtotime($f);
+        return "los " . date('d', $ts) . " días del mes de " . $m[date('n', $ts) - 1] . " de " . date('Y', $ts);
+    }
+}
+$pdf->SetFont('Arial', '', 12);
+$pdf->SetXY(0, 155);
+$pdf->Cell(279.4, 6, utf8_decode('Certificación expedida en la Ciudad de San Cristóbal, ' . f_FechaC($data['fechaInscripcion'])), 0, 1, 'C');
+
+// 8. Firmas Página 1 (Y = 165mm)
+// 8. Firmas Página 1 (Y = 185mm)
+if ($data['mostrar_firmas']) {
+    $firmasP1 = array_filter($data['firmantes'], function ($f) { return $f['pagina'] == 1; });
+    if (count($firmasP1) > 0) {
+        $pdf->SetDrawColor(0, 0, 0); // Líneas de firma siempre NEGRAS
+        foreach ($firmasP1 as $f) {
+            // Posicionamiento basado en código: izq, cen, cuarta, der
+            $posX = 139.7;
+            $pCod = strtolower($f['posicion_codigo']);
+            
+            if (strpos($pCod, 'izq') !== false) $posX = 35;
+            else if (strpos($pCod, 'der') !== false) $posX = 245;
+            else if (strpos($pCod, 'cen') !== false) $posX = 105;
+            else if (strpos($pCod, 'cuarta') !== false || strpos($pCod, 'firme4') !== false || strpos($pCod, 'extra') !== false || strpos($pCod, '4') !== false) $posX = 175;
+
+            $w_box = 50; 
+            $y_firmas = 185; 
+            $pdf->SetXY($posX - ($w_box/2), $y_firmas);
+            $actualX = $pdf->GetX();
+            $actualY = $pdf->GetY();
+            
+            if (!empty($f['firma_base64'])) {
+                $ext = 'png';
+                if (strpos($f['firma_base64'], 'image/jpeg') !== false || strpos($f['firma_base64'], 'image/jpg') !== false) $ext = 'jpg';
+                $tempFirma = sys_get_temp_dir() . '/fv1_' . uniqid() . '.' . $ext;
+                $fData = explode(',', $f['firma_base64']);
+                file_put_contents($tempFirma, base64_decode(end($fData)));
+                $pdf->Image($tempFirma, $actualX + ($w_box/2) - 15, $actualY - 18, 30);
+                @unlink($tempFirma);
+            }
+            
+            $pdf->SetXY($actualX, $actualY);
+            $pdf->SetFont('Arial', 'B', 9);
+            $nombreF = mb_convert_case($f['titulo'] . ' ' . $f['nombre'], MB_CASE_TITLE, "UTF-8");
+            // MultiCell permite que el nombre salte de línea si es muy largo
+            $pdf->MultiCell($w_box, 4, utf8_decode($nombreF), 'T', 'C');
+            
+            $pdf->SetFont('Arial', '', 8);
+            $pdf->SetX($actualX);
+            $pdf->MultiCell($w_box, 3.5, utf8_decode(mb_convert_case($f['cargo'], MB_CASE_TITLE, "UTF-8")), 0, 'C');
+        }
+    }
+}
+
+// ===================================
+
+$pdf->AddPage();
+
+// 1. Marca de Agua / Fondo (Eliminado en P2 según solicitud del usuario)
+/*
+$rutaMarcaAgua = realpath(__DIR__ . '/../../public/assets/img/marca_agua.png');
+if ($rutaMarcaAgua && file_exists($rutaMarcaAgua)) {
+    $pdf->Image($rutaMarcaAgua, 279.4/2 - 50, 60, 100); 
+}
+*/
+
+// 2. Título Contenido y QR (Y = 40mm)
+$pdf->SetFont('Arial', 'B', 18);
+$pdf->SetTextColor(114, 47, 138); // Mantener morado
+$pdf->SetXY(30, 40);
+$pdf->Cell(100, 10, utf8_decode('CONTENIDO:'), 0, 0, 'L');
+
+if (isset($qrTempPath) && file_exists($qrTempPath)) {
+    $pdf->Image($qrTempPath, 210, 35, 35, 35);
+}
+
+// 3. Lista de Módulos (Y = 60mm)
+$pdf->SetFont('Arial', '', 11);
+$pdf->SetTextColor(0, 0, 0);
+$pdf->SetXY(30, 60);
+foreach ($data['modulos'] as $i => $mod) {
+    $pdf->SetX(30);
+    // MultiCell a 170mm para no chocar con el QR (X=210)
+    $pdf->MultiCell(170, 6, utf8_decode(($i + 1) . '. ' . $mod['nombre_modulo']), 0, 'L');
+}
+
+// 4. Registro Inferior (Y = 145mm)
+$pdf->SetXY(30, 145);
+$pdf->SetFont('Arial', '', 12);
+$textoReg = "Registrado en formación permanente tomo " . $data['tomo'] . " folio " . $data['folio'] . ".\n";
+if (!empty($data['nota']) && $data['nota'] != 0) {
+    $textoReg .= "Presentando una calificación final de " . $data['nota'] . " de una nota máxima (20).\n";
+}
+$textoReg .= "El programa tuvo una duración de " . $data['horas_cronologicas'] . " horas cronológicas.";
+$pdf->MultiCell(219.4, 6, utf8_decode($textoReg), 0, 'L');
+
+// 5. Firmas Página 2 (Lógica Rectoria vs Normal)
+if ($data['mostrar_firmas']) {
+    // Lógica Rectoria detectada en el original
+    $esRectoria = (strpos($data['tipo_curso'], 'rectoria') !== false);
+    
+    if ($esRectoria) {
+        $firmasP2 = [];
+        // Facilitador dinámico
+        foreach ($data['firmantes'] as $f) {
+            if (strtolower($f['cargo']) === 'facilitador') {
+                $firmasP2[] = $f;
+                break;
+            }
+        }
+        // Director Fijo
+        $firmasP2[] = [
+            'nombre' => 'Msc. Emilio Losada',
+            'cargo' => 'Director de PNF en Electrónica',
+            'firma_base64' => isset($data['firma_director_rectoria_b64']) ? $data['firma_director_rectoria_b64'] : '', // Se asume que viene en el array $data
+            'titulo' => ''
+        ];
+    } else {
+        $firmasP2 = array_filter($data['firmantes'], function ($f) { return $f['pagina'] == 2; });
+    }
+
+    if (count($firmasP2) > 0) {
+        $pdf->SetDrawColor(0, 0, 0);
+        foreach ($firmasP2 as $f) {
+            $pCod2 = strtolower($f['posicion_codigo']);
+            $posX2 = 175; // NUEVO DEFAULT: Evita colisión con centro (105) si no hay código reconocido
+            
+            if (strpos($pCod2, 'izq') !== false) $posX2 = 35;
+            else if (strpos($pCod2, 'der') !== false) $posX2 = 245;
+            else if (strpos($pCod2, 'cen') !== false) $posX2 = 105;
+            else if (strpos($pCod2, 'cuarta') !== false || strpos($pCod2, 'firme4') !== false || strpos($pCod2, 'extra') !== false || strpos($pCod2, '4') !== false) $posX2 = 175;
+
+            $w_box2 = 50; 
+            $y_firmas2 = 182;
+            $pdf->SetXY($posX2 - ($w_box2/2), $y_firmas2);
+            $actualX2 = $pdf->GetX();
+            $actualY2 = $pdf->GetY();
+            
+            if (!empty($f['firma_base64'])) {
+                $ext = 'png';
+                if (strpos($f['firma_base64'], 'image/jpeg') !== false || strpos($f['firma_base64'], 'image/jpg') !== false) $ext = 'jpg';
+                $tempFirma = sys_get_temp_dir() . '/fv2_' . uniqid() . '.' . $ext;
+                $fData = explode(',', $f['firma_base64']);
+                file_put_contents($tempFirma, base64_decode(end($fData)));
+                $pdf->Image($tempFirma, $actualX2 + ($w_box2/2) - 15, $actualY2 - 18, 30);
+                @unlink($tempFirma);
+            }
+            
+            $pdf->SetXY($actualX2, $actualY2);
+            $pdf->SetFont('Arial', 'B', 9);
+            $nombreF = mb_convert_case($f['titulo'] . ' ' . $f['nombre'], MB_CASE_TITLE, "UTF-8");
+            $pdf->MultiCell($w_box2, 4, utf8_decode($nombreF), 'T', 'C');
+            
+            $pdf->SetFont('Arial', '', 8);
+            $pdf->SetX($actualX2);
+            $pdf->MultiCell($w_box2, 3.5, utf8_decode(mb_convert_case($f['cargo'], MB_CASE_TITLE, "UTF-8")), 0, 'C');
+        }
+    }
 }
 ?>
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Certificado de Participación - Edición Violeta</title>
-    <style>
-        @font-face {
-            font-family: 'Edwardian Script';
-            src: url('<?php echo realpath(__DIR__ . '/../../public/assets/vendor/edwardianscriptitc.ttf'); ?>') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }
-
-        @font-face {
-            font-family: 'Cambria';
-            src: url('<?php echo realpath(__DIR__ . '/../../public/assets/vendor/Cambria-Font-For-Windows.ttf'); ?>') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }
-
-        @page {
-            margin: 0px;
-        }
-
-        /* Tipografías base */
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Cambria', serif;
-            color: #000;
-        }
-
-        /* Contenedor Principal. Tamaño Carta Horizontal */
-        .certificado-container {
-            width: 100%;
-            height: 750px;
-            /* Safe bounds to prevent page jump */
-            position: relative;
-        }
-
-        .bg-img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 816px;
-            /* Overflow deliberately to fill the paper */
-            z-index: 0;
-        }
-
-        /* Marca de agua centrada debajo del texto sin transform */
-        .marca-agua-container {
-            position: absolute;
-            top: 25%;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            opacity: 0.15;
-            /* Nivel de transparencia de la marca de agua */
-            z-index: 1;
-            /* Para enviar al fondo pero arriba del bg principal */
-        }
-
-        .marca-agua-container img {
-            width: 450px;
-        }
-
-        /* Area de Texto donde se inscribirán los nombres */
-        .text-area {
-            position: absolute;
-            top: 20%;
-            left: 17%;
-            width: 75%;
-            text-align: center;
-            z-index: 2;
-            line-height: 1.2;
-        }
-
-        .republic-titulos {
-            font-size: 15px;
-            font-weight: bold;
-            margin: 2px 0;
-            color: #1c2331;
-        }
-
-        .otorga {
-            font-size: 16px;
-            margin-top: 25px;
-            text-transform: uppercase;
-        }
-
-        .otorgado-a {
-            font-size: 14px;
-            color: #555;
-            margin-top: 10px;
-            text-transform: uppercase;
-        }
-
-        .nombre-estudiante {
-            font-family: 'Edwardian Script', cursive, serif;
-            font-size: 70px;
-            color: #722f8a;
-            /* Púrpura */
-            margin: 10px 0 5px 220px;
-            /* Shift to the right explicitly to center visually */
-            border-bottom: 2px solid #722f8a;
-            /* Línea morada */
-            display: inline-block;
-            padding: 0 40px;
-            font-weight: normal;
-        }
-
-        .cedula {
-            font-weight: bold;
-            font-size: 16px;
-            margin-top: 5px;
-        }
-
-        .certificacion-texto {
-            margin-top: 20px;
-            font-size: 16px;
-        }
-
-        .certificacion-texto strong {
-            font-weight: bold;
-            font-size: 17px;
-        }
-
-        .fecha-expedicion {
-            margin-top: 15px;
-            font-size: 13px;
-            text-transform: uppercase;
-            color: #333;
-        }
-
-        /* Firmas flotantes abajo */
-        .firmas-container {
-            position: absolute;
-            bottom: 45px;
-            width: 90%;
-            left: 5%;
-            text-align: center;
-            z-index: 2;
-        }
-
-        .firma-box {
-            display: inline-block;
-            width: 23%;
-            vertical-align: top;
-            text-align: center;
-            margin: 0 0.5%;
-        }
-
-        .firma-box-img-wrapper {
-            height: 40px;
-            text-align: center;
-            overflow: visible;
-            position: relative;
-        }
-
-        .firma-img {
-            max-height: 70px;
-            max-width: 90%;
-            position: absolute;
-            bottom: 55px;
-            /* Modifica este valor para subir o bajar la firma rompiendo las reglas del texto base */
-            left: 35;
-            right: 0;
-            margin: auto;
-            z-index: 10;
-        }
-
-        .firma-linea {
-            border-top: 1px solid #333;
-            width: 90%;
-            margin: 5px auto;
-        }
-
-        .firma-nombre {
-            font-size: 12px;
-            font-weight: bold;
-            margin: 2px 0;
-            text-transform: uppercase;
-            line-height: 1.1;
-        }
-
-        .firma-cargo {
-            font-size: 11px;
-            color: #555;
-            margin: 0;
-            line-height: 1.1;
-        }
-
-        .page-break {
-            page-break-before: always;
-        }
-
-        /* Segunda pagina */
-        .qr-layer {
-            float: right;
-            margin-top: 30px;
-            margin-right: 40px;
-            margin-left: 20px;
-            margin-bottom: 20px;
-        }
-
-        .qr-layer img {
-            width: 120px;
-        }
-
-        .titulo-contenido {
-            font-size: 20px;
-            font-weight: bold;
-            margin-top: 80px;
-            text-align: center;
-        }
-
-        .modulos-lista {
-            margin: 40px;
-            font-size: 16px;
-            text-align: left;
-        }
-
-        .modulos-lista div {
-            margin-bottom: 8px;
-        }
-
-        .texto-inferior {
-            margin: 40px;
-            font-size: 16px;
-            text-align: left;
-            line-height: 1.1;
-            position: absolute;
-            bottom: 150px;
-            left: 0;
-            right: 0;
-        }
-
-        .texto-inferior p {
-            margin: 0;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="certificado-container">
-        <img src="data:image/jpeg;base64,<?php echo base64_encode(file_get_contents(realpath(__DIR__ . '/../../public/assets/img/certificado_mujeres.jpeg'))); ?>"
-            class="bg-img">
-
-        <div class="text-area">
-            <p class="republic-titulos">REPÚBLICA BOLIVARIANA DE VENEZUELA</p>
-            <p class="republic-titulos">MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN UNIVERSITARIA</p>
-            <p class="republic-titulos">UNIVERSIDAD POLITÉCNICA TERRITORIAL AGROINDUSTRIAL DEL ESTADO TÁCHIRA</p>
-
-            <div class="otorga">Otorga el presente certificado al ciudadano (a):</div>
-
-            <?php
-            $nombreC = mb_convert_case($data['nombreEstudiante'] . ' ' . $data['apellidoEstudiante'], MB_CASE_TITLE, "UTF-8");
-            ?>
-            <div class="nombre-estudiante"><?php echo htmlspecialchars($nombreC); ?></div>
-
-            <div class="cedula">C.I. <?php echo htmlspecialchars($data['cedula']); ?></div>
-
-            <?php
-            $esParticipacion = ($data['paso'] === "aprobado" && (empty($data['nota']) || $data['nota'] == 0));
-            $textoAntesPaso = $esParticipacion ? "Por su " : "Por haber ";
-
-            // Mantener PASO y NOMBRE DEL CURSO en mayúsculas
-            $pasoTexto = mb_strtoupper($esParticipacion ? "PARTICIPACION" : $data['paso'], 'UTF-8');
-            $nombreCurso = mb_strtoupper($data['nombre_curso'], 'UTF-8');
-
-            // Convertir tipo de curso y articulo a minúsculas
-            $tipoCursoF = mb_strtolower(str_replace('_rectoria', '', $data['tipo_curso']), 'UTF-8');
-            $articulo = mb_strtolower($data['articulo_tipo_curso'], 'UTF-8');
-            ?>
-            <div class="certificacion-texto">
-                <?php echo $textoAntesPaso; ?> <strong><?php echo htmlspecialchars($pasoTexto); ?></strong> en
-                <?php echo $articulo; ?>
-                <?php echo htmlspecialchars($tipoCursoF); ?> de
-                <strong><?php echo htmlspecialchars($nombreCurso); ?></strong>
-            </div>
-
-            <?php
-            function formatearFechaC($f)
-            {
-                if (!$f)
-                    return "Fecha no proporcionada";
-                $m = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-                $ts = strtotime($f);
-                if (!$ts)
-                    return $f;
-                return "los " . date('d', $ts) . " días del mes de " . $m[date('n', $ts) - 1] . " de " . date('Y', $ts);
-            }
-            ?>
-            <div class="fecha-expedicion">
-                Certificación expedida en la Ciudad de San Cristóbal,
-                <?php echo formatearFechaC($data['fechaFinalizacionCurso']); ?>
-            </div>
-        </div>
-
-        <div class="firmas-container">
-            <?php
-            if (isset($data['firmantes']) && is_array($data['firmantes'])) {
-                // Solo mostramos firmantes asignados a la página 1 para este diseño frontal
-                $firmantes_frontales = array_filter($data['firmantes'], function ($f) {
-                    return $f['pagina'] == 1;
-                });
-
-                foreach ($firmantes_frontales as $firmante) {
-                    $nombreF = !empty($firmante['titulo']) ? $firmante['titulo'] . ' ' . $firmante['nombre'] : $firmante['nombre'];
-                    echo '<div class="firma-box">';
-                    if ($data['mostrar_firmas'] && !empty($firmante['firma_base64'])) {
-                        echo '<img src="' . htmlspecialchars($firmante['firma_base64']) . '" class="firma-img">';
-                    } else {
-                        echo '<div style="height: 55px;"></div>';
-                    }
-                    echo '<div class="firma-linea"></div>';
-                    echo '<div class="firma-nombre">' . htmlspecialchars(trim($nombreF)) . '</div>';
-                    echo '<div class="firma-cargo">' . htmlspecialchars($firmante['cargo']) . '</div>';
-                    echo '</div>';
-                }
-            }
-            ?>
-        </div>
-    </div>
-
-    <!-- ================= PÁGINA 2 ================= -->
-    <div class="page-break"></div>
-
-    <div style="position: relative; width: 100%; height: 600px;">
-
-        <!-- Capa de marca de agua (se pone primero para quedar detrás del texto) -->
-        <div class="marca-agua-container">
-            <img
-                src="data:image/png;base64,<?php echo base64_encode(file_get_contents(realpath(__DIR__ . '/../../public/assets/img/marca_agua.png'))); ?>">
-        </div>
-
-        <div class="qr-layer">
-            <img src="<?php echo $qr; ?>" alt="QR Code">
-        </div>
-
-        <p class="titulo-contenido">CONTENIDO:</p>
-
-        <div class="modulos-lista">
-            <?php foreach ($data['modulos'] as $i => $mod): ?>
-                <div><?php echo ($i + 1) . ". " . htmlspecialchars($mod['nombre_modulo']); ?></div>
-            <?php endforeach; ?>
-        </div>
-
-        <div class="texto-inferior">
-            <p>Registrado en formación permanente tomo
-                <?php echo htmlspecialchars(isset($data['tomo']) ? $data['tomo'] : ''); ?> y folio
-                <?php echo htmlspecialchars(isset($data['folio']) ? $data['folio'] : ''); ?>.
-            </p>
-
-            <?php if (!empty($data['nota']) && $data['nota'] != 0): ?>
-                <p>Presentando una calificación final de <?php echo htmlspecialchars($data['nota']); ?> de una nota máxima
-                    (20).</p>
-            <?php endif; ?>
-
-            <p>El programa tuvo una duración de <?php echo htmlspecialchars($data['horas_cronologicas']); ?> horas
-                cronológicas.</p>
-
-            <?php
-            $fInicio = formatearFechaC($data['inicioMesCurso']);
-            $fFin = formatearFechaC($data['fechaFinalizacionCurso']);
-            if ($data['tipo_curso'] === 'masterclass') {
-                echo "<p>Curso desarrollado el $fInicio.</p>";
-            } else {
-                echo "<p>Curso desarrollado entre $fInicio y $fFin.</p>";
-            }
-            ?>
-        </div>
-
-        <!-- Firmas Pag 2 -->
-        <div class="firmas-container">
-            <?php
-            $esRectoria = strpos($data['tipo_curso'], '_rectoria') !== false;
-
-            if ($esRectoria) {
-                $facilitador = null;
-                foreach ($data['firmantes'] as $f) {
-                    if (strtolower($f['cargo']) === 'facilitador') {
-                        $facilitador = $f;
-                        break;
-                    }
-                }
-
-                $director = [
-                    'nombre' => 'Msc. Emilio Losada',
-                    'cargo' => 'Director de PNF en Electrónica',
-                    'firma_base64' => isset($data['firma_director_rectoria_b64']) ? $data['firma_director_rectoria_b64'] : '',
-                    'titulo' => ''
-                ];
-
-                $firmasP2 = [$director];
-                if ($facilitador) {
-                    $firmasP2[] = $facilitador;
-                }
-            } else {
-                $firmasP2 = array_filter($data['firmantes'], function ($f) {
-                    return $f['pagina'] == 2;
-                });
-            }
-            ?>
-
-            <?php foreach ($firmasP2 as $f):
-                $nombreF = !empty($f['titulo']) ? $f['titulo'] . ' ' . $f['nombre'] : $f['nombre'];
-                ?>
-                <div class="firma-box">
-                    <?php if (!empty($f['firma_base64'])): ?>
-                        <div class="firma-box-img-wrapper">
-                            <img src="<?php echo $f['firma_base64']; ?>" class="firma-img">
-                        </div>
-                    <?php else: ?>
-                        <div style="height: 40px;"></div>
-                    <?php endif; ?>
-                    <div class="firma-linea"></div>
-                    <div class="firma-nombre"><?php echo htmlspecialchars(trim($nombreF)); ?></div>
-                    <div class="firma-cargo"><?php echo htmlspecialchars($f['cargo']); ?></div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-
-</body>
-
-</html>

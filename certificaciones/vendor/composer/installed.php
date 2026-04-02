@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => 'e051d06b10e41c7ce97c8fd46e45845067d7f1f4',
+        'reference' => 'e10a3c3850ead3541f7a16b4c6fd65d66b194f51',
         'name' => '__root__',
         'dev' => true,
     ),
@@ -16,7 +16,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => 'e051d06b10e41c7ce97c8fd46e45845067d7f1f4',
+            'reference' => 'e10a3c3850ead3541f7a16b4c6fd65d66b194f51',
             'dev_requirement' => false,
         ),
         'bacon/bacon-qr-code' => array(
@@ -98,6 +98,15 @@
             'install_path' => __DIR__ . '/../sabberworm/php-css-parser',
             'aliases' => array(),
             'reference' => 'd8e916507b88e389e26d4ab03c904a082aa66bb9',
+            'dev_requirement' => false,
+        ),
+        'setasign/fpdf' => array(
+            'pretty_version' => '1.8.6',
+            'version' => '1.8.6.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../setasign/fpdf',
+            'aliases' => array(),
+            'reference' => '0838e0ee4925716fcbbc50ad9e1799b5edfae0a0',
             'dev_requirement' => false,
         ),
         'symfony/inflector' => array(
