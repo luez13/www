@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $stmt = $db->prepare('DELETE FROM cursos.certificaciones WHERE id_usuario = :id_usuario AND curso_id = :curso_id');
             $stmt->execute(['id_usuario' => $id_usuario, 'curso_id' => $curso_id]);
-            $message = "Has cancelado la inscripción del curso.";
+            $message = "Inscripción cancelada correctamente.";
             $type = "success";
         } catch (PDOException $e) {
             $message = "Ha ocurrido un error al cancelar la inscripción del curso: " . $e->getMessage();

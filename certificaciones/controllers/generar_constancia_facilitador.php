@@ -5,7 +5,7 @@ if (!isset($_SESSION['user_id'])) {
     die("Acceso denegado.");
 }
 
-require_once('../config/model.php');
+require_once __DIR__ . '/../config/model.php';
 
 $db = new DB();
 
@@ -97,7 +97,7 @@ $data = [
 ];
 
 // --- GENERACIÓN DEL PDF CON DOMPDF ---
-require_once '../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -111,7 +111,7 @@ $dompdf = new Dompdf($options);
 
 // Renderizar la vista pasando los datos
 ob_start();
-include '../views/certificados/constancia_docente_base.php';
+include __DIR__ . '/../views/certificados/constancia_docente_base.php';
 $html = ob_get_clean();
 
 $dompdf->loadHtml($html);

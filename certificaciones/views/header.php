@@ -1,5 +1,5 @@
 <?php
-require_once '../controllers/autenticacion.php';
+require_once __DIR__ . '/../controllers/autenticacion.php';
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
@@ -27,14 +27,14 @@ $_SESSION['logueado'] = isset($_SESSION['nombre']);
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
-    <link href="../public/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <!-- Google Fonts -->
     <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
     <!-- Custom styles -->
-    <link href="../public/assets/css/sb-admin-2.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../public/assets/css/estilo.css">
+    <link href="assets/css/sb-admin-2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/estilo.css">
     <!-- DataTables y Extensiones CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap4.min.css">
@@ -110,7 +110,7 @@ $_SESSION['logueado'] = isset($_SESSION['nombre']);
     <!-- tsParticles Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
     <?php if (in_array($current_page, ['index.php', 'register.php', 'recuperar_password.php', 'reset_password.php', 'ver_certificados.php'])): ?>
-        <script src="../public/assets/js/tsparticles-config.js" defer></script>
+        <script src="assets/js/tsparticles-config.js" defer></script>
         <?php
     endif; ?>
     <script>
@@ -163,13 +163,13 @@ $_SESSION['logueado'] = isset($_SESSION['nombre']);
         <?php if ($current_page === 'perfil.php'): ?>
             <div class="banner-container">
                 <?php if ($_SESSION['logueado']): ?>
-                    <a href="../public/perfil.php" class="banner-link">
-                        <img src="../public/assets/img/vector membrete 1-01.png" alt="Banner" class="banner-image">
+                    <a href="perfil.php" class="banner-link">
+                        <img src="assets/img/vector membrete 1-01.png" alt="Banner" class="banner-image">
                     </a>
                     <?php
                 else: ?>
-                    <a href="../public/index.php" class="banner-link">
-                        <img src="../public/assets/img/vector membrete 1-01.png" alt="Banner" class="banner-image">
+                    <a href="index.php" class="banner-link">
+                        <img src="assets/img/vector membrete 1-01.png" alt="Banner" class="banner-image">
                     </a>
                     <?php
                 endif; ?>

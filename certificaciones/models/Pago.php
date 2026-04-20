@@ -237,25 +237,27 @@ class Pago
 
     public function eliminarComprobante($id_comprobante)
     {
-        // 1. Obtener la ruta del archivo primero para poder borrarlo
+        // 1. Obtener los datos del comprobante primero
         $comprobante = $this->obtenerComprobantePorId($id_comprobante);
 
         if ($comprobante) {
-            // 2. Eliminar de la base de datos lógicamente, poniendo archivo a nulo
-            $sql = "UPDATE cursos.comprobantes_pago SET archivo_ruta = NULL WHERE id_comprobante = :id_comprobante";
+            // 2. Si el pago estaba 'Comprobado' y era de un curso completo, revertimos el estado de pago en certificaciones
+            if ($comprobante['estado'] === 'Comprobado' && empty($comprobante['id_materia_bimestre'])) {
+                $this->actualizarEstadoCertificacion($comprobante['id_usuario'], $comprobante['id_curso'], false);
+            }
+
+            // 3. Eliminar físicamente de la base de datos
+            $sql = "DELETE FROM cursos.comprobantes_pago WHERE id_comprobante = :id_comprobante";
             $stmt = $this->db->prepare($sql);
             $borradoDB = $stmt->execute(['id_comprobante' => $id_comprobante]);
 
-            // 3. Eliminar archivo físico si existe en DB y en disco
+            // 4. Eliminar archivo físico si existe
             if ($borradoDB && !empty($comprobante['archivo_ruta'])) {
                 $rutaFisica = '../public/' . $comprobante['archivo_ruta'];
                 if (file_exists($rutaFisica)) {
                     unlink($rutaFisica);
                 }
             }
-            // Si el comprobante estaba 'Comprobado', tendríamos que revertir la certificación.
-            // Pero como esta acción es de bajo nivel o restringida, dejamos esa lógica al controlador si hiciera falta
-            // o asumimos que el admin sabe lo que hace.
 
             return $borradoDB;
         }

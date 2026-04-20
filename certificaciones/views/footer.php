@@ -75,12 +75,12 @@
 </footer>
 
 <!-- Bootstrap core JavaScript-->
-<script src="../public/assets/vendor/jquery/jquery.min.js"></script>
-<script src="../public/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="assets/vendor/jquery/jquery.min.js"></script>
+<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <!-- Core plugin JavaScript-->
-<script src="../public/assets/vendor/jquery-easing/jquery.easing.min.js"></script>
+<script src="assets/vendor/jquery-easing/jquery.easing.min.js"></script>
 <!-- Custom scripts for all pages-->
-<script src="../public/assets/js/sb-admin-2.min.js"></script>
+<script src="assets/js/sb-admin-2.min.js"></script>
 
 <!-- Scripts de DataTables y Exportación (Cargados globalmente para evitar errores AJAX) -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>

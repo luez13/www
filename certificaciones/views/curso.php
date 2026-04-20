@@ -136,10 +136,10 @@ $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP
         </div>
 
         <div class="card-footer text-center bg-light p-3">
-            <?php if ($_SESSION['id_rol'] != 4): // Si no es admin global ?>
+            <?php if (in_array($_SESSION['id_rol'], [1, 2, 3, 4])): // Permitir que todos los roles actúen como alumnos si lo desean ?>
                 <?php if (!$inscripcion): ?>
                     <?php if ($cupos_disponibles > 0): ?>
-                        <form id="formInscribirCurso" method="POST" action="/certificaciones/controllers/curso_acciones.php">
+                        <form id="formInscribirCurso" method="POST" action="../controllers/curso_acciones.php">
                             <input type="hidden" name="action" value="inscribirse">
                             <input type="hidden" name="id_usuario" value="<?php echo $_SESSION['user_id']; ?>">
                             <input type="hidden" name="curso_id" value="<?php echo $id_curso; ?>">
@@ -159,7 +159,7 @@ $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP
 
                     <div class="d-flex justify-content-center gap-2">
                         <?php if ($inscripcion['completado'] != 1): ?>
-                            <form id="formCancelarCurso" method="POST" action="/certificaciones/controllers/curso_acciones.php">
+                            <form id="formCancelarCurso" method="POST" action="../controllers/curso_acciones.php">
                                 <input type="hidden" name="action" value="cancelar_inscripcion">
                                 <input type="hidden" name="id_usuario" value="<?php echo $_SESSION['user_id']; ?>">
                                 <input type="hidden" name="curso_id" value="<?php echo $id_curso; ?>">

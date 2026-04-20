@@ -1,14 +1,14 @@
 <?php
 // public/editar_cursos.php
 
-include '../controllers/init.php';
-include '../config/model.php';
-include '../models/curso.php';
+include __DIR__ . '/../controllers/init.php';
+include __DIR__ . '/../config/model.php';
+include __DIR__ . '/../models/curso.php';
 
 $user_id = $_SESSION['user_id'];
 $pagina_actual = '../public/editar_cursos.php';
 
-require_once '../controllers/autenticacion.php';
+require_once __DIR__ . '/../controllers/autenticacion.php';
 if (!esPerfil3($user_id) && !esPerfil4($user_id)) {
     die('No tienes permiso para ver esta página.');
 }
@@ -594,8 +594,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                                     <span class="icon text-white-50"><i class="fas fa-fw fa-calculator"></i></span>
                                                     <span class="text">Notas/Calificaciones</span>
                                                 </a>
-                                                <a href="#" class="btn btn-success btn-icon-split"
-                                                    onclick="loadPage('../views/generar_acta_cierre.php', { id_curso: <?= $curso['id_curso'] ?> }); return false;">
+                                                <a href="../controllers/generar_acta_cierre_fpdf.php?id_curso=<?= $curso['id_curso'] ?>" target="_blank" class="btn btn-success btn-icon-split">
                                                     <span class="icon text-white-50"><i
                                                             class="fas fa-fw fa-file-signature"></i></span>
                                                     <span class="text">Acta de Cierre Final</span>

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // views/mis_materias_facilitador.php
 
 include '../controllers/init.php';

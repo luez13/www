@@ -161,7 +161,7 @@ switch ($action) {
 
         $es_admin = isset($_SESSION['id_rol']) && in_array($_SESSION['id_rol'], [3, 4]);
         $es_propietario = $comprobante['id_usuario'] == $_SESSION['user_id'];
-        $estado_permitido = in_array($comprobante['estado'], ['Pendiente', 'Rechazado']);
+        $estado_permitido = ($comprobante['estado'] === 'Pendiente');
 
         // Puede eliminar si es Admin, O si es el dueño y el estado lo permite
         if ($es_admin || ($es_propietario && $estado_permitido)) {
@@ -202,7 +202,7 @@ switch ($action) {
 
         $es_admin = isset($_SESSION['id_rol']) && in_array($_SESSION['id_rol'], [3, 4]);
         $es_propietario = $comprobante_actual['id_usuario'] == $_SESSION['user_id'];
-        $estado_permitido = in_array($comprobante_actual['estado'], ['Pendiente', 'Rechazado']);
+        $estado_permitido = ($comprobante_actual['estado'] === 'Pendiente');
 
         // Puede editar si es Admin, O si es el dueño y el estado lo permite
         if (!$es_admin && !($es_propietario && $estado_permitido)) {

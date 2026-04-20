@@ -3,8 +3,8 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once('../config/model.php');
-require_once('../models/curso.php');
+require_once __DIR__ . '/../config/model.php';
+require_once __DIR__ . '/../models/curso.php';
 
 // Crear una instancia de la clase DB
 $db = new DB();
@@ -92,7 +92,7 @@ $data = [
 ];
 
 // --- GENERACIÓN DEL PDF CON DOMPDF ---
-require_once '../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -106,7 +106,7 @@ $dompdf = new Dompdf($options);
 
 // Renderizar la vista pasando los datos
 ob_start();
-include '../views/certificados/constancia_base.php';
+include __DIR__ . '/../views/certificados/constancia_base.php';
 $html = ob_get_clean();
 
 $dompdf->loadHtml($html);

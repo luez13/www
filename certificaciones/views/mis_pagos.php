@@ -156,6 +156,7 @@ function h($str)
                             </div>
                         </div>
 
+                        <div class="form-group mb-3">
                             <label>Adjuntar Comprobante (PDF, JPG, PNG) <span class="text-muted">(Opcional)</span>:</label>
                             <input type="file" name="comprobante_archivo" class="form-control-file border p-2 rounded"
                                 accept=".pdf,.jpg,.jpeg,.png">
@@ -203,7 +204,6 @@ function h($str)
                                         <small class="text-muted">Subido: <?= date('d/m/Y H:i', strtotime(isset($pago['fecha_subida']) ? $pago['fecha_subida'] : 'now')) ?></small>
                                     </td>
                                     <td class="text-left font-weight-bold"><?= h($pago['nombre_curso']) ?></td>
-                                    <td><?= h($pago['numero_operacion']) ?><br><small class="text-muted"><?= h($pago['banco_origen']) ?></small></td>
                                     <td>
                                         <?= (isset($pago['moneda']) && $pago['moneda'] === 'Divisas') ? '$' : 'Bs. ' ?><?= number_format($pago['monto'], 2) ?>
                                     </td>
@@ -214,8 +214,8 @@ function h($str)
                                             <span class="badge badge-primary">Bs.</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?= h($pago['numero_operacion'] ? $pago['numero_operacion'] : 'N/A') ?><br><small
-                                            class="text-muted"><?= h($pago['banco_origen']) ?></small></td>
+                                    <td><?= h(isset($pago['numero_operacion']) ? $pago['numero_operacion'] : 'N/A') ?><br><small
+                                            class="text-muted"><?= h(isset($pago['banco_origen']) ? $pago['banco_origen'] : '') ?></small></td>
                                     <td>
                                         <?php
                                         $badgeClass = 'badge-warning';
@@ -234,7 +234,7 @@ function h($str)
                                             <a href="../public/<?= h($pago['archivo_ruta']) ?>" target="_blank" class="btn btn-sm btn-info shadow-sm mb-1">
                                                 <i class="fas fa-eye"></i> Ver
                                             </a>
-                                            <?php if ($pago['estado'] === 'Pendiente' || $pago['estado'] === 'Rechazado'): ?>
+                                            <?php if ($pago['estado'] === 'Pendiente'): ?>
                                                 <button type="button" class="btn btn-sm btn-warning shadow-sm mb-1 text-dark"
                                                     onclick="abrirModalEditComprobante(<?= $pago['id_comprobante'] ?>, '<?= h($pago['banco_origen']) ?>', '<?= h(isset($pago['numero_operacion']) ? $pago['numero_operacion'] : '') ?>', <?= $pago['monto'] ?>, '<?= date('Y-m-d', strtotime($pago['fecha_pago'])) ?>', '<?= isset($pago['moneda']) ? $pago['moneda'] : 'Bs' ?>')">
                                                     <i class="fas fa-edit"></i> Editar

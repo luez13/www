@@ -73,7 +73,7 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                                     <th>Materia</th>
                                     <th>Duración (Texto)</th>
                                     <th>Modalidad</th>
-                                    <th>Docente</th>
+                                    <th>Facilitador</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -84,22 +84,41 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                                         <td><?= htmlspecialchars($mat['duracion_bimestres']) ?></td>
                                         <td><?= htmlspecialchars($mat['modalidad']) ?></td>
                                         <td><?= htmlspecialchars($mat['nombre_docente'] . ' ' . $mat['apellido_docente']) ?></td>
-                                        <td class="text-center" style="width: 180px;">
-                                            <button class="btn btn-warning btn-sm"
-                                                onclick="editarMateria(<?= $mat['id_materia_bimestre'] ?>)" title="Editar"><i
-                                                    class="fas fa-edit"></i></button>
+                                        <td class="text-center">
+                                            <!-- Desktop View Actions -->
+                                            <div class="d-none d-md-block">
+                                                <button class="btn btn-warning btn-sm"
+                                                    onclick="editarMateria(<?= $mat['id_materia_bimestre'] ?>)" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <a href="../controllers/generar_acta_materia_fpdf.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"
+                                                    target="_blank" class="btn btn-info btn-sm" title="Acta de Cierre">
+                                                    <i class="fas fa-file-contract"></i>
+                                                </a>
+                                                <a href="../controllers/generar_constancia_facilitador.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"
+                                                    target="_blank" class="btn btn-success btn-sm" title="Constancia de Docencia">
+                                                    <i class="fas fa-certificate"></i>
+                                                </a>
+                                                <button class="btn btn-danger btn-sm"
+                                                    onclick="eliminarMateria(<?= $mat['id_materia_bimestre'] ?>)" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
 
-                                            <a href="../views/generar_acta_materia.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"
-                                                target="_blank" class="btn btn-info btn-sm" title="Acta de Cierre">
-                                                <i class="fas fa-file-contract"></i>
-                                            </a>
-                                            <a href="../controllers/generar_constancia_facilitador.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"
-                                                target="_blank" class="btn btn-success btn-sm" title="Constancia de Docencia">
-                                                <i class="fas fa-certificate"></i>
-                                            </a>
-                                            <button class="btn btn-danger btn-sm"
-                                                onclick="eliminarMateria(<?= $mat['id_materia_bimestre'] ?>)" title="Eliminar"><i
-                                                    class="fas fa-trash"></i></button>
+                                            <!-- Mobile View Actions (Dropdown) -->
+                                            <div class="dropdown d-md-none">
+                                                <button class="btn btn-primary btn-sm dropdown-toggle shadow-sm" type="button" 
+                                                    id="dropdownMenu<?= $mat['id_materia_bimestre'] ?>" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="fas fa-cog"></i> Opciones
+                                                </button>
+                                                <ul class="dropdown-menu shadow border-0" aria-labelledby="dropdownMenu<?= $mat['id_materia_bimestre'] ?>" style="z-index: 1050;">
+                                                    <li><a class="dropdown-item py-2" href="#" onclick="editarMateria(<?= $mat['id_materia_bimestre'] ?>)"><i class="fas fa-edit me-2 text-warning"></i> Editar</a></li>
+                                                    <li><a class="dropdown-item py-2" target="_blank" href="../controllers/generar_acta_materia_fpdf.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"><i class="fas fa-file-contract me-2 text-info"></i> Generar Acta</a></li>
+                                                    <li><a class="dropdown-item py-2" target="_blank" href="../controllers/generar_constancia_facilitador.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"><i class="fas fa-certificate me-2 text-success"></i> Constancia</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item py-2 text-danger" href="#" onclick="eliminarMateria(<?= $mat['id_materia_bimestre'] ?>)"><i class="fas fa-trash me-2"></i> Eliminar</a></li>
+                                                </ul>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -164,7 +183,7 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                     </div>
 
                     <div class="mb-3">
-                        <label>Docente</label>
+                        <label>Facilitador</label>
                         <div class="input-group">
                             <input type="hidden" name="docente_id" id="docente_id">
                             <input type="text" class="form-control" id="docente_nombre" readonly placeholder="Buscar..."
@@ -183,11 +202,11 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
     </div>
 </div>
 
-<div class="modal fade" id="modalBuscarDocente" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+<div class="modal fade" id="modalBuscarDocente" tabindex="-1" aria-hidden="true" style="z-index: 1070;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
             <div class="modal-header bg-info text-white">
-                <h5 class="modal-title">Buscar Docente</h5><button type="button" class="btn-close"
+                <h5 class="modal-title"><i class="fas fa-search me-2"></i>Buscar Facilitador</h5><button type="button" class="btn-close btn-close-white"
                     data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">

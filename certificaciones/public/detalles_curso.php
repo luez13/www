@@ -17,11 +17,8 @@
 </head>
 
 <?php
-// Incluir el archivo model.php en config
-include '../config/model.php';
-
-// Incluir el archivo init.php en views
-include '../controllers/init.php';
+include __DIR__ . '/../config/model.php';
+include __DIR__ . '/../controllers/init.php';
 
 echo "<script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -30,7 +27,7 @@ echo "<script>
 </script>";
 
 // Incluir el archivo curso.php en models
-include '../models/curso.php';
+include __DIR__ . '/../models/curso.php';
 
 // Crear una instancia de la clase DB
 $db = new DB();
@@ -54,7 +51,7 @@ $promotor_id = $curso_info['promotor'];
 // Verificar si el usuario tiene permiso para ver la página
 if (!in_array($user_role, [3, 4]) && $user_id != $promotor_id) {
     echo '<p>No tienes permiso para ver esta página.</p>';
-    include '../views/footer.php';
+    include __DIR__ . '/../views/footer.php';
     exit;
 }
 

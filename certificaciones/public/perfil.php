@@ -1,6 +1,6 @@
 <?php
 // Incluir el archivo header.php en views
-include '../views/header.php';
+include __DIR__ . '/../views/header.php';
 
 // Obtener los datos del usuario actual
 $user_id = $_SESSION['user_id'];
@@ -24,7 +24,7 @@ try {
 
         <a class="sidebar-brand d-flex align-items-center justify-content-center" href="#" onclick="loadProfile()">
             <div class="sidebar-brand-icon rotate-n-15">
-                <img src="../public/assets/img/logo.png" width="50" height="50" alt="Logo UPTAIET" />
+                <img src="assets/img/logo.png" width="50" height="50" alt="Logo UPTAIET" />
             </div>
             <div class="sidebar-brand-text mx-3">UPTAIET</div>
         </a>
@@ -108,7 +108,7 @@ try {
 
         <?php if (in_array($_SESSION['id_rol'], [2, 3, 4])): ?>
             <hr class="sidebar-divider">
-            <div class="sidebar-heading">Espacio Docente</div>
+            <div class="sidebar-heading">Espacio del Facilitador</div>
 
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDocencia"
@@ -223,7 +223,7 @@ try {
             <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
 
                 <!-- Toda la estructura del nav izq Sidebar Toggle (Topbar) -->
-                <div class="text-center d-none d-md-inline mb-3">
+                <div class="text-center d-flex align-items-center mb-3">
                     <button class="btn btn-secondary rounded-circle border-0" id="sidebarToggle">
                         <i class="fas fa-arrows-alt-h"></i>
                     </button>
@@ -277,7 +277,7 @@ try {
                             <span class="mr-2 d-none d-lg-inline text-gray-600 small fw-bold">Hola,
                                 <?= htmlspecialchars($_SESSION['nombre']) ?></span>
                             <img class="img-profile rounded-circle border shadow-sm"
-                                src="../public/assets/img/undraw_profile.svg" style="width: 2.5rem; height: 2.5rem;">
+                                src="assets/img/undraw_profile.svg" style="width: 2.5rem; height: 2.5rem;">
                         </a>
                         <!-- Categoría Dropdown -->
                         <div class="dropdown-menu dropdown-menu-right shadow-lg animated--grow-in border-0 rounded-4 mt-2"
@@ -285,7 +285,7 @@ try {
                             <div
                                 class="dropdown-header d-flex flex-column align-items-center pt-3 pb-2 bg-light rounded-top">
                                 <img class="img-profile rounded-circle mb-2 border shadow-sm"
-                                    src="../public/assets/img/undraw_profile.svg"
+                                    src="assets/img/undraw_profile.svg"
                                     style="width: 3.5rem; height: 3.5rem;">
                                 <h6 class="text-dark font-weight-bold mb-0">
                                     <?= htmlspecialchars($_SESSION['nombre'] . ' ' . $_SESSION['apellido']) ?>

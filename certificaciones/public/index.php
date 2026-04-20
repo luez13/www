@@ -1,7 +1,7 @@
 <?php
 // Se incluye el encabezado de la página.
-include '../views/header.php';
-require_once '../config/model.php';
+include __DIR__ . '/../views/header.php';
+require_once __DIR__ . '/../config/model.php';
 
 try {
     $db = new DB();
@@ -15,7 +15,7 @@ try {
     // Si no hay configurado, cargamos uno por defecto del sistema
     if (empty($carrusel_items)) {
         $carrusel_items = [
-            ['ruta_imagen' => '../public/assets/img/curso1.jpg', 'titulo' => 'Bienvenido', 'descripcion' => 'Sistema de Certificaciones UPTAIET']
+            ['ruta_imagen' => 'assets/img/curso1.jpg', 'titulo' => 'Bienvenido', 'descripcion' => 'Sistema de Certificaciones UPTAIET']
         ];
     }
 
@@ -73,14 +73,14 @@ function renderizarCursos($cursosArray)
 
 <header class="institutional-banner-container bg-light shadow-sm">
     <div class="container text-center">
-        <img src="../public/assets/img/vector membrete 1-01.png" alt="Banner Institucional UPTAIET" class="img-fluid">
+        <img src="assets/img/vector membrete 1-01.png" alt="Banner Institucional UPTAIET" class="img-fluid">
     </div>
 </header>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow">
     <div class="container">
         <a class="navbar-brand" href="#">
-            <img src="../public/assets/img/logo.png" alt="Logo UPTAIET" width="30" height="30"
+            <img src="assets/img/logo.png" alt="Logo UPTAIET" width="30" height="30"
                 class="d-inline-block align-text-top me-2">
             UPTAIET Certs
         </a>
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="modal-body p-4 p-md-5 bg-light">
                 <div class="text-center mb-4">
-                    <img src="../public/assets/img/logo.png" width="80" height="80"
+                    <img src="assets/img/logo.png" width="80" height="80"
                         class="mb-3 shadow-sm rounded-circle p-2 bg-white">
                     <h4 class="text-gray-900 fw-bold">Bienvenido de Nuevo</h4>
                     <p class="text-muted small">Ingresa tus credenciales para continuar</p>

@@ -1,6 +1,6 @@
 <?php
 // Incluir el archivo header.php
-include '../views/header.php';
+include __DIR__ . '/../views/header.php';
 
 $fm_nombre = isset($_SESSION['form_data']['nombre']) ? $_SESSION['form_data']['nombre'] : '';
 $fm_apellido = isset($_SESSION['form_data']['apellido']) ? $_SESSION['form_data']['apellido'] : '';
@@ -15,7 +15,7 @@ unset($_SESSION['form_data']);
             <div class="col-xl-6 col-lg-8 col-md-9 mt-5">
                 <div class="card border-0 shadow-lg rounded-4 overflow-hidden mt-5">
                     <div class="card-header bg-primary text-white text-center py-4 border-0">
-                        <img src="../public/assets/img/logo.png" width="70" height="70"
+                        <img src="assets/img/logo.png" width="70" height="70"
                             class="mb-2 shadow-sm rounded-circle p-2 bg-white">
                         <h4 class="mb-0 fw-bold">Crear una Cuenta</h4>
                         <p class="mb-0 text-white-50 small">Regístrate para acceder a los cursos y certificaciones</p>
@@ -107,7 +107,7 @@ unset($_SESSION['form_data']);
     </div>
     <?php
     // Incluir el archivo footer.php en views
-    include '../views/footer.php';
+    include __DIR__ . '/../views/footer.php';
     ?>
     <script>
         document.getElementById("registerForm").addEventListener("submit", function (event) {

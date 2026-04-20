@@ -51,6 +51,7 @@
             left: 10%;
             width: 80%;
             text-align: justify;
+            text-justify: inter-word;
             z-index: 2;
         }
 
@@ -146,7 +147,7 @@
                 Por medio de la presente, hacemos constar que el/la ciudadano(a)
                 <strong><?php echo htmlspecialchars($nombre_docente); ?></strong>, titular de la cédula de identidad N°
                 V-<strong><?php echo $cedula; ?></strong>, se encuentra actualmente desempeñándose en calidad de
-                <strong>Facilitador / Docente</strong> en la unidad curricular
+                <strong>Facilitador</strong> en la unidad curricular
                 <strong><?php echo htmlspecialchars($nombre_materia); ?></strong>, correspondiente al <strong>Periodo
                     Académico N° <?php echo $lapso_academico; ?></strong> del programa formativo titulado
                 <strong><?php echo htmlspecialchars($nombre_curso); ?></strong>, organizado por la <strong>Coordinación

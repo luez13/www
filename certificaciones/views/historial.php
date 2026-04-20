@@ -91,7 +91,7 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
     <?php elseif ($action == 'finalizados'): ?>
         <?php
         try {
-            $stmt = $db->prepare('SELECT c.id_curso, c.nombre_curso, c.fecha_finalizacion, ce.nota, ce.valor_unico 
+            $stmt = $db->prepare('SELECT c.id_curso, c.nombre_curso, c.fecha_finalizacion, ce.nota, ce.valor_unico, ce.pago 
                                   FROM cursos.cursos c 
                                   JOIN cursos.certificaciones ce ON c.id_curso = ce.curso_id 
                                   WHERE ce.id_usuario = :id_usuario AND ce.completado = true');
@@ -144,10 +144,19 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                     </div>
                                 </div>
                                 <hr>
-                                <div class="d-flex justify-content-end">
+                                <div class="d-flex justify-content-end gap-2">
                                     <a href="#" onclick="loadCourse(<?= $curso['id_curso'] ?>)" class="btn btn-sm btn-info">
                                         <i class="fas fa-eye"></i> Detalles
                                     </a>
+                                    <?php if ($curso['pago'] == 1): ?>
+                                        <a href="../controllers/generar_certificado.php?valor_unico=<?= $curso['valor_unico'] ?>" target="_blank" class="btn btn-sm btn-success">
+                                            <i class="fas fa-award"></i> Certificado
+                                        </a>
+                                    <?php else: ?>
+                                        <button class="btn btn-sm btn-warning" onclick="loadPage('../views/mis_pagos.php')">
+                                            <i class="fas fa-lock"></i> Arancel Pendiente
+                                        </button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
