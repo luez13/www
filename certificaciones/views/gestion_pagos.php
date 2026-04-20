@@ -184,7 +184,9 @@ asort($cursos_filtros);
                             <tr>
                                 <th>Fecha Pago (Oculta para filtro)</th>
                                 <th>Fecha</th>
-                                <th>Usuario</th>
+                                <th>Fecha de subida</th>
+                                <th>Nombre</th>
+                                <th>Cédula</th>
                                 <th>Curso / Diplomado</th>
                                 <th>Moneda</th>
                                 <th>Referencia / Banco</th>
@@ -203,16 +205,25 @@ asort($cursos_filtros);
                                 <tr>
                                     <td style="display:none;"><?= date('Y-m-d', strtotime($comp['fecha_pago'])) ?></td>
                                     <td data-sort="<?= date('Y-m-d', strtotime($comp['fecha_pago'])) ?>">
-                                        <?= date('d/m/Y', strtotime($comp['fecha_pago'])) ?><br>
-                                        <small class="text-muted">Subido:
+                                        <?= date('d/m/Y', strtotime($comp['fecha_pago'])) ?>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
                                             <?= date('d/m/Y H:i', strtotime($comp['fecha_subida'])) ?></small>
                                     </td>
                                     <td class="text-left">
-                                        <strong><?= h($comp['apellido'] . ', ' . $comp['nombre']) ?></strong><br>
+                                        <strong><?= h($comp['apellido'] . ', ' . $comp['nombre']) ?></strong>
+                                    </td>
+                                    <td>
                                         <span class="badge badge-secondary"><?= h($comp['cedula']) ?></span>
                                     </td>
                                     <td class="text-left font-weight-bold text-primary">
                                         <?= h($comp['nombre_curso']) ?>
+                                        <?php if (!empty($comp['nombre_materia'])): ?>
+                                            <div class="small text-muted font-weight-normal mt-1">
+                                                <i class="fas fa-book me-1"></i> Materia: <?= h($comp['nombre_materia']) ?>
+                                            </div>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <?php if (isset($comp['moneda']) && $comp['moneda'] === 'Divisas'): ?>
@@ -409,7 +420,7 @@ asort($cursos_filtros);
                     rowDateStr = match[3] + "-" + match[2] + "-" + match[1]; // YYYY-MM-DD
                 }
 
-                let rowCourse = (data[3] || "").trim();
+                let rowCourse = (data[5] || "").trim();
 
                 let ocultar = false;
 
@@ -471,7 +482,24 @@ asort($cursos_filtros);
                         return 'Reporte de Pagos - ' + tabName;
                     },
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5]
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                        orthogonal: 'export',
+                        format: {
+                            body: function (data, row, column, node) {
+                                // Limpieza universal de espacios y etiquetas para todas las columnas
+                                // Preservamos los saltos de línea intencionales (br) como guiones
+                                let clean = data.replace(/<br\s*\/?>/gi, ' - ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                                
+                                // Si es la columna de Curso / Diplomado
+                                if (column === 5) {
+                                    if (clean.includes('Materia:')) {
+                                        let partes = clean.split('Materia:');
+                                        return partes[0].replace(/ - $/, '').trim() + ' - Materia: ' + partes[1].trim();
+                                    }
+                                }
+                                return clean;
+                            }
+                        }
                     }
                 },
                 {
@@ -484,7 +512,24 @@ asort($cursos_filtros);
                     },
                     orientation: 'landscape',
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5]
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                        orthogonal: 'export',
+                        format: {
+                            body: function (data, row, column, node) {
+                                if (column === 5) {
+                                    let cleanData = data.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                                    if (cleanData.includes('Materia:')) {
+                                        let partes = cleanData.split('Materia:');
+                                        return partes[0].trim() + ' - Materia: ' + partes[1].trim();
+                                    }
+                                    return cleanData;
+                                }
+                                if (column === 7) {
+                                    return data.replace(/<br\s*\/?>/gi, ' - ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                                }
+                                return data.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                            }
+                        }
                     }
                 },
                 {
@@ -496,7 +541,7 @@ asort($cursos_filtros);
                         return 'Reporte de Pagos - ' + tabName;
                     },
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5]
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8]
                     }
                 }
             ],
@@ -783,20 +828,19 @@ asort($cursos_filtros);
                         let nuevoMoneda = formData.get('moneda');
                         let simbolo = (nuevoMoneda === 'Divisas') ? '$' : 'Bs. ';
                         
-                        let oldSubido = data[1].includes('Subido:') ? data[1].split('Subido:')[1].split('<')[0] : '';
-                        data[1] = `${fechaFormat}<br><small class="text-muted">Subido:${oldSubido}</small>`;
+                        data[1] = fechaFormat;
                         data[0] = nuevaFecha;
 
-                        data[4] = (nuevoMoneda === 'Divisas') ? '<span class="badge badge-success">Divisas</span>' : '<span class="badge badge-primary">Bs.</span>';
+                        data[6] = (nuevoMoneda === 'Divisas') ? '<span class="badge badge-success">Divisas</span>' : '<span class="badge badge-primary">Bs.</span>';
 
                         let oldObs = '';
-                        if (data[5] && data[5].includes('<b>Obs:</b>')) {
-                            oldObs = data[5].substring(data[5].indexOf('<hr class="m-1">'));
+                        if (data[7] && data[7].includes('<b>Obs:</b>')) {
+                            oldObs = data[7].substring(data[7].indexOf('<hr class="m-1">'));
                         }
                         
-                        let refMostrar = nuevaRef ? nuevaRef : '';
-                        data[5] = `<strong>${refMostrar}</strong><br><small class="text-muted">${nuevoBanco}</small>${oldObs}`;
-                        data[6] = `<span class="text-success font-weight-bold" style="font-size: 1.1rem;">${simbolo}${nuevoMonto}</span>`;
+                        let refMostrar = nuevaRef ? nuevaRef : 'N/A';
+                        data[7] = `<strong>${refMostrar}</strong><br><small class="text-muted">${nuevoBanco}</small>${oldObs}`;
+                        data[8] = `<span class="text-success font-weight-bold" style="font-size: 1.1rem;">${simbolo}${nuevoMonto}</span>`;
 
                         row.data(data).draw(false);
 

@@ -27,7 +27,7 @@ try {
 } catch (Exception $e) { // <-- Throwable atrapa Exceptions y Fatal Errors
     // Registrar el error en el log del servidor para depuración
     error_log("Error crítico en el Index: " . $e->getMessage());
-    
+
     // Si hay error continuar con arreglos vacíos para no romper la web
     $carrusel_items = [];
     $cursosTodos = [];
@@ -198,12 +198,15 @@ function renderizarCursos($cursosArray)
 </main>
 
 <!-- Modal de Detalles del Curso -->
-<div class="modal fade" id="courseDetailsModal" tabindex="-1" aria-labelledby="courseDetailsModalLabel" aria-hidden="true">
+<div class="modal fade" id="courseDetailsModal" tabindex="-1" aria-labelledby="courseDetailsModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg">
             <div class="modal-header bg-primary text-white border-bottom-0 pb-3">
-                <h5 class="modal-title fw-bold" id="courseDetailsModalLabel"><i class="fas fa-book-open me-2"></i> Detalles del Programa</h5>
-                <button type="button" class="btn-close btn-close-white" onclick="cerrarModalDetalles()" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold" id="courseDetailsModalLabel"><i class="fas fa-book-open me-2"></i>
+                    Detalles del Programa</h5>
+                <button type="button" class="btn-close btn-close-white" onclick="cerrarModalDetalles()"
+                    aria-label="Close"></button>
             </div>
             <div class="modal-body p-4 bg-light">
                 <div class="text-center my-5 d-none" id="courseLoading">
@@ -212,38 +215,52 @@ function renderizarCursos($cursosArray)
                     </div>
                     <p class="mt-3 text-muted fw-bold">Cargando detalles...</p>
                 </div>
-                
+
                 <div id="courseContent" style="display: none;">
-                    <img src="" id="courseModalImg" class="img-fluid rounded-3 shadow-sm mb-4 w-100" style="max-height: 250px; object-fit: cover; display: none;">
-                    
+                    <img src="" id="courseModalImg" class="img-fluid rounded-3 shadow-sm mb-4 w-100"
+                        style="max-height: 250px; object-fit: cover; display: none;">
+
                     <h3 id="courseModalTitle" class="fw-bold text-dark mb-2"></h3>
-                    <p class="badge bg-info text-dark mb-4 fs-6 px-3 py-2 rounded-pill shadow-sm" id="courseModalType" style="letter-spacing: 0.5px;"></p>
-                    
+                    <p class="badge bg-info text-dark mb-4 fs-6 px-3 py-2 rounded-pill shadow-sm" id="courseModalType"
+                        style="letter-spacing: 0.5px;"></p>
+
                     <div class="bg-white p-4 rounded-3 shadow-sm mb-4">
-                        <h5 class="fw-bold text-primary border-bottom pb-2 mb-3"><i class="fas fa-info-circle me-2"></i>Descripción</h5>
-                        <p id="courseModalDesc" class="text-secondary m-0" style="white-space: pre-wrap; font-size: 1.05rem; line-height: 1.6;"></p>
-                    </div>
-                    
-                    <div id="courseModalReqContainer" style="display: none;" class="bg-white p-4 rounded-3 shadow-sm mb-4 border-start border-4 border-warning">
-                        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-clipboard-list text-warning me-2"></i>Requisitos</h5>
-                        <p id="courseModalReq" class="text-secondary m-0" style="white-space: pre-wrap; font-size: 1rem;"></p>
+                        <h5 class="fw-bold text-primary border-bottom pb-2 mb-3"><i
+                                class="fas fa-info-circle me-2"></i>Descripción</h5>
+                        <p id="courseModalDesc" class="text-secondary m-0"
+                            style="white-space: pre-wrap; font-size: 1.05rem; line-height: 1.6;"></p>
                     </div>
 
-                    <div id="courseModalModContainer" style="display: none;" class="bg-white p-4 rounded-3 shadow-sm mb-2">
-                        <h5 class="fw-bold text-success border-bottom pb-2 mb-3"><i class="fas fa-layer-group me-2"></i>Contenido / Módulos</h5>
+                    <div id="courseModalReqContainer" style="display: none;"
+                        class="bg-white p-4 rounded-3 shadow-sm mb-4 border-start border-4 border-warning">
+                        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i
+                                class="fas fa-clipboard-list text-warning me-2"></i>Requisitos</h5>
+                        <p id="courseModalReq" class="text-secondary m-0"
+                            style="white-space: pre-wrap; font-size: 1rem;"></p>
+                    </div>
+
+                    <div id="courseModalModContainer" style="display: none;"
+                        class="bg-white p-4 rounded-3 shadow-sm mb-2">
+                        <h5 class="fw-bold text-success border-bottom pb-2 mb-3"><i
+                                class="fas fa-layer-group me-2"></i>Contenido / Módulos</h5>
                         <div class="accordion accordion-flush" id="accordionModules">
                             <!-- Modulos renderizados dinámicamente -->
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer bg-white pt-3 pb-3 px-4 border-top-0 d-flex justify-content-between align-items-center">
-                <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-4" onclick="cerrarModalDetalles()">Cerrar</button>
+            <div
+                class="modal-footer bg-white pt-3 pb-3 px-4 border-top-0 d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-outline-secondary fw-bold rounded-pill px-4"
+                    onclick="cerrarModalDetalles()">Cerrar</button>
                 <div class="text-end">
-                    <small class="text-muted d-block mb-2"><i class="fas fa-user-lock me-1"></i>Para matricularte, requieres una cuenta.</small>
-                    <button type="button" class="btn btn-success fw-bold px-4 py-2 rounded-pill shadow-sm" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal" style="transition: all 0.3s ease;" onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'">
+                    <small class="text-muted d-block mb-2"><i class="fas fa-user-lock me-1"></i>Para matricularte,
+                        requieres una cuenta.</small>
+                    <a href="register.php" id="btn-main-register" class="btn btn-success fw-bold px-4 py-2 rounded-pill shadow-sm"
+                        style="transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'"
+                        onmouseout="this.style.transform='scale(1)'">
                         <i class="fas fa-sign-in-alt me-2"></i>Inscribirse / Acceder
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -251,61 +268,63 @@ function renderizarCursos($cursosArray)
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const courseModal = new bootstrap.Modal(document.getElementById('courseDetailsModal'));
-    
-    window.cerrarModalDetalles = function() {
-        courseModal.hide();
-    };
+    document.addEventListener('DOMContentLoaded', function () {
+        const courseModal = new bootstrap.Modal(document.getElementById('courseDetailsModal'));
 
-    document.body.addEventListener('click', function(e) {
-        if(e.target && (e.target.classList.contains('btn-mas-info') || e.target.closest('.btn-mas-info'))) {
-            const btn = e.target.classList.contains('btn-mas-info') ? e.target : e.target.closest('.btn-mas-info');
-            const courseId = btn.getAttribute('data-id');
-            const loading = document.getElementById('courseLoading');
-            const content = document.getElementById('courseContent');
-            
-            // UI reset
-            loading.classList.remove('d-none');
-            content.style.display = 'none';
-            document.getElementById('accordionModules').innerHTML = '';
-            
-            courseModal.show();
-            
-            fetch(`api_curso_detalles.php?id_curso=${courseId}`)
-                .then(res => res.json())
-                .then(data => {
-                    if(data.error) {
-                        alert(data.error);
-                        courseModal.hide();
-                        return;
-                    }
-                    
-                    document.getElementById('courseModalTitle').textContent = data.nombre_curso;
-                    document.getElementById('courseModalType').textContent = (data.tipo_curso || '').replace('_', ' ').toUpperCase();
-                    document.getElementById('courseModalDesc').textContent = data.descripcion || 'Sin descripción detallada.';
-                    
-                    if(data.imagen_portada) {
-                        const img = document.getElementById('courseModalImg');
-                        img.src = data.imagen_portada;
-                        img.style.display = 'block';
-                    } else {
-                        document.getElementById('courseModalImg').style.display = 'none';
-                    }
-                    
-                    const reqContainer = document.getElementById('courseModalReqContainer');
-                    if(data.requisitos && data.requisitos.trim() !== '') {
-                        document.getElementById('courseModalReq').textContent = data.requisitos;
-                        reqContainer.style.display = 'block';
-                    } else {
-                        reqContainer.style.display = 'none';
-                    }
-                    
-                    const modContainer = document.getElementById('courseModalModContainer');
-                    if(data.modulos && data.modulos.length > 0) {
-                        let html = '';
-                        data.modulos.forEach((m, idx) => {
-                            html += `
+        window.cerrarModalDetalles = function () {
+            courseModal.hide();
+        };
+
+
+
+        document.body.addEventListener('click', function (e) {
+            if (e.target && (e.target.classList.contains('btn-mas-info') || e.target.closest('.btn-mas-info'))) {
+                const btn = e.target.classList.contains('btn-mas-info') ? e.target : e.target.closest('.btn-mas-info');
+                const courseId = btn.getAttribute('data-id');
+                const loading = document.getElementById('courseLoading');
+                const content = document.getElementById('courseContent');
+
+                // UI reset
+                loading.classList.remove('d-none');
+                content.style.display = 'none';
+                document.getElementById('accordionModules').innerHTML = '';
+
+                courseModal.show();
+
+                fetch(`api_curso_detalles.php?id_curso=${courseId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert(data.error);
+                            courseModal.hide();
+                            return;
+                        }
+
+                        document.getElementById('courseModalTitle').textContent = data.nombre_curso;
+                        document.getElementById('courseModalType').textContent = (data.tipo_curso || '').replace('_', ' ').toUpperCase();
+                        document.getElementById('courseModalDesc').textContent = data.descripcion || 'Sin descripción detallada.';
+
+                        if (data.imagen_portada) {
+                            const img = document.getElementById('courseModalImg');
+                            img.src = data.imagen_portada;
+                            img.style.display = 'block';
+                        } else {
+                            document.getElementById('courseModalImg').style.display = 'none';
+                        }
+
+                        const reqContainer = document.getElementById('courseModalReqContainer');
+                        if (data.requisitos && data.requisitos.trim() !== '') {
+                            document.getElementById('courseModalReq').textContent = data.requisitos;
+                            reqContainer.style.display = 'block';
+                        } else {
+                            reqContainer.style.display = 'none';
+                        }
+
+                        const modContainer = document.getElementById('courseModalModContainer');
+                        if (data.modulos && data.modulos.length > 0) {
+                            let html = '';
+                            data.modulos.forEach((m, idx) => {
+                                html += `
                             <div class="accordion-item shadow-sm mb-2 rounded border-0">
                                 <h2 class="accordion-header" id="headingMod${idx}">
                                     <button class="accordion-button collapsed fw-bold text-dark rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMod${idx}">
@@ -316,24 +335,34 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <div class="accordion-body text-secondary" style="white-space: pre-wrap; border-left: 3px solid #0d6efd; margin-left: 10px;">${m.contenido ? m.contenido.replace(/[\[\]"']/g, '').replace(/,/g, ', ').trim() : 'Sin detalles específicos.'}</div>
                                 </div>
                             </div>`;
-                        });
-                        document.getElementById('accordionModules').innerHTML = html;
-                        modContainer.style.display = 'block';
-                    } else {
-                        modContainer.style.display = 'none';
-                    }
-                    
-                    loading.classList.add('d-none');
-                    content.style.display = 'block';
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert("Error al cargar detalles. Contacte al administrador.");
-                    courseModal.hide();
-                });
-        }
+                            });
+                            document.getElementById('accordionModules').innerHTML = html;
+                            modContainer.style.display = 'block';
+                        } else {
+                            modContainer.style.display = 'none';
+                        }
+
+                        loading.classList.add('d-none');
+                        content.style.display = 'block';
+
+                        // SET REDIRECT ID
+                        const redirectInput = document.getElementById('redirect_course_id');
+                        if (redirectInput) redirectInput.value = courseId;
+
+                        const registerLink = document.getElementById('register_link_modal');
+                        if (registerLink) registerLink.href = `register.php?redirect_course_id=${courseId}`;
+
+                        const mainRegister = document.getElementById('btn-main-register');
+                        if (mainRegister) mainRegister.href = `register.php?redirect_course_id=${courseId}`;
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("Error al cargar detalles. Contacte al administrador.");
+                        courseModal.hide();
+                    });
+            }
+        });
     });
-});
 </script>
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -353,7 +382,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <form class="user" action="../controllers/autenticacion.php" method="post">
                     <input type="hidden" name="action" value="login">
-                    <input type="hidden" name="csrf_token" value="<?= isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '' ?>">
+                    <input type="hidden" name="csrf_token"
+                        value="<?= isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '' ?>">
+                    <input type="hidden" name="redirect_course_id" id="redirect_course_id" value="">
 
                     <div class="form-floating mb-3">
                         <input type="email" class="form-control rounded-pill px-4" id="floatingInputCorreo"
@@ -390,8 +421,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 </form>
             </div>
             <div class="modal-footer justify-content-center bg-white border-0 py-3">
-                <span class="text-muted small">¿No tienes cuenta? <a class="text-primary fw-bold text-decoration-none"
-                        href="register.php">¡Regístrate aquí!</a></span>
+                <span class="text-muted small">¿No tienes cuenta? <a id="register_link_modal"
+                        class="text-primary fw-bold text-decoration-none" href="register.php">¡Regístrate
+                        aquí!</a></span>
             </div>
         </div>
     </div>

@@ -1,252 +1,101 @@
 {
     "course_data": {
         "action": "editar",
-        "id_curso": "97",
+        "id_curso": "2",
         "modulos_a_eliminar": "",
-        "nombre_curso": "Componente docente universitario",
-        "descripcion": "Diplomado decente enfocado en la preparaci\u00f3n andragogica para desarrollo educativo de exelente calidad.",
-        "tipo_curso": "diplomado",
-        "nivel_curso": "avanzado",
-        "id_plantilla": "",
-        "inicio_mes": "2025-10-15",
-        "fecha_finalizacion": "2026-07-15T16:44",
-        "tiempo_asignado": "12",
-        "horario_inicio": "08:00:00",
-        "horario_fin": "19:00:00",
+        "nombre_curso": "El Rol de los Ingenieros y T\u00e9cnicos Electr\u00f3nicos en la D\u00e9cada 2020-2030 y el Futuro",
+        "descripcion": "prueba 2",
+        "tipo_curso": "seminario",
+        "nivel_curso": "introductorio",
+        "id_plantilla": "3",
+        "inicio_mes": "2025-03-16",
+        "fecha_finalizacion": "2025-06-26T10:41",
+        "tiempo_asignado": "1",
+        "horario_inicio": "11:00:00",
+        "horario_fin": "05:00:00",
         "dias_clase": [
-            "lunes",
-            "martes",
-            "miercoles",
-            "jueves",
-            "viernes"
+            "domingo"
         ],
-        "costo": "130.00",
-        "horas_cronologicas": "366",
-        "limite_inscripciones": "100",
-        "conocimientos_previos": "T\u00e9cnico superior universitario",
-        "requerimientos_implementos": "Disponibilidad de red y equipo para las actividades",
-        "desempe\u00f1o_al_concluir": "Habilidades andragogicas pertinentes",
-        "promotor": "5",
-        "autorizacion": "5",
+        "costo": "2.00",
+        "horas_cronologicas": "20",
+        "limite_inscripciones": "2",
+        "conocimientos_previos": "prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2",
+        "requerimientos_implementos": "prueba 2",
+        "desempe\u00f1o_al_concluir": "prueba 2",
+        "promotor": "3",
+        "estado": "1",
+        "firma_digital": "1",
         "modulos": {
-            "445": {
-                "id_modulo": "445",
-                "nombre_modulo": "Teor\u00edas del aprendizaje y ense\u00f1anzas.",
+            "2": {
+                "id_modulo": "2",
+                "nombre_modulo": "prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2",
                 "numero": "1",
                 "contenido": [
-                    "Ense\u00f1anzas y aprendizaje.",
-                    "Teor\u00edas del aprendizaje.",
-                    "El aprendizaje colaborativo.",
-                    "Modelo educativo basado en los cuatros pilares de la UNESCO."
+                    "prueba 2"
                 ],
-                "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-                "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
+                "actividad": "ninguna",
+                "instrumento": "ninguna"
             },
-            "446": {
-                "id_modulo": "446",
-                "nombre_modulo": "Legislaci\u00f3n educativa.",
+            "5": {
+                "id_modulo": "5",
+                "nombre_modulo": "algo",
                 "numero": "2",
                 "contenido": [
-                    "Constituci\u00f3n de la Rep\u00fablica bolivariana de Venezuela 30 de diciembre 1999.",
-                    "Leyes.",
-                    "Reglamento.",
-                    "Normativas.",
-                    "Gaceta.",
-                    "Planes.",
-                    "\u00c9tica profesional."
+                    "algo"
                 ],
-                "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-                "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-            },
-            "447": {
-                "id_modulo": "447",
-                "nombre_modulo": "Planificaci\u00f3n educativa.",
-                "numero": "3",
-                "contenido": [
-                    "Teor\u00edas de la planificaci\u00f3n y su relaci\u00f3n con las teor\u00edas del aprendizaje.",
-                    "Marco te\u00f3rico de la planificaci\u00f3n de la ense\u00f1anza y del aprendizaje.",
-                    "Implementaci\u00f3n de los paradigmas bajo los criterios PNF, y el formato de la planificaci\u00f3n."
-                ],
-                "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-                "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-            },
-            "448": {
-                "id_modulo": "448",
-                "nombre_modulo": "Investigaci\u00f3n educativa.",
-                "numero": "4",
-                "contenido": [
-                    "Investigaci\u00f3n educativa.",
-                    "Modalidades de la investigaci\u00f3n educativa.",
-                    "Investigaci\u00f3n acci\u00f3n participativa y transformadora."
-                ],
-                "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-                "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-            },
-            "449": {
-                "id_modulo": "449",
-                "nombre_modulo": "Evaluaci\u00f3n del aprendizaje.",
-                "numero": "5",
-                "contenido": [
-                    "La evaluaci\u00f3n.",
-                    "La planificaci\u00f3n y evaluaci\u00f3n de los aprendizaje."
-                ],
-                "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-                "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-            },
-            "450": {
-                "id_modulo": "450",
-                "nombre_modulo": "Estrategias de ense\u00f1anza y aprendizaje.",
-                "numero": "6",
-                "contenido": [
-                    "Estrategias did\u00e1ctica.",
-                    "Los medios de ense\u00f1anza y aprendizaje."
-                ],
-                "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-                "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-            },
-            "451": {
-                "id_modulo": "451",
-                "nombre_modulo": "Fundamentos de la IA y herramientas TIC en la era digital.",
-                "numero": "7",
-                "contenido": [
-                    "Las tecnolog\u00edas de la informaci\u00f3n y la comunicaci\u00f3n en el \u00e1mbito educativo.",
-                    "Ambientes virtuales de aprendizaje.",
-                    "Inteligencia artificial."
-                ],
-                "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-                "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-            },
-            "452": {
-                "id_modulo": "452",
-                "nombre_modulo": "Seguridad y salud en el trabajo.",
-                "numero": "8",
-                "contenido": [
-                    "Habitos de seguridad laboral en el espacio educativo.",
-                    "LOPCYMAT"
-                ],
-                "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-                "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-            },
-            "453": {
-                "id_modulo": "453",
-                "nombre_modulo": "Practica docente.",
-                "numero": "9",
-                "contenido": [
-                    "Practica docente."
-                ],
-                "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-                "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
+                "actividad": "algo",
+                "instrumento": "algo"
             }
         },
         "config_firmas": {
             "1": {
-                "id_cargo_firmante": "3"
+                "id_cargo_firmante": "2"
             },
             "2": {
                 "id_cargo_firmante": "1"
             },
             "3": {
-                "id_cargo_firmante": ""
+                "id_cargo_firmante": "2"
             },
             "4": {
-                "id_cargo_firmante": ""
+                "id_cargo_firmante": "1"
             },
             "5": {
                 "id_cargo_firmante": "",
                 "usar_promotor_curso": "1"
             },
             "6": {
-                "id_cargo_firmante": ""
+                "id_cargo_firmante": "1"
             },
             "7": {
                 "id_cargo_firmante": ""
             },
             "8": {
-                "id_cargo_firmante": ""
+                "id_cargo_firmante": "2"
+            },
+            "9": {
+                "id_cargo_firmante": "1"
             }
         }
     },
     "modules_edit": [
         {
-            "id_modulo": 445,
-            "id_curso": "97",
-            "nombre_modulo": "Teor\u00edas del aprendizaje y ense\u00f1anzas.",
-            "contenido": "[Ense\u00f1anzas y aprendizaje.][Teor\u00edas del aprendizaje.][El aprendizaje colaborativo.][Modelo educativo basado en los cuatros pilares de la UNESCO.]",
+            "id_modulo": 2,
+            "id_curso": "2",
+            "nombre_modulo": "prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2prueba 2",
+            "contenido": "[prueba 2]",
             "numero": "1",
-            "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-            "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
+            "actividad": "ninguna",
+            "instrumento": "ninguna"
         },
         {
-            "id_modulo": 446,
-            "id_curso": "97",
-            "nombre_modulo": "Legislaci\u00f3n educativa.",
-            "contenido": "[Constituci\u00f3n de la Rep\u00fablica bolivariana de Venezuela 30 de diciembre 1999.][Leyes.][Reglamento.][Normativas.][Gaceta.][Planes.][\u00c9tica profesional.]",
+            "id_modulo": 5,
+            "id_curso": "2",
+            "nombre_modulo": "algo",
+            "contenido": "[algo]",
             "numero": "2",
-            "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-            "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-        },
-        {
-            "id_modulo": 447,
-            "id_curso": "97",
-            "nombre_modulo": "Planificaci\u00f3n educativa.",
-            "contenido": "[Teor\u00edas de la planificaci\u00f3n y su relaci\u00f3n con las teor\u00edas del aprendizaje.][Marco te\u00f3rico de la planificaci\u00f3n de la ense\u00f1anza y del aprendizaje.][Implementaci\u00f3n de los paradigmas bajo los criterios PNF, y el formato de la planificaci\u00f3n.]",
-            "numero": "3",
-            "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-            "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-        },
-        {
-            "id_modulo": 448,
-            "id_curso": "97",
-            "nombre_modulo": "Investigaci\u00f3n educativa.",
-            "contenido": "[Investigaci\u00f3n educativa.][Modalidades de la investigaci\u00f3n educativa.][Investigaci\u00f3n acci\u00f3n participativa y transformadora.]",
-            "numero": "4",
-            "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-            "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-        },
-        {
-            "id_modulo": 449,
-            "id_curso": "97",
-            "nombre_modulo": "Evaluaci\u00f3n del aprendizaje.",
-            "contenido": "[La evaluaci\u00f3n.][La planificaci\u00f3n y evaluaci\u00f3n de los aprendizaje.]",
-            "numero": "5",
-            "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-            "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-        },
-        {
-            "id_modulo": 450,
-            "id_curso": "97",
-            "nombre_modulo": "Estrategias de ense\u00f1anza y aprendizaje.",
-            "contenido": "[Estrategias did\u00e1ctica.][Los medios de ense\u00f1anza y aprendizaje.]",
-            "numero": "6",
-            "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-            "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-        },
-        {
-            "id_modulo": 451,
-            "id_curso": "97",
-            "nombre_modulo": "Fundamentos de la IA y herramientas TIC en la era digital.",
-            "contenido": "[Las tecnolog\u00edas de la informaci\u00f3n y la comunicaci\u00f3n en el \u00e1mbito educativo.][Ambientes virtuales de aprendizaje.][Inteligencia artificial.]",
-            "numero": "7",
-            "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-            "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-        },
-        {
-            "id_modulo": 452,
-            "id_curso": "97",
-            "nombre_modulo": "Seguridad y salud en el trabajo.",
-            "contenido": "[Habitos de seguridad laboral en el espacio educativo.][LOPCYMAT]",
-            "numero": "8",
-            "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-            "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
-        },
-        {
-            "id_modulo": 453,
-            "id_curso": "97",
-            "nombre_modulo": "Practica docente.",
-            "contenido": "[Practica docente.]",
-            "numero": "9",
-            "actividad": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad.",
-            "instrumento": "T\u00e9cnicas de evaluaciones espec\u00edficas a la unidad."
+            "actividad": "algo",
+            "instrumento": "algo"
         }
     ],
     "modules_new": [],

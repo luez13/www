@@ -26,6 +26,7 @@ unset($_SESSION['form_data']);
                             <!-- Token CSRF -->
                             <input type="hidden" name="csrf_token"
                                 value="<?= isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '' ?>">
+                            <input type="hidden" name="redirect_course_id" value="<?= isset($_GET['redirect_course_id']) ? htmlspecialchars($_GET['redirect_course_id']) : '' ?>">
 
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6 form-floating">

@@ -7,6 +7,11 @@ $db = new DB();
 
 $pagina_actual = 'buscar.php'; // Definir la página actual
 
+// Asegurar que existe el token CSRF para la carga masiva
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // ... (La función validar_inscripcion no cambia) ...
 function validar_inscripcion($id_usuario, $curso_id)
 {
@@ -192,6 +197,8 @@ if (!$is_ajax_list):
     <html lang="es">
 
     <body>
+        <!-- SweetAlert2 -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <div class="container-fluid mt-4" id="page-content">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="h3 text-gray-800">Inscripciones: <?= htmlspecialchars($curso['nombre_curso']) ?> <small
@@ -204,10 +211,16 @@ if (!$is_ajax_list):
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">Buscador de Participantes</h6>
                     <?php if (!empty($usuarios)): ?>
-                        <button type="button" class="btn btn-sm btn-info shadow-sm"
-                            onclick="loadPage('../controllers/generar_certificados_lote.php', { curso_id: <?= htmlspecialchars($id_curso); ?> })">
-                            <i class="fas fa-download fa-sm text-white-50"></i> Certificados PDF
-                        </button>
+                        <div class="d-flex">
+                            <button type="button" class="btn btn-sm btn-success shadow-sm mr-2" data-toggle="modal"
+                                data-target="#massEnrollModal">
+                                <i class="fas fa-file-import fa-sm text-white-50"></i> Carga Masiva (CSV)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-info shadow-sm"
+                                onclick="loadPage('../controllers/generar_certificados_lote.php', { curso_id: <?= htmlspecialchars($id_curso); ?> })">
+                                <i class="fas fa-download fa-sm text-white-50"></i> Certificados PDF
+                            </button>
+                        </div>
                     <?php endif; ?>
                 </div>
                 <div class="card-body">
@@ -351,7 +364,55 @@ if (!$is_ajax_list):
             </div> <!-- /user-list-wrapper -->
         </div>
 
+        <!-- MODAL: CARGA MASIVA DE INSCRIPCIONES -->
+        <div class="modal fade" id="massEnrollModal" tabindex="-1" role="dialog" aria-labelledby="massEnrollModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title" id="massEnrollModalLabel"><i class="fas fa-file-csv mr-2"></i>Inscripción Masiva vía CSV</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form id="massEnrollForm">
+                        <div class="modal-body">
+                            <div class="alert alert-info small">
+                                <strong><i class="fas fa-info-circle"></i> Instrucciones:</strong>
+                                <ul class="mb-0">
+                                    <li>El archivo debe ser <strong>.CSV</strong>.</li>
+                                    <li>Debe incluir columnas para: <strong>Cédula, Nombre, Apellido</strong>.</li>
+                                    <li>Si el usuario no existe, se creará automáticamente.</li>
+                                    <li>Los duplicados se ignoran dinámicamente.</li>
+                                </ul>
+                            </div>
+                            <div class="form-group">
+                                <label for="csv_file_enroll">Seleccionar Archivo CSV:</label>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="csv_file_enroll" accept=".csv" required>
+                                    <label class="custom-file-label" for="csv_file_enroll">Elegir archivo...</label>
+                                </div>
+                            </div>
+                            <input type="hidden" id="csrf_token_mass" value="<?= isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '' ?>">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                            <button type="submit" class="btn btn-success" id="btnSubmitMass">
+                                <i class="fas fa-cloud-upload-alt"></i> Procesar Carga
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <script>
+            // Actualizar etiqueta del archivo al seleccionar
+            $(document).on('change', '.custom-file-input', function (e) {
+                var fileName = $(this).val().split('\\').pop();
+                $(this).siblings('.custom-file-label').addClass("selected").html(fileName);
+            });
+
             document.addEventListener('DOMContentLoaded', function () {
                 // Función para desplazarse a un elemento específico después de cargar la página
                 var params = new URLSearchParams(window.location.search);
@@ -372,7 +433,6 @@ if (!$is_ajax_list):
                 currentPage = page;
                 var busqueda = $('#custom-inscripcion-search').val();
 
-                // Efecto visual de carga opcional si gusta
                 $('#user-list-wrapper').css('opacity', '0.5');
 
                 $.ajax({
@@ -398,7 +458,61 @@ if (!$is_ajax_list):
 
                     customSearchTimeout = setTimeout(function () {
                         loadUserList(1);
-                    }, 300); // 300ms delay para tipeo
+                    }, 300);
+                });
+
+                // MANEJO DE CARGA MASIVA
+                $('#massEnrollForm').on('submit', function(e) {
+                    e.preventDefault();
+                    
+                    var fileData = $('#csv_file_enroll').prop('files')[0];
+                    if (!fileData) return;
+
+                    var formData = new FormData();
+                    formData.append('csv_file', fileData);
+                    formData.append('curso_id', cursoId);
+                    formData.append('csrf_token', $('#csrf_token_mass').val());
+
+                    $('#btnSubmitMass').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
+
+                    $.ajax({
+                        url: '../controllers/importar_inscripciones_ajax.php',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        dataType: 'json',
+                        success: function(res) {
+                            $('#massEnrollModal').modal('hide');
+                            $('#btnSubmitMass').prop('disabled', false).html('<i class="fas fa-cloud-upload-alt"></i> Procesar Carga');
+
+                            if (res.error) {
+                                Swal.fire('Error', res.error, 'error');
+                            } else {
+                                var msg = `Se procesaron ${res.procesados} filas.\n` +
+                                          `- Nuevos inscritos: ${res.nuevos_inscritos}\n` +
+                                          `- Ya estaban inscritos: ${res.ya_existentes}`;
+                                
+                                if (res.count_errores > 0) {
+                                    msg += `\n- Errores: ${res.count_errores}`;
+                                    console.log("Detalle de errores:", res.errores);
+                                }
+
+                                Swal.fire({
+                                    title: 'Carga Completada',
+                                    text: msg,
+                                    icon: res.count_errores > 0 ? 'warning' : 'success',
+                                    confirmButtonText: 'Aceptar'
+                                }).then(() => {
+                                    loadUserList(1);
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            $('#btnSubmitMass').prop('disabled', false).html('<i class="fas fa-cloud-upload-alt"></i> Procesar Carga');
+                            Swal.fire('Error crítico', 'No se pudo comunicar con el servidor.', 'error');
+                        }
+                    });
                 });
             });
         </script>

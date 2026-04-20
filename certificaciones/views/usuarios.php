@@ -211,7 +211,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                 <div class="modal-header bg-dark text-white border-0">
                     <h5 class="modal-title" id="editarUsuarioModalLabel"><i class="fas fa-user-edit me-2"></i> Editar
                         Usuario</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span
+                    <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close"><span
                             aria-hidden="true">&times;</span></button>
                 </div>
                 <form id="formEditarUsuario" onsubmit="guardarUsuarioAjax(event)">
@@ -284,7 +284,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                         </div>
                     </div>
                     <div class="modal-footer border-0 py-3">
-                        <button type="button" class="btn btn-secondary shadow-sm" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary px-4 shadow-sm" id="btnGuardarCambios"><i
                                 class="fas fa-save me-1"></i> Guardar Cambios</button>
                     </div>
@@ -301,7 +301,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                 <div class="modal-header bg-primary text-white border-0 py-3">
                     <h5 class="modal-title fw-bold" id="crearUsuarioModalLabel"><i
                             class="fas fa-user-plus me-2"></i>Añadir Nuevo Usuario</h5>
-                    <button type="button" class="btn-close btn-close-white" data-dismiss="modal"
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
                 <form id="formCrearUsuario" onsubmit="guardarNuevoUsuarioAjax(event)" enctype="multipart/form-data">
@@ -373,7 +373,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                     </div>
                     <div class="modal-footer bg-white border-0 py-3">
                         <button type="button" class="btn btn-light px-4 rounded-pill"
-                            data-dismiss="modal">Cancelar</button>
+                            data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary px-4 rounded-pill shadow-sm"
                             id="btnCrearUsuario"><i class="fas fa-save me-2"></i>Crear Usuario</button>
                     </div>
@@ -389,7 +389,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
             <div class="modal-content shadow">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title"><i class="fas fa-file-csv me-2"></i>Importación Masiva de Usuarios</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span
+                    <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close"><span
                             aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body bg-light">
@@ -431,7 +431,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                     </div>
                 </div>
                 <div class="modal-footer bg-white border-top">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-success px-4 disabled" id="btnConfirmarImportacion"><i
                             class="fas fa-check-circle me-1"></i> Confirmar Importación</button>
                 </div>

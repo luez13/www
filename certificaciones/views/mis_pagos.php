@@ -203,7 +203,14 @@ function h($str)
                                         <?= date('d/m/Y', strtotime(isset($pago['fecha_pago']) ? $pago['fecha_pago'] : 'now')) ?><br>
                                         <small class="text-muted">Subido: <?= date('d/m/Y H:i', strtotime(isset($pago['fecha_subida']) ? $pago['fecha_subida'] : 'now')) ?></small>
                                     </td>
-                                    <td class="text-left font-weight-bold"><?= h($pago['nombre_curso']) ?></td>
+                                    <td class="text-left font-weight-bold">
+                                        <?= h($pago['nombre_curso']) ?>
+                                        <?php if (!empty($pago['nombre_materia'])): ?>
+                                            <div class="small text-muted font-weight-normal mt-1">
+                                                <i class="fas fa-book me-1"></i> Materia: <?= h($pago['nombre_materia']) ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <?= (isset($pago['moneda']) && $pago['moneda'] === 'Divisas') ? '$' : 'Bs. ' ?><?= number_format($pago['monto'], 2) ?>
                                     </td>

@@ -545,12 +545,26 @@ try {
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const urlParams = new URLSearchParams(window.location.search);
+                
+                // Redirección de plantillas (existente)
                 const modulo = urlParams.get('modulo');
                 if(modulo === 'plantillas') {
-                    // Wait slightly for main.js to be ready and initApp to run
                     setTimeout(() => {
                         window.loadPage('../public/plantillas.php');
                     }, 100);
+                }
+
+                // NUEVO: Redirección automática al curso tras Login/Registro
+                const enrollId = urlParams.get('enroll');
+                if (enrollId) {
+                    setTimeout(() => {
+                        if (typeof window.loadCourse === 'function') {
+                            window.loadCourse(enrollId);
+                            // Limpiar la URL para evitar recargas del modal al refrescar
+                            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                            window.history.replaceState({path: cleanUrl}, '', cleanUrl);
+                        }
+                    }, 300); // Pequeño delay para asegurar que main.js esté listo
                 }
             });
         </script>

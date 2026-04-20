@@ -78,9 +78,15 @@ function validar_edicion($nombre, $apellido, $correo, $cedula)
 // Crear una función para redirigir al usuario a la página de inicio de sesión
 function redirigir_login()
 {
-    // Usar la función header para enviar el encabezado de redirección
-    header('Location: ../public/perfil.php');
-    // Terminar la ejecución del script
+    // Verificar si hay una redirección pendiente a un curso específico
+    if (isset($_SESSION['redirect_to_course']) && !empty($_SESSION['redirect_to_course'])) {
+        $course_id = $_SESSION['redirect_to_course'];
+        // Limpiamos la variable de sesión INMEDIATAMENTE para evitar el "bucle fantasma"
+        unset($_SESSION['redirect_to_course']);
+        header('Location: ../public/perfil.php?enroll=' . $course_id);
+    } else {
+        header('Location: ../public/perfil.php');
+    }
     exit();
 }
 
@@ -227,6 +233,11 @@ if (isset($_POST['action'])) {
             $password = $_POST['password'];
             $confirm_password = $_POST['confirm_password'];
             $cedula = $_POST['cedula'];
+            $redirect_id = isset($_POST['redirect_course_id']) ? $_POST['redirect_course_id'] : null;
+
+            if (!empty($redirect_id)) {
+                $_SESSION['redirect_to_course'] = $redirect_id;
+            }
 
             // Validar los datos
             $validacion = validar_registro($nombre, $apellido, $correo, $password, $confirm_password, $cedula);
@@ -262,6 +273,12 @@ if (isset($_POST['action'])) {
             // Obtener los datos del formulario
             $correo = strtolower($_POST['correo']);
             $password = $_POST['password'];
+            $redirect_id = isset($_POST['redirect_course_id']) ? $_POST['redirect_course_id'] : null;
+
+            if (!empty($redirect_id)) {
+                $_SESSION['redirect_to_course'] = $redirect_id;
+            }
+
             // Validar los datos
             if (validar_login($correo, $password)) {
                 // Consultar la base de datos para obtener el usuario con el correo ingresado

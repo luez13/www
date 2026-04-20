@@ -86,46 +86,53 @@ $pdf->SetFont('Arial', '', 12);
 $pdf->SetXY(0, 140);
 $pdf->Cell(279.4, 6, utf8_decode('Certificación expedida en la Ciudad de San Cristóbal, ' . f_Fecha($data['fechaInscripcion'])), 0, 1, 'C');
 
-// 8. Firmas Página 1 (Y = 160mm)
-if ($data['mostrar_firmas']) {
-    $firmasP1 = array_filter($data['firmantes'], function ($f) { return $f['pagina'] == 1; });
-    if (count($firmasP1) > 0) {
-        $pdf->SetDrawColor(0, 0, 0); // Líneas de firma siempre NEGRAS
-        foreach ($firmasP1 as $f) {
-            $posX = 139.7; 
-            $pCod = strtolower($f['posicion_codigo']);
-            
-            if (strpos($pCod, 'izq') !== false) $posX = 35;
-            else if (strpos($pCod, 'der') !== false) $posX = 245;
-            else if (strpos($pCod, 'cen') !== false) $posX = 105;
-            else if (strpos($pCod, 'cuarta') !== false || strpos($pCod, 'firme4') !== false || strpos($pCod, 'extra') !== false) $posX = 175;
-            
-            $w_box = 50; 
-            $y_firmas = 180; // Bajadas en primera hoja
-            $pdf->SetXY($posX - ($w_box/2), $y_firmas);
-            
-            $actualX = $pdf->GetX();
-            $actualY = $pdf->GetY();
-            
-            if (!empty($f['firma_base64'])) {
-                $ext = 'png';
-                if (strpos($f['firma_base64'], 'image/jpeg') !== false || strpos($f['firma_base64'], 'image/jpg') !== false) $ext = 'jpg';
-                $tempFirma = sys_get_temp_dir() . '/f_' . uniqid() . '.' . $ext;
-                $fData = explode(',', $f['firma_base64']);
-                file_put_contents($tempFirma, base64_decode(end($fData)));
-                $pdf->Image($tempFirma, $actualX + ($w_box/2) - 20, $actualY - 20, 40); 
-                @unlink($tempFirma);
+// 8. Firmas Página 1 (Y = 180mm)
+$firmasP1 = array_filter($data['firmantes'], function ($f) { return $f['pagina'] == 1; });
+if (count($firmasP1) > 0) {
+    $pdf->SetDrawColor(0, 0, 0); // Líneas de firma siempre NEGRAS
+    foreach ($firmasP1 as $f) {
+        // --- Cálculo de Posición Horizontal (Grilla de 4 Columnas) ---
+        $posX = 105; // Default: Centro
+        $pCod = strtolower($f['posicion_codigo']);
+        
+        if (strpos($pCod, 'izq') !== false) $posX = 35;
+        else if (strpos($pCod, 'der') !== false) $posX = 245;
+        else if (strpos($pCod, 'cen') !== false) $posX = 105;
+        else if (strpos($pCod, 'cuarta') !== false || strpos($pCod, 'firme4') !== false || strpos($pCod, 'extra') !== false) $posX = 175;
+        
+        $w_box = 55; // Bloque de firma estándar
+        $y_firmas = 180; 
+        
+        $pdf->SetXY($posX - ($w_box / 2), $y_firmas);
+        $actualX = $pdf->GetX();
+        $actualY = $pdf->GetY();
+        
+        // --- IMAGEN DE FIRMA (Solo si está habilitado y existe el dato) ---
+        // Se valida que la imagen no esté vacía. FPDF colapsa si recibe data inválida.
+        if ($data['mostrar_firmas'] && !empty($f['firma_base64'])) {
+            $ext = (strpos($f['firma_base64'], 'image/jpeg') !== false) ? 'jpg' : 'png';
+            $tempFirma = sys_get_temp_dir() . '/f_' . uniqid() . '.' . $ext;
+            $fData = explode(',', $f['firma_base64']);
+            if (isset($fData[1])) {
+                file_put_contents($tempFirma, base64_decode($fData[1]));
+                if (file_exists($tempFirma)) {
+                    // Posicionamos la firma 18mm arriba de la línea
+                    $pdf->Image($tempFirma, $actualX + ($w_box / 2) - 15, $actualY - 18, 30); 
+                    @unlink($tempFirma);
+                }
             }
-            
-            $pdf->SetXY($actualX, $actualY);
-            $pdf->SetFont('Arial', 'B', 9);
-            $nombreF = mb_convert_case($f['titulo'] . ' ' . $f['nombre'], MB_CASE_TITLE, "UTF-8");
-            $pdf->MultiCell($w_box, 4, utf8_decode($nombreF), 'T', 'C');
-            
-            $pdf->SetFont('Arial', '', 8);
-            $pdf->SetX($actualX);
-            $pdf->MultiCell($w_box, 3.5, utf8_decode(mb_convert_case($f['cargo'], MB_CASE_TITLE, "UTF-8")), 0, 'C');
         }
+        
+        // --- LÍNEA, NOMBRE Y CARGO (Siempre visibles) ---
+        $pdf->SetXY($actualX, $actualY);
+        $pdf->SetFont('Arial', 'B', 9);
+        $nombreF = mb_convert_case($f['titulo'] . ' ' . $f['nombre'], MB_CASE_TITLE, "UTF-8");
+        // El borde 'T' (Top) crea la línea de firma sobre el nombre
+        $pdf->MultiCell($w_box, 4, utf8_decode($nombreF), 'T', 'C');
+        
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->SetX($actualX);
+        $pdf->MultiCell($w_box, 3.5, utf8_decode(mb_convert_case($f['cargo'], MB_CASE_TITLE, "UTF-8")), 0, 'C');
     }
 }
 
@@ -170,45 +177,50 @@ if (!empty($data['nota']) && $data['nota'] != 0) {
 $textoReg .= "El programa tuvo una duración de " . $data['horas_cronologicas'] . " horas cronológicas.";
 $pdf->MultiCell(219.4, 6, utf8_decode($textoReg), 0, 'L');
 
-// 5. Firmas Página 2 (Y = 175mm)
-if ($data['mostrar_firmas']) {
-    $firmasP2 = array_filter($data['firmantes'], function ($f) { return $f['pagina'] == 2; });
-    if (count($firmasP2) > 0) {
-        $pdf->SetDrawColor(0, 0, 0);
-        foreach ($firmasP2 as $f) {
-            $pCod2 = strtolower($f['posicion_codigo']);
-            $posX2 = 175; // NUEVO DEFAULT: Si no reconoce el código, lo manda al slot 4 para evitar solapamiento con el centro (105)
-            
-            if (strpos($pCod2, 'izq') !== false) $posX2 = 35;
-            else if (strpos($pCod2, 'der') !== false) $posX2 = 245;
-            else if (strpos($pCod2, 'cen') !== false) $posX2 = 105;
-            else if (strpos($pCod2, 'cuarta') !== false || strpos($pCod2, 'firme4') !== false || strpos($pCod2, 'extra') !== false) $posX2 = 175;
+// 5. Firmas Página 2 (Y = 180mm)
+$firmasP2 = array_filter($data['firmantes'], function ($f) { return $f['pagina'] == 2; });
+if (count($firmasP2) > 0) {
+    $pdf->SetDrawColor(0, 0, 0);
+    foreach ($firmasP2 as $f) {
+        // --- Cálculo de Posición Horizontal (Grilla de 4 Columnas) ---
+        $posX2 = 175; // Default: Cuarta
+        $pCod2 = strtolower($f['posicion_codigo']);
+        
+        if (strpos($pCod2, 'izq') !== false) $posX2 = 35;
+        else if (strpos($pCod2, 'der') !== false) $posX2 = 245;
+        else if (strpos($pCod2, 'cen') !== false) $posX2 = 105;
+        else if (strpos($pCod2, 'cuarta') !== false || strpos($pCod2, 'firme4') !== false || strpos($pCod2, 'extra') !== false) $posX2 = 175;
 
-            $w_box2 = 50; 
-            $y_firmas2 = 180;
-            $pdf->SetXY($posX2 - ($w_box2/2), $y_firmas2);
-            $actualX2 = $pdf->GetX();
-            $actualY2 = $pdf->GetY();
-            
-            if (!empty($f['firma_base64'])) {
-                $ext = 'png';
-                if (strpos($f['firma_base64'], 'image/jpeg') !== false || strpos($f['firma_base64'], 'image/jpg') !== false) $ext = 'jpg';
-                $tempFirma = sys_get_temp_dir() . '/f2_' . uniqid() . '.' . $ext;
-                $fData = explode(',', $f['firma_base64']);
-                file_put_contents($tempFirma, base64_decode(end($fData)));
-                $pdf->Image($tempFirma, $actualX2 + ($w_box2/2) - 15, $actualY2 - 18, 30);
-                @unlink($tempFirma);
+        $w_box2 = 55; 
+        $y_firmas2 = 180; // Misma altura que la primera hoja para consistencia
+        
+        $pdf->SetXY($posX2 - ($w_box2 / 2), $y_firmas2);
+        $actualX2 = $pdf->GetX();
+        $actualY2 = $pdf->GetY();
+        
+        // --- IMAGEN DE FIRMA (Condicional) ---
+        if ($data['mostrar_firmas'] && !empty($f['firma_base64'])) {
+            $ext = (strpos($f['firma_base64'], 'image/jpeg') !== false) ? 'jpg' : 'png';
+            $tempFirma = sys_get_temp_dir() . '/f2_' . uniqid() . '.' . $ext;
+            $fData = explode(',', $f['firma_base64']);
+            if (isset($fData[1])) {
+                file_put_contents($tempFirma, base64_decode($fData[1]));
+                if (file_exists($tempFirma)) {
+                    $pdf->Image($tempFirma, $actualX2 + ($w_box2 / 2) - 15, $actualY2 - 18, 30);
+                    @unlink($tempFirma);
+                }
             }
-            
-            $pdf->SetXY($actualX2, $actualY2);
-            $pdf->SetFont('Arial', 'B', 9);
-            $nombreF = mb_convert_case($f['titulo'] . ' ' . $f['nombre'], MB_CASE_TITLE, "UTF-8");
-            $pdf->MultiCell($w_box2, 4, utf8_decode($nombreF), 'T', 'C');
-            
-            $pdf->SetFont('Arial', '', 8);
-            $pdf->SetX($actualX2);
-            $pdf->MultiCell($w_box2, 3.5, utf8_decode(mb_convert_case($f['cargo'], MB_CASE_TITLE, "UTF-8")), 0, 'C');
         }
+        
+        // --- LÍNEA, NOMBRE Y CARGO (Siempre visibles) ---
+        $pdf->SetXY($actualX2, $actualY2);
+        $pdf->SetFont('Arial', 'B', 9);
+        $nombreF = mb_convert_case($f['titulo'] . ' ' . $f['nombre'], MB_CASE_TITLE, "UTF-8");
+        $pdf->MultiCell($w_box2, 4, utf8_decode($nombreF), 'T', 'C');
+        
+        $pdf->SetFont('Arial', '', 8);
+        $pdf->SetX($actualX2);
+        $pdf->MultiCell($w_box2, 3.5, utf8_decode(mb_convert_case($f['cargo'], MB_CASE_TITLE, "UTF-8")), 0, 'C');
     }
 }
 ?>
