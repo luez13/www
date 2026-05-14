@@ -223,7 +223,9 @@ switch ($action) {
             'fecha_pago' => $_POST['fecha_pago'],
             'archivo_ruta' => null,
             'estado' => $estado_final,
-            'moneda' => $moneda
+            'moneda' => $moneda,
+            'id_curso' => isset($_POST['id_curso']) ? (int)$_POST['id_curso'] : null,
+            'id_materia' => isset($_POST['id_materia']) && !empty($_POST['id_materia']) ? (int)$_POST['id_materia'] : null
         ];
 
         // Manejar subida de archivo opcional

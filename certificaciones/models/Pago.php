@@ -98,6 +98,9 @@ class Pago
 
     public function actualizarComprobante($datos)
     {
+        $id_curso = isset($datos['id_curso']) ? (int)$datos['id_curso'] : null;
+        $id_materia = isset($datos['id_materia']) ? (int)$datos['id_materia'] : null;
+
         if (!empty($datos['archivo_ruta'])) {
             $sql = "UPDATE cursos.comprobantes_pago 
                     SET numero_operacion = :numero_operacion, 
@@ -106,7 +109,9 @@ class Pago
                         fecha_pago = :fecha_pago, 
                         archivo_ruta = :archivo_ruta,
                         estado = COALESCE(:estado, estado),
-                        moneda = COALESCE(:moneda, moneda)
+                        moneda = COALESCE(:moneda, moneda),
+                        id_curso = :id_curso,
+                        id_materia_bimestre = :id_materia
                     WHERE id_comprobante = :id_comprobante";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([
@@ -117,6 +122,8 @@ class Pago
                 'archivo_ruta' => $datos['archivo_ruta'],
                 'estado' => isset($datos['estado']) ? $datos['estado'] : null,
                 'moneda' => isset($datos['moneda']) ? $datos['moneda'] : null,
+                'id_curso' => $id_curso,
+                'id_materia' => $id_materia,
                 'id_comprobante' => $datos['id_comprobante']
             ]);
         } else {
@@ -126,7 +133,9 @@ class Pago
                         monto = :monto, 
                         fecha_pago = :fecha_pago,
                         estado = COALESCE(:estado, estado),
-                        moneda = COALESCE(:moneda, moneda)
+                        moneda = COALESCE(:moneda, moneda),
+                        id_curso = :id_curso,
+                        id_materia_bimestre = :id_materia
                     WHERE id_comprobante = :id_comprobante";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([
@@ -136,6 +145,8 @@ class Pago
                 'fecha_pago' => $datos['fecha_pago'],
                 'estado' => isset($datos['estado']) ? $datos['estado'] : null,
                 'moneda' => isset($datos['moneda']) ? $datos['moneda'] : null,
+                'id_curso' => $id_curso,
+                'id_materia' => $id_materia,
                 'id_comprobante' => $datos['id_comprobante']
             ]);
         }

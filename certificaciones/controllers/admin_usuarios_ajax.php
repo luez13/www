@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (in_array($ext, ['jpg', 'jpeg', 'png', 'svg'])) {
                     $unique_name = "firma_" . $new_user_id . "_" . time() . "." . $ext;
-                    $upload_dir = "../public/firmas/";
+                    $upload_dir = "../public/assets/firmas/";
                     if (!is_dir($upload_dir))
                         mkdir($upload_dir, 0777, true);
 
@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (in_array($ext, ['jpg', 'jpeg', 'png', 'svg'])) {
                     $unique_name = "firma_" . $id . "_" . time() . "." . $ext;
-                    $upload_dir = "../public/firmas/";
+                    $upload_dir = "../public/assets/firmas/";
 
                     if (!is_dir($upload_dir)) {
                         mkdir($upload_dir, 0777, true);

@@ -82,6 +82,19 @@ function f_Fecha($f) {
     $ts = strtotime($f);
     return "los " . date('d', $ts) . " días del mes de " . $m[date('n', $ts) - 1] . " de " . date('Y', $ts);
 }
+
+function f_FechaRango($f1, $f2) {
+    if (!$f1 || !$f2) return "periodo no especificado";
+    $m = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    $ts1 = strtotime($f1);
+    $ts2 = strtotime($f2);
+    if (!$ts1 || !$ts2) return "periodo no especificado";
+    
+    $txt1 = date('d', $ts1) . " días del mes de " . $m[date('n', $ts1) - 1] . " de " . date('Y', $ts1);
+    $txt2 = date('d', $ts2) . " días del mes de " . $m[date('n', $ts2) - 1] . " de " . date('Y', $ts2);
+    
+    return "desarrollado entre los " . $txt1 . " y los " . $txt2 . ".";
+}
 $pdf->SetFont('Arial', '', 12);
 $pdf->SetXY(0, 140);
 $pdf->Cell(279.4, 6, utf8_decode('Certificación expedida en la Ciudad de San Cristóbal, ' . f_Fecha($data['fechaInscripcion'])), 0, 1, 'C');
@@ -116,8 +129,24 @@ if (count($firmasP1) > 0) {
             if (isset($fData[1])) {
                 file_put_contents($tempFirma, base64_decode($fData[1]));
                 if (file_exists($tempFirma)) {
-                    // Posicionamos la firma 18mm arriba de la línea
-                    $pdf->Image($tempFirma, $actualX + ($w_box / 2) - 15, $actualY - 18, 30); 
+                    $imgSize = @getimagesize($tempFirma);
+                    if ($imgSize !== false && $imgSize[0] > 0 && $imgSize[1] > 0) {
+                        $orig_w = $imgSize[0];
+                        $orig_h = $imgSize[1];
+                        $ratio = $orig_w / $orig_h;
+                        
+                        $w = 35; // Ancho máximo
+                        $h = $w / $ratio;
+                        if ($h > 18) { // Alto máximo
+                            $h = 18;
+                            $w = $h * $ratio;
+                        }
+                        
+                        $img_x = $actualX + ($w_box / 2) - ($w / 2);
+                        $img_y = $actualY - $h + 4; // Anclado entre el nombre y el cargo
+                        
+                        $pdf->Image($tempFirma, $img_x, $img_y, $w, $h);
+                    }
                     @unlink($tempFirma);
                 }
             }
@@ -169,13 +198,16 @@ foreach ($data['modulos'] as $i => $mod) {
 
 // 4. Registro Inferior (Y = 145mm)
 $pdf->SetXY(30, 145);
-$pdf->SetFont('Arial', '', 12);
+$pdf->SetFont('Arial', '', 10.5); // Reducido un poco para que quepa todo
 $textoReg = "Registrado en formación permanente tomo " . $data['tomo'] . " folio " . $data['folio'] . ".\n";
 if (!empty($data['nota']) && $data['nota'] != 0) {
     $textoReg .= "Presentando una calificación final de " . $data['nota'] . " de una nota máxima (20).\n";
 }
-$textoReg .= "El programa tuvo una duración de " . $data['horas_cronologicas'] . " horas cronológicas.";
-$pdf->MultiCell(219.4, 6, utf8_decode($textoReg), 0, 'L');
+$textoReg .= "El programa tuvo una duración de " . $data['horas_cronologicas'] . " horas cronológicas.\n";
+$tipoCursoUpper = mb_convert_case($data['tipo_curso'], MB_CASE_TITLE, "UTF-8");
+$textoReg .= $tipoCursoUpper . " " . f_FechaRango($data['inicioMesCurso'], $data['fechaFinalizacionCurso']);
+
+$pdf->MultiCell(219.4, 4.5, utf8_decode($textoReg), 0, 'L'); // Interlineado reducido de 6 a 4.5
 
 // 5. Firmas Página 2 (Y = 180mm)
 $firmasP2 = array_filter($data['firmantes'], function ($f) { return $f['pagina'] == 2; });
@@ -206,7 +238,24 @@ if (count($firmasP2) > 0) {
             if (isset($fData[1])) {
                 file_put_contents($tempFirma, base64_decode($fData[1]));
                 if (file_exists($tempFirma)) {
-                    $pdf->Image($tempFirma, $actualX2 + ($w_box2 / 2) - 15, $actualY2 - 18, 30);
+                    $imgSize = @getimagesize($tempFirma);
+                    if ($imgSize !== false && $imgSize[0] > 0 && $imgSize[1] > 0) {
+                        $orig_w = $imgSize[0];
+                        $orig_h = $imgSize[1];
+                        $ratio = $orig_w / $orig_h;
+                        
+                        $w = 35; // Ancho máximo
+                        $h = $w / $ratio;
+                        if ($h > 18) { // Alto máximo
+                            $h = 18;
+                            $w = $h * $ratio;
+                        }
+                        
+                        $img_x = $actualX2 + ($w_box2 / 2) - ($w / 2);
+                        $img_y = $actualY2 - $h + 4; // Anclado entre el nombre y el cargo
+                        
+                        $pdf->Image($tempFirma, $img_x, $img_y, $w, $h);
+                    }
                     @unlink($tempFirma);
                 }
             }

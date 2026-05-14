@@ -42,6 +42,11 @@ foreach ($todos_comprobantes as $comp) {
     }
 }
 asort($cursos_filtros);
+
+// Obtener TODOS los cursos para el modal de edición
+$stmtCursos = $db->prepare("SELECT id_curso, nombre_curso FROM cursos.cursos ORDER BY nombre_curso ASC");
+$stmtCursos->execute();
+$lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <style>
@@ -185,6 +190,7 @@ asort($cursos_filtros);
                                 <th>Fecha Pago (Oculta para filtro)</th>
                                 <th>Fecha</th>
                                 <th>Fecha de subida</th>
+                                <th>Apellido</th>
                                 <th>Nombre</th>
                                 <th>Cédula</th>
                                 <th>Curso / Diplomado</th>
@@ -212,9 +218,12 @@ asort($cursos_filtros);
                                             <?= date('d/m/Y H:i', strtotime($comp['fecha_subida'])) ?></small>
                                     </td>
                                     <td class="text-left">
-                                        <strong><?= h($comp['apellido'] . ', ' . $comp['nombre']) ?></strong>
+                                        <strong><?= h($comp['apellido']) ?></strong>
                                     </td>
-                                    <td>
+                                    <td class="text-left">
+                                        <strong><?= h($comp['nombre']) ?></strong>
+                                    </td>
+                                    <td class="text-left">
                                         <span class="badge badge-secondary"><?= h($comp['cedula']) ?></span>
                                     </td>
                                     <td class="text-left font-weight-bold text-primary">
@@ -278,7 +287,7 @@ asort($cursos_filtros);
                                             <?php endif; ?>
 
                                             <button type="button" class="btn btn-sm btn-secondary shadow-sm"
-                                                onclick="abrirModalEditComprobanteAdmin(<?= $comp['id_comprobante'] ?>, '<?= h($comp['banco_origen']) ?>', '<?= h(isset($comp['numero_operacion']) ? $comp['numero_operacion'] : '') ?>', <?= $comp['monto'] ?>, '<?= date('Y-m-d', strtotime($comp['fecha_pago'])) ?>', '<?= isset($comp['moneda']) ? $comp['moneda'] : 'Bs' ?>', this)"
+                                                onclick="abrirModalEditComprobanteAdmin(<?= $comp['id_comprobante'] ?>, '<?= h($comp['banco_origen']) ?>', '<?= h(isset($comp['numero_operacion']) ? $comp['numero_operacion'] : '') ?>', <?= $comp['monto'] ?>, '<?= date('Y-m-d', strtotime($comp['fecha_pago'])) ?>', '<?= isset($comp['moneda']) ? $comp['moneda'] : 'Bs' ?>', <?= $comp['id_curso'] ?>, <?= isset($comp['id_materia_bimestre']) ? $comp['id_materia_bimestre'] : 'null' ?>, this)"
                                                 title="Modificar datos del pago">
                                                 <i class="fas fa-edit"></i>
                                             </button>
@@ -376,6 +385,24 @@ asort($cursos_filtros);
                             <label>Fecha del Pago:</label>
                             <input type="date" name="fecha_pago" id="admin_edit_fecha_pago" class="form-control"
                                 required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 form-group mb-3">
+                            <label>Curso / Diplomado:</label>
+                            <select name="id_curso" id="admin_edit_id_curso" class="form-control select2-modal" style="width: 100%;" onchange="cargarMateriasAdmin(this.value)" required>
+                                <option value="">Seleccione un curso...</option>
+                                <?php foreach ($lista_todos_cursos as $c): ?>
+                                    <option value="<?= $c['id_curso'] ?>"><?= h($c['nombre_curso']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-12 form-group mb-3" id="admin_grupo_materia" style="display:none;">
+                            <label>Materia (Solo para Diplomados):</label>
+                            <select name="id_materia" id="admin_edit_id_materia" class="form-control select2-modal" style="width: 100%;">
+                                <option value="">Seleccione una materia...</option>
+                            </select>
                         </div>
                     </div>
 
@@ -482,7 +509,7 @@ asort($cursos_filtros);
                         return 'Reporte de Pagos - ' + tabName;
                     },
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9],
                         orthogonal: 'export',
                         format: {
                             body: function (data, row, column, node) {
@@ -490,8 +517,8 @@ asort($cursos_filtros);
                                 // Preservamos los saltos de línea intencionales (br) como guiones
                                 let clean = data.replace(/<br\s*\/?>/gi, ' - ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                                 
-                                // Si es la columna de Curso / Diplomado
-                                if (column === 5) {
+                                // Si es la columna de Curso / Diplomado (ahora índice 6)
+                                if (column === 6) {
                                     if (clean.includes('Materia:')) {
                                         let partes = clean.split('Materia:');
                                         return partes[0].replace(/ - $/, '').trim() + ' - Materia: ' + partes[1].trim();
@@ -500,6 +527,12 @@ asort($cursos_filtros);
                                 return clean;
                             }
                         }
+                    },
+                    customize: function (xlsx) {
+                        var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        // Forzar alineación a la izquierda para la columna E (Cédula)
+                        // El estilo '50' es alineación a la izquierda por defecto en Buttons
+                        $('row c[r^="E"]', sheet).attr('s', '50');
                     }
                 },
                 {
@@ -512,11 +545,11 @@ asort($cursos_filtros);
                     },
                     orientation: 'landscape',
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8],
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9],
                         orthogonal: 'export',
                         format: {
                             body: function (data, row, column, node) {
-                                if (column === 5) {
+                                if (column === 6) { // Curso
                                     let cleanData = data.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                                     if (cleanData.includes('Materia:')) {
                                         let partes = cleanData.split('Materia:');
@@ -524,7 +557,7 @@ asort($cursos_filtros);
                                     }
                                     return cleanData;
                                 }
-                                if (column === 7) {
+                                if (column === 8) { // Banco/Ref
                                     return data.replace(/<br\s*\/?>/gi, ' - ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                                 }
                                 return data.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -541,7 +574,7 @@ asort($cursos_filtros);
                         return 'Reporte de Pagos - ' + tabName;
                     },
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8]
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9]
                     }
                 }
             ],
@@ -745,24 +778,76 @@ asort($cursos_filtros);
         }
     }
 
-    function abrirModalEditComprobanteAdmin(id, banco, operacion, monto, fecha, moneda, btnObj) {
-        window.filaEditadaAdmin = $(btnObj).closest('tr');
-        document.getElementById('formEditarPagoAdmin').reset();
+    function abrirModalEditComprobanteAdmin(id, banco, ref, monto, fecha, moneda, idCurso, idMateria, btn) {
+        window.filaEditadaAdmin = $(btn).closest('tr');
         document.getElementById('admin_edit_id_comprobante').value = id;
         document.getElementById('admin_edit_banco_origen').value = banco;
-        document.getElementById('admin_edit_numero_operacion').value = operacion;
+        document.getElementById('admin_edit_numero_operacion').value = ref;
         document.getElementById('admin_edit_monto').value = monto;
         document.getElementById('admin_edit_fecha_pago').value = fecha;
         
-        var editMoneda = document.getElementById('admin_edit_moneda');
-        if(editMoneda) {
-            editMoneda.value = moneda || 'Bs';
-            toggleReferenciaAdmin();
+        $('#admin_edit_moneda').val(moneda || 'Bs').trigger('change');
+        
+        // Asignar curso y cargar materias
+        $('#admin_edit_id_curso').val(idCurso).trigger('change');
+
+        if (idCurso) {
+            cargarMateriasAdmin(idCurso, function () {
+                if (idMateria) {
+                    $('#admin_edit_id_materia').val(idMateria).trigger('change');
+                } else {
+                    $('#admin_edit_id_materia').val('').trigger('change');
+                }
+            });
+        } else {
+            $('#admin_edit_id_materia').val('').trigger('change');
+            $('#admin_grupo_materia').hide();
         }
 
-        $('#admin_edit_moneda').val(moneda || 'Bs').trigger('change');
-
+        toggleReferenciaAdmin();
         $('#modalEditarComprobanteAdmin').modal('show');
+
+        // Inicializar Select2 al abrir el modal (si no está inicializado)
+        setTimeout(function () {
+            $('.select2-modal').select2({
+                dropdownParent: $('#modalEditarComprobanteAdmin')
+            });
+        }, 200);
+    }
+
+    function cargarMateriasAdmin(idCurso, callback) {
+        if (!idCurso) {
+            $('#admin_grupo_materia').hide();
+            $('#admin_edit_id_materia').html('<option value="">Seleccione una materia...</option>');
+            if (callback) callback();
+            return;
+        }
+
+        $.ajax({
+            url: '../controllers/obtener_materias_ajax.php',
+            type: 'GET',
+            data: { id_curso: idCurso },
+            dataType: 'json',
+            success: function (res) {
+                if (res && res.length > 0) {
+                    let html = '<option value="">Seleccione una materia...</option>';
+                    res.forEach(m => {
+                        html += `<option value="${m.id}">${m.nombre}</option>`;
+                    });
+                    $('#admin_edit_id_materia').html(html);
+                    $('#admin_grupo_materia').show();
+                } else {
+                    $('#admin_grupo_materia').hide();
+                    $('#admin_edit_id_materia').html('<option value="">Seleccione una materia...</option>');
+                }
+                if (callback) callback();
+            },
+            error: function () {
+                console.error('Error al cargar materias');
+                $('#admin_grupo_materia').hide();
+                if (callback) callback();
+            }
+        });
     }
 
     function toggleReferenciaAdmin() {
@@ -817,7 +902,7 @@ asort($cursos_filtros);
                         let table = tr.closest('table').DataTable();
                         let row = table.row(tr);
                         let data = row.data();
-
+                        
                         let nuevoBanco = formData.get('banco_origen');
                         let nuevaRef = formData.get('numero_operacion') || '';
                         let nuevoMonto = parseFloat(formData.get('monto')).toFixed(2);
@@ -826,27 +911,57 @@ asort($cursos_filtros);
                         let fechaFormat = `${partes[2]}/${partes[1]}/${partes[0]}`;
 
                         let nuevoMoneda = formData.get('moneda');
-                        let simbolo = (nuevoMoneda === 'Divisas') ? '$' : 'Bs. ';
+                        let simbolo = (nuevoMoneda === 'Divisas') ? '$' : 'Bs.';
                         
-                        data[1] = fechaFormat;
+                        let idCurso = formData.get('id_curso');
+                        let idMateria = formData.get('id_materia') || 'null';
+
+                        // Actualizar datos internos (DataTables mapeará esto a las columnas visibles automáticamente)
+                        
+                        // Índice 0: Fecha Pago (Oculta)
                         data[0] = nuevaFecha;
 
-                        data[6] = (nuevoMoneda === 'Divisas') ? '<span class="badge badge-success">Divisas</span>' : '<span class="badge badge-primary">Bs.</span>';
-
-                        let oldObs = '';
-                        if (data[7] && data[7].includes('<b>Obs:</b>')) {
-                            oldObs = data[7].substring(data[7].indexOf('<hr class="m-1">'));
+                        // Índice 1: Fecha (Visible)
+                        // Si DataTables creó un objeto por el atributo data-sort, lo actualizamos correctamente
+                        if (typeof data[1] === 'object' && data[1] !== null) {
+                            data[1].display = fechaFormat;
+                            data[1]['@data-sort'] = nuevaFecha;
+                        } else {
+                            data[1] = fechaFormat;
                         }
                         
-                        let refMostrar = nuevaRef ? nuevaRef : 'N/A';
-                        data[7] = `<strong>${refMostrar}</strong><br><small class="text-muted">${nuevoBanco}</small>${oldObs}`;
-                        data[8] = `<span class="text-success font-weight-bold" style="font-size: 1.1rem;">${simbolo}${nuevoMonto}</span>`;
+                        // Índice 6: Curso / Diplomado
+                        let nuevoCursoNombre = $('#admin_edit_id_curso option:selected').text();
+                        let nuevaMateriaNombre = $('#admin_edit_id_materia option:selected').val() ? $('#admin_edit_id_materia option:selected').text() : '';
+                        let cursoHtml = `<strong>${nuevoCursoNombre}</strong>`;
+                        if (nuevaMateriaNombre) {
+                            cursoHtml += `<div class="small text-muted font-weight-normal mt-1"><i class="fas fa-book me-1"></i> Materia: ${nuevaMateriaNombre}</div>`;
+                        }
+                        data[6] = cursoHtml;
 
+                        // Índice 7: Moneda
+                        data[7] = (nuevoMoneda === 'Divisas') ? '<span class="badge badge-success">Divisas</span>' : '<span class="badge badge-primary">Bs.</span>';
+
+                        // Índice 8: Referencia / Banco
+                        // Preservar la observación si existe
+                        let currentVal8 = (typeof data[8] === 'object' && data[8] !== null) ? data[8].display : data[8];
+                        let oldObs = '';
+                        if (currentVal8 && currentVal8.includes('<hr class="m-1">')) {
+                            oldObs = currentVal8.substring(currentVal8.indexOf('<hr class="m-1">'));
+                        }
+                        let refMostrar = nuevaRef ? nuevaRef : 'N/A';
+                        data[8] = `<strong>${refMostrar}</strong><br><small class="text-muted">${nuevoBanco}</small>${oldObs}`;
+
+                        // Índice 9: Monto
+                        data[9] = `<span class="text-success font-weight-bold" style="font-size: 1.1rem;">${simbolo}${nuevoMonto}</span>`;
+
+                        // Guardar y redibujar la fila
                         row.data(data).draw(false);
 
+                        // Actualizar el botón de edición para reflejar los nuevos parámetros en el HTML físico
                         let editBtn = tr.find('button[title="Modificar datos del pago"]');
                         if (editBtn.length) {
-                            editBtn.attr('onclick', `abrirModalEditComprobanteAdmin(${formData.get('id_comprobante')}, '${nuevoBanco}', '${nuevaRef}', ${nuevoMonto}, '${nuevaFecha}', '${nuevoMoneda}', this)`);
+                            editBtn.attr('onclick', `abrirModalEditComprobanteAdmin(${formData.get('id_comprobante')}, '${nuevoBanco}', '${nuevaRef}', ${nuevoMonto}, '${nuevaFecha}', '${nuevoMoneda}', ${idCurso}, ${idMateria}, this)`);
                         }
                     }
                 } else {

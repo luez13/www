@@ -109,6 +109,10 @@ $_SESSION['logueado'] = isset($_SESSION['nombre']);
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- tsParticles Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <?php if (in_array($current_page, ['index.php', 'register.php', 'recuperar_password.php', 'reset_password.php', 'ver_certificados.php'])): ?>
         <script src="assets/js/tsparticles-config.js" defer></script>
         <?php
