@@ -48,8 +48,8 @@
         .content-area {
             position: absolute;
             top: 150px;
-            left: 10%;
-            width: 80%;
+            left: 12%;
+            width: 76%;
             text-align: justify;
             text-justify: inter-word;
             z-index: 2;
@@ -64,15 +64,13 @@
 
         .texto-principal {
             font-size: 15px;
-            line-height: 1.5;
+            line-height: 1.6;
             margin-bottom: 40px;
-            text-indent: 50px;
         }
 
         .texto-fecha {
             font-size: 15px;
             margin-bottom: 40px;
-            text-indent: 50px;
         }
 
         .texto-agradecimiento {
@@ -141,6 +139,46 @@
             $nombre_docente = mb_strtoupper($data['nombre_docente'], 'UTF-8');
             $cedula = htmlspecialchars($data['cedula']);
             $lapso_academico = htmlspecialchars($data['lapso_academico']);
+
+            function obtenerConectorProgramaDocente($tipo)
+            {
+                $t = trim(mb_strtolower($tipo, 'UTF-8'));
+                if (empty($t) || $t === 'curso') {
+                    return 'del curso titulado';
+                }
+                switch ($t) {
+                    case 'diplomado':
+                    case 'diplomado_rectoria':
+                        return 'del diplomado titulado';
+                    case 'masterclass':
+                        return 'de la masterclass titulada';
+                    case 'taller':
+                        return 'del taller titulado';
+                    case 'seminario':
+                        return 'del seminario titulado';
+                    case 'conferencia':
+                        return 'de la conferencia titulada';
+                    case 'congreso':
+                        return 'del congreso titulado';
+                    case 'simposio':
+                        return 'del simposio titulado';
+                    case 'charla':
+                        return 'de la charla titulada';
+                    case 'foro':
+                        return 'del foro titulado';
+                    case 'ponencia':
+                        return 'de la ponencia titulada';
+                    case 'jornada':
+                        return 'de la jornada titulada';
+                    default:
+                        if (mb_substr($t, -1, 1, 'UTF-8') === 'a') {
+                            return "de la " . htmlspecialchars($tipo) . " titulada";
+                        } else {
+                            return "del " . htmlspecialchars($tipo) . " titulado";
+                        }
+                }
+            }
+            $conector_programa = obtenerConectorProgramaDocente(isset($data['tipo_curso']) ? $data['tipo_curso'] : 'curso');
             ?>
 
             <p class="texto-principal">
@@ -149,7 +187,7 @@
                 V-<strong><?php echo $cedula; ?></strong>, se encuentra actualmente desempeñándose en calidad de
                 <strong>Facilitador</strong> en la unidad curricular
                 <strong><?php echo htmlspecialchars($nombre_materia); ?></strong>, correspondiente al <strong>Periodo
-                    Académico N° <?php echo $lapso_academico; ?></strong> del programa formativo titulado
+                    Académico N° <?php echo $lapso_academico; ?></strong> <?php echo $conector_programa; ?>
                 <strong><?php echo htmlspecialchars($nombre_curso); ?></strong>, organizado por la <strong>Coordinación
                     de Formación Permanente</strong> de la Universidad Politécnica Territorial Agroindustrial del Estado
                 Táchira.

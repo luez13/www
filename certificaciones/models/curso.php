@@ -735,6 +735,62 @@ class Curso
 
         return $datos_principales;
     }
+
+    public function obtenerFirmasCurso($id_curso)
+    {
+        $stmt_curso = $this->pdo->prepare("SELECT promotor FROM cursos.cursos WHERE id_curso = :id_curso");
+        $stmt_curso->execute([':id_curso' => $id_curso]);
+        $id_promotor_curso = $stmt_curso->fetchColumn();
+
+        $sql_firmas = "
+            SELECT ccf.id_cargo_firmante, ccf.usar_promotor_curso, pf.codigo_posicion, pf.pagina
+            FROM cursos.cursos_config_firmas AS ccf
+            JOIN cursos.posiciones_firma AS pf ON ccf.id_posicion = pf.id_posicion
+            WHERE ccf.id_curso = :id_curso
+            ORDER BY pf.id_posicion ASC
+        ";
+        $stmt_firmas = $this->pdo->prepare($sql_firmas);
+        $stmt_firmas->execute([':id_curso' => $id_curso]);
+        $configuraciones = $stmt_firmas->fetchAll(PDO::FETCH_ASSOC);
+
+        $firmantes_procesados = [];
+        foreach ($configuraciones as $config) {
+            $firmante_info = [
+                'nombre' => '[Firmante no asignado]',
+                'titulo' => '',
+                'cargo' => '',
+            ];
+
+            $data_firmante = null;
+
+            if ($config['usar_promotor_curso'] && $id_promotor_curso) {
+                $stmt_user = $this->pdo->prepare("SELECT nombre, apellido, titulo, cargo FROM cursos.usuarios WHERE id = :id");
+                $stmt_user->execute([':id' => $id_promotor_curso]);
+                $data_firmante = $stmt_user->fetch(PDO::FETCH_ASSOC);
+                if ($data_firmante) {
+                    $data_firmante['nombre_cargo_certificado'] = 'Facilitador';
+                }
+            } elseif ($config['id_cargo_firmante']) {
+                $stmt_cargo = $this->pdo->prepare("SELECT nombre, apellido, nombre_cargo, titulo FROM cursos.cargos WHERE id_cargo = :id");
+                $stmt_cargo->execute([':id' => $config['id_cargo_firmante']]);
+                $data_firmante = $stmt_cargo->fetch(PDO::FETCH_ASSOC);
+                if ($data_firmante) {
+                    $data_firmante['nombre_cargo_certificado'] = $data_firmante['nombre_cargo'];
+                }
+            }
+
+            if ($data_firmante) {
+                $primer_nombre = explode(' ', trim($data_firmante['nombre']))[0];
+                $primer_apellido = explode(' ', trim($data_firmante['apellido']))[0];
+                $firmante_info['nombre'] = $primer_nombre . ' ' . $primer_apellido;
+                $firmante_info['titulo'] = isset($data_firmante['titulo']) ? $data_firmante['titulo'] : '';
+                $firmante_info['cargo'] = $data_firmante['nombre_cargo_certificado'];
+            }
+            $firmantes_procesados[] = $firmante_info;
+        }
+
+        return $firmantes_procesados;
+    }
     public function obtener_datos_constancia_por_curso($id_curso)
     {
         $stmt = $this->pdo->prepare("
@@ -774,7 +830,7 @@ class Curso
         $rol = $es_promotor ? "Facilitador" : "Participante";
 
         $stmt = $this->pdo->prepare("
-            SELECT c.id_curso, c.nombre_curso, c.horas_cronologicas, u.nombre, u.apellido, u.cedula, u.correo
+            SELECT c.id_curso, c.nombre_curso, c.tipo_curso, c.horas_cronologicas, u.nombre, u.apellido, u.cedula, u.correo
             FROM cursos.cursos c
             CROSS JOIN cursos.usuarios u
             WHERE c.id_curso = :id_curso AND u.id = :id_usuario

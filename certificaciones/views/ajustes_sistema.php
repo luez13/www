@@ -39,23 +39,49 @@ if ($_SESSION['id_rol'] != 4) {
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Firmante por Defecto: Encargado del area</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Firmante por Defecto: Encargado del Área</h6>
         </div>
         <div class="card-body">
-            <p>Selecciona la persona que ocupará el cargo de "Encargado del Area de Formación Permanente" por defecto.</p>
+            <p>Selecciona la persona que ocupará el cargo de "Encargado del Área de Formación Permanente" por defecto.</p>
+
+            <form id="formAjustesEncargado">
+                <input type="hidden" name="action" value="guardar_config">
+                <input type="hidden" name="clave_config" value="ID_CARGO_ENCARGADO_POR_DEFECTO">
+                <div class="row align-items-end">
+                    <div class="col-md-8">
+                        <label for="selectEncargadoPorDefecto" class="form-label">Encargado del Área:</label>
+                        <select class="form-select" id="selectEncargadoPorDefecto" name="valor_config" required>
+                            <option value="">Cargando firmantes...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">Guardar Encargado</button>
+                    </div>
+                </div>
+            </form>
+            <div id="ajustes-feedback-encargado" class="mt-3"></div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Firmante por Defecto: Vicerrectorado Académico</h6>
+        </div>
+        <div class="card-body">
+            <p>Selecciona la persona que ocupará el cargo de "Vicerrectorado Académico" por defecto.</p>
 
             <form id="formAjustesVicerrectora">
                 <input type="hidden" name="action" value="guardar_config">
                 <input type="hidden" name="clave_config" value="ID_CARGO_VICERRECTORADO_POR_DEFECTO">
                 <div class="row align-items-end">
                     <div class="col-md-8">
-                        <label for="selectVicerrectoraPorDefecto" class="form-label">Encargado del Area:</label>
+                        <label for="selectVicerrectoraPorDefecto" class="form-label">Vicerrectorado Académico:</label>
                         <select class="form-select" id="selectVicerrectoraPorDefecto" name="valor_config" required>
                             <option value="">Cargando firmantes...</option>
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <button type="submit" class="btn btn-primary w-100">Guardar Vicerrectora</button>
+                        <button type="submit" class="btn btn-primary w-100">Guardar Vicerrectorado</button>
                     </div>
                 </div>
             </form>
@@ -165,7 +191,53 @@ if ($_SESSION['id_rol'] != 4) {
             });
         });
 
-        // --- ✅ LÓGICA PARA EL NUEVO SELECTOR DE VICERRECTORA ---
+        // --- ✅ LÓGICA PARA EL NUEVO SELECTOR DE ENCARGADO DEL ÁREA ---
+        const selectorEncargado = $('#selectEncargadoPorDefecto');
+
+        const CargarValorActualEncargado = () => {
+            return $.getJSON('../controllers/ConfigSistemaController.php', { action: 'obtener_config_clave', clave: 'ID_CARGO_ENCARGADO_POR_DEFECTO' })
+                .done(function (response) {
+                    if (response.success && response.data) {
+                        selectorEncargado.val(response.data.valor_config);
+                    }
+                });
+        };
+
+        CargarFirmantes().then(function (response) {
+            if (response.success) {
+                selectorEncargado.empty().append('<option value="">-- Seleccione un firmante --</option>');
+                response.data.forEach(firmante => {
+                    selectorEncargado.append(`<option value="${firmante.id}">${firmante.texto_display}</option>`);
+                });
+                CargarValorActualEncargado();
+            } else {
+                selectorEncargado.html('<option value="">Error al cargar</option>');
+            }
+        });
+
+        $('#formAjustesEncargado').on('submit', function (event) {
+            event.preventDefault();
+            const formData = $(this).serialize();
+            const btn = $(this).find('button[type="submit"]');
+            const originalBtnText = btn.text();
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Guardando...');
+
+            $.post('../controllers/ConfigSistemaController.php', formData, function (response) {
+                let feedback = $('#ajustes-feedback-encargado');
+                if (response.success) {
+                    feedback.html('<div class="alert alert-success">Ajuste guardado correctamente.</div>');
+                } else {
+                    feedback.html('<div class="alert alert-danger">Error: ' + (response.message || 'No se pudo guardar.') + '</div>');
+                }
+                setTimeout(() => feedback.empty(), 5000);
+            }, 'json').fail(function () {
+                alert('Error de comunicación con el servidor.');
+            }).always(function () {
+                btn.prop('disabled', false).text(originalBtnText);
+            });
+        });
+
+        // --- ✅ LÓGICA PARA EL SELECTOR DE VICERRECTORADO ---
         const selectorVicerrectora = $('#selectVicerrectoraPorDefecto');
 
         const CargarValorActualVicerrectora = () => {

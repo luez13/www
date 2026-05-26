@@ -37,6 +37,61 @@ $hora_cierre = "09:48 am";
 $img_encabezado = realpath(__DIR__ . '/../public/assets/img/encabezado.jpg');
 $img_pie = realpath(__DIR__ . '/../public/assets/img/piePagina.jpg');
 
+$firmantes = [];
+if ($id_curso > 0) {
+    // 1. Encargado del Área (Vicerrectorado)
+    $stmtConfig1 = $db->getConn()->prepare("SELECT valor_config FROM cursos.config_sistema WHERE clave_config = 'ID_CARGO_VICERRECTORADO_POR_DEFECTO'");
+    $stmtConfig1->execute();
+    $id_vicerrector = $stmtConfig1->fetchColumn();
+    if ($id_vicerrector) {
+        $stmtCargo1 = $db->getConn()->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE id_cargo = :id");
+        $stmtCargo1->execute(['id' => $id_vicerrector]);
+        if ($c = $stmtCargo1->fetch(PDO::FETCH_ASSOC)) {
+            $firmantes[] = [
+                'nombre' => explode(' ', trim($c['nombre']))[0] . ' ' . explode(' ', trim($c['apellido']))[0],
+                'titulo' => $c['titulo'],
+                'cargo' => $c['nombre_cargo'],
+                'firma_digital' => $c['firma_digital']
+            ];
+        }
+    }
+
+    // 2. Coordinación
+    $stmtConfig2 = $db->getConn()->prepare("SELECT valor_config FROM cursos.config_sistema WHERE clave_config = 'ID_CARGO_COORD_FP_POR_DEFECTO'");
+    $stmtConfig2->execute();
+    $id_coord = $stmtConfig2->fetchColumn();
+    if ($id_coord) {
+        $stmtCargo2 = $db->getConn()->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE id_cargo = :id");
+        $stmtCargo2->execute(['id' => $id_coord]);
+        if ($c = $stmtCargo2->fetch(PDO::FETCH_ASSOC)) {
+            $firmantes[] = [
+                'nombre' => explode(' ', trim($c['nombre']))[0] . ' ' . explode(' ', trim($c['apellido']))[0],
+                'titulo' => $c['titulo'],
+                'cargo' => $c['nombre_cargo'],
+                'firma_digital' => $c['firma_digital']
+            ];
+        }
+    }
+
+    // 3. Facilitador (Promotor)
+    $stmt_curso = $db->getConn()->prepare("SELECT promotor FROM cursos.cursos WHERE id_curso = :id");
+    $stmt_curso->execute(['id' => $id_curso]);
+    $id_promotor = $stmt_curso->fetchColumn();
+    
+    if ($id_promotor) {
+        $stmtUser = $db->getConn()->prepare("SELECT nombre, apellido, titulo, firma_digital FROM cursos.usuarios WHERE id = :id");
+        $stmtUser->execute(['id' => $id_promotor]);
+        if ($u = $stmtUser->fetch(PDO::FETCH_ASSOC)) {
+            $firmantes[] = [
+                'nombre' => explode(' ', trim($u['nombre']))[0] . ' ' . explode(' ', trim($u['apellido']))[0],
+                'titulo' => $u['titulo'] ?: '',
+                'cargo' => 'Facilitador',
+                'firma_digital' => $u['firma_digital']
+            ];
+        }
+    }
+}
+
 $data = [
     'nombre_diplomado' => $nombre_diplomado,
     'nombre_materia' => $nombre_materia,
@@ -47,10 +102,7 @@ $data = [
     'inscritos' => $inscritos,
     'aprobados' => $aprobados,
     'no_aprobaron' => $no_aprobaron,
-    'firma_vicerrector' => $firma_vicerrector,
-    'cargo_vicerrector' => $cargo_vicerrector,
-    'firma_coord' => $firma_coord,
-    'cargo_coord' => $cargo_coord,
+    'firmantes' => $firmantes,
     'dia_cierre' => $dia_cierre,
     'mes_cierre' => $mes_cierre,
     'anio_cierre' => $anio_cierre,

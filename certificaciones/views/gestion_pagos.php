@@ -195,7 +195,8 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                 <th>Cédula</th>
                                 <th>Curso / Diplomado</th>
                                 <th>Moneda</th>
-                                <th>Referencia / Banco</th>
+                                <th>Referencia</th>
+                                <th>Banco</th>
                                 <th>Monto</th>
                                 <th>Acciones</th>
                             </tr>
@@ -241,15 +242,17 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                             <span class="badge badge-primary">Bs.</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td>
-                                        <strong><?= h($comp['numero_operacion'] ? $comp['numero_operacion'] : 'N/A') ?></strong><br>
-                                        <small class="text-muted"><?= h($comp['banco_origen']) ?></small>
+                                    <td class="text-left">
+                                        <strong><?= h($comp['numero_operacion'] ? $comp['numero_operacion'] : 'N/A') ?></strong>
                                         <?php if (!empty($comp['observacion'])): ?>
                                             <hr class="m-1">
                                             <small class="text-secondary d-block" style="max-width:150px; white-space: normal;">
                                                 <b>Obs:</b> <?= h($comp['observacion']) ?>
                                             </small>
                                         <?php endif; ?>
+                                    </td>
+                                    <td class="text-left">
+                                        <strong><?= h($comp['banco_origen'] ? $comp['banco_origen'] : 'N/A') ?></strong>
                                     </td>
                                     <td class="align-middle">
                                         <span class="text-success font-weight-bold" style="font-size: 1.1rem;">
@@ -509,7 +512,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                         return 'Reporte de Pagos - ' + tabName;
                     },
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                         orthogonal: 'export',
                         format: {
                             body: function (data, row, column, node) {
@@ -545,7 +548,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                     },
                     orientation: 'landscape',
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                         orthogonal: 'export',
                         format: {
                             body: function (data, row, column, node) {
@@ -557,8 +560,11 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                     }
                                     return cleanData;
                                 }
-                                if (column === 8) { // Banco/Ref
-                                    return data.replace(/<br\s*\/?>/gi, ' - ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                                if (column === 8) { // Referencia
+                                    return data.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                                }
+                                if (column === 9) { // Banco
+                                    return data.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                                 }
                                 return data.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                             }
@@ -574,7 +580,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                         return 'Reporte de Pagos - ' + tabName;
                     },
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                     }
                 }
             ],

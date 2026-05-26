@@ -7,9 +7,11 @@
  */
 
 // PAGINA 1: Acta
+$marginX = 25;
+$pdf->SetMargins($marginX, 25, $marginX);
+$pdf->SetAutoPageBreak(true, 25);
 $pdf->AddPage('P', 'Letter');
 $pdf->SetFont('Times', '', 12);
-$marginX = 20;
 $pageWidth = 215.9;
 $contentWidth = $pageWidth - ($marginX * 2);
 
@@ -63,7 +65,7 @@ $pdf->Ln(2);
 $pdf->SetFont('Times', '', 12);
 $parrafos = [
     "En cumplimiento con los lineamientos establecidos por la institución y con el objetivo de evaluar el desarrollo académico de los participantes, así como el cumplimiento de los objetivos planteados, se procede a dar cierre formal a la materia antes mencionada. Durante el transcurso de este periodo, se llevaron a cabo diversas actividades académicas, que incluyeron clases teóricas, talleres prácticos y evaluaciones, las cuales permitieron a los participantes adquirir competencias y habilidades en el área de estudio.",
-    "Por otra parte, se registró la participación de un total de " . $data['total_participantes'] . " estudiantes, con la aprobación de " . $data['aprobados'] . " participantes, quienes demostraron un compromiso notable a lo largo del curso. En cuanto a los resultados, los estudiantes fueron evaluados mediante una combinación de trabajos prácticos, foros, talleres y participación continua. La calificación definitiva se ha registrado de acuerdo a los criterios establecidos en el programa del diplomado.",
+    "Por otra parte, se registró la participación de un total de " . $data['total_participantes'] . " estudiantes, con la aprobación de " . $data['aprobados'] . " participantes y la reprobación de " . $data['reprobados'] . " participantes. En cuanto a los resultados, los estudiantes fueron evaluados mediante una combinación de trabajos prácticos, foros, talleres y participación continua. La calificación definitiva se ha registrado de acuerdo a los criterios establecidos en el programa del diplomado.",
     "Agradecemos a todos los participantes por su dedicación y esfuerzo, así como al cuerpo docente y administrativo de la UPTAIET por su apoyo y colaboración durante este proceso formativo. Sin más asuntos que tratar, se levanta la presente acta, que será firmada por los presentes como constancia del cierre de la materia."
 ];
 
@@ -77,22 +79,64 @@ $pdf->SetY(max($pdf->GetY() + 10, 230));
 if ($pdf->GetY() > 240) { $pdf->AddPage(); $pdf->SetY(40); }
 
 $yFirma = $pdf->GetY();
-$pdf->Line($marginX + 5, $yFirma, $marginX + 75, $yFirma);
-$pdf->Line($pageWidth - $marginX - 75, $yFirma, $pageWidth - $marginX - 5, $yFirma);
+$firmantesMateria = [
+    [
+        'nombre' => $data['encargado'],
+        'cargo' => $data['cargo_encargado'],
+        'firma_digital' => isset($data['firma_encargado']) ? $data['firma_encargado'] : ''
+    ],
+    [
+        'nombre' => $data['coordinador'],
+        'cargo' => $data['cargo_coordinador'],
+        'firma_digital' => isset($data['firma_coordinador']) ? $data['firma_coordinador'] : ''
+    ],
+    [
+        'nombre' => $data['docente'],
+        'cargo' => 'Facilitador(a)',
+        'firma_digital' => isset($data['firma_docente']) ? $data['firma_docente'] : ''
+    ]
+];
 
-$pdf->SetFont('Times', 'B', 10);
-// Izquierda: Coordinador
-$pdf->SetXY($marginX + 5, $yFirma + 2);
-$pdf->MultiCell(70, 4, utf8_decode($data['coordinador']), 0, 'C');
-$pdf->SetX($marginX + 5);
-$pdf->MultiCell(70, 4, utf8_decode($data['cargo_coordinador']), 0, 'C');
+$numFirmas = count($firmantesMateria);
+$colW = $contentWidth / $numFirmas;
 
-// Derecha: Facilitador
-$pdf->SetXY($pageWidth - $marginX - 75, $yFirma + 2);
-$pdf->MultiCell(70, 4, utf8_decode($data['docente']), 0, 'C');
-$pdf->SetX($pageWidth - $marginX - 75);
-$pdf->SetFont('Times', '', 10);
-$pdf->MultiCell(70, 4, utf8_decode("Facilitador(a)"), 0, 'C');
+for ($i = 0; $i < $numFirmas; $i++) {
+    $x = $marginX + ($i * $colW);
+    $lineMarg = 5;
+    $f = $firmantesMateria[$i];
+    
+    if (!empty($f['firma_digital'])) {
+        $path_firma = __DIR__ . '/../../public/assets/firmas/' . $f['firma_digital'];
+        if (file_exists($path_firma)) {
+            $imgInfo = @getimagesize($path_firma);
+            if ($imgInfo !== false) {
+                $imgW = $imgInfo[0];
+                $imgH = $imgInfo[1];
+                $maxW = $colW - 10;
+                $maxH = 20;
+                $ratio = min($maxW / $imgW, $maxH / $imgH);
+                $finalW = $imgW * $ratio;
+                $finalH = $imgH * $ratio;
+                
+                $imgX = $x + ($colW - $finalW) / 2;
+                $imgY = $yFirma - $finalH - 1; // Justo encima de la línea
+                
+                $pdf->Image($path_firma, $imgX, $imgY, $finalW, $finalH);
+            }
+        }
+    }
+
+    // Línea
+    $pdf->Line($x + $lineMarg, $yFirma, $x + $colW - $lineMarg, $yFirma);
+    
+    $pdf->SetXY($x, $yFirma + 2);
+    $pdf->SetFont('Times', 'B', 9);
+    $pdf->MultiCell($colW, 4, utf8_decode($f['nombre']), 0, 'C');
+    
+    $pdf->SetX($x);
+    $pdf->SetFont('Times', '', 8);
+    $pdf->MultiCell($colW, 3.5, utf8_decode($f['cargo']), 0, 'C');
+}
 
 // 5. PIE DE PÁGINA
 if (isset($data['img_pie']) && file_exists($data['img_pie'])) {
@@ -110,7 +154,7 @@ if (isset($data['img_encabezado']) && file_exists($data['img_encabezado'])) {
 
 $pdf->SetY(35);
 $pdf->SetFont('Times', 'B', 14);
-$pdf->Cell($pageLWidth, 7, utf8_decode("ANEXO: CALIFICACIONES DETALLADAS"), 0, 1, 'C');
+$pdf->Cell(0, 7, utf8_decode("ANEXO: CALIFICACIONES DETALLADAS"), 0, 1, 'C');
 $pdf->Ln(5);
 
 $pdf->SetFont('Times', '', 11);
@@ -119,7 +163,7 @@ $pdf->Cell(0, 6, utf8_decode("Materia: " . $data['materia']), 0, 1, 'L');
 $pdf->Ln(2);
 
 // Tabla manual con FPDF
-$pdf->SetFont('Times', 'B', 9);
+$pdf->SetFont('Times', 'B', 8);
 $pdf->SetFillColor(44, 62, 80);
 $pdf->SetTextColor(255);
 
@@ -130,22 +174,22 @@ $colDef = 15;
 $colAct = ( $pageLWidth - ($marginL * 2) - $colNo - $colCed - $colNom - $colDef ) / count($data['columnas_evaluacion']);
 
 $pdf->SetX($marginL);
-$pdf->Cell($colNo, 10, utf8_decode("No."), 1, 0, 'C', true);
-$pdf->Cell($colCed, 10, utf8_decode("Cédula"), 1, 0, 'C', true);
-$pdf->Cell($colNom, 10, utf8_decode("Participante"), 1, 0, 'C', true);
+$pdf->Cell($colNo, 7, utf8_decode("No."), 1, 0, 'C', true);
+$pdf->Cell($colCed, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
+$pdf->Cell($colNom, 7, utf8_decode("Participante"), 1, 0, 'C', true);
 
 foreach ($data['columnas_evaluacion'] as $col) {
     // Para las actividades, dividimos la línea si es larga o ajustamos
     $x = $pdf->GetX();
     $y = $pdf->GetY();
-    $pdf->Cell($colAct, 10, '', 1, 0, 'C', true);
-    $pdf->SetXY($x, $y);
-    $pdf->MultiCell($colAct, 5, utf8_decode($col), 0, 'C');
+    $pdf->Cell($colAct, 7, '', 1, 0, 'C', true);
+    $pdf->SetXY($x, $y + 0.5);
+    $pdf->MultiCell($colAct, 3, utf8_decode($col), 0, 'C');
     $pdf->SetXY($x + $colAct, $y);
 }
-$pdf->Cell($colDef, 10, utf8_decode("Def."), 1, 1, 'C', true);
+$pdf->Cell($colDef, 7, utf8_decode("Def."), 1, 1, 'C', true);
 
-$pdf->SetFont('Times', '', 10);
+$pdf->SetFont('Times', '', 8);
 $pdf->SetTextColor(0);
 
 foreach ($data['alumnos'] as $idx => $al) {
@@ -156,17 +200,17 @@ foreach ($data['alumnos'] as $idx => $al) {
     if ($fill) $pdf->SetFillColor(255, 230, 230);
     else $pdf->SetFillColor(255, 255, 255);
 
-    $pdf->Cell($colNo, 7, $idx + 1, 1, 0, 'C', true);
-    $pdf->Cell($colCed, 7, $al['cedula'], 1, 0, 'C', true);
-    $pdf->Cell($colNom, 7, utf8_decode($al['nombre']), 1, 0, 'L', true);
+    $pdf->Cell($colNo, 4.5, $idx + 1, 1, 0, 'C', true);
+    $pdf->Cell($colCed, 4.5, $al['cedula'], 1, 0, 'C', true);
+    $pdf->Cell($colNom, 4.5, utf8_decode($al['nombre']), 1, 0, 'L', true);
 
     foreach ($al['notas_parciales'] as $nota) {
-        $pdf->Cell($colAct, 7, ($nota > 0 ? $nota : 'NP'), 1, 0, 'C', true);
+        $pdf->Cell($colAct, 4.5, ($nota > 0 ? $nota : 'NP'), 1, 0, 'C', true);
     }
     
-    $pdf->SetFont('Times', 'B', 10);
-    $pdf->Cell($colDef, 7, $al['definitiva'], 1, 1, 'C', true);
-    $pdf->SetFont('Times', '', 10);
+    $pdf->SetFont('Times', 'B', 8);
+    $pdf->Cell($colDef, 4.5, $al['definitiva'], 1, 1, 'C', true);
+    $pdf->SetFont('Times', '', 8);
 }
 
 if (isset($data['img_pie']) && file_exists($data['img_pie'])) {

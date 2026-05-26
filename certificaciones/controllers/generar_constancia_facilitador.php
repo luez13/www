@@ -86,6 +86,7 @@ $data = [
     'bannerPath' => 'data:image/png;base64,' . base64_encode(file_get_contents($encabezado)),
     'footerPath' => 'data:image/jpeg;base64,' . base64_encode(file_get_contents($piePagina)),
     'nombre_curso' => $nombre_curso_capitalizado,
+    'tipo_curso' => isset($datos['tipo_curso']) ? $datos['tipo_curso'] : 'curso',
     'nombre_materia' => $nombre_materia_capitalizado,
     'nombre_docente' => $nombre_docente,
     'cedula' => $cedula,

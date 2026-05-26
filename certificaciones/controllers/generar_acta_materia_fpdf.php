@@ -58,7 +58,7 @@ function formatearPeriodo($textoRaw, $lapsoNumBd) {
 // --- 3. OBTENER DATOS DE LA BD ---
 $sql_info = "SELECT m.nombre_materia, m.duracion_bimestres, m.lapso_academico, m.total_horas, m.modalidad, 
                     c.nombre_curso, c.id_curso,
-                    u.nombre as nom_doc, u.apellido as ape_doc, u.cedula as ced_doc
+                    u.nombre as nom_doc, u.apellido as ape_doc, u.cedula as ced_doc, u.firma_digital as firma_doc
              FROM cursos.materias_bimestre m
              JOIN cursos.cursos c ON m.id_curso = c.id_curso
              LEFT JOIN cursos.usuarios u ON m.docente_id = u.id
@@ -73,16 +73,38 @@ if (!$info) { die("Materia no encontrada."); }
 $nombre_coordinador = "Coordinación de Formación Permanente";
 $cargo_coordinador = "Coordinador(a)";
 
+$firma_coordinador = "";
+
 $stmtConfig = $conn->prepare("SELECT valor_config FROM cursos.config_sistema WHERE clave_config = 'ID_CARGO_COORD_FP_POR_DEFECTO'");
 $stmtConfig->execute();
 $id_defecto = $stmtConfig->fetchColumn();
 if ($id_defecto) {
-    $stmtCargo = $conn->prepare("SELECT nombre, apellido, nombre_cargo FROM cursos.cargos WHERE id_cargo = :id");
+    $stmtCargo = $conn->prepare("SELECT nombre, apellido, nombre_cargo, firma_digital FROM cursos.cargos WHERE id_cargo = :id");
     $stmtCargo->execute(['id' => $id_defecto]);
     $coord_sys = $stmtCargo->fetch(PDO::FETCH_ASSOC);
     if ($coord_sys) {
         $nombre_coordinador = $coord_sys['nombre'] . ' ' . $coord_sys['apellido'];
         $cargo_coordinador = $coord_sys['nombre_cargo'];
+        $firma_coordinador = $coord_sys['firma_digital'];
+    }
+}
+
+// --- 4.5 DATOS DEL ENCARGADO DEL ÁREA ---
+$nombre_encargado = "Vicerrectorado Territorial";
+$cargo_encargado = "Encargado(a)";
+$firma_encargado = "";
+
+$stmtConfigEnc = $conn->prepare("SELECT valor_config FROM cursos.config_sistema WHERE clave_config = 'ID_CARGO_VICERRECTORADO_POR_DEFECTO'");
+$stmtConfigEnc->execute();
+$id_enc_defecto = $stmtConfigEnc->fetchColumn();
+if ($id_enc_defecto) {
+    $stmtCargoEnc = $conn->prepare("SELECT nombre, apellido, nombre_cargo, firma_digital FROM cursos.cargos WHERE id_cargo = :id");
+    $stmtCargoEnc->execute(['id' => $id_enc_defecto]);
+    $enc_sys = $stmtCargoEnc->fetch(PDO::FETCH_ASSOC);
+    if ($enc_sys) {
+        $nombre_encargado = $enc_sys['nombre'] . ' ' . $enc_sys['apellido'];
+        $cargo_encargado = $enc_sys['nombre_cargo'];
+        $firma_encargado = $enc_sys['firma_digital'];
     }
 }
 
@@ -126,8 +148,13 @@ $data = [
     'horas' => $info['total_horas'],
     'modalidad' => formatoTexto($info['modalidad']),
     'docente' => formatoNombre($info['nom_doc'] . ' ' . $info['ape_doc']),
+    'firma_docente' => $info['firma_doc'],
     'coordinador' => formatoNombre($nombre_coordinador),
     'cargo_coordinador' => formatoTexto($cargo_coordinador),
+    'firma_coordinador' => $firma_coordinador,
+    'encargado' => formatoNombre($nombre_encargado),
+    'cargo_encargado' => formatoTexto($cargo_encargado),
+    'firma_encargado' => $firma_encargado,
     'fecha_actual' => date('d'),
     'mes_nombre' => $meses[date('n')-1],
     'anio_actual' => date('Y'),

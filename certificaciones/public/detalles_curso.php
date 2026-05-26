@@ -91,6 +91,30 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                 </div>
             </div>
             <div class="card-body p-0">
+                <?php if (in_array($user_role, [3, 4])): ?>
+                    <!-- Asignación Masiva de Tomos y Folios -->
+                    <div class="bg-light p-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary text-white p-2" style="font-size: 0.9rem;">
+                                <i class="fas fa-magic me-1"></i> Asignación Masiva
+                            </span>
+                            <small class="text-muted">Asigna de forma masiva el mismo tomo/folio a todos los estudiantes de la tabla localmente.</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="input-group input-group-sm" style="max-width: 140px;">
+                                <span class="input-group-text bg-white text-primary fw-bold">Tomo</span>
+                                <input type="number" id="masivo-tomo" class="form-control text-center fw-bold" placeholder="Tomo" min="0">
+                            </div>
+                            <div class="input-group input-group-sm" style="max-width: 140px;">
+                                <span class="input-group-text bg-white text-primary fw-bold">Folio</span>
+                                <input type="number" id="masivo-folio" class="form-control text-center fw-bold" placeholder="Folio" min="0">
+                            </div>
+                            <button id="aplicar-masivo" type="button" class="btn btn-primary btn-sm fw-bold">
+                                <i class="fas fa-check-circle me-1"></i> Aplicar
+                            </button>
+                        </div>
+                    </div>
+                <?php endif; ?>
                 <div class="table-responsive">
                     <table class="table table-hover table-striped align-middle mb-0">
                         <thead class="table-light">
@@ -102,7 +126,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                                 <th class="text-center">Completado</th>
                                 <?php if (in_array($user_role, [3, 4])): ?>
                                     <th class="text-center">Pagado</th>
-                                    <th class="text-center" style="width: 220px;">Tomo / Folio</th>
+                                     <th class="text-center" style="width: 200px; min-width: 180px;">Tomo / Folio</th>
                                 <?php endif; ?>
                                 <th class="text-end" style="width: 250px;">Calificar</th>
                             </tr>
@@ -142,18 +166,24 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                                                     data-id-usuario="<?= $usuario['id'] ?>" <?= $pagado ? 'checked' : '' ?>>
                                             </div>
                                         </td>
-                                        <td>
-                                            <div class="input-group input-group-sm">
-                                                <span class="input-group-text bg-white text-muted">T</span>
-                                                <input type="number" class="form-control text-center tomo"
-                                                    data-id-curso="<?= $id_curso ?>" data-id-usuario="<?= $usuario['id'] ?>"
-                                                    value="<?= htmlspecialchars($tomo) ?>" min="0" placeholder="Tomo">
-                                                <span class="input-group-text bg-white text-muted">F</span>
-                                                <input type="number" class="form-control text-center folio"
-                                                    data-id-curso="<?= $id_curso ?>" data-id-usuario="<?= $usuario['id'] ?>"
-                                                    value="<?= htmlspecialchars($folio) ?>" min="0" placeholder="Folio">
-                                            </div>
-                                        </td>
+                                         <td>
+                                             <div class="d-flex flex-column gap-2" style="max-width: 180px; margin: 0 auto;">
+                                                 <div class="input-group input-group-sm" style="box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                                     <span class="input-group-text bg-light text-primary fw-bold" style="width: 60px; font-size: 0.8rem; justify-content: center;">Tomo</span>
+                                                     <input type="number" class="form-control text-center tomo fw-bold text-dark"
+                                                         style="font-size: 0.95rem; padding: 0.25rem 0.5rem;"
+                                                         data-id-curso="<?= $id_curso ?>" data-id-usuario="<?= $usuario['id'] ?>"
+                                                         value="<?= htmlspecialchars($tomo) ?>" min="0" placeholder="-">
+                                                 </div>
+                                                 <div class="input-group input-group-sm" style="box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                                     <span class="input-group-text bg-light text-primary fw-bold" style="width: 60px; font-size: 0.8rem; justify-content: center;">Folio</span>
+                                                     <input type="number" class="form-control text-center folio fw-bold text-dark"
+                                                         style="font-size: 0.95rem; padding: 0.25rem 0.5rem;"
+                                                         data-id-curso="<?= $id_curso ?>" data-id-usuario="<?= $usuario['id'] ?>"
+                                                         value="<?= htmlspecialchars($folio) ?>" min="0" placeholder="-">
+                                                 </div>
+                                             </div>
+                                         </td>
                                     <?php endif; ?>
                                     <td class="text-end">
                                         <form class="asignar-nota m-0 d-flex gap-2 justify-content-end"
@@ -297,6 +327,25 @@ echo '</div>';
 
             alert('Todos los tomos y folios han sido actualizados');
         });
+
+         $('#aplicar-masivo').click(function () {
+             var tomoVal = $('#masivo-tomo').val();
+             var folioVal = $('#masivo-folio').val();
+             
+             if (tomoVal === '' && folioVal === '') {
+                 alert('Por favor, introduce al menos un valor en Tomo o Folio.');
+                 return;
+             }
+             
+             if (confirm('¿Deseas aplicar estos valores a todos los estudiantes de la tabla localmente?')) {
+                 if (tomoVal !== '') {
+                     $('.tomo').val(tomoVal);
+                 }
+                 if (folioVal !== '') {
+                     $('.folio').val(folioVal);
+                 }
+             }
+         });
 
         $('#marcar-todas').click(function () {
             var allChecked = $('.completado').length === $('.completado:checked').length;

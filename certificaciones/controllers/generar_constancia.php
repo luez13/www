@@ -20,6 +20,11 @@ if (isset($_GET['id_curso'])) {
     $id_curso = $_GET['id_curso'];
     $id_usuario = $_SESSION['user_id'];
     
+    // Permitir a administradores generar constancias de terceros
+    if (isset($_GET['id_usuario']) && isset($_SESSION['id_rol']) && in_array($_SESSION['id_rol'], [3, 4])) {
+        $id_usuario = intval($_GET['id_usuario']);
+    }
+    
     // Evaluar que el usuario sea Facilitador o Participante
     $datos_usuario = $curso->obtener_datos_constancia_dinamica($id_curso, $id_usuario);
     
@@ -68,6 +73,7 @@ if (isset($_GET['id_curso'])) {
     // --- FIN: Lógica Firmante Dinámico ---
 
     $nombre_curso = $datos_usuario['nombre_curso'];
+    $tipo_curso = isset($datos_usuario['tipo_curso']) ? $datos_usuario['tipo_curso'] : 'curso';
     $nombre_promotor = $datos_usuario['nombre'] . ' ' . $datos_usuario['apellido'];
     $horas_cronologicas = $datos_usuario['horas_cronologicas'];
     $cedula = $datos_usuario['cedula'];
@@ -82,6 +88,7 @@ $data = [
     'bannerPath' => 'data:image/png;base64,' . base64_encode(file_get_contents($encabezado)),
     'footerPath' => 'data:image/jpeg;base64,' . base64_encode(file_get_contents($piePagina)),
     'nombre_curso' => $nombre_curso,
+    'tipo_curso' => isset($tipo_curso) ? $tipo_curso : 'curso',
     'nombre_promotor' => $nombre_promotor,
     'cedula' => $cedula,
     'rol' => isset($rol_usuario) ? $rol_usuario : 'Participante',

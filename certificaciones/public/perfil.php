@@ -162,6 +162,7 @@ try {
                             Usuarios</a>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/gestionar_cargos.php')">Directorio y
                             Cargos</a>
+                        <a class="collapse-item font-weight-bold text-primary" style="white-space: normal; line-height: 1.2;" href="#" onclick="loadPage('../views/admin_constancias.php')"><i class="fas fa-file-signature me-2"></i>Emisión de Constancias</a>
 
                         <div class="dropdown-divider"></div>
 

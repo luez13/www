@@ -50,8 +50,8 @@
         .content-area {
             position: absolute;
             top: 150px;
-            left: 10%;
-            width: 80%;
+            left: 12%;
+            width: 76%;
             text-align: justify;
             text-justify: inter-word;
             z-index: 2;
@@ -66,15 +66,13 @@
 
         .texto-principal {
             font-size: 15px;
-            line-height: 1.5;
+            line-height: 1.6;
             margin-bottom: 40px;
-            text-indent: 50px;
         }
 
         .texto-fecha {
             font-size: 15px;
             margin-bottom: 40px;
-            text-indent: 50px;
         }
 
         .texto-agradecimiento {
@@ -141,16 +139,53 @@
             $nombre_curso = mb_strtoupper($data['nombre_curso'], 'UTF-8');
             $nombre_promotor = mb_strtoupper($data['nombre_promotor'], 'UTF-8');
             $cedula = htmlspecialchars($data['cedula']);
-            ?>
-
-            <?php
             $rolV = isset($data['rol']) && !empty($data['rol']) ? mb_strtoupper($data['rol'], 'UTF-8') : 'PARTICIPANTE';
+
+            function obtenerConectorTipoCurso($tipo)
+            {
+                $t = trim(mb_strtolower($tipo, 'UTF-8'));
+                if (empty($t) || $t === 'curso') {
+                    return 'en el curso titulado';
+                }
+                switch ($t) {
+                    case 'diplomado':
+                    case 'diplomado_rectoria':
+                        return 'en el diplomado titulado';
+                    case 'masterclass':
+                        return 'en la masterclass titulada';
+                    case 'taller':
+                        return 'en el taller titulado';
+                    case 'seminario':
+                        return 'en el seminario titulado';
+                    case 'conferencia':
+                        return 'en la conferencia titulada';
+                    case 'congreso':
+                        return 'en el congreso titulado';
+                    case 'simposio':
+                        return 'en el simposio titulado';
+                    case 'charla':
+                        return 'en la charla titulada';
+                    case 'foro':
+                        return 'en el foro titulado';
+                    case 'ponencia':
+                        return 'en la ponencia titulada';
+                    case 'jornada':
+                        return 'en la jornada titulada';
+                    default:
+                        if (mb_substr($t, -1, 1, 'UTF-8') === 'a') {
+                            return "en la " . htmlspecialchars($tipo) . " titulada";
+                        } else {
+                            return "en el " . htmlspecialchars($tipo) . " titulado";
+                        }
+                }
+            }
+            $conector_tipo = obtenerConectorTipoCurso(isset($data['tipo_curso']) ? $data['tipo_curso'] : 'curso');
             ?>
             <p class="texto-principal">
                 Por medio de la presente, hacemos constar que el/la ciudadano(a)
                 <strong><?php echo htmlspecialchars($nombre_promotor); ?></strong>, titular de la cédula de identidad N°
                 V-<strong><?php echo $cedula; ?></strong>, participó en calidad de
-                <strong><?php echo htmlspecialchars($rolV); ?></strong> en la unidad curricular / curso titulado
+                <strong><?php echo htmlspecialchars($rolV); ?></strong> <?php echo $conector_tipo; ?>
                 <strong><?php echo htmlspecialchars($nombre_curso); ?></strong>, el cual es organizado por la
                 <strong>Coordinación de Formación Permanente</strong> de la Universidad Politécnica Territorial
                 Agroindustrial del Estado Táchira.

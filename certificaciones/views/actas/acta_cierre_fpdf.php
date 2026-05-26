@@ -6,9 +6,11 @@
  *                     dia_cierre, mes_cierre, anio_cierre, hora_cierre, img_encabezado, img_pie
  */
 
+$marginX = 25;
+$pdf->SetMargins($marginX, 25, $marginX);
+$pdf->SetAutoPageBreak(true, 25);
 $pdf->AddPage('P', 'Letter');
 $pdf->SetFont('Times', '', 12);
-$marginX = 30;
 $pageWidth = 215.9;
 $contentWidth = $pageWidth - ($marginX * 2);
 
@@ -74,38 +76,52 @@ $pdf->SetY(max($pdf->GetY() + 20, 230));
 if ($pdf->GetY() > 250) { $pdf->AddPage(); $pdf->SetY(40); }
 
 $yFirmas = $pdf->GetY();
-$colW = $contentWidth / 3;
+$firmantes = isset($data['firmantes']) && !empty($data['firmantes']) ? $data['firmantes'] : [];
 
-// Líneas
-$pdf->Line($marginX, $yFirmas, $marginX + $colW - 5, $yFirmas);
-$pdf->Line($marginX + $colW + 5, $yFirmas, $marginX + ($colW * 2) - 5, $yFirmas);
-$pdf->Line($marginX + ($colW * 2) + 5, $yFirmas, $marginX + ($colW * 3), $yFirmas);
+if (count($firmantes) > 0) {
+    $numFirmas = count($firmantes);
+    $colW = $contentWidth / $numFirmas;
+    
+    for ($i = 0; $i < $numFirmas; $i++) {
+        $x = $marginX + ($i * $colW);
+        $lineMarg = 5;
+        $f = $firmantes[$i];
+        
+        if (!empty($f['firma_digital'])) {
+            $path_firma = __DIR__ . '/../../public/assets/firmas/' . $f['firma_digital'];
+            if (file_exists($path_firma)) {
+                $imgInfo = @getimagesize($path_firma);
+                if ($imgInfo !== false) {
+                    $imgW = $imgInfo[0];
+                    $imgH = $imgInfo[1];
+                    $maxW = $colW - 10;
+                    $maxH = 20;
+                    $ratio = min($maxW / $imgW, $maxH / $imgH);
+                    $finalW = $imgW * $ratio;
+                    $finalH = $imgH * $ratio;
+                    
+                    $imgX = $x + ($colW - $finalW) / 2;
+                    $imgY = $yFirmas - $finalH - 1; // Justo encima de la línea
+                    
+                    $pdf->Image($path_firma, $imgX, $imgY, $finalW, $finalH);
+                }
+            }
+        }
 
-// Nombres y Cargos
-$pdf->SetFont('Times', 'B', 9);
-
-// Izquierda: Coordinación
-$pdf->SetXY($marginX, $yFirmas + 2);
-$pdf->MultiCell($colW - 5, 4, utf8_decode($data['firma_coord']), 0, 'C');
-$pdf->SetX($marginX);
-$pdf->SetFont('Times', '', 8);
-$pdf->MultiCell($colW - 5, 3.5, utf8_decode($data['cargo_coord']), 0, 'C');
-
-// Centro: Vicerrectorado
-$pdf->SetXY($marginX + $colW + 5, $yFirmas + 2);
-$pdf->SetFont('Times', 'B', 9);
-$pdf->MultiCell($colW - 10, 4, utf8_decode($data['firma_vicerrector']), 0, 'C');
-$pdf->SetX($marginX + $colW + 5);
-$pdf->SetFont('Times', '', 8);
-$pdf->MultiCell($colW - 10, 3.5, utf8_decode($data['cargo_vicerrector']), 0, 'C');
-
-// Derecha: Facilitador
-$pdf->SetFont('Times', 'B', 9);
-$pdf->SetXY($marginX + ($colW * 2) + 5, $yFirmas + 2);
-$pdf->MultiCell($colW - 5, 4, utf8_decode($data['docente_responsable']), 0, 'C');
-$pdf->SetX($marginX + ($colW * 2) + 5);
-$pdf->SetFont('Times', '', 8);
-$pdf->MultiCell($colW - 5, 3.5, utf8_decode("Facilitador"), 0, 'C');
+        // Línea para la firma (centrada en la columna)
+        $pdf->Line($x + $lineMarg, $yFirmas, $x + $colW - $lineMarg, $yFirmas);
+        
+        $nombreF = mb_convert_case($f['titulo'] . ' ' . $f['nombre'], MB_CASE_TITLE, "UTF-8");
+        
+        $pdf->SetXY($x, $yFirmas + 2);
+        $pdf->SetFont('Times', 'B', 9);
+        $pdf->MultiCell($colW, 4, utf8_decode($nombreF), 0, 'C');
+        
+        $pdf->SetX($x);
+        $pdf->SetFont('Times', '', 8);
+        $pdf->MultiCell($colW, 3.5, utf8_decode($f['cargo']), 0, 'C');
+    }
+}
 
 // 5. PIE DE PÁGINA
 if (isset($data['img_pie']) && file_exists($data['img_pie'])) {

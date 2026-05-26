@@ -19,6 +19,48 @@ $curso = $stmt->fetch(PDO::FETCH_ASSOC);
 $nombre_curso = $curso ? $curso['nombre_curso'] : 'Desconocido';
 $fecha_fin = $curso ? date('d/m/Y', strtotime($curso['fecha_finalizacion'])) : date('d/m/Y');
 
+// --- Obtener Firmantes Oficiales ---
+$firma_coord_nombre = "";
+$firma_coord_cargo = "Coord. Formación Permanente";
+$firma_enc_nombre = "";
+$firma_enc_cargo = "Encargado(a) del Área";
+$firma_vice_nombre = "";
+$firma_vice_cargo = "Vicerrectorado Académico";
+
+try {
+    $stmtConfig = $conn->prepare("SELECT clave_config, valor_config FROM cursos.config_sistema WHERE clave_config IN ('ID_CARGO_COORD_FP_POR_DEFECTO', 'ID_CARGO_ENCARGADO_POR_DEFECTO', 'ID_CARGO_VICERRECTORADO_POR_DEFECTO')");
+    $stmtConfig->execute();
+    $configs = $stmtConfig->fetchAll(PDO::FETCH_KEY_PAIR);
+
+    $stmtCargo = $conn->prepare("SELECT nombre, apellido, nombre_cargo, titulo FROM cursos.cargos WHERE id_cargo = :id");
+    
+    if (!empty($configs['ID_CARGO_COORD_FP_POR_DEFECTO'])) {
+        $stmtCargo->execute(['id' => $configs['ID_CARGO_COORD_FP_POR_DEFECTO']]);
+        if ($row = $stmtCargo->fetch(PDO::FETCH_ASSOC)) {
+            $titulo = !empty($row['titulo']) ? trim($row['titulo']) . ' ' : '';
+            $firma_coord_nombre = trim($titulo . $row['nombre'] . ' ' . $row['apellido']);
+            $firma_coord_cargo = !empty($row['nombre_cargo']) ? $row['nombre_cargo'] : "Coord. Formación Permanente";
+        }
+    }
+    if (!empty($configs['ID_CARGO_ENCARGADO_POR_DEFECTO'])) {
+        $stmtCargo->execute(['id' => $configs['ID_CARGO_ENCARGADO_POR_DEFECTO']]);
+        if ($row = $stmtCargo->fetch(PDO::FETCH_ASSOC)) {
+            $titulo = !empty($row['titulo']) ? trim($row['titulo']) . ' ' : '';
+            $firma_enc_nombre = trim($titulo . $row['nombre'] . ' ' . $row['apellido']);
+            $firma_enc_cargo = !empty($row['nombre_cargo']) ? $row['nombre_cargo'] : "Encargado(a) del Área";
+        }
+    }
+    if (!empty($configs['ID_CARGO_VICERRECTORADO_POR_DEFECTO'])) {
+        $stmtCargo->execute(['id' => $configs['ID_CARGO_VICERRECTORADO_POR_DEFECTO']]);
+        if ($row = $stmtCargo->fetch(PDO::FETCH_ASSOC)) {
+            $titulo = !empty($row['titulo']) ? trim($row['titulo']) . ' ' : '';
+            $firma_vice_nombre = trim($titulo . $row['nombre'] . ' ' . $row['apellido']);
+            $firma_vice_cargo = !empty($row['nombre_cargo']) ? $row['nombre_cargo'] : "Vicerrectorado Académico";
+        }
+    }
+} catch (Exception $e) {}
+
+
 // 2. Estadísticas Reales y Listado para PDF
 // Calculamos el promedio ponderado
 $sql_stats = "
@@ -192,7 +234,13 @@ $json_pdf = json_encode($lista_para_pdf);
     const DATOS_ACTA = <?= $json_pdf ?>;
     const INFO_CURSO = {
         nombre: "<?= htmlspecialchars($nombre_curso) ?>",
-        fecha: "<?= $fecha_fin ?>"
+        fecha: "<?= $fecha_fin ?>",
+        firma_coord_nombre: <?= json_encode($firma_coord_nombre) ?>,
+        firma_coord_cargo: <?= json_encode($firma_coord_cargo) ?>,
+        firma_enc_nombre: <?= json_encode($firma_enc_nombre) ?>,
+        firma_enc_cargo: <?= json_encode($firma_enc_cargo) ?>,
+        firma_vice_nombre: <?= json_encode($firma_vice_nombre) ?>,
+        firma_vice_cargo: <?= json_encode($firma_vice_cargo) ?>
     };
 
     function generarPDF() {
@@ -267,17 +315,42 @@ $json_pdf = json_encode($lista_para_pdf);
             finalY = 40;
         }
 
-        // Líneas de firma
+        // Líneas de firma en tres columnas equidistantes
         doc.setLineWidth(0.5);
         
-        // Firma 1: Coordinador
-        doc.line(30, finalY, 90, finalY);
-        doc.setFontSize(10);
-        doc.text("Coord. Formación Permanente", 60, finalY + 5, null, null, "center");
+        // Columna 1: Coordinador (x de 13 a 63, centro en 38)
+        doc.line(13, finalY, 63, finalY);
+        doc.setFontSize(9);
+        if (INFO_CURSO.firma_coord_nombre) {
+            doc.setFont("helvetica", "bold");
+            doc.text(INFO_CURSO.firma_coord_nombre, 38, finalY + 4, null, null, "center");
+            doc.setFont("helvetica", "normal");
+            doc.text(INFO_CURSO.firma_coord_cargo, 38, finalY + 8, null, null, "center");
+        } else {
+            doc.text(INFO_CURSO.firma_coord_cargo, 38, finalY + 5, null, null, "center");
+        }
 
-        // Firma 2: Vicerrectorado (o Facilitador, según configures)
-        doc.line(120, finalY, 180, finalY);
-        doc.text("Vicerrectorado Académico", 150, finalY + 5, null, null, "center");
+        // Columna 2: Encargado del Área (x de 83 a 133, centro en 108)
+        doc.line(83, finalY, 133, finalY);
+        if (INFO_CURSO.firma_enc_nombre) {
+            doc.setFont("helvetica", "bold");
+            doc.text(INFO_CURSO.firma_enc_nombre, 108, finalY + 4, null, null, "center");
+            doc.setFont("helvetica", "normal");
+            doc.text(INFO_CURSO.firma_enc_cargo, 108, finalY + 8, null, null, "center");
+        } else {
+            doc.text(INFO_CURSO.firma_enc_cargo, 108, finalY + 5, null, null, "center");
+        }
+
+        // Columna 3: Vicerrectorado (x de 153 a 203, centro en 178)
+        doc.line(153, finalY, 203, finalY);
+        if (INFO_CURSO.firma_vice_nombre) {
+            doc.setFont("helvetica", "bold");
+            doc.text(INFO_CURSO.firma_vice_nombre, 178, finalY + 4, null, null, "center");
+            doc.setFont("helvetica", "normal");
+            doc.text(INFO_CURSO.firma_vice_cargo, 178, finalY + 8, null, null, "center");
+        } else {
+            doc.text(INFO_CURSO.firma_vice_cargo, 178, finalY + 5, null, null, "center");
+        }
 
         // Guardar
         doc.save("Acta_Cierre_" + INFO_CURSO.nombre + ".pdf");
