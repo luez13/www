@@ -118,8 +118,8 @@ switch ($action) {
         break;
 
     case 'actualizar_estado_comprobante':
-        // Validar roles (1 o 2)
-        if (!isset($_SESSION['id_rol']) || !in_array($_SESSION['id_rol'], [3, 4])) {
+        // Validar roles Financieros
+        if (!tieneAcceso([5, 6])) {
             echo json_encode(['success' => false, 'message' => 'No tienes permisos para realizar esta acción.']);
             exit;
         }
@@ -159,7 +159,7 @@ switch ($action) {
             exit;
         }
 
-        $es_admin = isset($_SESSION['id_rol']) && in_array($_SESSION['id_rol'], [3, 4]);
+        $es_admin = tieneAcceso([6]);
         $es_propietario = $comprobante['id_usuario'] == $_SESSION['user_id'];
         $estado_permitido = ($comprobante['estado'] === 'Pendiente');
 
@@ -200,7 +200,7 @@ switch ($action) {
             exit;
         }
 
-        $es_admin = isset($_SESSION['id_rol']) && in_array($_SESSION['id_rol'], [3, 4]);
+        $es_admin = tieneAcceso([6]);
         $es_propietario = $comprobante_actual['id_usuario'] == $_SESSION['user_id'];
         $estado_permitido = ($comprobante_actual['estado'] === 'Pendiente');
 
@@ -273,9 +273,9 @@ switch ($action) {
         break;
 
     case 'backup_comprobantes':
-        // Validar que sea admin superior
-        if (!isset($_SESSION['id_rol']) || !in_array($_SESSION['id_rol'], [3, 4])) {
-            die('Acceso denegado. No eres administrador.');
+        // Validar que sea admin financiero superior
+        if (!tieneAcceso([6])) {
+            die('Acceso denegado. No tienes permisos suficientes.');
         }
 
         $directorio = '../public/assets/comprobantes/';
@@ -307,8 +307,8 @@ switch ($action) {
         break;
 
     case 'limpiar_comprobantes':
-        // Validar rol de admin
-        if (!isset($_SESSION['id_rol']) || !in_array($_SESSION['id_rol'], [3, 4])) {
+        // Validar rol de coordinador administrativo
+        if (!tieneAcceso([6])) {
             echo json_encode(['success' => false, 'message' => 'Acceso denegado. No tienes permisos para vaciar el servidor.']);
             exit;
         }
@@ -322,8 +322,8 @@ switch ($action) {
 
     case 'crear_cuenta':
     case 'actualizar_cuenta':
-        // Validar roles (1 o 2) para gestionar cuentas bancarias
-        if (!isset($_SESSION['id_rol']) || !in_array($_SESSION['id_rol'], [3, 4])) {
+        // Validar roles para gestionar cuentas bancarias
+        if (!tieneAcceso([6])) {
             echo json_encode(['success' => false, 'message' => 'No tienes permisos administrativos para gestionar cuentas.']);
             exit;
         }

@@ -1,9 +1,9 @@
 <?php
 /**
- * FPDF Template: Acta de Cierre (General)
- * Expects $data with: nombre_diplomado, nombre_materia, duracion, total_horas, modalidad, docente_responsable,
- *                     inscritos, aprobados, no_aprobaron, firma_vicerrector, cargo_vicerrector, firma_coord, cargo_coord,
- *                     dia_cierre, mes_cierre, anio_cierre, hora_cierre, img_encabezado, img_pie
+ * FPDF Template: Acta de Cierre (Dynamic & General)
+ * Expects $data with: nombre_diplomado, tipo_curso, duracion, total_horas, modalidad, docente_responsable,
+ *                     inscritos, aprobados, no_aprobaron, firmantes,
+ *                     dia_cierre, mes_cierre, anio_cierre, hora_cierre, img_encabezado, img_pie, alumnos
  */
 
 $marginX = 25;
@@ -19,12 +19,22 @@ if (isset($data['img_encabezado']) && file_exists($data['img_encabezado'])) {
     $pdf->Image($data['img_encabezado'], 0, 0, $pageWidth, 25);
 }
 
-$pdf->SetY(35);
-$pdf->SetFont('Times', 'B', 15);
-$pdf->Cell($contentWidth, 8, utf8_decode("ACTA DE CIERRE DEL SEGUNDO BIMESTRE"), 0, 1, 'C');
+// 2. TÍTULOS
+$tipo_curso_str = isset($data['tipo_curso']) ? strtolower($data['tipo_curso']) : 'curso';
+$es_diplomado = in_array($tipo_curso_str, ['diplomado', 'diplomado_rectoria']);
+
+$pdf->SetY(27);
 $pdf->SetFont('Times', 'B', 13);
-$pdf->Cell($contentWidth, 8, utf8_decode("DEL " . mb_strtoupper($data['nombre_diplomado'], 'UTF-8')), 0, 1, 'C');
-$pdf->Ln(4);
+
+if ($es_diplomado) {
+    $pdf->MultiCell($contentWidth, 6, utf8_decode("ACTA DE CIERRE FINAL DE DIPLOMADO"), 0, 'C');
+} else {
+    $pdf->MultiCell($contentWidth, 6, utf8_decode("ACTA DE CIERRE FINAL DE " . mb_strtoupper(str_replace('_', ' ', $tipo_curso_str), 'UTF-8')), 0, 'C');
+}
+$pdf->Ln(1);
+$pdf->SetFont('Times', 'B', 11);
+$pdf->MultiCell($contentWidth, 5, utf8_decode("DEL PROGRAMA: " . mb_strtoupper($data['nombre_diplomado'], 'UTF-8')), 0, 'C');
+$pdf->Ln(3);
 
 // 3. CUERPO DEL ACTA
 $pdf->SetFont('Times', '', 12);
@@ -32,19 +42,23 @@ $sangria = "     ";
 
 $fechaActa = $data['dia_cierre'] . " días del mes de " . $data['mes_cierre'] . " del año " . $data['anio_cierre'];
 
-// Texto Intro
-$textoIntro = $sangria . "En la ciudad de San Cristóbal, Estado Táchira, a los " . $fechaActa . ", siendo las " . $data['hora_cierre'] . ", se procede a realizar el cierre del segundo bimestre de la cohorte 2 correspondiente al " . $data['nombre_diplomado'] . ", impartiendo en la Universidad Politécnica Territorial Agroindustrial del Estado Táchira. Teniendo como unidad curricular:";
+if ($es_diplomado) {
+    $textoIntro = $sangria . "En la ciudad de San Cristóbal, Estado Táchira, a los " . $fechaActa . ", siendo las " . $data['hora_cierre'] . ", se procede a realizar el cierre del diplomado correspondiente al " . $data['nombre_diplomado'] . ", impartido en la Universidad Politécnica Territorial Agroindustrial del Estado Táchira. Teniendo las siguientes especificaciones curriculares:";
+} else {
+    $textoIntro = $sangria . "En la ciudad de San Cristóbal, Estado Táchira, a los " . $fechaActa . ", siendo las " . $data['hora_cierre'] . ", se procede a realizar el cierre del " . str_replace('_', ' ', $tipo_curso_str) . " correspondiente al " . $data['nombre_diplomado'] . ", impartido en la Universidad Politécnica Territorial Agroindustrial del Estado Táchira. Teniendo las siguientes especificaciones curriculares:";
+}
+
 $pdf->MultiCell($contentWidth, 5, utf8_decode($textoIntro), 0, 'J');
 $pdf->Ln(2);
 
-// Detalles
+// Detalles del Programa
 $pdf->SetFont('Times', 'B', 12);
 $detalles = [
-    "Nombre de la materia: " . $data['nombre_materia'],
+    "Nombre del Programa: " . $data['nombre_diplomado'],
     "Duración: " . $data['duracion'],
     "Total de horas: " . $data['total_horas'],
     "Modalidad: " . $data['modalidad'],
-    "Docente responsable: " . $data['docente_responsable']
+    "Facilitador(a) responsable: " . $data['docente_responsable']
 ];
 
 foreach ($detalles as $d) {
@@ -53,27 +67,55 @@ foreach ($detalles as $d) {
     $pdf->SetFont('ZapfDingbats', '', 8);
     $pdf->Cell(5, 5, chr(108), 0, 0, 'L');
     $pdf->SetFont('Times', 'B', 11);
-    $pdf->Cell($contentWidth - 15, 5, utf8_decode($d), 0, 1, 'L');
+    
+    // Cambiar margen izquierdo temporalmente para que las líneas siguientes se alineen con la primera
+    $pdf->SetLeftMargin($marginX + 15);
+    $pdf->MultiCell($contentWidth - 15, 5, utf8_decode($d), 0, 'L');
+    // Restaurar el margen izquierdo original
+    $pdf->SetLeftMargin($marginX);
 }
 $pdf->Ln(2);
 
 $pdf->SetFont('Times', '', 12);
+$tiene_notas = isset($data['tiene_notas']) ? $data['tiene_notas'] : false;
+$participantes_count = isset($data['participantes']) ? $data['participantes'] : 0;
+$aprobados_count = isset($data['aprobados']) ? $data['aprobados'] : 0;
+$reprobados_count = isset($data['no_aprobaron']) ? $data['no_aprobaron'] : 0;
 
-$parrafos = [
-    "En cumplimiento con los lineamientos establecidos por la institución y con el objetivo de evaluar el desarrollo académico de los participantes, así como el cumplimiento de los objetivos planteados al inicio del diplomado, se procede a dar cierre formal a la materia antes mencionada.",
-    "Durante el transcurso de este bimestre, se llevaron a cabo diversas actividades académicas, que incluyeron clases teóricas, talleres prácticos y evaluación, las cuales permitieron a los participantes adquirir competencias y habilidades en el área de estudio. Por otra parte, se registró una inscripción de un total " . $data['inscritos'] . " de participantes, con la culminación de " . $data['aprobados'] . " participantes aprobados y " . $data['no_aprobaron'] . " que no aprobaron.",
-    "En cuanto a los resultados los estudiantes fueron evaluados mediante una combinación de trabajos prácticos, foros, talleres y participación continua en la plataforma. La calificación definitiva se ha registrado de acuerdo a los criterios establecidos en el programa del diplomado. Agradecemos a todos los participantes por su dedicación y esfuerzo, así como al cuerpo docente y administrativo de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira por su apoyo y colaboración durante este proceso formativo.",
-    "Sin más asuntos que tratar, se levanta la presente acta, que será firmada por los presentes como constancia del cierre de la materia."
-];
+if ($es_diplomado) {
+    $p1 = "En cumplimiento con los lineamientos establecidos por la institución y con el objetivo de evaluar el desarrollo académico de los participantes, así como el cumplimiento de los objetivos planteados al inicio del diplomado, se procede a dar cierre formal al mismo.";
+    if ($tiene_notas) {
+        $p2 = "Durante el transcurso de este diplomado, se llevaron a cabo diversas actividades académicas, que incluyeron clases teóricas, talleres prácticos y evaluaciones continuas, las cuales permitieron a los participantes adquirir competencias y habilidades en el área de estudio. Por otra parte, se registró una inscripción de un total de " . $data['inscritos'] . " participantes, con la culminación de " . $aprobados_count . " participantes aprobados y " . $reprobados_count . " que no aprobaron.";
+        $p3 = "En cuanto a los resultados, los estudiantes fueron evaluados mediante una combinación de trabajos prácticos, foros, talleres y participación continua. La calificación definitiva se ha registrado de acuerdo a los criterios establecidos en el programa del diplomado. Agradecemos a todos los participantes por su dedicación y esfuerzo, así como al cuerpo docente y administrativo de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira por su apoyo y colaboración durante este proceso formativo.";
+    } else {
+        $p2 = "Durante el transcurso de este diplomado, se llevaron a cabo diversas actividades académicas, que incluyeron clases teóricas, talleres prácticos y foros de discusión, las cuales permitieron a los participantes adquirir competencias y habilidades en el área de estudio. Por otra parte, se registró una inscripción de un total de " . $data['inscritos'] . " participantes, con la culminación de " . $participantes_count . " participantes que completaron satisfactoriamente la actividad.";
+        $p3 = "En cuanto a los resultados, los participantes fueron evaluados y acreditados bajo la modalidad de asistencia y participación continua, según las pautas establecidas. Agradecemos a todos los participantes por su dedicación y esfuerzo, así como al cuerpo docente y administrativo de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira por su apoyo y colaboración durante este proceso formativo.";
+    }
+} else {
+    $p1 = "En cumplimiento con los lineamientos establecidos por la institución y con el objetivo de evaluar el desarrollo académico de los participantes, así como el cumplimiento de los objetivos planteados al inicio del " . str_replace('_', ' ', $tipo_curso_str) . ", se procede a dar cierre formal al mismo.";
+    if ($tiene_notas) {
+        $p2 = "Durante el transcurso de este " . str_replace('_', ' ', $tipo_curso_str) . ", se llevaron a cabo diversas actividades académicas, que incluyeron clases teóricas, talleres prácticos y evaluaciones, las cuales permitieron a los participantes adquirir competencias y habilidades en el área de estudio. Por otra parte, se registró una inscripción de un total de " . $data['inscritos'] . " participantes, con la culminación de " . $aprobados_count . " participantes aprobados y " . $reprobados_count . " que no aprobaron.";
+        $p3 = "En cuanto a los resultados, los estudiantes fueron evaluados mediante evaluaciones y participación continua en el transcurso del programa. La calificación definitiva se ha registrado de acuerdo a los criterios establecidos. Agradecemos a todos los participantes por su dedicación y esfuerzo, así como al cuerpo docente y administrativo de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira por su apoyo y colaboración durante este proceso formativo.";
+    } else {
+        $p2 = "Durante el transcurso de este " . str_replace('_', ' ', $tipo_curso_str) . ", se llevaron a cabo diversas actividades académicas y de interacción, las cuales permitieron a los participantes adquirir competencias y habilidades en el área de estudio. Por otra parte, se registró una inscripción de un total de " . $data['inscritos'] . " participantes, con la culminación de " . $participantes_count . " participantes que completaron satisfactoriamente la actividad.";
+        $p3 = "En cuanto a los resultados, los participantes fueron evaluados y acreditados bajo la modalidad de asistencia y participación activa en el transcurso del programa. Agradecemos a todos los participantes por su dedicación y esfuerzo, así como al cuerpo docente y administrativo de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira por su apoyo y colaboración durante este proceso formativo.";
+    }
+}
+$p4 = "Sin más asuntos que tratar, se levanta la presente acta, que será firmada por los presentes como constancia del cierre del mismo.";
+
+$parrafos = [$p1, $p2, $p3, $p4];
 
 foreach ($parrafos as $p) {
     $pdf->MultiCell($contentWidth, 5, utf8_decode($sangria . $p), 0, 'J');
     $pdf->Ln(2);
 }
 
-// 4. FIRMAS (3 COLUMNAS)
-$pdf->SetY(max($pdf->GetY() + 20, 230));
-if ($pdf->GetY() > 250) { $pdf->AddPage(); $pdf->SetY(40); }
+// 4. FIRMAS (3 COLUMNAS MÁXIMO)
+$pdf->SetY(max($pdf->GetY() + 15, 230));
+if ($pdf->GetY() > 250) { 
+    $pdf->AddPage(); 
+    $pdf->SetY(40); 
+}
 
 $yFirmas = $pdf->GetY();
 $firmantes = isset($data['firmantes']) && !empty($data['firmantes']) ? $data['firmantes'] : [];
@@ -87,31 +129,11 @@ if (count($firmantes) > 0) {
         $lineMarg = 5;
         $f = $firmantes[$i];
         
-        if (!empty($f['firma_digital'])) {
-            $path_firma = __DIR__ . '/../../public/assets/firmas/' . $f['firma_digital'];
-            if (file_exists($path_firma)) {
-                $imgInfo = @getimagesize($path_firma);
-                if ($imgInfo !== false) {
-                    $imgW = $imgInfo[0];
-                    $imgH = $imgInfo[1];
-                    $maxW = $colW - 10;
-                    $maxH = 20;
-                    $ratio = min($maxW / $imgW, $maxH / $imgH);
-                    $finalW = $imgW * $ratio;
-                    $finalH = $imgH * $ratio;
-                    
-                    $imgX = $x + ($colW - $finalW) / 2;
-                    $imgY = $yFirmas - $finalH - 1; // Justo encima de la línea
-                    
-                    $pdf->Image($path_firma, $imgX, $imgY, $finalW, $finalH);
-                }
-            }
-        }
-
         // Línea para la firma (centrada en la columna)
         $pdf->Line($x + $lineMarg, $yFirmas, $x + $colW - $lineMarg, $yFirmas);
         
-        $nombreF = mb_convert_case($f['titulo'] . ' ' . $f['nombre'], MB_CASE_TITLE, "UTF-8");
+        $titulo = !empty($f['titulo']) ? trim($f['titulo']) . ' ' : '';
+        $nombreF = mb_convert_case($titulo . $f['nombre'], MB_CASE_TITLE, "UTF-8");
         
         $pdf->SetXY($x, $yFirmas + 2);
         $pdf->SetFont('Times', 'B', 9);
@@ -123,7 +145,100 @@ if (count($firmantes) > 0) {
     }
 }
 
-// 5. PIE DE PÁGINA
+// Pie de página de la página 1
+if (isset($data['img_pie']) && file_exists($data['img_pie'])) {
+    $pdf->Image($data['img_pie'], 10, 260, $pageWidth - 20, 15);
+}
+
+// ================= PÁGINA 2: ANEXO DE ESTUDIANTES APROBADOS =================
+$pdf->AddPage('P', 'Letter');
+
+// Encabezado de página 2
+if (isset($data['img_encabezado']) && file_exists($data['img_encabezado'])) {
+    $pdf->Image($data['img_encabezado'], 0, 0, $pageWidth, 25);
+}
+
+$pdf->SetY(35);
+$pdf->SetFont('Times', 'B', 14);
+$pdf->Cell($contentWidth, 7, utf8_decode("ANEXO: LISTADO DE PARTICIPANTES"), 0, 1, 'C');
+$pdf->Ln(5);
+
+$pdf->SetFont('Times', 'B', 9);
+$pdf->SetFillColor(44, 62, 80);
+$pdf->SetTextColor(255);
+
+$colNo = 10;
+$colCed = 30;
+$colNom = 75;
+$colNota = 25;
+$colEstatus = 25.9;
+
+$pdf->SetX($marginX);
+$pdf->Cell($colNo, 7, utf8_decode("No."), 1, 0, 'C', true);
+$pdf->Cell($colCed, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
+$pdf->Cell($colNom, 7, utf8_decode("Participante (Nombre y Apellido)"), 1, 0, 'C', true);
+$pdf->Cell($colNota, 7, utf8_decode("Calificación"), 1, 0, 'C', true);
+$pdf->Cell($colEstatus, 7, utf8_decode("Estatus"), 1, 1, 'C', true);
+
+$pdf->SetFont('Times', '', 10);
+$pdf->SetTextColor(0);
+
+$alumnos = isset($data['alumnos']) ? $data['alumnos'] : [];
+foreach ($alumnos as $idx => $al) {
+    // Si cabe en la página, continuar, si no, crear nueva página y repetir cabecera
+    if ($pdf->GetY() > 245) {
+        if (isset($data['img_pie']) && file_exists($data['img_pie'])) {
+            $pdf->Image($data['img_pie'], 10, 260, $pageWidth - 20, 15);
+        }
+        
+        $pdf->AddPage('P', 'Letter');
+        if (isset($data['img_encabezado']) && file_exists($data['img_encabezado'])) {
+            $pdf->Image($data['img_encabezado'], 0, 0, $pageWidth, 25);
+        }
+        
+        $pdf->SetY(35);
+        $pdf->SetFont('Times', 'B', 9);
+        $pdf->SetFillColor(44, 62, 80);
+        $pdf->SetTextColor(255);
+        $pdf->SetX($marginX);
+        $pdf->Cell($colNo, 7, utf8_decode("No."), 1, 0, 'C', true);
+        $pdf->Cell($colCed, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
+        $pdf->Cell($colNom, 7, utf8_decode("Participante (Nombre y Apellido)"), 1, 0, 'C', true);
+        $pdf->Cell($colNota, 7, utf8_decode("Calificación"), 1, 0, 'C', true);
+        $pdf->Cell($colEstatus, 7, utf8_decode("Estatus"), 1, 1, 'C', true);
+        $pdf->SetFont('Times', '', 10);
+        $pdf->SetTextColor(0);
+    }
+
+    $nota_str = "-";
+    $estatus_str = "-";
+    
+    if ($al['nota'] !== null && $al['nota'] !== '') {
+        $nota_val = round((float)$al['nota']);
+        $nota_str = $nota_val;
+        if ($nota_val >= 12) {
+            $estatus_str = "Aprobado";
+        } else {
+            $estatus_str = "Reprobado";
+        }
+    } else {
+        if (isset($al['completado']) && $al['completado'] == true) {
+            $estatus_str = "Participante";
+        } else {
+            $estatus_str = "No completó";
+        }
+    }
+
+    $pdf->SetX($marginX);
+    $nombre_completo = mb_convert_case($al['nombre'] . ' ' . $al['apellido'], MB_CASE_TITLE, "UTF-8");
+    $pdf->Cell($colNo, 6, $idx + 1, 1, 0, 'C');
+    $pdf->Cell($colCed, 6, $al['cedula'], 1, 0, 'C');
+    $pdf->Cell($colNom, 6, utf8_decode($nombre_completo), 1, 0, 'L');
+    $pdf->Cell($colNota, 6, $nota_str, 1, 0, 'C');
+    $pdf->Cell($colEstatus, 6, utf8_decode($estatus_str), 1, 1, 'C');
+}
+
+// Pie de página de la página 2 o posteriores
 if (isset($data['img_pie']) && file_exists($data['img_pie'])) {
     $pdf->Image($data['img_pie'], 10, 260, $pageWidth - 20, 15);
 }

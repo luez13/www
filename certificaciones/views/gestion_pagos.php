@@ -6,9 +6,9 @@ require_once '../controllers/init.php';
 require_once '../config/model.php';
 require_once '../models/Pago.php';
 
-// Validar Permisos (Roles 1 y 2)
-if (!isset($_SESSION['id_rol']) || !in_array($_SESSION['id_rol'], [3, 4])) {
-    die('<div class="alert alert-danger text-center mt-5"><b>Acceso denegado:</b> No tienes permisos administrativos para ver esta página.</div>');
+// Validar Permisos Financieros
+if (!tieneAcceso([5, 6])) {
+    die('<div class="alert alert-danger text-center mt-5"><b>Acceso denegado:</b> No tienes permisos administrativos para ver esta página. Área Financiera.</div>');
 }
 
 $db = new DB();
@@ -101,9 +101,11 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                 <button type="button" class="btn btn-success" onclick="descargarBackupComprobantes()">
                     <i class="fas fa-file-archive"></i> Descargar Backup en (.TAR)
                 </button>
+                <?php if (tieneAcceso([6])): ?>
                 <button type="button" class="btn btn-danger ml-2" onclick="limpiarTodosLosComprobantes()">
                     <i class="fas fa-trash-alt"></i> Borrar todos los comprobantes (Peligro)
                 </button>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -289,6 +291,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                                 </button>
                                             <?php endif; ?>
 
+                                            <?php if (tieneAcceso([6])): ?>
                                             <button type="button" class="btn btn-sm btn-secondary shadow-sm"
                                                 onclick="abrirModalEditComprobanteAdmin(<?= $comp['id_comprobante'] ?>, '<?= h($comp['banco_origen']) ?>', '<?= h(isset($comp['numero_operacion']) ? $comp['numero_operacion'] : '') ?>', <?= $comp['monto'] ?>, '<?= date('Y-m-d', strtotime($comp['fecha_pago'])) ?>', '<?= isset($comp['moneda']) ? $comp['moneda'] : 'Bs' ?>', <?= $comp['id_curso'] ?>, <?= isset($comp['id_materia_bimestre']) ? $comp['id_materia_bimestre'] : 'null' ?>, this)"
                                                 title="Modificar datos del pago">
@@ -300,6 +303,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                                 title="Eliminar permanentemente">
                                                 <i class="fas fa-trash"></i>
                                             </button>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
@@ -450,13 +454,18 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                     rowDateStr = match[3] + "-" + match[2] + "-" + match[1]; // YYYY-MM-DD
                 }
 
-                let rowCourse = (data[5] || "").trim();
-
+                // TODO: Refactorizar este filtro para obtener el valor dinámicamente por nombre de columna de la API de DataTables
+                let rowCourse = (data[6] || "");
+                
                 let ocultar = false;
 
-                // Filtro por Curso
-                if (cursoFiltrado !== "" && rowCourse !== cursoFiltrado) {
-                    ocultar = true;
+                // Filtro por Curso (colapsando espacios/saltos de línea y usando coincidencia por subcadena)
+                if (cursoFiltrado !== "") {
+                    let cleanRow = rowCourse.replace(/\s+/g, ' ').trim().toLowerCase();
+                    let cleanFil = cursoFiltrado.replace(/\s+/g, ' ').trim().toLowerCase();
+                    if (cleanRow.indexOf(cleanFil) === -1) {
+                        ocultar = true;
+                    }
                 }
 
                 // Filtro por Fecha (sólo si logramos extraer la fecha de la celda)

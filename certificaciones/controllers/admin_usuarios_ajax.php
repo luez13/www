@@ -3,7 +3,7 @@
 include 'init.php';
 include '../config/model.php';
 
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['id_rol'], [3, 4, 1])) {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['id_rol'], [3, 4])) {
     http_response_code(403);
     die("No autorizado");
 }
@@ -20,6 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $titulo = isset($_POST['titulo']) ? $_POST['titulo'] : '';
     $cargo = isset($_POST['cargo']) ? $_POST['cargo'] : '';
 
+    // Si el usuario actual es Rol 3, no puede cambiar roles ni contraseñas
+    if ($_SESSION['id_rol'] == 3) {
+        $id_rol = null; // Para no actualizarlo
+    }
+
     try {
         if ($action === 'crear_admin') {
             // Validar que el usuario no exista
@@ -30,8 +35,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 die("Error: El correo o la cédula ya están registrados.");
             }
 
-            // Clave autogenerada: nombreapellido20 en minúscula y sin espacios
-            $pwd_raw = strtolower(str_replace(' ', '', $nombre . $apellido)) . "20";
+            // Clave autogenerada: primer nombre y primer apellido + "20" en minúscula, sin acentos y sin espacios
+            $first_name = trim(explode(' ', trim($nombre))[0]);
+            $first_lastname = trim(explode(' ', trim($apellido))[0]);
+            $raw_user_str = strtolower($first_name . $first_lastname);
+            $replacements = [
+                'á'=>'a', 'é'=>'e', 'í'=>'i', 'ó'=>'o', 'ú'=>'u', 'ü'=>'u', 'ñ'=>'n',
+                'Á'=>'a', 'É'=>'e', 'Í'=>'i', 'Ó'=>'o', 'Ú'=>'u', 'Ü'=>'u', 'Ñ'=>'n'
+            ];
+            $clean_user_str = strtr($raw_user_str, $replacements);
+            $pwd_raw = str_replace(' ', '', $clean_user_str) . "20";
             $password = password_hash($pwd_raw, PASSWORD_DEFAULT);
             $token = md5($correo . time());
 
@@ -100,13 +113,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':apellido' => $apellido,
                 ':cedula' => $cedula,
                 ':correo' => $correo,
-                ':id_rol' => $id_rol,
                 ':titulo' => $titulo,
                 ':cargo' => $cargo,
                 ':id' => $id
             ];
 
-            if (!empty($nueva_pass)) {
+            // Solo actualizar id_rol si no es Rol 3
+            if ($_SESSION['id_rol'] != 3) {
+                $sql = str_replace("id_rol = :id_rol, ", "id_rol = :id_rol, ", $sql); // (Already in sql, just binding it)
+                $params[':id_rol'] = $id_rol;
+            } else {
+                // Remove id_rol = :id_rol, from $sql
+                $sql = str_replace("id_rol = :id_rol, \n", "", $sql);
+                $sql = str_replace("id_rol = :id_rol, ", "", $sql);
+            }
+
+            if (!empty($nueva_pass) && $_SESSION['id_rol'] != 3) {
                 $sql .= ", password = :password";
                 $params[':password'] = password_hash($nueva_pass, PASSWORD_DEFAULT);
             }

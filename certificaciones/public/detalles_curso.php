@@ -88,6 +88,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                             class="fas fa-check-double me-1"></i> Invertir Selección</button>
                     <button id="actualizar-tomos-folios" class="btn btn-success btn-sm fw-bold"><i class="fas fa-save me-1"></i>
                         Actualizar Tomos y Folios</button>
+                    <a href="../controllers/exportar_participantes_curso.php?id=<?= htmlspecialchars($id_curso) ?>" class="btn btn-info btn-sm fw-bold ms-2 text-white"><i class="fas fa-file-excel me-1"></i> Exportar Participantes</a>
                 </div>
             </div>
             <div class="card-body p-0">

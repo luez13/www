@@ -162,6 +162,7 @@ if (count($firmasP1) > 0) {
                 }
             }
         }
+
         
         // --- LÍNEA, NOMBRE Y CARGO (Siempre visibles) ---
         $pdf->SetXY($actualX, $actualY);
@@ -314,6 +315,7 @@ if (count($firmasP2) > 0) {
                  }
             }
         }
+
         
         // --- LÍNEA, NOMBRE Y CARGO (Siempre visibles) ---
         $pdf->SetXY($actualX2, $actualY2);

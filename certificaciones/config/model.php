@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/auth_helper.php';
 date_default_timezone_set('America/Caracas');
 
 // Definir las constantes de configuración de la base de datos

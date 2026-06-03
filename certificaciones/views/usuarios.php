@@ -242,8 +242,9 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
 
                         <div class="row g-3">
                             <div class="col-md-6">
+                                <?php $disableForAutorizador = ($_SESSION['id_rol'] == 3) ? 'disabled' : ''; ?>
                                 <label class="form-label small fw-bold text-muted">Rol en el Sistema</label>
-                                <select class="form-select" id="edit_id_rol" name="id_rol" required>
+                                <select class="form-select" id="edit_id_rol" name="id_rol" required <?= $disableForAutorizador ?>>
                                     <?php foreach ($roles as $rol): ?>
                                         <option value="<?= htmlspecialchars($rol['id_rol']) ?>">
                                             <?= htmlspecialchars($rol['nombre_rol']) ?>
@@ -255,7 +256,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                                 <label class="form-label small fw-bold text-muted">Nueva Contraseña
                                     <small>(Opcional)</small></label>
                                 <input type="password" class="form-control" id="edit_nueva_password"
-                                    name="nueva_password" placeholder="Dejar en blanco para no cambiar">
+                                    name="nueva_password" placeholder="Dejar en blanco para no cambiar" <?= $disableForAutorizador ?>>
                             </div>
                         </div>
 
@@ -343,15 +344,20 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                                 <h6 class="text-primary fw-bold mb-0 border-bottom pb-2">Roles y Cargo Universitario
                                 </h6>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label small fw-bold text-muted mb-1">Rol en Sistema</label>
-                                <select class="form-select rounded-3" name="id_rol" id="crear_id_rol" required>
-                                    <option value="1">Usuario Base</option>
-                                    <option value="2">Facilitador</option>
-                                    <option value="3">Coordinador</option>
-                                    <option value="4">Administrador Superior</option>
-                                </select>
-                            </div>
+                            <?php if ($_SESSION['id_rol'] == 4): ?>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-muted mb-1">Rol en Sistema</label>
+                                    <select class="form-select rounded-3" name="id_rol" id="crear_id_rol" required>
+                                        <?php foreach ($roles as $rol): ?>
+                                            <option value="<?= htmlspecialchars($rol['id_rol']) ?>">
+                                                <?= htmlspecialchars($rol['nombre_rol']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            <?php else: ?>
+                                <input type="hidden" name="id_rol" value="1">
+                            <?php endif; ?>
                             <div class="col-md-4">
                                 <label class="form-label small fw-bold text-muted mb-1">Título</label>
                                 <input type="text" class="form-control rounded-3" name="titulo" id="crear_titulo"

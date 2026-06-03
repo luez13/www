@@ -5,9 +5,9 @@ require_once '../controllers/init.php';
 require_once '../config/model.php';
 require_once '../models/Pago.php';
 
-// Validar Permisos (Roles 1 y 2)
-if (!isset($_SESSION['id_rol']) || !in_array($_SESSION['id_rol'], [3, 4])) {
-    die('<div class="alert alert-danger text-center mt-5"><b>Acceso denegado:</b> No tienes permisos administrativos para ver esta página.</div>');
+// Validar Permisos Financieros
+if (!tieneAcceso([6])) {
+    die('<div class="alert alert-danger text-center mt-5"><b>Acceso denegado:</b> No tienes permisos administrativos para gestionar cuentas bancarias.</div>');
 }
 
 $db = new DB();

@@ -57,7 +57,12 @@ foreach ($detalles as $d) {
     $pdf->SetFont('ZapfDingbats', '', 8);
     $pdf->Cell(5, 5, chr(108), 0, 0, 'L');
     $pdf->SetFont('Times', 'B', 11);
-    $pdf->Cell($contentWidth - 15, 5, utf8_decode($d), 0, 1, 'L');
+    
+    // Cambiar margen izquierdo temporalmente para que las líneas siguientes se alineen con la primera
+    $pdf->SetLeftMargin($marginX + 15);
+    $pdf->MultiCell($contentWidth - 15, 5, utf8_decode($d), 0, 'L');
+    // Restaurar el margen izquierdo original
+    $pdf->SetLeftMargin($marginX);
 }
 $pdf->Ln(2);
 
@@ -105,27 +110,6 @@ for ($i = 0; $i < $numFirmas; $i++) {
     $lineMarg = 5;
     $f = $firmantesMateria[$i];
     
-    if (!empty($f['firma_digital'])) {
-        $path_firma = __DIR__ . '/../../public/assets/firmas/' . $f['firma_digital'];
-        if (file_exists($path_firma)) {
-            $imgInfo = @getimagesize($path_firma);
-            if ($imgInfo !== false) {
-                $imgW = $imgInfo[0];
-                $imgH = $imgInfo[1];
-                $maxW = $colW - 10;
-                $maxH = 20;
-                $ratio = min($maxW / $imgW, $maxH / $imgH);
-                $finalW = $imgW * $ratio;
-                $finalH = $imgH * $ratio;
-                
-                $imgX = $x + ($colW - $finalW) / 2;
-                $imgY = $yFirma - $finalH - 1; // Justo encima de la línea
-                
-                $pdf->Image($path_firma, $imgX, $imgY, $finalW, $finalH);
-            }
-        }
-    }
-
     // Línea
     $pdf->Line($x + $lineMarg, $yFirma, $x + $colW - $lineMarg, $yFirma);
     

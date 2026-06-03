@@ -4,7 +4,7 @@ include 'init.php';
 include '../config/model.php';
 
 // 1. Seguridad: Roles autorizados
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['id_rol'], [3, 4, 1])) {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['id_rol'], [3, 4])) {
     http_response_code(403);
     die(json_encode(['error' => 'No autorizado']));
 }

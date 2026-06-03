@@ -9,8 +9,8 @@ $db = new DB();
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 4) {
-    echo '<div class="alert alert-danger rounded-4 shadow-sm"><i class="fas fa-lock me-2"></i>Acceso denegado. Se requiere nivel de administrador.</div>';
+if (!tieneAcceso([3, 4])) {
+    echo '<div class="alert alert-danger rounded-4 shadow-sm"><i class="fas fa-lock me-2"></i>Acceso denegado. Se requiere un rol superior para tener acceso.</div>';
     exit;
 }
 

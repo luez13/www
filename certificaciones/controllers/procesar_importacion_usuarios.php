@@ -3,7 +3,7 @@
 include 'init.php';
 include '../config/model.php';
 
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['id_rol'], [3, 4, 1])) {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['id_rol'], [3, 4])) {
     http_response_code(403);
     die('No autorizado');
 }

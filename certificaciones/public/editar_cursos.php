@@ -47,6 +47,7 @@ $plantillas_certificados = $stmt_plantillas->fetchAll(PDO::FETCH_ASSOC);
 $busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
 $filtro_tipo = isset($_GET['tipo']) ? trim($_GET['tipo']) : '';
 $filtro_estado = isset($_GET['estado']) ? trim($_GET['estado']) : '';
+$orden_fecha = isset($_GET['orden_fecha']) ? trim($_GET['orden_fecha']) : '';
 $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $limit = 10;
 $offset = ($page - 1) * $limit;
@@ -81,14 +82,22 @@ $stmt_total->execute($params);
 $total_cursos = $stmt_total->fetchColumn();
 $total_pages = ceil($total_cursos / $limit);
 
-$sql_final = "SELECT * $sql_base ORDER BY 
-    CASE 
-        WHEN estado = true AND autorizacion = 'true' THEN 1
-        WHEN estado = true AND (autorizacion = 'false' OR autorizacion IS NULL) THEN 2
-        WHEN estado = false AND autorizacion = 'true' THEN 3
-        ELSE 4
-    END ASC,
-    nombre_curso ASC LIMIT :limit OFFSET :offset";
+if ($orden_fecha === 'recientes') {
+    $sql_order = "ORDER BY id_curso DESC";
+} elseif ($orden_fecha === 'antiguos') {
+    $sql_order = "ORDER BY id_curso ASC";
+} else {
+    $sql_order = "ORDER BY 
+        CASE 
+            WHEN estado = true AND autorizacion = 'true' THEN 1
+            WHEN estado = true AND (autorizacion = 'false' OR autorizacion IS NULL) THEN 2
+            WHEN estado = false AND autorizacion = 'true' THEN 3
+            ELSE 4
+        END ASC,
+        nombre_curso ASC";
+}
+
+$sql_final = "SELECT * $sql_base $sql_order LIMIT :limit OFFSET :offset";
 $stmt_cursos = $db->prepare($sql_final);
 foreach ($params as $key => $val)
     $stmt_cursos->bindValue($key, $val);
@@ -180,6 +189,11 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                 <option value="autorizados" <?= $filtro_estado == 'autorizados' ? 'selected' : '' ?>>Autorizados</option>
                 <option value="no_autorizados" <?= $filtro_estado == 'no_autorizados' ? 'selected' : '' ?>>Por Autorizar</option>
             </select>
+            <select id="ordenFechaCurso" class="form-select bg-light border-0 small" style="width: auto;" onchange="ejecutarBusquedaCurso()">
+                <option value="">Orden Predeterminado</option>
+                <option value="recientes" <?= $orden_fecha == 'recientes' ? 'selected' : '' ?>>Propuestas: Más Recientes</option>
+                <option value="antiguos" <?= $orden_fecha == 'antiguos' ? 'selected' : '' ?>>Propuestas: Más Antiguas</option>
+            </select>
             <div class="input-group" style="width: 250px;">
                 <input type="text" id="busquedaCursoGlobal" class="form-control bg-light border-0 small"
                     placeholder="Buscar curso o ID..." value="<?= h($busqueda) ?>" onkeyup="filtrarCursosDinamico(event)">
@@ -187,7 +201,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                     <button class="btn btn-primary" type="button" onclick="ejecutarBusquedaCurso()"><i
                             class="fas fa-search fa-sm"></i></button>
                 </div>
-                <?php if (!empty($busqueda) || !empty($filtro_tipo) || !empty($filtro_estado)): ?>
+                <?php if (!empty($busqueda) || !empty($filtro_tipo) || !empty($filtro_estado) || !empty($orden_fecha)): ?>
                     <div class="input-group-append">
                         <button class="btn btn-danger" type="button" onclick="limpiarBusquedaCurso()"><i
                                 class="fas fa-times fa-sm"></i></button>
@@ -555,7 +569,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                                             $sel = ($conf && $conf['id_cargo_firmante'] == $cargo['id_cargo']) ? 'selected' : '';
                                                             ?>
                                                             <option value="<?= $cargo['id_cargo'] ?>" <?= $sel ?>>
-                                                                <?= h($cargo['nombre_cargo']) ?>
+                                                                <?= h($cargo['nombre_cargo']) . ' - ' . h($cargo['nombre']) . ' ' . h($cargo['apellido']) ?>
                                                             </option>
                                                         <?php endforeach; ?>
                                                     </select>
@@ -594,7 +608,8 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                                     <span class="icon text-white-50"><i class="fas fa-fw fa-calculator"></i></span>
                                                     <span class="text">Notas/Calificaciones</span>
                                                 </a>
-                                                <a href="../controllers/generar_acta_cierre_fpdf.php?id_curso=<?= $curso['id_curso'] ?>" target="_blank" class="btn btn-success btn-icon-split">
+                                                <a href="#" class="btn btn-success btn-icon-split"
+                                                    onclick="loadPage('../views/admin_actas.php', { id_curso: <?= $curso['id_curso'] ?> }); return false;">
                                                     <span class="icon text-white-50"><i
                                                             class="fas fa-fw fa-file-signature"></i></span>
                                                     <span class="text">Acta de Cierre Final</span>
@@ -701,8 +716,8 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(function () { ejecutarBusquedaCurso(); }, 600);
     }
-    function ejecutarBusquedaCurso() { loadPage('../public/editar_cursos.php', { busqueda: document.getElementById('busquedaCursoGlobal').value, tipo: document.getElementById('filtroTipoCurso').value, estado: document.getElementById('filtroEstadoCurso').value, page: 1 }); }
-    function limpiarBusquedaCurso() { loadPage('../public/editar_cursos.php', { busqueda: '', tipo: '', estado: '', page: 1 }); }
+    function ejecutarBusquedaCurso() { loadPage('../public/editar_cursos.php', { busqueda: document.getElementById('busquedaCursoGlobal').value, tipo: document.getElementById('filtroTipoCurso').value, estado: document.getElementById('filtroEstadoCurso').value, orden_fecha: document.getElementById('ordenFechaCurso').value, page: 1 }); }
+    function limpiarBusquedaCurso() { loadPage('../public/editar_cursos.php', { busqueda: '', tipo: '', estado: '', orden_fecha: '', page: 1 }); }
 
     // --- LÓGICA MÓDULOS JS (igual que antes) ---
     var newModuleCounter = 0;

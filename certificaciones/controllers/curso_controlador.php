@@ -407,8 +407,8 @@ switch ($action) {
         echo 'El curso se ha iniciado correctamente';
         break;
     case 'cambiar_estado':
-        // Validar permisos
-        if (!in_array($_SESSION['id_rol'], [1, 2, 3, 4])) {
+        // Validar permisos (Roles 2, 3, 4)
+        if (!tieneAcceso([2, 3, 4])) {
             echo json_encode(['success' => false, 'message' => 'No tienes permisos.']);
             exit;
         }

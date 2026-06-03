@@ -41,7 +41,7 @@ try {
         <hr class="sidebar-divider">
         <div class="sidebar-heading">Área Académica</div>
 
-        <?php if (in_array($_SESSION['id_rol'], [1, 2, 3, 4])): ?>
+        <?php if (tieneAcceso([1, 2, 3, 4, 5, 6])): ?>
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCatalogo"
                     aria-expanded="true" aria-controls="collapseCatalogo">
@@ -89,7 +89,7 @@ try {
             </li>
         <?php endif; ?>
 
-        <?php if (in_array($_SESSION['id_rol'], [1, 2, 3, 4])): ?>
+        <?php if (tieneAcceso([1, 2, 3, 4, 5, 6])): ?>
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePagos"
                     aria-expanded="true" aria-controls="collapsePagos">
@@ -106,7 +106,7 @@ try {
             </li>
         <?php endif; ?>
 
-        <?php if (in_array($_SESSION['id_rol'], [2, 3, 4])): ?>
+        <?php if (tieneAcceso([2, 3, 4])): ?>
             <hr class="sidebar-divider">
             <div class="sidebar-heading">Espacio del Facilitador</div>
 
@@ -132,7 +132,7 @@ try {
                         <a class="collapse-item" href="#" onclick="loadPage('../public/gestion_cursos.php?action=ver')">Mis
                             Postulaciones</a>
 
-                        <?php if (in_array($_SESSION['id_rol'], [3, 4])): ?>
+                        <?php if (tieneAcceso([3, 4])): ?>
                             <div class="dropdown-divider"></div>
                             <h6 class="collapse-header text-danger">Coordinación:</h6>
                             <a class="collapse-item" href="#" onclick="loadPage('../public/editar_cursos.php')">Evaluar
@@ -143,7 +143,7 @@ try {
             </li>
         <?php endif; ?>
 
-        <?php if (in_array($_SESSION['id_rol'], [3, 4])): ?>
+        <?php if (tieneAcceso([3, 4, 5, 6])): ?>
             <hr class="sidebar-divider">
             <div class="sidebar-heading">Institucional</div>
 
@@ -157,27 +157,34 @@ try {
                     data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded shadow-sm">
 
+                        <?php if (tieneAcceso([3, 4])): ?>
                         <h6 class="collapse-header text-primary">Gestión de Personas:</h6>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/usuarios.php')">Verificación de
                             Usuarios</a>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/gestionar_cargos.php')">Directorio y
                             Cargos</a>
                         <a class="collapse-item font-weight-bold text-primary" style="white-space: normal; line-height: 1.2;" href="#" onclick="loadPage('../views/admin_constancias.php')"><i class="fas fa-file-signature me-2"></i>Emisión de Constancias</a>
+                        <a class="collapse-item font-weight-bold text-primary" style="white-space: normal; line-height: 1.2;" href="#" onclick="loadPage('../views/admin_actas.php')"><i class="fas fa-file-contract me-2"></i>Emisión de Actas</a>
 
                         <div class="dropdown-divider"></div>
+                        <?php endif; ?>
 
+                        <?php if (tieneAcceso([4, 5, 6])): ?>
                         <h6 class="collapse-header text-success">Tesorería y Pagos:</h6>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/gestion_pagos.php')"><i
                                 class="fas fa-search-dollar me-2 text-muted"></i>Auditar Pagos</a>
+                        <?php if (tieneAcceso([4, 6])): ?>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/gestion_cuentas_bancarias.php')"><i
                                 class="fas fa-university me-2 text-muted"></i>Cuentas Destino</a>
+                        <?php endif; ?>
+                        <?php endif; ?>
 
                     </div>
                 </div>
             </li>
         <?php endif; ?>
 
-        <?php if ($_SESSION['id_rol'] == 4): ?>
+        <?php if (tieneAcceso([3, 4])): ?>
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAjustes"
                     aria-expanded="true" aria-controls="collapseAjustes">
@@ -186,6 +193,7 @@ try {
                 </a>
                 <div id="collapseAjustes" class="collapse" aria-labelledby="headingAjustes" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded shadow-sm">
+                        <?php if (tieneAcceso([4])): ?>
                         <h6 class="collapse-header text-primary">Ajustes Generales:</h6>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/ajustes_sistema.php')"><i
                                 class="fas fa-sliders-h me-2 text-muted"></i>Configuración Global</a>
@@ -194,9 +202,18 @@ try {
                         <a class="collapse-item" href="#" onclick="loadPage('../public/plantillas.php')"><i
                                 class="fas fa-certificate me-2 text-muted"></i>Plantillas Certificados</a>
                         <div class="dropdown-divider"></div>
+                        <?php endif; ?>
+
                         <h6 class="collapse-header text-warning">Retroalimentación:</h6>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/sugerencias.php')"><i
                                 class="fas fa-lightbulb me-2 text-muted"></i>Buzón de Sugerencias</a>
+
+                        <?php if (tieneAcceso([4])): ?>
+                        <div class="dropdown-divider"></div>
+                        <h6 class="collapse-header text-danger">Herramientas DB:</h6>
+                        <a class="collapse-item" href="#" onclick="loadPage('../views/admin_db.php')"><i
+                                class="fas fa-database me-2 text-muted"></i>Consola SQL</a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </li>

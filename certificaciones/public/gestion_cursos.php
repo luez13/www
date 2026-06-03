@@ -267,7 +267,7 @@ foreach ($cursos as $curso) {
     echo '<button class="btn btn-sm btn-primary" onclick="loadPage(\'../views/curso_formulario.php\', {id_curso: ' . $curso['id_curso'] . '})"><i class="fas fa-edit me-2"></i>Editar</button>';
     
     // 🔒 RESTRICCIÓN: Botón Iniciar / Finalizar (SOLO ROLES 3 y 4)
-    if (isset($_SESSION['id_rol']) && ($_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4)) {
+    if (tieneAcceso([3, 4])) {
         $estado_texto = $curso['estado'] ? 'Finalizar' : 'Iniciar';
         $action = $curso['estado'] ? 'finalizar' : 'iniciar';
         $icono_estado = $curso['estado'] ? 'fas fa-stop-circle' : 'fas fa-play-circle';
@@ -290,17 +290,17 @@ foreach ($cursos as $curso) {
     $es_diplomado = in_array(strtolower($curso['tipo_curso']), ['diplomado', 'diplomado_rectoria']);
     if ($es_diplomado) {
         // 🔒 RESTRICCIÓN: Gestión completa del diplomado (SOLO ROLES 3 y 4)
-        if (isset($_SESSION['id_rol']) && ($_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4)) {
+        if (tieneAcceso([3, 4])) {
             echo '<li><hr class="dropdown-divider"></li>';
             echo '<li><h6 class="dropdown-header text-primary"><i class="fas fa-graduation-cap me-2"></i>Gestión de Diplomado</h6></li>';
             echo '<li><a class="dropdown-item" href="#" onclick="loadPage(\'../views/gestionar_materias.php\', {id_curso: ' . $curso['id_curso'] . '}); return false;"><i class="fas fa-book me-2 text-primary"></i>Materias</a></li>';
             echo '<li><a class="dropdown-item" href="#" onclick="loadPage(\'../views/gestionar_notas.php\', {id_curso: ' . $curso['id_curso'] . '}); return false;"><i class="fas fa-calculator me-2 text-primary"></i>Cargar Notas</a></li>';
-            echo '<li><a class="dropdown-item" href="#" onclick="loadPage(\'../views/generar_acta_cierre.php\', {id_curso: ' . $curso['id_curso'] . '}); return false;"><i class="fas fa-file-contract me-2 text-primary"></i>Acta de Cierre</a></li>';
+            echo '<li><a class="dropdown-item" href="#" onclick="loadPage(\'../views/admin_actas.php\', {id_curso: ' . $curso['id_curso'] . '}); return false;"><i class="fas fa-file-contract me-2 text-primary"></i>Acta de Cierre</a></li>';
         }
     }
     
     // 🔒 RESTRICCIÓN: Botón Peligroso (Eliminar) - SOLO ROLES 3 y 4
-    if (isset($_SESSION['id_rol']) && ($_SESSION['id_rol'] == 3 || $_SESSION['id_rol'] == 4)) {
+    if (tieneAcceso([3, 4])) {
         echo '<li><hr class="dropdown-divider"></li>';
         echo '<li><a class="dropdown-item text-danger" href="#" onclick="eliminarCurso(' . $curso['id_curso'] . '); return false;"><i class="fas fa-trash-alt me-2"></i>Eliminar Curso</a></li>';
     }
