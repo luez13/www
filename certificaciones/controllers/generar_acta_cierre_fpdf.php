@@ -40,11 +40,11 @@ if (!empty($curso_info['prom_nom'])) {
 $tipo_curso = $curso_info['tipo_curso'];
 $duracion = $curso_info['tiempo_asignado'] ? $curso_info['tiempo_asignado'] . " semanas" : "No especificada";
 $total_horas = $curso_info['horas_cronologicas'] ? $curso_info['horas_cronologicas'] . " horas" : "No especificadas";
-$modalidad = "Multimodal (Clases síncronas/asíncronas)";
+$modalidad = "Multimodal";
 
 // 4. Obtener todos los alumnos del curso
 $stmtAlumnos = $conn->prepare("
-    SELECT u.cedula, u.nombre, u.apellido, cert.nota, cert.completado
+    SELECT u.cedula, u.nombre, u.apellido, cert.nota, cert.completado, cert.tomo, cert.folio
     FROM cursos.certificaciones cert
     JOIN cursos.usuarios u ON cert.id_usuario = u.id
     WHERE cert.curso_id = :id
@@ -144,7 +144,7 @@ if (!empty($curso_info['promotor'])) {
     }
 }
 
-$img_encabezado = realpath(__DIR__ . '/../public/assets/img/encabezado.jpg');
+$img_encabezado = realpath(__DIR__ . '/../public/assets/img/vector membrete 1-01.png');
 $img_pie = realpath(__DIR__ . '/../public/assets/img/piePagina.jpg');
 
 // Preparar los datos consolidados para la vista FPDF

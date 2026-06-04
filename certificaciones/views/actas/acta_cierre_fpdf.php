@@ -151,16 +151,18 @@ if (isset($data['img_pie']) && file_exists($data['img_pie'])) {
 }
 
 // ================= PÁGINA 2: ANEXO DE ESTUDIANTES APROBADOS =================
-$pdf->AddPage('P', 'Letter');
+$pdf->AddPage('L', 'Letter');
+$pageWidthL = 279.4; // Landscape width
+$contentWidthL = $pageWidthL - ($marginX * 2);
 
 // Encabezado de página 2
 if (isset($data['img_encabezado']) && file_exists($data['img_encabezado'])) {
-    $pdf->Image($data['img_encabezado'], 0, 0, $pageWidth, 25);
+    $pdf->Image($data['img_encabezado'], 0, 0, $pageWidthL, 25);
 }
 
 $pdf->SetY(35);
 $pdf->SetFont('Times', 'B', 14);
-$pdf->Cell($contentWidth, 7, utf8_decode("ANEXO: LISTADO DE PARTICIPANTES"), 0, 1, 'C');
+$pdf->Cell($contentWidthL, 7, utf8_decode("ANEXO: LISTADO DE PARTICIPANTES"), 0, 1, 'C');
 $pdf->Ln(5);
 
 $pdf->SetFont('Times', 'B', 9);
@@ -169,15 +171,30 @@ $pdf->SetTextColor(255);
 
 $colNo = 10;
 $colCed = 30;
-$colNom = 75;
-$colNota = 25;
-$colEstatus = 25.9;
+
+if (!$es_diplomado) {
+    // Si NO es diplomado (es curso general), mostramos Tomo y Folio
+    $colNom = 110.4;
+    $colNota = 22;
+    $colEstatus = 25;
+    $colTomo = 16;
+    $colFolio = 16;
+} else {
+    // Diplomado: sin Tomo ni Folio
+    $colNom = 138.4;
+    $colNota = 25;
+    $colEstatus = 26;
+}
 
 $pdf->SetX($marginX);
 $pdf->Cell($colNo, 7, utf8_decode("No."), 1, 0, 'C', true);
 $pdf->Cell($colCed, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
 $pdf->Cell($colNom, 7, utf8_decode("Participante (Nombre y Apellido)"), 1, 0, 'C', true);
 $pdf->Cell($colNota, 7, utf8_decode("Calificación"), 1, 0, 'C', true);
+if (!$es_diplomado) {
+    $pdf->Cell($colTomo, 7, utf8_decode("Tomo"), 1, 0, 'C', true);
+    $pdf->Cell($colFolio, 7, utf8_decode("Folio"), 1, 0, 'C', true);
+}
 $pdf->Cell($colEstatus, 7, utf8_decode("Estatus"), 1, 1, 'C', true);
 
 $pdf->SetFont('Times', '', 10);
@@ -186,14 +203,14 @@ $pdf->SetTextColor(0);
 $alumnos = isset($data['alumnos']) ? $data['alumnos'] : [];
 foreach ($alumnos as $idx => $al) {
     // Si cabe en la página, continuar, si no, crear nueva página y repetir cabecera
-    if ($pdf->GetY() > 245) {
+    if ($pdf->GetY() > 190) { // Landscape page is shorter (~215.9 height)
         if (isset($data['img_pie']) && file_exists($data['img_pie'])) {
-            $pdf->Image($data['img_pie'], 10, 260, $pageWidth - 20, 15);
+            $pdf->Image($data['img_pie'], 10, 195, $pageWidthL - 20, 15);
         }
         
-        $pdf->AddPage('P', 'Letter');
+        $pdf->AddPage('L', 'Letter');
         if (isset($data['img_encabezado']) && file_exists($data['img_encabezado'])) {
-            $pdf->Image($data['img_encabezado'], 0, 0, $pageWidth, 25);
+            $pdf->Image($data['img_encabezado'], 0, 0, $pageWidthL, 25);
         }
         
         $pdf->SetY(35);
@@ -205,6 +222,10 @@ foreach ($alumnos as $idx => $al) {
         $pdf->Cell($colCed, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
         $pdf->Cell($colNom, 7, utf8_decode("Participante (Nombre y Apellido)"), 1, 0, 'C', true);
         $pdf->Cell($colNota, 7, utf8_decode("Calificación"), 1, 0, 'C', true);
+        if (!$es_diplomado) {
+            $pdf->Cell($colTomo, 7, utf8_decode("Tomo"), 1, 0, 'C', true);
+            $pdf->Cell($colFolio, 7, utf8_decode("Folio"), 1, 0, 'C', true);
+        }
         $pdf->Cell($colEstatus, 7, utf8_decode("Estatus"), 1, 1, 'C', true);
         $pdf->SetFont('Times', '', 10);
         $pdf->SetTextColor(0);
@@ -235,10 +256,14 @@ foreach ($alumnos as $idx => $al) {
     $pdf->Cell($colCed, 6, $al['cedula'], 1, 0, 'C');
     $pdf->Cell($colNom, 6, utf8_decode($nombre_completo), 1, 0, 'L');
     $pdf->Cell($colNota, 6, $nota_str, 1, 0, 'C');
+    if (!$es_diplomado) {
+        $pdf->Cell($colTomo, 6, isset($al['tomo']) ? $al['tomo'] : '-', 1, 0, 'C');
+        $pdf->Cell($colFolio, 6, isset($al['folio']) ? $al['folio'] : '-', 1, 0, 'C');
+    }
     $pdf->Cell($colEstatus, 6, utf8_decode($estatus_str), 1, 1, 'C');
 }
 
 // Pie de página de la página 2 o posteriores
 if (isset($data['img_pie']) && file_exists($data['img_pie'])) {
-    $pdf->Image($data['img_pie'], 10, 260, $pageWidth - 20, 15);
+    $pdf->Image($data['img_pie'], 10, 195, $pageWidthL - 20, 15);
 }

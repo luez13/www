@@ -140,6 +140,36 @@ switch ($action) {
         }
 
         if ($pagoModel->actualizarEstadoComprobante($id_comprobante, $estado, $observacion)) {
+            // Si el estado es Comprobado, enviamos correo de notificación
+            if ($estado === 'Comprobado') {
+                require_once '../config/mailer.php';
+                try {
+                    $stmtInfo = $db->prepare("
+                        SELECT u.correo, u.nombre, c.nombre_curso as curso_nombre
+                        FROM cursos.comprobantes_pago p
+                        JOIN cursos.usuarios u ON p.id_usuario = u.id
+                        JOIN cursos.cursos c ON p.id_curso = c.id_curso
+                        WHERE p.id_comprobante = ?
+                    ");
+                    $stmtInfo->execute([$id_comprobante]);
+                    $info = $stmtInfo->fetch(PDO::FETCH_ASSOC);
+
+                    if ($info && !empty($info['correo'])) {
+                        $asunto = "Pago Aprobado: " . $info['curso_nombre'];
+                        $mensajeHtml = "<h3>¡Hola, " . htmlspecialchars($info['nombre']) . "!</h3>
+                                        <p>Tu comprobante de pago ha sido <b>verificado y aprobado</b> exitosamente.</p>
+                                        <div style='background-color: #f8f9fc; padding: 15px; border-left: 4px solid #1cc88a; margin: 20px 0;'>
+                                            <p style='margin: 0;'><b>Curso:</b> " . htmlspecialchars($info['curso_nombre']) . "</p>
+                                            <p style='margin: 5px 0 0 0;'><b>Estado:</b> Aprobado</p>
+                                        </div>
+                                        <p>Ya cuentas con la validación financiera. ¡Mucho éxito en tu aprendizaje!</p>";
+                        enviarCorreo($info['correo'], $asunto, $mensajeHtml);
+                    }
+                } catch (Exception $e) {
+                    error_log("Falla al enviar correo de pago aprobado: " . $e->getMessage());
+                }
+            }
+
             echo json_encode(['success' => true, 'message' => "El estado del comprobante cambió a $estado."]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error al actualizar el estado en la base de datos.']);

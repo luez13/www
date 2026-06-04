@@ -2,6 +2,7 @@
 // controllers/admin_usuarios_ajax.php
 include 'init.php';
 include '../config/model.php';
+include '../config/mailer.php';
 
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['id_rol'], [3, 4])) {
     http_response_code(403);
@@ -91,6 +92,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             }
+
+            // Enviar correo de bienvenida
+            $host_url = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : "la plataforma";
+            $protocolo = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+            $app_path = explode('/controllers/', $_SERVER['PHP_SELF'])[0];
+            $base_url = $protocolo . "://" . $host_url . $app_path;
+
+            $asunto = "Bienvenido a nuestra plataforma";
+            $mensajeHtml = "<h3>¡Hola, " . htmlspecialchars($nombre) . "!</h3>
+                            <p>Tu cuenta ha sido creada exitosamente por la administración.</p>
+                            <p>Tus credenciales de acceso son las siguientes:</p>
+                            <div style='background-color: #f8f9fc; padding: 15px; border-left: 4px solid #4e73df; margin: 20px 0;'>
+                                <p style='margin: 0;'><b>Correo:</b> {$correo}</p>
+                                <p style='margin: 5px 0 0 0;'><b>Contraseña:</b> {$pwd_raw}</p>
+                            </div>
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <a href='{$base_url}/public/index.php' style='background-color: #4e73df; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Iniciar Sesión</a>
+                            </div>
+                            <p>Te recomendamos cambiar tu contraseña una vez que inicies sesión por primera vez desde tu perfil.</p>";
+            
+            enviarCorreo($correo, $asunto, $mensajeHtml);
 
             echo "Usuario creado con éxito. \nContraseña: " . $pwd_raw;
 

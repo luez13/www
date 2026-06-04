@@ -177,6 +177,35 @@ $pdf->SetFont('Times', '', 8);
 $pdf->SetTextColor(0);
 
 foreach ($data['alumnos'] as $idx => $al) {
+    if ($pdf->GetY() > 185) {
+        if (isset($data['img_pie']) && file_exists($data['img_pie'])) {
+            $pdf->Image($data['img_pie'], 10, 200, $pageLWidth - 20, 15);
+        }
+        $pdf->AddPage('L', 'Letter');
+        if (isset($data['img_encabezado']) && file_exists($data['img_encabezado'])) {
+            $pdf->Image($data['img_encabezado'], 0, 0, $pageLWidth, 25);
+        }
+        $pdf->SetY(35);
+        $pdf->SetFont('Times', 'B', 8);
+        $pdf->SetFillColor(44, 62, 80);
+        $pdf->SetTextColor(255);
+        $pdf->SetX($marginL);
+        $pdf->Cell($colNo, 7, utf8_decode("No."), 1, 0, 'C', true);
+        $pdf->Cell($colCed, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
+        $pdf->Cell($colNom, 7, utf8_decode("Participante"), 1, 0, 'C', true);
+        foreach ($data['columnas_evaluacion'] as $col) {
+            $x = $pdf->GetX();
+            $y = $pdf->GetY();
+            $pdf->Cell($colAct, 7, '', 1, 0, 'C', true);
+            $pdf->SetXY($x, $y + 0.5);
+            $pdf->MultiCell($colAct, 3, utf8_decode($col), 0, 'C');
+            $pdf->SetXY($x + $colAct, $y);
+        }
+        $pdf->Cell($colDef, 7, utf8_decode("Def."), 1, 1, 'C', true);
+        $pdf->SetFont('Times', '', 8);
+        $pdf->SetTextColor(0);
+    }
+
     $pdf->SetX($marginL);
     
     // Color de fondo para reprobados

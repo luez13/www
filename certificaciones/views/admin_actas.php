@@ -99,7 +99,7 @@ if ($id_curso_sel > 0) {
             <div class="row align-items-end">
                 <div class="col-md-9 mb-3 mb-md-0">
                     <label for="selectCursoActa" class="form-label font-weight-bold">Programa / Curso / Diplomado:</label>
-                    <select class="form-select form-control" id="selectCursoActa" onchange="seleccionarCursoParaActa(this.value)">
+                    <select class="form-select form-control select2-busqueda" id="selectCursoActa">
                         <option value="">-- Seleccione un curso --</option>
                         <?php foreach ($todos_cursos as $c): ?>
                             <option value="<?= $c['id_curso'] ?>" <?= $id_curso_sel == $c['id_curso'] ? 'selected' : '' ?>>
@@ -263,6 +263,25 @@ if ($id_curso_sel > 0) {
 </div>
 
 <script>
+    $(document).ready(function() {
+        // Inicializar Select2 para búsqueda de cursos
+        $('#selectCursoActa').select2({
+            theme: 'bootstrap-5',
+            placeholder: "Seleccione un curso...",
+            allowClear: true,
+            width: '100%'
+        });
+        
+        // Enlazar evento select2:select y select2:unselect
+        $('#selectCursoActa').on('select2:select', function (e) {
+            var data = e.params.data;
+            seleccionarCursoParaActa(data.id);
+        });
+        $('#selectCursoActa').on('select2:unselect', function (e) {
+            seleccionarCursoParaActa("");
+        });
+    });
+
     function seleccionarCursoParaActa(idCurso) {
         if (idCurso) {
             loadPage('../views/admin_actas.php', { id_curso: idCurso });

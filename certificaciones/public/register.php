@@ -14,7 +14,7 @@ unset($_SESSION['form_data']);
         <div class="row justify-content-center">
             <div class="col-xl-6 col-lg-8 col-md-9 mt-5">
                 <div class="card border-0 shadow-lg rounded-4 overflow-hidden mt-5">
-                    <div class="card-header bg-primary text-white text-center py-4 border-0">
+                    <div class="card-header bg-dark text-white text-center py-4 border-0">
                         <img src="assets/img/logo.png" width="70" height="70"
                             class="mb-2 shadow-sm rounded-circle p-2 bg-white">
                         <h4 class="mb-0 fw-bold">Crear una Cuenta</h4>

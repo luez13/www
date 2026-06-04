@@ -71,18 +71,10 @@ function renderizarCursos($cursosArray)
 }
 ?>
 
-<header class="institutional-banner-container bg-light shadow-sm">
-    <div class="container text-center">
-        <img src="assets/img/vector membrete 1-01.png" alt="Banner Institucional UPTAIET" class="img-fluid">
-    </div>
-</header>
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow py-2">
     <div class="container">
-        <a class="navbar-brand" href="#">
-            <img src="assets/img/logo.png" alt="Logo UPTAIET" width="30" height="30"
-                class="d-inline-block align-text-top me-2">
-            UPTAIET Certs
+        <a class="navbar-brand me-4" href="#">
+            <img src="assets/img/vector membrete 1-01-SF.png" alt="Banner Institucional UPTAIET" style="max-height: 50px;" class="d-inline-block align-middle">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -91,16 +83,13 @@ function renderizarCursos($cursosArray)
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">Inicio</a>
+                    <a class="nav-link active fw-bold" aria-current="page" href="#">Inicio</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#quienes-somos">Quiénes Somos</a>
+                    <a class="nav-link fw-bold" href="#cursos">Cursos</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#cursos">Cursos</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="../views/ver_certificados.php">Ver Certificados</a>
+                    <a class="nav-link fw-bold" href="../views/ver_certificados.php">Ver Certificados</a>
                 </li>
             </ul>
             <div class="d-flex">
@@ -153,27 +142,7 @@ function renderizarCursos($cursosArray)
 
 
 <main>
-    <section id="quienes-somos" class="py-5 content-section" style="position: relative; z-index: 5;">
-        <div class="container">
-            <div class="row align-items-center justify-content-center">
-                <div class="col-md-10 text-center p-5 rounded-4 shadow-lg"
-                    style="background: rgba(11, 17, 32, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(56, 189, 248, 0.2);">
-                    <h2 class="display-5 fw-bold text-white mb-4" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                        Nuestra Misión</h2>
-                    <p class="lead text-white-50">
-                        Somos la Universidad Politécnica Territorial Agroindustrial del estado Táchira, comprometidos
-                        con la formación de profesionales integrales, innovadores y con un alto sentido de
-                        responsabilidad social.
-                    </p>
-                    <p class="text-light" style="opacity: 0.8;">
-                        Nuestro sistema de certificaciones busca validar y potenciar las habilidades de nuestros
-                        estudiantes y de la comunidad en general, ofreciendo cursos y diplomados de alta demanda en el
-                        mercado laboral.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
+
 
     <section id="cursos" class="py-5">
         <div class="container">

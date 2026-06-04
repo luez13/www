@@ -18,7 +18,7 @@ $id_materia = isset($_REQUEST['id_materia']) ? (int)$_REQUEST['id_materia'] : 0;
 if ($id_materia === 0) { die("Error: Se requiere el ID de la materia."); }
 
 // --- 1. PROCESAMIENTO DE IMÁGENES (RUTAS ABSOLUTAS) ---
-$img_encabezado = realpath(__DIR__ . '/../public/assets/img/encabezado.jpg');
+$img_encabezado = realpath(__DIR__ . '/../public/assets/img/vector membrete 1-01.png');
 $img_pie = realpath(__DIR__ . '/../public/assets/img/piePagina.jpg');
 
 // --- 2. FUNCIONES DE FORMATO (IDÉNTICAS PARA MANTENER DISEÑO) ---
@@ -146,7 +146,7 @@ $data = [
     'duracion' => formatoTexto($info['duracion_bimestres']),
     'periodo_titulo' => formatearPeriodo($info['duracion_bimestres'], $info['lapso_academico']),
     'horas' => $info['total_horas'],
-    'modalidad' => formatoTexto($info['modalidad']),
+    'modalidad' => str_replace([' (Clases síncronas/asíncronas)', ' (Clases sincronas/asincronas)'], '', formatoTexto($info['modalidad'])),
     'docente' => formatoNombre($info['nom_doc'] . ' ' . $info['ape_doc']),
     'firma_docente' => $info['firma_doc'],
     'coordinador' => formatoNombre($nombre_coordinador),

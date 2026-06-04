@@ -1,6 +1,8 @@
 <?php
 // Incluir el archivo model.php en config
 include '../config/model.php';
+// Incluir el helper de correos
+include '../config/mailer.php';
 
 // Crear una instancia de la clase DB
 $db = new DB();
@@ -156,17 +158,21 @@ function enviar_correo_confirmacion($correo, $nombre, $token)
 
     // Definir el asunto del correo
     $asunto = 'Confirmación de registro';
-    // Definir el mensaje del correo
-    $mensaje = "Hola, $nombre. Gracias por registrarte en nuestro sistema. Para confirmar tu cuenta, haz clic en el siguiente enlace:\n";
-    $mensaje .= $base_url . "/public/confirmar.php?correo=$correo&token=$token\n";
-    $mensaje .= "Si no has solicitado este registro, ignora este mensaje.\n";
-    $mensaje .= "Saludos, el equipo de gestión de cursos y certificaciones.";
-    // Definir las cabeceras del correo
-    $cabeceras = "From: no-reply@gestioncursos.com\r\n";
-    $cabeceras .= "Reply-To: no-reply@gestioncursos.com\r\n";
-    $cabeceras .= "X-Mailer: PHP/" . phpversion();
-    // Usar la función mail de PHP para enviar el correo
-    mail($correo, $asunto, $mensaje, $cabeceras);
+    
+    // Construir enlace y mensaje HTML
+    $enlace = $base_url . "/public/confirmar.php?correo=$correo&token=$token";
+    $mensajeHtml = "<h3>¡Bienvenido, $nombre!</h3>
+                <p>Gracias por registrarte en nuestro sistema.</p>
+                <p>Para confirmar tu cuenta y activarla, por favor haz clic en el siguiente botón:</p>
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='$enlace' style='background-color: #4e73df; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Confirmar mi Cuenta</a>
+                </div>
+                <p>Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:</p>
+                <p><a href='$enlace'>$enlace</a></p>
+                <p>Si no has solicitado este registro, ignora este mensaje.</p>";
+                
+    // Usar el helper global
+    enviarCorreo($correo, $asunto, $mensajeHtml);
 }
 
 function esPerfil4($id_usuario)
@@ -389,9 +395,16 @@ if (isset($_POST['action'])) {
                         $link = $base_url . "/public/reset_password.php?token=" . $token;
 
                         $asunto = 'Recuperar Contraseña';
-                        $mensaje = "Hola " . $user['nombre'] . ".\n\nHaz clic aquí para restablecer tu contraseña:\n" . $link;
-                        $cabeceras = "From: no-reply@gestioncursos.com\r\nReply-To: no-reply@gestioncursos.com\r\n";
-                        @mail($correo, $asunto, $mensaje, $cabeceras);
+                        $mensajeHtml = "<h3>Hola " . htmlspecialchars($user['nombre']) . "</h3>
+                                    <p>Hemos recibido una solicitud para restablecer tu contraseña.</p>
+                                    <div style='text-align: center; margin: 30px 0;'>
+                                        <a href='$link' style='background-color: #4e73df; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Restablecer Contraseña</a>
+                                    </div>
+                                    <p>Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:</p>
+                                    <p><a href='$link'>$link</a></p>
+                                    <p>Si no realizaste esta solicitud, puedes ignorar este correo de forma segura.</p>";
+                        
+                        enviarCorreo($correo, $asunto, $mensajeHtml);
 
                         $_SESSION['auth_success'] = "Se ha enviado un enlace de recuperación a tu correo electrónico.";
                         header('Location: ../public/index.php');
