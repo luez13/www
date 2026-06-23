@@ -6,6 +6,7 @@ $fm_nombre = isset($_SESSION['form_data']['nombre']) ? $_SESSION['form_data']['n
 $fm_apellido = isset($_SESSION['form_data']['apellido']) ? $_SESSION['form_data']['apellido'] : '';
 $fm_cedula = isset($_SESSION['form_data']['cedula']) ? $_SESSION['form_data']['cedula'] : '';
 $fm_correo = isset($_SESSION['form_data']['correo']) ? $_SESSION['form_data']['correo'] : '';
+$fm_telefono = isset($_SESSION['form_data']['telefono']) ? $_SESSION['form_data']['telefono'] : '';
 unset($_SESSION['form_data']);
 ?>
 
@@ -48,6 +49,13 @@ unset($_SESSION['form_data']);
                                     placeholder="Cédula" value="<?= htmlspecialchars($fm_cedula) ?>" required>
                                 <label for="cedulaInput" class="px-4 text-muted"><i
                                         class="fas fa-id-card ms-1 me-2"></i>Cédula de Identidad</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="tel" class="form-control rounded-3" name="telefono" id="telefonoInput"
+                                    placeholder="Teléfono" value="<?= htmlspecialchars($fm_telefono) ?>" required>
+                                <label for="telefonoInput" class="px-4 text-muted"><i
+                                        class="fas fa-phone ms-1 me-2"></i>Teléfono Móvil o Fijo</label>
                             </div>
 
                             <div class="form-floating mb-3">

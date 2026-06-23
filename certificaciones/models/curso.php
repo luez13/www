@@ -33,14 +33,15 @@ class Curso
         $promotor_id,
         $id_plantilla = null,
         $modulos = [],
-        $configuracion_firmas = []
+        $configuracion_firmas = [],
+        $nota_minima_aprobatoria = 12
     ) {
         // Iniciamos la transacción. O todo se guarda, o nada se guarda.
         $this->pdo->beginTransaction();
 
         try {
             // PASO 1: Insertar el curso principal y obtener su nuevo ID
-            $sql_curso = 'INSERT INTO cursos.cursos (nombre_curso, descripcion, tiempo_asignado, inicio_mes, tipo_curso, limite_inscripciones, dias_clase, horario_inicio, horario_fin, nivel_curso, costo, conocimientos_previos, requerimientos_implemento, desempeno_al_concluir, promotor, id_plantilla) VALUES (:nombre_curso, :descripcion, :tiempo_asignado, :inicio_mes, :tipo_curso, :limite_inscripciones, :dias_clase, :horario_inicio, :horario_fin, :nivel_curso, :costo, :conocimientos_previos, :requerimientos_implemento, :desempeno_al_concluir, :promotor, :id_plantilla) RETURNING id_curso';
+            $sql_curso = 'INSERT INTO cursos.cursos (nombre_curso, descripcion, tiempo_asignado, inicio_mes, tipo_curso, limite_inscripciones, dias_clase, horario_inicio, horario_fin, nivel_curso, costo, conocimientos_previos, requerimientos_implemento, desempeno_al_concluir, promotor, id_plantilla, nota_minima_aprobatoria) VALUES (:nombre_curso, :descripcion, :tiempo_asignado, :inicio_mes, :tipo_curso, :limite_inscripciones, :dias_clase, :horario_inicio, :horario_fin, :nivel_curso, :costo, :conocimientos_previos, :requerimientos_implemento, :desempeno_al_concluir, :promotor, :id_plantilla, :nota_minima_aprobatoria) RETURNING id_curso';
 
             $stmt_curso = $this->pdo->prepare($sql_curso);
             $stmt_curso->execute([
@@ -59,7 +60,8 @@ class Curso
                 'requerimientos_implemento' => $requerimientos_implemento,
                 'desempeno_al_concluir' => $desempeno_al_concluir,
                 'promotor' => $promotor_id,
-                'id_plantilla' => $id_plantilla
+                'id_plantilla' => $id_plantilla,
+                'nota_minima_aprobatoria' => $nota_minima_aprobatoria
             ]);
             $curso_id = $stmt_curso->fetchColumn();
 
@@ -176,7 +178,8 @@ class Curso
         // IDs de Módulos a Eliminar (NUEVO)
         $modulos_a_eliminar_ids = '',
         $estado = '1',
-        $id_plantilla = null
+        $id_plantilla = null,
+        $nota_minima_aprobatoria = 12
     ) {
 
         // Restauramos la transacción para un guardado seguro
@@ -205,6 +208,7 @@ class Curso
                 ':firma_digital' => $firma_digital ? 'true' : 'false',
                 ':estado' => $estado == '1' || $estado == 'true' || $estado === true ? 'true' : 'false',
                 ':id_plantilla' => $id_plantilla,
+                ':nota_minima_aprobatoria' => $nota_minima_aprobatoria,
                 ':id_curso' => $id_curso
             ];
 
@@ -215,7 +219,7 @@ class Curso
                         nivel_curso = :nivel_curso, costo = :costo, conocimientos_previos = :conocimientos_previos, 
                         requerimientos_implemento = :requerimientos_implemento, desempeno_al_concluir = :desempeno_al_concluir, 
                         horas_cronologicas = :horas_cronologicas, fecha_finalizacion = :fecha_finalizacion, firma_digital = :firma_digital, estado = :estado,
-                        id_plantilla = :id_plantilla";
+                        id_plantilla = :id_plantilla, nota_minima_aprobatoria = :nota_minima_aprobatoria";
 
             if ($autorizacion !== null) {
                 $sql .= ', autorizacion = :autorizacion';
@@ -631,7 +635,8 @@ class Curso
                c.promotor, c.fecha_finalizacion,
                u.nombre AS nombre_estudiante, u.apellido AS apellido_estudiante, u.cedula,
                cert.fecha_inscripcion, cert.tomo, cert.folio,
-               cert.nota, cert.completado, p.archivo_vista
+               cert.nota, cert.completado, p.archivo_vista,
+               c.nota_minima_aprobatoria
         FROM cursos.cursos AS c
         JOIN cursos.certificaciones AS cert ON cert.curso_id = c.id_curso
         JOIN cursos.usuarios AS u ON cert.id_usuario = u.id

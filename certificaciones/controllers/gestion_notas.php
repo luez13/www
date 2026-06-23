@@ -77,6 +77,23 @@ try {
             }
             break;
 
+        // D. Guardar Nota Mínima Aprobatoria del Curso
+        case 'guardar_nota_minima':
+            $id_curso = isset($_POST['id_curso']) ? (int)$_POST['id_curso'] : 0;
+            $nota_minima = isset($_POST['nota_minima']) ? (int)$_POST['nota_minima'] : 12;
+
+            if ($id_curso > 0 && $nota_minima >= 1 && $nota_minima <= 100) {
+                $stmt = $db->getConn()->prepare("UPDATE cursos.cursos SET nota_minima_aprobatoria = :nota_minima WHERE id_curso = :id_curso");
+                if ($stmt->execute(['nota_minima' => $nota_minima, 'id_curso' => $id_curso])) {
+                    $response = array('success' => true, 'message' => 'Nota mínima aprobatoria actualizada correctamente.');
+                } else {
+                    $response = array('success' => false, 'message' => 'Error al actualizar la base de datos.');
+                }
+            } else {
+                $response = array('success' => false, 'message' => 'Parámetros inválidos.');
+            }
+            break;
+
         default: throw new Exception("Acción inválida.");
     }
 

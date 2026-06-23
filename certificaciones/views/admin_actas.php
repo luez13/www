@@ -65,20 +65,22 @@ if ($id_curso_sel > 0) {
         $no_completaron_count = 0;
         $tiene_notas = false;
         
+        $nota_min = isset($curso_info['nota_minima_aprobatoria']) ? (int)$curso_info['nota_minima_aprobatoria'] : 12;
         foreach ($estudiantes_aprobados as $e) {
-            if ($e['nota'] !== null && $e['nota'] !== '') {
-                $tiene_notas = true;
-                $nota_val = round((float)$e['nota']);
-                if ($nota_val >= 12) {
-                    $aprobados_count++;
-                } else {
-                    $reprobados_count++;
-                }
+            if (isset($e['completado']) && $e['completado'] == false) {
+                $reprobados_count++; // No completó -> Reprueba
+                $no_completaron_count++;
             } else {
-                if (isset($e['completado']) && $e['completado'] == true) {
-                    $solo_participantes_count++;
+                if ($e['nota'] !== null && $e['nota'] !== '') {
+                    $tiene_notas = true;
+                    $nota_val = round((float)$e['nota']);
+                    if ($nota_val >= $nota_min) {
+                        $aprobados_count++;
+                    } else {
+                        $solo_participantes_count++; // Completó pero nota baja -> Participación
+                    }
                 } else {
-                    $no_completaron_count++;
+                    $solo_participantes_count++; // Completó sin nota
                 }
             }
         }
@@ -218,22 +220,26 @@ if ($id_curso_sel > 0) {
                                         </tr>
                                     <?php else: foreach ($estudiantes_aprobados as $e): ?>
                                         <?php
+                                        $nota_min = isset($curso_info['nota_minima_aprobatoria']) ? (int)$curso_info['nota_minima_aprobatoria'] : 12;
                                         $nota_str = "N/A";
                                         $estatus_badge = "";
                                         
-                                        if ($e['nota'] !== null && $e['nota'] !== '') {
-                                            $nota_val = round((float)$e['nota']);
-                                            $nota_str = $nota_val;
-                                            if ($nota_val >= 12) {
-                                                $estatus_badge = '<span class="badge bg-success text-white px-2 py-1"><i class="fas fa-check-circle me-1"></i> Aprobado</span>';
-                                            } else {
-                                                $estatus_badge = '<span class="badge bg-danger text-white px-2 py-1"><i class="fas fa-times-circle me-1"></i> Reprobado</span>';
+                                        if (isset($e['completado']) && $e['completado'] == false) {
+                                            if ($e['nota'] !== null && $e['nota'] !== '') {
+                                                $nota_str = round((float)$e['nota']);
                                             }
+                                            $estatus_badge = '<span class="badge bg-danger text-white px-2 py-1"><i class="fas fa-times-circle me-1"></i> Reprobado</span>';
                                         } else {
-                                            if (isset($e['completado']) && $e['completado'] == true) {
-                                                $estatus_badge = '<span class="badge bg-info text-white px-2 py-1"><i class="fas fa-user-check me-1"></i> Participante</span>';
+                                            if ($e['nota'] !== null && $e['nota'] !== '') {
+                                                $nota_val = round((float)$e['nota']);
+                                                $nota_str = $nota_val;
+                                                if ($nota_val >= $nota_min) {
+                                                    $estatus_badge = '<span class="badge bg-success text-white px-2 py-1"><i class="fas fa-check-circle me-1"></i> Aprobado</span>';
+                                                } else {
+                                                    $estatus_badge = '<span class="badge bg-info text-white px-2 py-1"><i class="fas fa-user-check me-1"></i> Participante</span>';
+                                                }
                                             } else {
-                                                $estatus_badge = '<span class="badge bg-secondary text-white px-2 py-1"><i class="fas fa-user-clock me-1"></i> No completó</span>';
+                                                $estatus_badge = '<span class="badge bg-info text-white px-2 py-1"><i class="fas fa-user-check me-1"></i> Participante</span>';
                                             }
                                         }
                                         ?>

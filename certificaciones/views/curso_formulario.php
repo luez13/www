@@ -136,15 +136,20 @@ $curso_editar = $curso->obtener_curso($id_curso);
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label class="form-label">Límite de inscripciones:</label>
                         <input class="form-control" type="number" name="limite_inscripciones"
                             value="<?= htmlspecialchars($curso_editar['limite_inscripciones']) ?>" min="1" required>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label class="form-label">Costo:</label>
                         <input class="form-control" type="number" name="costo"
                             value="<?= htmlspecialchars($curso_editar['costo']) ?>" step="0.01" min="0" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Nota Mín. Aprobatoria:</label>
+                        <input class="form-control" type="number" name="nota_minima_aprobatoria"
+                            value="<?= isset($curso_editar['nota_minima_aprobatoria']) ? htmlspecialchars($curso_editar['nota_minima_aprobatoria']) : '12' ?>" min="1" max="100" required>
                     </div>
                 </div>
                 <div class="mb-3">

@@ -27,9 +27,11 @@ function h($string)
 }
 
 // Datos generales
-$stmt_c = $db->getConn()->prepare("SELECT nombre_curso FROM cursos.cursos WHERE id_curso = :id");
+$stmt_c = $db->getConn()->prepare("SELECT nombre_curso, nota_minima_aprobatoria FROM cursos.cursos WHERE id_curso = :id");
 $stmt_c->execute(['id' => $id_curso]);
-$nombre_curso = $stmt_c->fetchColumn() ?: 'Desconocido';
+$curso_info_db = $stmt_c->fetch(PDO::FETCH_ASSOC);
+$nombre_curso = $curso_info_db ? $curso_info_db['nombre_curso'] : 'Desconocido';
+$nota_minima_curso = $curso_info_db && isset($curso_info_db['nota_minima_aprobatoria']) ? $curso_info_db['nota_minima_aprobatoria'] : 12;
 
 $materias = $materiaModel->getMateriasByCurso($id_curso);
 $promedios = $notaModel->getPromediosMaterias($id_curso);
@@ -70,7 +72,23 @@ $alumnos_lista = $stmt_alum->fetchAll(PDO::FETCH_ASSOC);
             <i class="fas fa-arrow-left"></i> Volver
         </button>
     </div>
-    <p>Diplomado: <strong><?= h($nombre_curso) ?></strong></p>
+    <div class="d-flex align-items-center flex-wrap mb-3 gap-3">
+        <p class="mb-0 fs-5">Curso/Diplomado: <strong><?= h($nombre_curso) ?></strong></p>
+        
+        <div class="input-group input-group-sm ms-auto" style="max-width: 320px; box-shadow: 0 0 5px rgba(0,0,0,0.1);">
+            <div class="input-group-prepend">
+                <span class="input-group-text bg-primary text-white border-primary" id="etiqueta-nota" style="font-weight: bold;" title="Define la calificación mínima para que el sistema considere a un estudiante como 'Aprobado'.">
+                    Nota Mínima
+                </span>
+            </div>
+            <input type="number" id="inputNotaMinima" class="form-control text-center font-weight-bold border-primary" value="<?= $nota_minima_curso ?>" min="1" max="20" aria-describedby="etiqueta-nota" required>
+            <div class="input-group-append">
+                <button class="btn btn-primary border-primary fw-bold" type="button" onclick="guardarNotaMinima()">
+                    <i class="fas fa-save me-1"></i> Aplicar
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div class="card shadow mb-4">
         <div class="card-header py-3 bg-dark text-white">
@@ -412,5 +430,35 @@ $alumnos_lista = $stmt_alum->fetchAll(PDO::FETCH_ASSOC);
 
         // Color visual para indicar cambio no guardado
         input.style.backgroundColor = "#fff3cd";
+    }
+
+    // 5. GUARDAR NOTA MÍNIMA APROBATORIA
+    function guardarNotaMinima() {
+        var notaMinima = $('#inputNotaMinima').val();
+        if(notaMinima < 1 || notaMinima > 100) {
+            alert('La nota mínima debe estar entre 1 y 100');
+            return;
+        }
+        
+        $.ajax({
+            url: '../controllers/gestion_notas.php',
+            type: 'POST',
+            data: {
+                action: 'guardar_nota_minima',
+                id_curso: ID_CURSO,
+                nota_minima: notaMinima
+            },
+            dataType: 'json',
+            success: function (res) {
+                if(res.success) {
+                    alert(res.message);
+                } else {
+                    alert('Error: ' + res.message);
+                }
+            },
+            error: function () {
+                alert('Error de conexión al intentar guardar.');
+            }
+        });
     }
 </script>

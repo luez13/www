@@ -235,6 +235,10 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                                 <label class="form-label small fw-bold text-muted">Correo Electrónico</label>
                                 <input type="email" class="form-control" id="edit_correo" name="correo" required>
                             </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold text-muted">Teléfono Móvil o Fijo <small>(Opcional)</small></label>
+                                <input type="tel" class="form-control" id="edit_telefono" name="telefono" placeholder="Ej. 0414-1234567">
+                            </div>
                         </div>
 
                         <hr class="my-4">
@@ -332,6 +336,10 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                                 <label class="form-label small fw-bold text-muted mb-1">Correo Electrónico</label>
                                 <input type="email" class="form-control rounded-3" name="correo" id="crear_correo"
                                     required>
+                            </div>
+                            <div class="col-md-12 mt-2">
+                                <label class="form-label small fw-bold text-muted mb-1">Teléfono Móvil o Fijo <small>(Opcional)</small></label>
+                                <input type="tel" class="form-control rounded-3" name="telefono" id="crear_telefono" placeholder="Ej. 0414-1234567">
                             </div>
                             <!-- La contraseña será autogenerada, se avisa al usuario -->
                             <div class="col-12 mt-2">
@@ -492,6 +500,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                 document.getElementById('edit_apellido').value = user.apellido || '';
                 document.getElementById('edit_cedula').value = user.cedula || '';
                 document.getElementById('edit_correo').value = user.correo || '';
+                document.getElementById('edit_telefono').value = user.telefono || '';
                 document.getElementById('edit_id_rol').value = user.id_rol;
                 document.getElementById('edit_nueva_password').value = ''; // Siempre limpiar contraseña
 

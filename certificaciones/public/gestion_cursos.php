@@ -346,25 +346,28 @@ echo '</div>';
 <script src="../models/module_processing.js"></script>
 <script>
 
-    document.getElementById('crearCursoForm').onsubmit = function(e) {
-        e.preventDefault();
-        combineContentsBeforeSubmit(); // Asegurarnos de combinar contenidos antes de enviar
-        const formData = new FormData(this);
-        $.ajax({
-            url: '../controllers/curso_controlador.php',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                alert(response);
-                window.location.href = '../public/perfil.php?seccion=ver_postulaciones';
-            },
-            error: function() {
-                alert('Error al crear el curso.');
-            }
-        });
-    };
+    var formCrearCurso = document.getElementById('crearCursoForm');
+    if (formCrearCurso) {
+        formCrearCurso.onsubmit = function(e) {
+            e.preventDefault();
+            combineContentsBeforeSubmit(); // Asegurarnos de combinar contenidos antes de enviar
+            const formData = new FormData(this);
+            $.ajax({
+                url: '../controllers/curso_controlador.php',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    alert(response);
+                    window.location.href = '../public/perfil.php?seccion=ver_postulaciones';
+                },
+                error: function() {
+                    alert('Error al crear el curso.');
+                }
+            });
+        };
+    }
 
 function generarConstancia(idCurso) {
     window.open(`../controllers/generar_constancia.php?id_curso=${idCurso}`, '_blank');
@@ -401,5 +404,8 @@ function generarConstancia(idCurso) {
         }
     }
 
-    document.getElementById('numero_modulos').onblur = addModuleFields;
+    var numModulos = document.getElementById('numero_modulos');
+    if (numModulos) {
+        numModulos.onblur = addModuleFields;
+    }
 </script>

@@ -60,20 +60,23 @@ $participantes = 0;
 $no_completaron = 0;
 $tiene_notas = false;
 
+$nota_min = isset($curso_info['nota_minima_aprobatoria']) ? (int)$curso_info['nota_minima_aprobatoria'] : 12;
+
 foreach ($alumnos as $al) {
-    if ($al['nota'] !== null && $al['nota'] !== '') {
-        $tiene_notas = true;
-        $nota_val = round((float)$al['nota']);
-        if ($nota_val >= 12) {
-            $aprobados++;
-        } else {
-            $reprobados++;
-        }
+    if (isset($al['completado']) && $al['completado'] == false) {
+        $reprobados++; // No completó -> Reprueba
+        $no_completaron++; // Mantengo el contador por si otra vista lo necesita
     } else {
-        if ($al['completado'] == true) {
-            $participantes++;
+        if ($al['nota'] !== null && $al['nota'] !== '') {
+            $tiene_notas = true;
+            $nota_val = round((float)$al['nota']);
+            if ($nota_val >= $nota_min) {
+                $aprobados++; // Completó y alcanzó la nota -> Aprueba
+            } else {
+                $participantes++; // Completó pero no alcanzó la nota -> Participación
+            }
         } else {
-            $no_completaron++;
+            $participantes++; // Completó sin nota cargada -> Participación
         }
     }
 }
@@ -168,7 +171,8 @@ $data = [
     'hora_cierre' => $hora_cierre,
     'img_encabezado' => $img_encabezado,
     'img_pie' => $img_pie,
-    'alumnos' => $alumnos
+    'alumnos' => $alumnos,
+    'nota_minima_aprobatoria' => $nota_min
 ];
 
 // --- GENERACIÓN CON FPDF ---

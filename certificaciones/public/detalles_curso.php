@@ -73,8 +73,24 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                 <div class="d-flex align-items-center gap-3">
                     <span class="badge bg-info text-dark fs-6 px-3 py-2 rounded-pill"><i class="fas fa-users me-2"></i>Cupos
                         disponibles: <?= $cupos_disponibles ?></span>
+                    <?php if (in_array($user_role, [3, 4])): ?>
                     <button id="mostrar-bd-info" class="btn btn-outline-secondary btn-sm"><i class="fas fa-database me-1"></i>
                         Mostrar Info de DB</button>
+                    <?php endif; ?>
+
+                    <div class="input-group input-group-sm ms-auto" style="max-width: 320px; box-shadow: 0 0 5px rgba(0,0,0,0.1);">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text bg-primary text-white border-primary" id="etiqueta-nota" style="font-weight: bold;" title="Define la calificación mínima para que el sistema considere a un estudiante como 'Aprobado'.">
+                                Nota Mínima
+                            </span>
+                        </div>
+                        <input type="number" id="inputNotaMinimaDetalles" class="form-control text-center font-weight-bold border-primary" value="<?= isset($curso_info['nota_minima_aprobatoria']) ? $curso_info['nota_minima_aprobatoria'] : 12 ?>" min="1" max="20" aria-describedby="etiqueta-nota" required>
+                        <div class="input-group-append">
+                            <button class="btn btn-primary border-primary fw-bold" type="button" onclick="guardarNotaMinimaDetalles(<?= $id_curso ?>)">
+                                <i class="fas fa-save me-1"></i> Aplicar
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -391,4 +407,33 @@ echo '</div>';
             });
         });
     });
+
+    function guardarNotaMinimaDetalles(idCurso) {
+        var notaMinima = $('#inputNotaMinimaDetalles').val();
+        if(notaMinima < 1 || notaMinima > 100) {
+            alert('La nota mínima debe estar entre 1 y 100');
+            return;
+        }
+        
+        $.ajax({
+            url: '../controllers/gestion_notas.php',
+            type: 'POST',
+            data: {
+                action: 'guardar_nota_minima',
+                id_curso: idCurso,
+                nota_minima: notaMinima
+            },
+            dataType: 'json',
+            success: function (res) {
+                if(res.success) {
+                    alert(res.message);
+                } else {
+                    alert('Error: ' + res.message);
+                }
+            },
+            error: function () {
+                alert('Error de conexión al intentar guardar.');
+            }
+        });
+    }
 </script>

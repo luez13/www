@@ -141,6 +141,7 @@ switch ($action) {
         $conocimientos_previos = isset($_POST['conocimientos_previos']) ? $_POST['conocimientos_previos'] : '';
         $requerimientos_implemento = isset($_POST['requerimientos_implementos']) ? $_POST['requerimientos_implementos'] : '';
         $desempeno_al_concluir = isset($_POST['desempeño_al_concluir']) ? $_POST['desempeño_al_concluir'] : '';
+        $nota_minima_aprobatoria = isset($_POST['nota_minima_aprobatoria']) ? $_POST['nota_minima_aprobatoria'] : 12;
 
         $id_plantilla = isset($_POST['id_plantilla']) && $_POST['id_plantilla'] !== '' ? $_POST['id_plantilla'] : null;
         $configuracion_firmas = isset($_POST['config_firmas']) ? $_POST['config_firmas'] : array();
@@ -185,7 +186,8 @@ switch ($action) {
             $promotor_id,
             $id_plantilla,
             $modulos_a_crear,
-            $configuracion_firmas
+            $configuracion_firmas,
+            $nota_minima_aprobatoria
         );
 
         if ($resultado) {
@@ -230,6 +232,7 @@ switch ($action) {
         $firma_digital = isset($_POST['firma_digital']) ? true : false;
         $estado = isset($_POST['estado']) ? $_POST['estado'] : '1';
         $id_plantilla = isset($_POST['id_plantilla']) && $_POST['id_plantilla'] !== '' ? $_POST['id_plantilla'] : null;
+        $nota_minima_aprobatoria = isset($_POST['nota_minima_aprobatoria']) ? $_POST['nota_minima_aprobatoria'] : 12;
 
         // Lógica de autorización
         $autorizacion_post = isset($_POST['autorizacion']) ? $_POST['autorizacion'] : null;
@@ -340,7 +343,8 @@ switch ($action) {
                 $configuracion_firmas,
                 $modulos_a_eliminar_ids, // IDs a eliminar
                 $estado,
-                $id_plantilla
+                $id_plantilla,
+                $nota_minima_aprobatoria
             );
 
             if ($resultado_edicion) {

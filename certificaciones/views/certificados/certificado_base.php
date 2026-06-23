@@ -47,9 +47,9 @@ $pdf->Cell(279.4, 6, utf8_decode('C.I. V- ' . trim($cedulaLimpia)), 0, 1, 'C');
 // 6. Párrafo de aprobación (Y = 112mm) - ARQUITECTURA ROBUSTA (MultiCell)
 $pdf->SetTextColor(0, 0, 0);
 
-$esParticipacion = ($data['paso'] === "aprobado" && (empty($data['nota']) || $data['nota'] == 0));
+$esParticipacion = ($data['paso'] === "participacion" || ($data['paso'] === "aprobado" && (empty($data['nota']) || $data['nota'] == 0)));
 $textoAntesPaso = $esParticipacion ? "Por su " : "Por haber ";
-$pasoTexto = mb_strtoupper($esParticipacion ? "PARTICIPACION" : $data['paso'], 'UTF-8');
+$pasoTexto = mb_strtoupper($esParticipacion ? "PARTICIPACIÓN" : $data['paso'], 'UTF-8');
 $textoIntermedio = " en {$data['articulo_tipo_curso']} {$data['tipo_curso']} de:";
 $cursoTexto = mb_strtoupper($data['nombre_curso'], 'UTF-8');
 

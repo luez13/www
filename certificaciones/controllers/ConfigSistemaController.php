@@ -13,7 +13,7 @@ $response = ['success' => false, 'message' => 'Acción no reconocida.'];
 $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : null;
 
 // Solo el rol 4 (Admin) puede ejecutar estas acciones
-if ($_SESSION['id_rol'] != 4) {
+if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 4) {
     $response['message'] = 'Acceso denegado.';
     echo json_encode($response);
     exit;

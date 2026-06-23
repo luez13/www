@@ -32,10 +32,28 @@ if (isset($_GET['valor_unico'])) {
             $rutaFondoAbsoluta = realpath(__DIR__ . '/../public/assets/img/certificado_base.jpg');
         }
 
+        // Lógica de Actas (Reglas Estrictas)
+        $estadoPaso = "no aprobado";
+        $tiene_nota = isset($datos_completos['nota']) && $datos_completos['nota'] !== null && $datos_completos['nota'] !== '';
+        $nota_val = $tiene_nota ? (float)$datos_completos['nota'] : null;
+        $nota_minima = isset($datos_completos['nota_minima_aprobatoria']) ? (float)$datos_completos['nota_minima_aprobatoria'] : 12;
+
+        if ($datos_completos['completado']) {
+            if ($tiene_nota && $nota_val >= $nota_minima) {
+                $estadoPaso = "aprobado";
+            } else {
+                // Participación: Tiene completado=true pero nota es menor a la mínima o es NULL
+                $estadoPaso = "participacion";
+            }
+        } else {
+            // Reprobado: Si no completó/asistió, reprueba sin importar la nota
+            $estadoPaso = "reprobado";
+        }
+
         $certificateData = [
             'nombreEstudiante' => mb_convert_case($datos_completos['nombre_estudiante'] . ' ' . $datos_completos['apellido_estudiante'], MB_CASE_TITLE, "UTF-8"),
             'cedula' => $datos_completos['cedula'],
-            'paso' => $datos_completos['completado'] ? "aprobado" : "no aprobado",
+            'paso' => $estadoPaso,
             'fechaInscripcion' => $datos_completos['fecha_inscripcion'],
             'inicioMesCurso' => $datos_completos['inicio_mes'],
             'fechaFinalizacionCurso' => $datos_completos['fecha_finalizacion'],

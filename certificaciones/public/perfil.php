@@ -514,6 +514,13 @@ try {
                                         class="fas fa-id-card ms-1 me-2"></i>Cédula de Identidad</label>
                             </div>
 
+                            <div class="form-floating mb-3">
+                                <input type="tel" id="telefonoInput" name="telefono" class="form-control rounded-pill px-4"
+                                    value="<?= isset($_SESSION['telefono']) ? htmlspecialchars($_SESSION['telefono']) : '' ?>" placeholder="Teléfono" required>
+                                <label for="telefonoInput" class="px-4 text-muted"><i
+                                        class="fas fa-phone ms-1 me-2"></i>Teléfono Móvil o Fijo</label>
+                            </div>
+
                             <div class="form-floating mb-4 position-relative">
                                 <input type="password" id="nueva_contrasena" name="nueva_contrasena"
                                     class="form-control rounded-pill px-4" placeholder="Nueva Contraseña"

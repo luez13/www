@@ -231,22 +231,26 @@ foreach ($alumnos as $idx => $al) {
         $pdf->SetTextColor(0);
     }
 
+    $nota_min = isset($data['nota_minima_aprobatoria']) ? (int)$data['nota_minima_aprobatoria'] : 12;
     $nota_str = "-";
     $estatus_str = "-";
     
-    if ($al['nota'] !== null && $al['nota'] !== '') {
-        $nota_val = round((float)$al['nota']);
-        $nota_str = $nota_val;
-        if ($nota_val >= 12) {
-            $estatus_str = "Aprobado";
-        } else {
-            $estatus_str = "Reprobado";
+    if (isset($al['completado']) && $al['completado'] == false) {
+        if ($al['nota'] !== null && $al['nota'] !== '') {
+            $nota_str = round((float)$al['nota']);
         }
+        $estatus_str = "Reprobado"; // No completó -> Reprueba
     } else {
-        if (isset($al['completado']) && $al['completado'] == true) {
-            $estatus_str = "Participante";
+        if ($al['nota'] !== null && $al['nota'] !== '') {
+            $nota_val = round((float)$al['nota']);
+            $nota_str = $nota_val;
+            if ($nota_val >= $nota_min) {
+                $estatus_str = "Aprobado";
+            } else {
+                $estatus_str = "Participante"; // Completó pero nota < mínima
+            }
         } else {
-            $estatus_str = "No completó";
+            $estatus_str = "Participante"; // Completó sin nota
         }
     }
 

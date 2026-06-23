@@ -126,7 +126,17 @@ CREATE TABLE IF NOT EXISTS cursos (
     desempeno_al_concluir TEXT,
     horas_cronologicas INTEGER,
     firma_digital BOOLEAN DEFAULT FALSE,
-    fecha_finalizacion TIMESTAMP WITHOUT TIME ZONE
+    fecha_finalizacion TIMESTAMP WITHOUT TIME ZONE,
+    imagen_portada VARCHAR(255),
+    nota_minima_aprobatoria INTEGER DEFAULT 12
+);
+
+CREATE TABLE IF NOT EXISTS landing_carrusel (
+    id_carrusel SERIAL PRIMARY KEY,
+    ruta_imagen VARCHAR(255) NOT NULL,
+    titulo VARCHAR(255),
+    descripcion TEXT,
+    activo BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS cuentas_bancarias (
@@ -273,8 +283,8 @@ CREATE TABLE IF NOT EXISTS actas_cierre (
 
 CREATE TABLE IF NOT EXISTS comprobantes_pago (
     id_comprobante SERIAL PRIMARY KEY,
-    id_usuario INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-    id_curso INTEGER NOT NULL REFERENCES cursos(id_curso) ON DELETE CASCADE,
+    id_usuario INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
+    id_curso INTEGER NOT NULL REFERENCES cursos(id_curso) ON DELETE RESTRICT,
     archivo_ruta VARCHAR(255) NOT NULL,
     numero_operacion VARCHAR(100) NOT NULL,
     banco_origen VARCHAR(100),
@@ -302,17 +312,17 @@ BEGIN
 
     IF TG_OP = 'DELETE' THEN
         accion_texto := 'DELETE';
-        INSERT INTO auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
+        INSERT INTO cursos.auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
         VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), OLD::text, NULL);
         RETURN OLD;
     ELSIF TG_OP = 'UPDATE' THEN
         accion_texto := 'UPDATE';
-        INSERT INTO auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
+        INSERT INTO cursos.auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
         VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), OLD::text, NEW::text);
         RETURN NEW;
     ELSIF TG_OP = 'INSERT' THEN
         accion_texto := 'INSERT';
-        INSERT INTO auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
+        INSERT INTO cursos.auditoria (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado)
         VALUES (usuario_sistema, accion_texto, TG_TABLE_NAME, now(), NULL, NEW::text);
         RETURN NEW;
     END IF;

@@ -7,10 +7,17 @@ include '../config/mailer.php';
 // Crear una instancia de la clase DB
 $db = new DB();
 
+function limpiar_telefono($telefono) {
+    if (empty($telefono)) return null;
+    $has_plus = (strpos(trim($telefono), '+') === 0);
+    $cleaned = preg_replace("/[^0-9]/", "", $telefono);
+    return $has_plus ? '+' . $cleaned : $cleaned;
+}
+
 // Crear una función para validar los datos de registro
-function validar_registro($nombre, $apellido, $correo, $password, $confirm_password, $cedula)
+function validar_registro($nombre, $apellido, $correo, $password, $confirm_password, $cedula, $telefono)
 {
-    if (empty($nombre) || empty($apellido) || empty($correo) || empty($password) || empty($confirm_password) || empty($cedula)) {
+    if (empty($nombre) || empty($apellido) || empty($correo) || empty($password) || empty($confirm_password) || empty($cedula) || empty($telefono)) {
         return ['valid' => false, 'message' => 'Todos los campos son obligatorios.'];
     }
 
@@ -58,9 +65,9 @@ function validar_login($correo, $password)
 }
 
 // Crear una función para validar los datos de edición
-function validar_edicion($nombre, $apellido, $correo, $cedula)
+function validar_edicion($nombre, $apellido, $correo, $cedula, $telefono)
 {
-    if (empty($nombre) || empty($apellido) || empty($correo) || empty($cedula)) {
+    if (empty($nombre) || empty($apellido) || empty($correo) || empty($cedula) || empty($telefono)) {
         return false;
     }
     // Permitir caracteres latinos y espacios en nombre y apellido
@@ -239,6 +246,7 @@ if (isset($_POST['action'])) {
             $password = $_POST['password'];
             $confirm_password = $_POST['confirm_password'];
             $cedula = $_POST['cedula'];
+            $telefono = limpiar_telefono($_POST['telefono']);
             $redirect_id = isset($_POST['redirect_course_id']) ? $_POST['redirect_course_id'] : null;
 
             if (!empty($redirect_id)) {
@@ -246,7 +254,7 @@ if (isset($_POST['action'])) {
             }
 
             // Validar los datos
-            $validacion = validar_registro($nombre, $apellido, $correo, $password, $confirm_password, $cedula);
+            $validacion = validar_registro($nombre, $apellido, $correo, $password, $confirm_password, $cedula, $telefono);
             if ($validacion['valid']) {
                 // Generar un token de confirmación
                 $token = md5($correo . time());
@@ -254,8 +262,8 @@ if (isset($_POST['action'])) {
                 $hash = password_hash($password, PASSWORD_DEFAULT);
                 // Insertar los datos en la base de datos
                 try {
-                    $stmt = $db->prepare('INSERT INTO cursos.usuarios (nombre, apellido, correo, password, cedula, token, confirmado, id_rol) VALUES (:nombre, :apellido, :correo, :password, :cedula, :token, true, 1)');
-                    $stmt->execute(['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'password' => $hash, 'cedula' => $cedula, 'token' => $token]);
+                    $stmt = $db->prepare('INSERT INTO cursos.usuarios (nombre, apellido, correo, password, cedula, telefono, token, confirmado, id_rol) VALUES (:nombre, :apellido, :correo, :password, :cedula, :telefono, :token, true, 1)');
+                    $stmt->execute(['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'password' => $hash, 'cedula' => $cedula, 'telefono' => $telefono, 'token' => $token]);
                     // Enviar un correo de confirmación al usuario
                     enviar_correo_confirmacion($correo, $nombre, $token);
                     // Mostrar un mensaje de éxito al usuario
@@ -263,14 +271,14 @@ if (isset($_POST['action'])) {
                     header('Location: ../public/register.php');
                     exit;
                 } catch (PDOException $e) {
-                    $_SESSION['auth_error'] = "Ha ocurrido un error al registrarte. Es posible que el correo o cédula ya estén registrados.";
-                    $_SESSION['form_data'] = ['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'cedula' => $cedula];
+                    $_SESSION['auth_error'] = "Error de Base de Datos Real: " . $e->getMessage();
+                    $_SESSION['form_data'] = ['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'cedula' => $cedula, 'telefono' => $_POST['telefono']];
                     header('Location: ../public/register.php');
                     exit;
                 }
             } else {
                 $_SESSION['auth_error'] = $validacion['message'];
-                $_SESSION['form_data'] = ['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'cedula' => $cedula];
+                $_SESSION['form_data'] = ['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'cedula' => $cedula, 'telefono' => $_POST['telefono']];
                 header('Location: ../public/register.php');
                 exit;
             }
@@ -303,6 +311,7 @@ if (isset($_POST['action'])) {
                             $_SESSION['apellido'] = $user['apellido'];
                             $_SESSION['correo'] = $user['correo'];
                             $_SESSION['cedula'] = $user['cedula'];
+                            $_SESSION['telefono'] = isset($user['telefono']) ? $user['telefono'] : '';
                             // Redirigir al usuario a la página de perfil
                             redirigir_login();
                         } else {
@@ -332,17 +341,18 @@ if (isset($_POST['action'])) {
             $apellido = $_POST['apellido'];
             $correo = strtolower($_POST['correo']);
             $cedula = $_POST['cedula'];
+            $telefono = limpiar_telefono($_POST['telefono']);
             $nuevaContrasena = $_POST['nueva_contrasena']; // Nuevo campo para la nueva contraseña
 
             // Validar los datos
-            if (validar_edicion($nombre, $apellido, $correo, $cedula)) {
+            if (validar_edicion($nombre, $apellido, $correo, $cedula, $telefono)) {
                 // Obtener el id del usuario de la sesión
                 $user_id = $_SESSION['user_id'];
 
                 // Actualizar los datos en la base de datos
                 try {
-                    $stmt = $db->prepare('UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula WHERE id = :id');
-                    $stmt->execute(['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'cedula' => $cedula, 'id' => $user_id]);
+                    $stmt = $db->prepare('UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula, telefono = :telefono WHERE id = :id');
+                    $stmt->execute(['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'cedula' => $cedula, 'telefono' => $telefono, 'id' => $user_id]);
 
                     // Si se proporcionó una nueva contraseña, actualizarla también
                     if (!empty($nuevaContrasena)) {
@@ -350,6 +360,13 @@ if (isset($_POST['action'])) {
                         $stmt = $db->prepare('UPDATE cursos.usuarios SET password = :hash WHERE id = :id');
                         $stmt->execute(['hash' => $hashNuevaContrasena, 'id' => $user_id]);
                     }
+
+                    // Actualizar variables de sesión
+                    $_SESSION['nombre'] = $nombre;
+                    $_SESSION['apellido'] = $apellido;
+                    $_SESSION['correo'] = $correo;
+                    $_SESSION['cedula'] = $cedula;
+                    $_SESSION['telefono'] = $telefono;
 
                     // Mostrar un mensaje de éxito al usuario
                     echo '<p>Tus datos se han actualizado correctamente</p>';

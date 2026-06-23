@@ -19,7 +19,7 @@ $id = (int) $_GET['id'];
 try {
     // We only need the ID, the name/surname/etc from the DB
     $stmt = $db->prepare("
-        SELECT u.id, u.nombre, u.apellido, u.cedula, u.correo, u.id_rol, u.titulo, u.cargo, u.firma_digital 
+        SELECT u.id, u.nombre, u.apellido, u.cedula, u.correo, u.telefono, u.id_rol, u.titulo, u.cargo, u.firma_digital 
         FROM cursos.usuarios u 
         WHERE id = :id
     ");

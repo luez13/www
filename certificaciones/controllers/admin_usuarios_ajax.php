@@ -21,6 +21,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $titulo = isset($_POST['titulo']) ? $_POST['titulo'] : '';
     $cargo = isset($_POST['cargo']) ? $_POST['cargo'] : '';
 
+    $telefono = isset($_POST['telefono']) ? $_POST['telefono'] : '';
+    if (!empty($telefono)) {
+        $has_plus = (strpos(trim($telefono), '+') === 0);
+        $cleaned = preg_replace("/[^0-9]/", "", $telefono);
+        $telefono = $has_plus ? '+' . $cleaned : $cleaned;
+    } else {
+        $telefono = null;
+    }
+
     // Si el usuario actual es Rol 3, no puede cambiar roles ni contraseñas
     if ($_SESSION['id_rol'] == 3) {
         $id_rol = null; // Para no actualizarlo
@@ -50,13 +59,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $token = md5($correo . time());
 
             $sql = "INSERT INTO cursos.usuarios 
-                    (nombre, apellido, cedula, correo, password, id_rol, titulo, cargo, confirmado, token) 
-                    VALUES (:nombre, :apellido, :cedula, :correo, :password, :id_rol, :titulo, :cargo, true, :token) RETURNING id";
+                    (nombre, apellido, cedula, telefono, correo, password, id_rol, titulo, cargo, confirmado, token) 
+                    VALUES (:nombre, :apellido, :cedula, :telefono, :correo, :password, :id_rol, :titulo, :cargo, true, :token) RETURNING id";
 
             $params = [
                 ':nombre' => $nombre,
                 ':apellido' => $apellido,
                 ':cedula' => $cedula,
+                ':telefono' => $telefono,
                 ':correo' => $correo,
                 ':password' => $password,
                 ':id_rol' => $id_rol,
@@ -125,6 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     SET nombre = :nombre, 
                         apellido = :apellido, 
                         cedula = :cedula, 
+                        telefono = :telefono,
                         correo = :correo, 
                         id_rol = :id_rol, 
                         titulo = :titulo, 
@@ -134,6 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':nombre' => $nombre,
                 ':apellido' => $apellido,
                 ':cedula' => $cedula,
+                ':telefono' => $telefono,
                 ':correo' => $correo,
                 ':titulo' => $titulo,
                 ':cargo' => $cargo,
