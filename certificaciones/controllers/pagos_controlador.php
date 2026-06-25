@@ -139,7 +139,9 @@ switch ($action) {
             exit;
         }
 
-        if ($pagoModel->actualizarEstadoComprobante($id_comprobante, $estado, $observacion)) {
+        $id_admin_gestor = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+
+        if ($pagoModel->actualizarEstadoComprobante($id_comprobante, $estado, $observacion, $id_admin_gestor)) {
             // Si el estado es Comprobado, enviamos correo de notificación
             if ($estado === 'Comprobado') {
                 require_once '../config/mailer.php';

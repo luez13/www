@@ -210,7 +210,9 @@ try {
 
                         <?php if (tieneAcceso([4])): ?>
                         <div class="dropdown-divider"></div>
-                        <h6 class="collapse-header text-danger">Herramientas DB:</h6>
+                        <h6 class="collapse-header text-danger">Seguridad y Herramientas:</h6>
+                        <a class="collapse-item" href="#" onclick="loadPage('../views/admin_auditoria.php')"><i
+                                class="fas fa-history me-2 text-muted"></i>Auditoría del Sistema</a>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/admin_db.php')"><i
                                 class="fas fa-database me-2 text-muted"></i>Consola SQL</a>
                         <?php endif; ?>

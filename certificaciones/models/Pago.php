@@ -154,10 +154,11 @@ class Pago
 
     public function obtenerComprobantesPorCurso($id_curso)
     {
-        $sql = "SELECT cp.*, u.nombre, u.apellido, u.cedula, c.nombre_curso, m.nombre_materia 
+        $sql = "SELECT cp.*, u.nombre, u.apellido, u.cedula, c.nombre_curso, m.nombre_materia, admin.nombre as admin_nombre, admin.apellido as admin_apellido
                 FROM cursos.comprobantes_pago cp
                 JOIN cursos.usuarios u ON cp.id_usuario = u.id
                 JOIN cursos.cursos c ON cp.id_curso = c.id_curso
+                LEFT JOIN cursos.usuarios admin ON cp.id_admin_gestor = admin.id
                 LEFT JOIN cursos.materias_bimestre m ON cp.id_materia_bimestre = m.id_materia_bimestre
                 WHERE cp.id_curso = :id_curso
                 ORDER BY cp.fecha_subida DESC";
@@ -168,10 +169,11 @@ class Pago
 
     public function obtenerTodosLosComprobantes()
     {
-        $sql = "SELECT cp.*, u.nombre, u.apellido, u.cedula, c.nombre_curso, m.nombre_materia 
+        $sql = "SELECT cp.*, u.nombre, u.apellido, u.cedula, c.nombre_curso, m.nombre_materia, admin.nombre as admin_nombre, admin.apellido as admin_apellido
                 FROM cursos.comprobantes_pago cp
                 JOIN cursos.usuarios u ON cp.id_usuario = u.id
                 JOIN cursos.cursos c ON cp.id_curso = c.id_curso
+                LEFT JOIN cursos.usuarios admin ON cp.id_admin_gestor = admin.id
                 LEFT JOIN cursos.materias_bimestre m ON cp.id_materia_bimestre = m.id_materia_bimestre
                 ORDER BY cp.fecha_subida DESC";
         $stmt = $this->db->prepare($sql);
@@ -181,9 +183,10 @@ class Pago
 
     public function obtenerComprobantesPorUsuario($id_usuario)
     {
-        $sql = "SELECT cp.*, c.nombre_curso, m.nombre_materia 
+        $sql = "SELECT cp.*, c.nombre_curso, m.nombre_materia, admin.nombre as admin_nombre, admin.apellido as admin_apellido
                 FROM cursos.comprobantes_pago cp
                 JOIN cursos.cursos c ON cp.id_curso = c.id_curso
+                LEFT JOIN cursos.usuarios admin ON cp.id_admin_gestor = admin.id
                 LEFT JOIN cursos.materias_bimestre m ON cp.id_materia_bimestre = m.id_materia_bimestre
                 WHERE cp.id_usuario = :id_usuario
                 ORDER BY cp.fecha_subida DESC";
@@ -192,7 +195,7 @@ class Pago
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function actualizarEstadoComprobante($id_comprobante, $estado, $observacion = null)
+    public function actualizarEstadoComprobante($id_comprobante, $estado, $observacion = null, $id_admin_gestor = null)
     {
         try {
             // 1. Iniciamos una transacción para asegurar que ambos updates se ejecuten juntos
@@ -209,11 +212,12 @@ class Pago
             }
 
             // 3. Actualizamos el estado del comprobante y observación
-            $sqlUpdate = "UPDATE cursos.comprobantes_pago SET estado = :estado, observacion = :observacion WHERE id_comprobante = :id_comprobante";
+            $sqlUpdate = "UPDATE cursos.comprobantes_pago SET estado = :estado, observacion = :observacion, id_admin_gestor = :id_admin_gestor, fecha_gestion = NOW() WHERE id_comprobante = :id_comprobante";
             $stmtUpdate = $this->db->prepare($sqlUpdate);
             $stmtUpdate->execute([
                 'estado' => $estado,
                 'observacion' => $observacion,
+                'id_admin_gestor' => $id_admin_gestor,
                 'id_comprobante' => $id_comprobante
             ]);
 
@@ -228,6 +232,9 @@ class Pago
             return true;
 
         } catch (Exception $e) {
+            // Loguear el error exacto para saber qué falló en la BD
+            error_log("Error al actualizar comprobante (ID: $id_comprobante): " . $e->getMessage());
+            
             // Si algo falla, revertimos todo
             $this->db->rollBack();
             return false;

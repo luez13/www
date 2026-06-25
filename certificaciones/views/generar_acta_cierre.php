@@ -90,6 +90,7 @@ $resultados = $stmt_stats->fetchAll(PDO::FETCH_ASSOC);
 $total_inscritos = count($resultados);
 $aprobados = 0;
 $reprobados = 0;
+$participantes_count = 0;
 $suma_promedios = 0;
 
 // Array limpio para pasarlo a JavaScript (JSON)
@@ -106,12 +107,17 @@ foreach($resultados as $r) {
     
     // Determinar estado (Asumiendo 12 como mínima aprobatoria ya que 11.5 sube a 12)
     // Si la mínima es 10, cambia el 12 por 10.
-    $estado = ($nota_final >= 12) ? 'APROBADO' : 'REPROBADO'; 
-    
-    if ($estado == 'APROBADO') {
-        $aprobados++;
-    } else {
+    if (!isset($r['completado']) || $r['completado'] == false) {
+        $estado = 'REPROBADO';
         $reprobados++;
+    } else {
+        if ($nota_final >= 12) {
+            $estado = 'APROBADO';
+            $aprobados++;
+        } else {
+            $estado = 'PARTICIPACIÓN';
+            $participantes_count++;
+        }
     }
 
     // Agregar a la lista del PDF
@@ -162,15 +168,19 @@ $json_pdf = json_encode($lista_para_pdf);
                     </div>
 
                     <div class="row text-center">
-                        <div class="col-4 border-end">
+                        <div class="col-3 border-end">
                             <h6 class="text-success font-weight-bold">Aprobados</h6>
                             <span class="h4"><?= $aprobados ?></span>
                         </div>
-                        <div class="col-4 border-end">
+                        <div class="col-3 border-end">
+                            <h6 class="text-warning font-weight-bold">Participación</h6>
+                            <span class="h4"><?= $participantes_count ?></span>
+                        </div>
+                        <div class="col-3 border-end">
                             <h6 class="text-danger font-weight-bold">Reprobados</h6>
                             <span class="h4"><?= $reprobados ?></span>
                         </div>
-                        <div class="col-4">
+                        <div class="col-3">
                             <h6 class="text-info font-weight-bold">Promedio</h6>
                             <span class="h4"><?= number_format($promedio_general, 2) ?></span>
                         </div>
@@ -219,7 +229,7 @@ $json_pdf = json_encode($lista_para_pdf);
                             <td><?= $item['cedula'] ?></td>
                             <td><?= $item['alumno'] ?></td>
                             <td class="text-center font-weight-bold"><?= $item['nota'] ?></td>
-                            <td class="<?= $item['estado']=='APROBADO'?'text-success':'text-danger' ?>"><?= $item['estado'] ?></td>
+                            <td class="<?= $item['estado']=='APROBADO' ? 'text-success' : ($item['estado']=='PARTICIPACIÓN' ? 'text-warning' : 'text-danger') ?> fw-bold"><?= $item['estado'] ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>

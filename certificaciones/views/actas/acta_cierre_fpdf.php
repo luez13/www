@@ -85,7 +85,7 @@ $reprobados_count = isset($data['no_aprobaron']) ? $data['no_aprobaron'] : 0;
 if ($es_diplomado) {
     $p1 = "En cumplimiento con los lineamientos establecidos por la institución y con el objetivo de evaluar el desarrollo académico de los participantes, así como el cumplimiento de los objetivos planteados al inicio del diplomado, se procede a dar cierre formal al mismo.";
     if ($tiene_notas) {
-        $p2 = "Durante el transcurso de este diplomado, se llevaron a cabo diversas actividades académicas, que incluyeron clases teóricas, talleres prácticos y evaluaciones continuas, las cuales permitieron a los participantes adquirir competencias y habilidades en el área de estudio. Por otra parte, se registró una inscripción de un total de " . $data['inscritos'] . " participantes, con la culminación de " . $aprobados_count . " participantes aprobados y " . $reprobados_count . " que no aprobaron.";
+        $p2 = "Durante el transcurso de este diplomado, se llevaron a cabo diversas actividades académicas, que incluyeron clases teóricas, talleres prácticos y evaluaciones continuas, las cuales permitieron a los participantes adquirir competencias y habilidades en el área de estudio. Por otra parte, se registró una inscripción de un total de " . $data['inscritos'] . " participantes, con la culminación de " . $aprobados_count . " participantes aprobados, " . $participantes_count . " con certificado de participación y " . $reprobados_count . " que no aprobaron.";
         $p3 = "En cuanto a los resultados, los estudiantes fueron evaluados mediante una combinación de trabajos prácticos, foros, talleres y participación continua. La calificación definitiva se ha registrado de acuerdo a los criterios establecidos en el programa del diplomado. Agradecemos a todos los participantes por su dedicación y esfuerzo, así como al cuerpo docente y administrativo de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira por su apoyo y colaboración durante este proceso formativo.";
     } else {
         $p2 = "Durante el transcurso de este diplomado, se llevaron a cabo diversas actividades académicas, que incluyeron clases teóricas, talleres prácticos y foros de discusión, las cuales permitieron a los participantes adquirir competencias y habilidades en el área de estudio. Por otra parte, se registró una inscripción de un total de " . $data['inscritos'] . " participantes, con la culminación de " . $participantes_count . " participantes que completaron satisfactoriamente la actividad.";
@@ -94,7 +94,7 @@ if ($es_diplomado) {
 } else {
     $p1 = "En cumplimiento con los lineamientos establecidos por la institución y con el objetivo de evaluar el desarrollo académico de los participantes, así como el cumplimiento de los objetivos planteados al inicio del " . str_replace('_', ' ', $tipo_curso_str) . ", se procede a dar cierre formal al mismo.";
     if ($tiene_notas) {
-        $p2 = "Durante el transcurso de este " . str_replace('_', ' ', $tipo_curso_str) . ", se llevaron a cabo diversas actividades académicas, que incluyeron clases teóricas, talleres prácticos y evaluaciones, las cuales permitieron a los participantes adquirir competencias y habilidades en el área de estudio. Por otra parte, se registró una inscripción de un total de " . $data['inscritos'] . " participantes, con la culminación de " . $aprobados_count . " participantes aprobados y " . $reprobados_count . " que no aprobaron.";
+        $p2 = "Durante el transcurso de este " . str_replace('_', ' ', $tipo_curso_str) . ", se llevaron a cabo diversas actividades académicas, que incluyeron clases teóricas, talleres prácticos y evaluaciones, las cuales permitieron a los participantes adquirir competencias y habilidades en el área de estudio. Por otra parte, se registró una inscripción de un total de " . $data['inscritos'] . " participantes, con la culminación de " . $aprobados_count . " participantes aprobados, " . $participantes_count . " con certificado de participación y " . $reprobados_count . " que no aprobaron.";
         $p3 = "En cuanto a los resultados, los estudiantes fueron evaluados mediante evaluaciones y participación continua en el transcurso del programa. La calificación definitiva se ha registrado de acuerdo a los criterios establecidos. Agradecemos a todos los participantes por su dedicación y esfuerzo, así como al cuerpo docente y administrativo de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira por su apoyo y colaboración durante este proceso formativo.";
     } else {
         $p2 = "Durante el transcurso de este " . str_replace('_', ' ', $tipo_curso_str) . ", se llevaron a cabo diversas actividades académicas y de interacción, las cuales permitieron a los participantes adquirir competencias y habilidades en el área de estudio. Por otra parte, se registró una inscripción de un total de " . $data['inscritos'] . " participantes, con la culminación de " . $participantes_count . " participantes que completaron satisfactoriamente la actividad.";
@@ -247,10 +247,10 @@ foreach ($alumnos as $idx => $al) {
             if ($nota_val >= $nota_min) {
                 $estatus_str = "Aprobado";
             } else {
-                $estatus_str = "Participante"; // Completó pero nota < mínima
+                $estatus_str = "Participación"; // Completó pero nota < mínima
             }
         } else {
-            $estatus_str = "Participante"; // Completó sin nota
+            $estatus_str = "Participación"; // Completó sin nota
         }
     }
 

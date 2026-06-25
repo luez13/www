@@ -157,15 +157,19 @@ if ($id_curso_sel > 0) {
                                 <div class="card-body p-3 text-center">
                                     <div class="row">
                                         <?php if ($tiene_notas): ?>
-                                            <div class="col-4 border-end">
+                                            <div class="col-3 border-end">
                                                 <small class="text-muted d-block uppercase font-weight-bold">Inscritos</small>
                                                 <span class="h4 font-weight-bold text-gray-800"><?= $total_inscritos ?></span>
                                             </div>
-                                            <div class="col-4 border-end">
+                                            <div class="col-3 border-end">
                                                 <small class="text-muted d-block uppercase font-weight-bold">Aprobados</small>
                                                 <span class="h4 font-weight-bold text-success"><?= $aprobados_count ?></span>
                                             </div>
-                                            <div class="col-4">
+                                            <div class="col-3 border-end">
+                                                <small class="text-muted d-block uppercase font-weight-bold">Participación</small>
+                                                <span class="h4 font-weight-bold text-warning"><?= $solo_participantes_count ?></span>
+                                            </div>
+                                            <div class="col-3">
                                                 <small class="text-muted d-block uppercase font-weight-bold">Reprobados</small>
                                                 <span class="h4 font-weight-bold text-danger"><?= $reprobados_count ?></span>
                                             </div>

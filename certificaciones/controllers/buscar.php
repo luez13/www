@@ -109,27 +109,37 @@ try {
     $count_sql = "SELECT COUNT(*) FROM cursos.usuarios u";
     $params = [];
     $whereClause = '';
+    
     if (!empty($busqueda)) {
         $whereClause = " WHERE u.nombre ILIKE :busqueda OR u.apellido ILIKE :busqueda OR u.cedula ILIKE :busqueda";
         $params[':busqueda'] = "%$busqueda%";
+    } else {
+        $count_sql = "SELECT COUNT(*) FROM cursos.usuarios u JOIN cursos.certificaciones c ON u.id = c.id_usuario AND c.curso_id = :id_curso_count";
+        $params[':id_curso_count'] = $id_curso;
     }
+    
     $stmt_count = $db->prepare($count_sql . $whereClause);
     $stmt_count->execute($params);
     $total = $stmt_count->fetchColumn();
     $total_pages = ceil($total / $limit);
 
     // --- CAMBIO: La consulta principal ahora también filtra por la búsqueda ---
-    $sql = "
-        SELECT u.id, u.nombre, u.apellido, u.cedula, u.correo, 
-               CASE WHEN c.id_usuario IS NOT NULL THEN 1 ELSE 0 END AS inscrito
-        FROM cursos.usuarios u
-        LEFT JOIN cursos.certificaciones c ON u.id = c.id_usuario AND c.curso_id = :id_curso
-    ";
-
-    // Añadimos la cláusula WHERE de búsqueda a la consulta principal
-    $sql .= $whereClause;
-
-    $sql .= " ORDER BY inscrito DESC, u.nombre ASC LIMIT :limit OFFSET :offset";
+    if (!empty($busqueda)) {
+        $sql = "
+            SELECT u.id, u.nombre, u.apellido, u.cedula, u.correo, 
+                   CASE WHEN c.id_usuario IS NOT NULL THEN 1 ELSE 0 END AS inscrito
+            FROM cursos.usuarios u
+            LEFT JOIN cursos.certificaciones c ON u.id = c.id_usuario AND c.curso_id = :id_curso
+        " . $whereClause . " ORDER BY inscrito DESC, u.nombre ASC LIMIT :limit OFFSET :offset";
+    } else {
+        $sql = "
+            SELECT u.id, u.nombre, u.apellido, u.cedula, u.correo, 
+                   1 AS inscrito
+            FROM cursos.usuarios u
+            JOIN cursos.certificaciones c ON u.id = c.id_usuario AND c.curso_id = :id_curso
+            ORDER BY u.nombre ASC LIMIT :limit OFFSET :offset
+        ";
+    }
 
     $stmt = $db->prepare($sql);
 
@@ -139,6 +149,11 @@ try {
         ':limit' => $limit,
         ':offset' => $offset
     ]);
+    
+    // Eliminamos el count param si no fue usado para no fallar en la consulta de datos
+    if (isset($final_params[':id_curso_count'])) {
+        unset($final_params[':id_curso_count']);
+    }
 
     // Bindeamos los parámetros dinámicamente
     foreach ($final_params as $key => &$val) {

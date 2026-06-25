@@ -197,7 +197,9 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                 <th>Cédula</th>
                                 <th>Curso / Diplomado</th>
                                 <th>Moneda</th>
-                                <th>Referencia</th>
+                                <th class="text-left">Referencia</th>
+                                <th class="text-left">Observación</th>
+                                <th class="text-left">Gestionado Por</th>
                                 <th>Banco</th>
                                 <th>Monto</th>
                                 <th>Acciones</th>
@@ -246,10 +248,18 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                     </td>
                                     <td class="text-left">
                                         <strong><?= h($comp['numero_operacion'] ? $comp['numero_operacion'] : 'N/A') ?></strong>
+                                    </td>
+                                    <td class="text-left" style="max-width: 150px; white-space: normal;">
                                         <?php if (!empty($comp['observacion'])): ?>
-                                            <hr class="m-1">
-                                            <small class="text-secondary d-block" style="max-width:150px; white-space: normal;">
-                                                <b>Obs:</b> <?= h($comp['observacion']) ?>
+                                            <small class="text-secondary d-block">
+                                                <?= h($comp['observacion']) ?>
+                                            </small>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-left" style="max-width: 150px; white-space: normal;">
+                                        <?php if (!empty($comp['admin_nombre'])): ?>
+                                            <small class="text-primary d-block font-weight-bold">
+                                                <?= h($comp['admin_nombre'] . ' ' . $comp['admin_apellido']) ?>
                                             </small>
                                         <?php endif; ?>
                                     </td>
@@ -636,36 +646,68 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
     function actualizarEstadoPago(idComprobante, nuevoEstado) {
         let accionFuerte = (nuevoEstado === 'Comprobado') ? 'APROBAR' : (nuevoEstado === 'Rechazado' ? 'RECHAZAR' : 'REVERTIR');
 
-        if (!confirm(`¿Estás seguro de que deseas ${accionFuerte} este comprobante?`)) {
-            return;
+        if (nuevoEstado === 'Comprobado') {
+            Swal.fire({
+                title: '¿Confirmar Aprobación?',
+                html: "Al aprobar este comprobante, usted certifica bajo su usuario haber verificado la disponibilidad y legitimidad de los fondos en las cuentas de la institución. Esta acción quedará registrada en el sistema. ¿Desea continuar?<br><br><b>Observación (Opcional):</b>",
+                input: 'text',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, certifico y apruebo',
+                cancelButtonText: 'Cancelar',
+                inputPlaceholder: 'Escriba una nota opcional...'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    enviarEstadoPagoAJAX(idComprobante, nuevoEstado, result.value || null);
+                }
+            });
+        } else {
+            Swal.fire({
+                title: `¿${accionFuerte} Comprobante?`,
+                text: "Por favor, indique el motivo de esta acción (Obligatorio):",
+                input: 'text',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Confirmar',
+                cancelButtonText: 'Cancelar',
+                inputValidator: (value) => {
+                    if (!value || value.trim() === '') {
+                        return '¡Necesitas escribir un motivo obligatoriamente!'
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    enviarEstadoPagoAJAX(idComprobante, nuevoEstado, result.value);
+                }
+            });
         }
+    }
 
-        let observacion = null;
-        if (nuevoEstado === 'Rechazado' || nuevoEstado === 'Comprobado') {
-            observacion = prompt(`(Opcional) Introduce una observación o motivo para ${accionFuerte} el pago:`);
-        }
-
+    function enviarEstadoPagoAJAX(idComprobante, estado, observacion) {
         $.ajax({
             url: '../controllers/pagos_controlador.php',
             type: 'POST',
             data: {
                 action: 'actualizar_estado_comprobante',
                 id_comprobante: idComprobante,
-                estado: nuevoEstado,
+                estado: estado,
                 observacion: observacion
             },
             dataType: 'json',
             success: function (response) {
                 if (response.success) {
-                    alert(response.message);
-                    loadPage('../views/gestion_pagos.php');
+                    Swal.fire('¡Éxito!', response.message, 'success').then(() => {
+                        loadPage('../views/gestion_pagos.php');
+                    });
                 } else {
-                    alert('Error: ' + response.message);
+                    Swal.fire('Error', response.message, 'error');
                 }
             },
             error: function (xhr) {
                 console.error(xhr.responseText);
-                alert('Error de conexión con el servidor.');
+                Swal.fire('Error', 'Error de conexión con el servidor.', 'error');
             }
         });
     }
