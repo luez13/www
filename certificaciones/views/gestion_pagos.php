@@ -531,7 +531,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                         return 'Reporte de Pagos - ' + tabName;
                     },
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
                         orthogonal: 'export',
                         format: {
                             body: function (data, row, column, node) {
@@ -567,7 +567,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                     },
                     orientation: 'landscape',
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
                         orthogonal: 'export',
                         format: {
                             body: function (data, row, column, node) {
@@ -599,7 +599,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                         return 'Reporte de Pagos - ' + tabName;
                     },
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
                     }
                 }
             ],
