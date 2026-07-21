@@ -148,7 +148,7 @@ $alumnos_lista = $stmt_alum->fetchAll(PDO::FETCH_ASSOC);
     </div>
 </div>
 
-<div class="modal fade" id="modalEvaluacion" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+<div class="modal fade" id="modalEvaluacion" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-xl-custom">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
@@ -230,6 +230,7 @@ $alumnos_lista = $stmt_alum->fetchAll(PDO::FETCH_ASSOC);
 
 <script>
     var ID_CURSO = <?= $id_curso ?>;
+    var isActaCerrada = false;
 
     // 1. ABRIR MODAL Y CARGAR DATOS
     function abrirEvaluacionMateria(idMateria, nombreMateria) {
@@ -253,8 +254,12 @@ $alumnos_lista = $stmt_alum->fetchAll(PDO::FETCH_ASSOC);
             dataType: 'json',
             success: function (res) {
                 if (res.success) {
+                    isActaCerrada = res.acta_cerrada || false;
                     renderizarPlan(res.plan);
                     renderizarTablaNotas(res.plan, res.alumnos);
+                    if (isActaCerrada) {
+                        $('#contenedorTablaNotas').prepend('<div class="alert alert-danger mb-3"><i class="fas fa-lock me-2"></i> <strong>Acta Cerrada:</strong> Cualquier modificación en las notas requerirá una justificación para auditoría.</div>');
+                    }
                 } else { alert(res.message); }
             }
         });
@@ -362,17 +367,48 @@ $alumnos_lista = $stmt_alum->fetchAll(PDO::FETCH_ASSOC);
     }
 
     function guardarNotasDetalle() {
+        if (isActaCerrada) {
+            Swal.fire({
+                target: document.getElementById('modalEvaluacion'),
+                title: 'Acta Cerrada',
+                text: 'Ingrese la justificación para modificar estas notas:',
+                input: 'textarea',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Guardar y Auditar',
+                cancelButtonText: 'Cancelar',
+                inputValidator: (value) => {
+                    if (!value || value.trim().length < 10) {
+                        return 'Debe ingresar una justificación válida (mín. 10 caracteres).'
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    enviarDatosNotas(result.value);
+                }
+            });
+        } else {
+            enviarDatosNotas('');
+        }
+    }
+
+    function enviarDatosNotas(justificacion) {
+        var datos = $('#formNotasDetalle').serialize();
+        if (justificacion) {
+            datos += '&justificacion=' + encodeURIComponent(justificacion);
+        }
+        
         $.ajax({
             url: '../controllers/gestion_notas.php',
             type: 'POST',
-            data: $('#formNotasDetalle').serialize(),
+            data: datos,
             dataType: 'json',
             success: function (res) {
                 if (res.success) {
-                    alert(res.message);
+                    Swal.fire('Guardado', res.message, 'success');
                     $('#modalEvaluacion').modal('hide');
                     loadPage('../views/gestionar_notas.php', { id_curso: ID_CURSO });
-                } else { alert(res.message); }
+                } else { Swal.fire('Error', res.message, 'error'); }
             }
         });
     }

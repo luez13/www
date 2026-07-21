@@ -28,8 +28,8 @@
         /* Banner Superior e Inferior */
         .header-banner {
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 10;
+            left: 20;
             width: 100%;
             height: 80px;
             object-fit: contain;
@@ -66,6 +66,7 @@
             font-size: 15px;
             line-height: 1.6;
             margin-bottom: 40px;
+            text-indent: 2em;
         }
 
         .texto-fecha {

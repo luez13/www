@@ -17,11 +17,15 @@ $notaModel = new Nota($conn);
 $id_materia = isset($_REQUEST['id_materia']) ? (int)$_REQUEST['id_materia'] : 0;
 if ($id_materia === 0) { die("Error: Se requiere el ID de la materia."); }
 
+$tipo_acta = isset($_REQUEST['tipo']) && $_REQUEST['tipo'] === 'recuperativo' ? 'Recuperativo' : 'Regular';
+
 // --- 1. PROCESAMIENTO DE IMÁGENES (RUTAS ABSOLUTAS) ---
 $img_encabezado = realpath(__DIR__ . '/../public/assets/img/vector membrete 1-01.png');
 $img_pie = realpath(__DIR__ . '/../public/assets/img/piePagina.jpg');
 
 // --- 2. FUNCIONES DE FORMATO (IDÉNTICAS PARA MANTENER DISEÑO) ---
+$tituloActaBase = ($tipo_acta === 'Recuperativo') ? "ACTA DE CIERRE (RECUPERATIVO) DEL " : "ACTA DE CIERRE DEL ";
+
 function formatoNombre($texto) {
     return mb_convert_case(mb_strtolower($texto, 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
 }
@@ -116,6 +120,18 @@ $lista_alumnos = [];
 $total_aprobados = 0;
 $total_reprobados = 0;
 
+// Preparar inserción de congelación para Acta Regular
+$stmt_freeze = $conn->prepare("INSERT INTO cursos.usuario_materias (id_usuario, id_materia_bimestre, nota_regular, estado) 
+                               VALUES (:u, :m, :n, :e) 
+                               ON CONFLICT (id_usuario, id_materia_bimestre) 
+                               DO UPDATE SET nota_regular = EXCLUDED.nota_regular, 
+                               estado = CASE WHEN cursos.usuario_materias.nota_recuperativa IS NULL THEN EXCLUDED.estado ELSE cursos.usuario_materias.estado END");
+
+// Obtener nota_minima
+$stmt_min = $conn->prepare("SELECT nota_minima_aprobatoria FROM cursos.cursos WHERE id_curso = :id");
+$stmt_min->execute(['id' => $info['id_curso']]);
+$nota_minima = $stmt_min->fetchColumn() ?: 12;
+
 foreach ($alumnos_raw as $al) {
     $definitiva_acum = 0;
     $notas_alumno = [];
@@ -126,16 +142,57 @@ foreach ($alumnos_raw as $al) {
         $definitiva_acum += $valor * ($actividad['ponderacion_porcentaje'] / 100);
     }
     $definitiva = round($definitiva_acum);
-    $estado = ($definitiva >= 12) ? 'APROBADO' : 'REPROBADO';
-    if ($estado === 'APROBADO') $total_aprobados++; else $total_reprobados++;
+    $estado_regular = ($definitiva >= $nota_minima) ? 'APROBADO' : 'REPROBADO';
 
-    $lista_alumnos[] = [
-        'cedula' => $al['cedula'],
-        'nombre' => formatoNombre($al['apellido'] . ' ' . $al['nombre']),
-        'notas_parciales' => $notas_alumno,
-        'definitiva' => $definitiva,
-        'estado' => $estado
-    ];
+    // Congelar en BD si es Acta Regular
+    if ($tipo_acta === 'Regular') {
+        $stmt_freeze->execute([
+            'u' => $al['id'],
+            'm' => $id_materia,
+            'n' => $definitiva,
+            'e' => ($estado_regular == 'APROBADO') ? 'Aprobado' : 'Reprobado'
+        ]);
+    }
+
+    if ($tipo_acta === 'Recuperativo') {
+        // En recuperativo, solo mostrar si tienen nota recuperativa
+        if (isset($al['nota_recuperativa']) && $al['nota_recuperativa'] !== null) {
+            $recup = floatval($al['nota_recuperativa']);
+            $estado_recup = ($recup >= $nota_minima) ? 'APROBADO' : 'REPROBADO';
+            
+            // Reemplazar columnas de evaluación por "Nota Regular" y "Nota Recuperativo"
+            $notas_alumno = [$definitiva, $recup];
+            
+            if ($estado_recup === 'APROBADO') $total_aprobados++; else $total_reprobados++;
+
+            $lista_alumnos[] = [
+                'cedula' => $al['cedula'],
+                'nombre' => formatoNombre($al['apellido'] . ' ' . $al['nombre']),
+                'notas_parciales' => $notas_alumno,
+                'definitiva' => $recup,
+                'estado' => $estado_recup
+            ];
+        }
+    } else {
+        // Acta Regular
+        if ($estado_regular === 'APROBADO') $total_aprobados++; else $total_reprobados++;
+
+        $lista_alumnos[] = [
+            'cedula' => $al['cedula'],
+            'nombre' => formatoNombre($al['apellido'] . ' ' . $al['nombre']),
+            'notas_parciales' => $notas_alumno,
+            'definitiva' => $definitiva,
+            'estado' => $estado_regular
+        ];
+    }
+}
+
+if ($tipo_acta === 'Recuperativo') {
+    $columnas = ['Nota Regular', 'Nota Recuperativo'];
+} else {
+    $columnas = array_map(function($p) { 
+        return formatoTexto($p['nombre_actividad']) . " (" . floatval($p['ponderacion_porcentaje']) . "%)"; 
+    }, $plan);
 }
 
 $meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -162,15 +219,38 @@ $data = [
     'total_participantes' => count($lista_alumnos),
     'aprobados' => $total_aprobados,
     'reprobados' => $total_reprobados,
-    'columnas_evaluacion' => array_map(function($p) { 
-        return formatoTexto($p['nombre_actividad']) . " (" . floatval($p['ponderacion_porcentaje']) . "%)"; 
-    }, $plan),
+    'columnas_evaluacion' => $columnas,
     'alumnos' => $lista_alumnos,
     'img_encabezado' => $img_encabezado,
     'img_pie' => $img_pie
 ];
 
-// --- GENERACIÓN CON FPDF ---
+// --- 6. REGISTRAR ACTA EN BD Y OBTENER FECHA FORENSE ---
+// Buscar si ya existe el acta para no sobreescribir la fecha de generación
+$stmt_check_acta = $conn->prepare("SELECT fecha_generacion, fecha_cierre FROM cursos.actas_cierre WHERE id_materia_bimestre = :m AND tipo_acta = :tipo LIMIT 1");
+$stmt_check_acta->execute(['m' => $id_materia, 'tipo' => $tipo_acta]);
+$acta_existente = $stmt_check_acta->fetch(PDO::FETCH_ASSOC);
+
+if ($acta_existente) {
+    // Si ya existe, usamos la fecha histórica (fecha_cierre original)
+    $ts_historico = strtotime($acta_existente['fecha_cierre']);
+    $data['fecha_actual'] = date('d', $ts_historico);
+    $data['mes_nombre'] = $meses[date('n', $ts_historico)-1];
+    $data['anio_actual'] = date('Y', $ts_historico);
+    $data['hora_actual'] = date('h:i a', $ts_historico);
+} else {
+    // Si es la primera vez, se registra
+    $stmt_acta = $conn->prepare("INSERT INTO cursos.actas_cierre (id_materia_bimestre, fecha_cierre, participantes_inscritos, participantes_aprobados, tipo_acta) 
+                                 VALUES (:m, NOW(), :inscritos, :aprobados, :tipo)");
+    $stmt_acta->execute([
+        'm' => $id_materia,
+        'inscritos' => $data['total_participantes'],
+        'aprobados' => $data['aprobados'],
+        'tipo' => $tipo_acta
+    ]);
+}
+
+// --- 7. GENERACIÓN CON FPDF ---
 $pdf = new \FPDF();
 $pdf->SetAutoPageBreak(true, 30);
 require_once __DIR__ . '/../views/actas/acta_materia_fpdf.php';

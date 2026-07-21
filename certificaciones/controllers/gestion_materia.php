@@ -40,7 +40,7 @@ try {
             $datos = array(
                 'id_materia_bimestre' => isset($_POST['id_materia']) ? $_POST['id_materia'] : 0,
                 'id_curso'            => isset($_POST['id_curso']) ? $_POST['id_curso'] : 0,
-                'nombre_materia'      => $_POST['nombre_materia'],
+                'nombre_materia'      => mb_strtoupper(trim($_POST['nombre_materia']), 'UTF-8'),
                 'duracion_bimestres'  => isset($_POST['duracion_bimestres']) ? $_POST['duracion_bimestres'] : '',
                 'total_horas'         => isset($_POST['total_horas']) ? $_POST['total_horas'] : 0,
                 'modalidad'           => isset($_POST['modalidad']) ? $_POST['modalidad'] : 'Virtual',

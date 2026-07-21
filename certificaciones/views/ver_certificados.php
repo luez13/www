@@ -77,6 +77,44 @@ $curso = new Curso($db);
                         echo '<p>Valor Único: ' . $curso_seleccionado['valor_unico'] . '</p>';
                         echo '</div>';
                         echo '</div>';
+
+                        // ---------------- NUEVO: MATERIAS DEL CURSO ----------------
+                        // Obtener materias aprobadas de ese curso
+                        $stmt_mat = $db->prepare('SELECT m.id_materia_bimestre, m.nombre_materia, um.nota_regular, um.nota_recuperativa, um.estado 
+                                                  FROM cursos.materias_bimestre m
+                                                  JOIN cursos.usuario_materias um ON m.id_materia_bimestre = um.id_materia_bimestre
+                                                  JOIN cursos.usuarios u ON um.id_usuario = u.id
+                                                  WHERE m.id_curso = :curso_id AND u.cedula = :cedula');
+                        $stmt_mat->execute(['curso_id' => $curso_id, 'cedula' => $cedula]);
+                        $materias = $stmt_mat->fetchAll(PDO::FETCH_ASSOC);
+
+                        if ($materias) {
+                            echo '<div class="card mt-4">';
+                            echo '<div class="card-body">';
+                            echo '<h4 class="mb-3">Módulos / Unidades Curriculares</h4>';
+                            echo '<div class="table-responsive"><table class="table table-bordered table-striped">';
+                            echo '<thead><tr><th>Materia</th><th>Nota Final</th><th>Estado</th><th>Certificado Individual</th></tr></thead><tbody>';
+                            
+                            foreach ($materias as $mat) {
+                                $nota_final = max((float)$mat['nota_regular'], (float)$mat['nota_recuperativa']);
+                                echo '<tr>';
+                                echo '<td>' . htmlspecialchars($mat['nombre_materia']) . '</td>';
+                                echo '<td>' . number_format($nota_final, 2) . '</td>';
+                                echo '<td>' . htmlspecialchars($mat['estado']) . '</td>';
+                                
+                                // Solo mostrar botón si está Aprobado
+                                if (strpos(strtolower($mat['estado']), 'aprobado') !== false) {
+                                    echo '<td><a href="../controllers/generar_certificado_materia.php?id_materia=' . $mat['id_materia_bimestre'] . '&cedula=' . $cedula . '" target="_blank" class="btn btn-success btn-sm"><i class="fas fa-certificate"></i> Descargar Certificado</a></td>';
+                                } else {
+                                    echo '<td><span class="badge bg-secondary">No Disponible</span></td>';
+                                }
+                                echo '</tr>';
+                            }
+                            echo '</tbody></table></div>';
+                            echo '</div></div>';
+                        }
+                        // -----------------------------------------------------------
+
                     } else {
                         echo '<div class="alert alert-warning mt-4">No se encontraron detalles para este curso.</div>';
                     }

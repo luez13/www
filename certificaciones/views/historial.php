@@ -14,6 +14,15 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
+// Obtener cédula para los certificados de materias
+try {
+    $stmtCed = $db->prepare('SELECT cedula FROM cursos.usuarios WHERE id = :id');
+    $stmtCed->execute(['id' => $user_id]);
+    $cedula_usuario = $stmtCed->fetchColumn();
+} catch (PDOException $e) {
+    $cedula_usuario = '';
+}
+
 // Determinar acción y título
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 $titulo = ($action == 'finalizados') ? 'Historial Académico' : 'Mis Cursos Activos';
@@ -75,12 +84,35 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                     </div>
                                 </div>
                                 <hr>
-                                <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
                                     <small class="text-muted"><i class="far fa-calendar-alt"></i> Inicio: <?= $curso['inicio_mes'] ?></small>
                                     <button class="btn btn-primary btn-sm" onclick="loadCourse(<?= $curso['id_curso'] ?>)">
                                         Continuar <i class="fas fa-arrow-right ml-1"></i>
                                     </button>
                                 </div>
+                                <?php
+                                // Extraer materias aprobadas para este curso
+                                $stmtMat = $db->prepare("
+                                    SELECT m.id_materia_bimestre, m.nombre_materia, um.estado 
+                                    FROM cursos.usuario_materias um
+                                    JOIN cursos.materias_bimestre m ON um.id_materia_bimestre = m.id_materia_bimestre
+                                    WHERE um.id_usuario = :id_usuario AND m.id_curso = :id_curso AND um.estado LIKE 'Aprobado%'
+                                ");
+                                $stmtMat->execute(['id_usuario' => $user_id, 'id_curso' => $curso['id_curso']]);
+                                $materias_aprobadas = $stmtMat->fetchAll(PDO::FETCH_ASSOC);
+                                ?>
+                                <?php if (count($materias_aprobadas) > 0): ?>
+                                    <div class="mt-3">
+                                        <h6 class="small font-weight-bold text-success mb-2 border-bottom pb-1">Certificados Modulares:</h6>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <?php foreach ($materias_aprobadas as $mat): ?>
+                                                <a href="../controllers/generar_certificado_materia.php?id_materia=<?= $mat['id_materia_bimestre'] ?>&cedula=<?= $cedula_usuario ?>" target="_blank" class="btn btn-outline-success btn-sm mb-1" style="font-size: 0.75rem;" title="Descargar certificado de la materia">
+                                                    <i class="fas fa-award"></i> <?= htmlspecialchars($mat['nombre_materia']) ?>
+                                                </a>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -144,7 +176,7 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                     </div>
                                 </div>
                                 <hr>
-                                <div class="d-flex justify-content-end gap-2">
+                                <div class="d-flex justify-content-end gap-2 mb-2">
                                     <a href="#" onclick="loadCourse(<?= $curso['id_curso'] ?>)" class="btn btn-sm btn-info">
                                         <i class="fas fa-eye"></i> Detalles
                                     </a>
@@ -158,6 +190,29 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                         </button>
                                     <?php endif; ?>
                                 </div>
+                                <?php
+                                // Extraer materias aprobadas para este curso
+                                $stmtMat = $db->prepare("
+                                    SELECT m.id_materia_bimestre, m.nombre_materia, um.estado 
+                                    FROM cursos.usuario_materias um
+                                    JOIN cursos.materias_bimestre m ON um.id_materia_bimestre = m.id_materia_bimestre
+                                    WHERE um.id_usuario = :id_usuario AND m.id_curso = :id_curso AND um.estado LIKE 'Aprobado%'
+                                ");
+                                $stmtMat->execute(['id_usuario' => $user_id, 'id_curso' => $curso['id_curso']]);
+                                $materias_aprobadas = $stmtMat->fetchAll(PDO::FETCH_ASSOC);
+                                ?>
+                                <?php if (count($materias_aprobadas) > 0): ?>
+                                    <div class="mt-3">
+                                        <h6 class="small font-weight-bold text-success mb-2 border-bottom pb-1">Certificados Modulares:</h6>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <?php foreach ($materias_aprobadas as $mat): ?>
+                                                <a href="../controllers/generar_certificado_materia.php?id_materia=<?= $mat['id_materia_bimestre'] ?>&cedula=<?= $cedula_usuario ?>" target="_blank" class="btn btn-outline-success btn-sm mb-1" style="font-size: 0.75rem;" title="Descargar certificado de la materia">
+                                                    <i class="fas fa-award"></i> <?= htmlspecialchars($mat['nombre_materia']) ?>
+                                                </a>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>

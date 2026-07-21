@@ -44,7 +44,7 @@ $modalidad = "Multimodal";
 
 // 4. Obtener todos los alumnos del curso
 $stmtAlumnos = $conn->prepare("
-    SELECT u.cedula, u.nombre, u.apellido, cert.nota, cert.completado, cert.tomo, cert.folio
+    SELECT u.cedula, u.nombre, u.apellido, cert.nota, cert.completado, cert.tomo, cert.folio, u.id as id_usuario
     FROM cursos.certificaciones cert
     JOIN cursos.usuarios u ON cert.id_usuario = u.id
     WHERE cert.curso_id = :id
@@ -52,6 +52,25 @@ $stmtAlumnos = $conn->prepare("
 ");
 $stmtAlumnos->execute(['id' => $id_curso]);
 $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
+
+// 5. EVENTO DE CIERRE EXPLÍCITO Y ARRASTRE DE CRÉDITOS
+$stmtTotal = $conn->prepare("SELECT COUNT(*) FROM cursos.materias_bimestre WHERE id_curso = :id");
+$stmtTotal->execute(['id' => $id_curso]);
+$total_materias_curso = (int)$stmtTotal->fetchColumn();
+
+$stmtHist = $conn->prepare("
+    SELECT 
+        MAX(COALESCE(NULLIF(um_hist.nota_recuperativa, 0), um_hist.nota_regular)) AS nota_historica
+    FROM cursos.materias_bimestre m_pensum
+    LEFT JOIN cursos.materias_bimestre mb_hist ON UPPER(TRIM(m_pensum.nombre_materia)) = UPPER(TRIM(mb_hist.nombre_materia))
+    LEFT JOIN cursos.usuario_materias um_hist ON mb_hist.id_materia_bimestre = um_hist.id_materia_bimestre 
+                                              AND um_hist.id_usuario = :id_usuario
+                                              AND um_hist.estado LIKE 'Aprobado%'
+    WHERE m_pensum.id_curso = :id_curso
+    GROUP BY m_pensum.nombre_materia
+");
+
+$stmtUpdateCert = $conn->prepare("UPDATE cursos.certificaciones SET nota = :nota, completado = :completado WHERE id_usuario = :id_usuario AND curso_id = :id_curso");
 
 $inscritos = count($alumnos);
 $aprobados = 0;
@@ -62,8 +81,38 @@ $tiene_notas = false;
 
 $nota_min = isset($curso_info['nota_minima_aprobatoria']) ? (int)$curso_info['nota_minima_aprobatoria'] : 12;
 
-foreach ($alumnos as $al) {
-    if (isset($al['completado']) && $al['completado'] == false) {
+foreach ($alumnos as &$al) {
+    // Calculamos el arrastre
+    $stmtHist->execute(['id_curso' => $id_curso, 'id_usuario' => $al['id_usuario']]);
+    $materias_historial = $stmtHist->fetchAll(PDO::FETCH_ASSOC);
+    
+    $materias_aprobadas = 0;
+    $suma_notas = 0;
+    foreach ($materias_historial as $mh) {
+        if ($mh['nota_historica'] !== null) {
+            $materias_aprobadas++;
+            $suma_notas += (float)$mh['nota_historica'];
+        }
+    }
+
+    if ($total_materias_curso > 0 && $materias_aprobadas == $total_materias_curso) {
+        $al['completado'] = true;
+        $al['nota'] = round($suma_notas / $total_materias_curso);
+    } else {
+        $al['completado'] = false;
+        $al['nota'] = $total_materias_curso > 0 && $materias_aprobadas > 0 ? round($suma_notas / $total_materias_curso) : null;
+    }
+
+    // Persistir estado final de certificación para inmutabilidad del acta
+    $stmtUpdateCert->execute([
+        'nota' => $al['nota'],
+        'completado' => $al['completado'] ? 'true' : 'false',
+        'id_usuario' => $al['id_usuario'],
+        'id_curso' => $id_curso
+    ]);
+
+    // Calcular contadores para el PDF
+    if ($al['completado'] == false) {
         $reprobados++; // No completó -> Reprueba
         $no_completaron++; // Mantengo el contador por si otra vista lo necesita
     } else {
@@ -80,12 +129,26 @@ foreach ($alumnos as $al) {
         }
     }
 }
+unset($al);
 
-// 6. Configurar la Fecha y Hora de Cierre
-$fecha_cierre_param = isset($_GET['fecha_cierre']) ? $_GET['fecha_cierre'] : date('Y-m-d');
-$hora_cierre_param = isset($_GET['hora_cierre']) ? $_GET['hora_cierre'] : date('h:i a');
+// 6. Configurar la Fecha y Hora de Cierre (Lógica Forense)
+if (!empty($curso_info['fecha_acta_cierre'])) {
+    // Si ya tiene una fecha de acta de cierre, usar esa (histórico inmutable)
+    $timestamp_cierre = strtotime($curso_info['fecha_acta_cierre']);
+} else {
+    // Si es primera vez, usamos la que viene del form o la actual
+    $fecha_cierre_param = isset($_GET['fecha_cierre']) ? $_GET['fecha_cierre'] : date('Y-m-d');
+    $hora_cierre_param = isset($_GET['hora_cierre']) ? $_GET['hora_cierre'] : date('H:i:s');
+    
+    // Formatear para guardar en BD
+    $fecha_completa = $fecha_cierre_param . ' ' . date('H:i:s', strtotime($hora_cierre_param));
+    
+    $stmt_update_date = $conn->prepare("UPDATE cursos.cursos SET fecha_acta_cierre = :fc WHERE id_curso = :id");
+    $stmt_update_date->execute(['fc' => $fecha_completa, 'id' => $id_curso]);
+    
+    $timestamp_cierre = strtotime($fecha_completa);
+}
 
-$timestamp_cierre = strtotime($fecha_cierre_param);
 $dia_cierre = date("d", $timestamp_cierre);
 $meses = [
     '01' => 'enero', '02' => 'febrero', '03' => 'marzo', '04' => 'abril',
@@ -94,7 +157,7 @@ $meses = [
 ];
 $mes_cierre = $meses[date("m", $timestamp_cierre)];
 $anio_cierre = date("Y", $timestamp_cierre);
-$hora_cierre = htmlspecialchars($hora_cierre_param);
+$hora_cierre = htmlspecialchars(date('h:i a', $timestamp_cierre));
 
 // 7. Cargar Firmantes Dinámicos
 $firmantes = [];

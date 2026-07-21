@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presentación Técnica - Arquitectura Centralizada</title>
+    <style>
+        :root {
+            --primary: #1E3A8A; 
+            --secondary: #3B82F6; 
+            --dark: #1F2937;
+            --light: #F3F4F6;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: #E5E7EB;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h2 {
+            color: var(--primary);
+            border-bottom: 2px solid var(--light);
+            padding-bottom: 8px;
+            margin-top: 0;
+            font-size: 19px;
+        }
+
+        .diagram-container {
+            background: white;
+            border: 2px dashed var(--secondary);
+            border-radius: 8px;
+            padding: 15px; 
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .diagram-title {
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 17px;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Escala base para pantallas */
+        .mermaid svg {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+
+        .card {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 4px solid var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .card h3 { margin-top: 0; color: var(--dark); }
+
+        .warning-box {
+            background: #FEF2F2;
+            border-left: 4px solid #EF4444;
+            padding: 15px 20px;
+            margin-top: 30px;
+            border-radius: 4px;
+        }
+
+        .warning-box h3 { color: #B91C1C; margin-top: 0; }
+
+        .reference-text {
+            color: var(--primary);
+            font-weight: bold;
+            font-style: italic;
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        /* --- REGLAS ESTRICTAS PARA EL PDF --- */
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; max-width: 100%; border-radius: 0; margin: 0; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            h2, h3 { page-break-after: avoid; break-after: avoid; }
+            
+            .card, .warning-box { 
+                page-break-inside: avoid; 
+                break-inside: avoid; 
+                margin-bottom: 15px;
+            }
+
+            /* Configuración para el diagrama ERD (Normal) */
+            .diagram-container {
+                page-break-inside: avoid; 
+                break-inside: avoid;
+            }
+
+            /* Configuración exclusiva para el Flujograma en hoja completa */
+            .full-page-diagram {
+                page-break-before: always;
+                break-before: page;
+                page-break-after: always;
+                break-after: page;
+                height: 95vh; /* Ocupa la hoja entera */
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                border: none; /* Elimina los bordes punteados para verse más limpio en el PDF */
+            }
+
+            .full-page-diagram .mermaid svg {
+                max-height: 85vh !important; /* Permite que el gráfico crezca al máximo sin desbordar */
+            }
+        }
+    </style>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <p>Propuesta de Reingeniería Técnica</p>
+            <h1>PROYECTO: Centralización Financiera Institucional y Arquitectura Multi-Tenant</h1>
+        </div>
+
+        <div class="content">
+            <h2>1. Resumen Ejecutivo y Abstracción de Dominio</h2>
+            <p>El objetivo es escalar el software actual hacia un <strong>Sistema Centralizado de Recaudación Financiera (ERP)</strong>. Siguiendo las directrices operativas, el sistema abandonará clasificaciones limitantes (como "cursos" o "pensums"). En su lugar, gestionará de manera abstracta un <strong>Catálogo Central de Aranceles y Servicios Educativos</strong>.</p>
+            <p>La meta es unificar todos los ingresos (Postgrado, Formación Permanente, Taquilla General, etc.) en un embudo único, manteniendo un aislamiento criptográfico que impida el cruce de contabilidades entre departamentos.</p>
+            
+            <p class="reference-text">* Ver diagrama de flujo arquitectónico detallado en la página siguiente.</p>
+
+            <div class="diagram-container full-page-diagram">
+                <div class="diagram-title">Diagrama de Flujo: Arquitectura Multi-Tenant y Embudo de Pagos</div>
+                <div class="mermaid">
+                    graph TD
+                        classDef user fill:#3B82F6,stroke:#1E3A8A,stroke-width:2px,color:white;
+                        classDef portal fill:#1E3A8A,stroke:#111827,stroke-width:2px,color:white;
+                        classDef depto fill:#F3F4F6,stroke:#6B7280,stroke-width:2px,color:#1F2937;
+                        classDef db fill:#10B981,stroke:#047857,stroke-width:2px,color:white;
+                        classDef admin fill:#EF4444,stroke:#991B1B,stroke-width:2px,color:white;
+
+                        A((Estudiante / Usuario)):::user -->|Ingresa a| B[Portal Único Institucional]:::portal
+                        B -->|Selecciona| C{Filtro Multi-Tenant}
+                        
+                        C -->|Opción 1| D[Postgrado]:::depto
+                        C -->|Opción 2| E[Formación Permanente]:::depto
+                        C -->|Opción 3| F[Taquilla / Otros]:::depto
+                        
+                        D -.->|Carga| G[(Catálogo:\n- Inscripciones\n- Tesis)]:::db
+                        E -.->|Carga| H[(Catálogo:\n- Certificaciones\n- Talleres)]:::db
+                        F -.->|Carga| I[(Catálogo:\n- Constancias\n- Derecho a Grado)]:::db
+
+                        G --> J[Comprobante Registrado]
+                        H --> J[Comprobante Registrado]
+                        I --> J[Comprobante Registrado]
+
+                        J --> K[(Base de Datos Centralizada)]:::db
+
+                        L((Admin. Postgrado)):::admin -.->|Bloqueo RBAC| K
+                        M((Admin. Formación)):::admin -.->|Bloqueo RBAC| K
+                        
+                        K ==>|Solo pagos Depto 1| L
+                        K ==>|Solo pagos Depto 2| M
+                </div>
+            </div>
+
+            <h2>2. Ventajas Operativas y Estratégicas</h2>
+            <div class="card">
+                <h3>Crecimiento a Coste Cero (Escalabilidad Infinita)</h3>
+                <p>Al abstraer el concepto de "curso" a "Arancel Institucional", la futura creación de nuevas Facultades, departamentos o servicios (ej. Servicio Médico) <strong>no requerirá desarrollo de código adicional</strong>. Se agregan a la base de datos y aparecen automáticamente en el portal.</p>
+            </div>
+            <ul>
+                <li><span class="highlight">Fuente Única de Verdad (SSOT):</span> La directiva tendrá un libro mayor digital en tiempo real con la recaudación total.</li>
+                <li><span class="highlight">Trazabilidad Forense Absoluta:</span> Cada aprobación, rechazo o modificación quedará sellada en el motor de auditoría (Log).</li>
+            </ul>
+
+            <h2 style="margin-top: 30px;">3. Arquitectura de Base de Datos y Aislamiento Lógico</h2>
+            <p>El núcleo del sistema requerirá la siguiente infraestructura relacional (Entidad-Relación) para soportar el Catálogo Central y aislar financieramente a cada departamento mediante Control de Acceso (RBAC):</p>
+            
+            <div class="diagram-container">
+                <div class="diagram-title">Modelo Relacional (ERD): Núcleo Financiero Institucional</div>
+                <div class="mermaid">
+                    erDiagram
+                        DEPARTAMENTOS {
+                            int id_departamento PK
+                            string nombre_area "Ej: Postgrado, Taquilla"
+                        }
+                        CONCEPTOS_ARANCEL {
+                            int id_arancel PK
+                            int id_departamento FK
+                            string descripcion "Ej: Inscripción, Constancia"
+                            decimal monto_base
+                        }
+                        USUARIOS_ADMINISTRADORES {
+                            int id_usuario PK
+                            string nombre_completo
+                            int nivel_acceso
+                        }
+                        ADMIN_DEPARTAMENTOS {
+                            int id_usuario PK,FK
+                            int id_departamento PK,FK
+                            string nota "Candado RBAC"
+                        }
+
+                        DEPARTAMENTOS ||--o{ CONCEPTOS_ARANCEL : "posee catálogo de"
+                        DEPARTAMENTOS ||--o{ ADMIN_DEPARTAMENTOS : "restringe acceso mediante"
+                        USUARIOS_ADMINISTRADORES ||--o{ ADMIN_DEPARTAMENTOS : "tiene permisos sobre"
+                </div>
+            </div>
+            <p><em>*Nota técnica: La entidad <strong>ADMIN_DEPARTAMENTOS</strong> actúa como una bóveda lógica. Si un administrador no tiene su ID registrado cruzado con el ID de un departamento específico, el sistema bloqueará automáticamente cualquier intento de visualizar o auditar los pagos de dicha área.</em></p>
+
+            <div class="warning-box">
+                <h3>4. Consideraciones de Viabilidad y Capital Humano</h3>
+                <p>El salto de un módulo departamental a un motor financiero institucional centralizado eleva la clasificación del software a <strong>Sistema Crítico</strong>. Asumir la reescritura del núcleo relacional, la migración de datos históricos y el blindaje de seguridad contra desfalcos cruzados conlleva una responsabilidad operativa y legal significativamente mayor para la ingeniería a cargo.</p>
+                <p style="margin-bottom: 0;">En consecuencia, la ejecución material de esta arquitectura está supeditada a la revisión de la viabilidad presupuestaria. Exige la asignación de honorarios extraordinarios por desarrollo de software empresarial a medida, proporcionales a las nuevas exigencias de capital humano especializado y al traspaso de la responsabilidad técnica de la recaudación universitaria.</p>
+            </div>
+
+            <h2 style="margin-top: 30px;">5. Impacto Arquitectónico en Entornos de Producción (Migración Legacy)</h2>
+            <p>La implementación de esta arquitectura exige la refactorización profunda del módulo actual operativo. A nivel de ingeniería, <strong>esta operación equivale a sustituir el motor transaccional de una aeronave en pleno vuelo</strong>; requiere intervenir el núcleo del sistema sin interrumpir el servicio operativo de los estudiantes activos.</p>
+            <ul>
+                <li><span class="highlight">Migración Transaccional Sin Pérdida (Zero Data-Loss):</span> Los registros de ingresos históricos anclados a la tabla antigua deben ser mapeados criptográficamente hacia el nuevo "Catálogo de Aranceles" mediante scripts de migración, garantizando que el historial contable de la institución permanezca intacto.</li>
+                <li><span class="highlight">Inyección de Barreras RBAC:</span> Todos los controladores de seguridad (Backend) actualmente en producción deberán ser reescritos para reconocer los límites departamentales, evitando que los administradores actuales accedan a la recaudación de áreas externas.</li>
+                <li><span class="highlight">Metamorfosis de la Capa de Presentación (Frontend):</span> El portal de ingreso actual perderá su aislamiento departamental para adoptar una estructura asíncrona (AJAX) que enrute institucionalmente los pagos de cualquier estudiante hacia la coordinación correcta.</li>
+            </ul>
+
+        </div>
+    </div>
+
+</body>
+</html>

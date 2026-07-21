@@ -49,7 +49,7 @@ if ($id_curso_sel > 0) {
 
         // Obtener todos los estudiantes registrados
         $stmtEst = $conn->prepare("
-            SELECT u.cedula, u.nombre, u.apellido, cert.nota, cert.completado
+            SELECT u.cedula, u.nombre, u.apellido, cert.nota, cert.completado, u.id as id_usuario
             FROM cursos.certificaciones cert
             JOIN cursos.usuarios u ON cert.id_usuario = u.id
             WHERE cert.curso_id = :id
@@ -57,6 +57,48 @@ if ($id_curso_sel > 0) {
         ");
         $stmtEst->execute(['id' => $id_curso_sel]);
         $estudiantes_aprobados = $stmtEst->fetchAll(PDO::FETCH_ASSOC); // Reutilizamos el nombre para no romper otras variables
+
+        // CÁLCULO ON-THE-FLY Y ARRASTRE DE CRÉDITOS
+        $stmtTotal = $conn->prepare("SELECT COUNT(*) FROM cursos.materias_bimestre WHERE id_curso = :id");
+        $stmtTotal->execute(['id' => $id_curso_sel]);
+        $total_materias_curso = (int)$stmtTotal->fetchColumn();
+
+        $stmtHist = $conn->prepare("
+            SELECT 
+                MAX(COALESCE(NULLIF(um_hist.nota_recuperativa, 0), um_hist.nota_regular)) AS nota_historica
+            FROM cursos.materias_bimestre m_pensum
+            LEFT JOIN cursos.materias_bimestre mb_hist ON UPPER(TRIM(m_pensum.nombre_materia)) = UPPER(TRIM(mb_hist.nombre_materia))
+            LEFT JOIN cursos.usuario_materias um_hist ON mb_hist.id_materia_bimestre = um_hist.id_materia_bimestre 
+                                                      AND um_hist.id_usuario = :id_usuario
+                                                      AND um_hist.estado LIKE 'Aprobado%'
+            WHERE m_pensum.id_curso = :id_curso
+            GROUP BY m_pensum.nombre_materia
+        ");
+
+        foreach ($estudiantes_aprobados as &$e) {
+            $stmtHist->execute(['id_curso' => $id_curso_sel, 'id_usuario' => $e['id_usuario']]);
+            $materias_historial = $stmtHist->fetchAll(PDO::FETCH_ASSOC);
+            
+            $materias_aprobadas = 0;
+            $suma_notas = 0;
+            foreach ($materias_historial as $mh) {
+                if ($mh['nota_historica'] !== null) {
+                    $materias_aprobadas++;
+                    $suma_notas += (float)$mh['nota_historica'];
+                }
+            }
+
+            if ($total_materias_curso > 0 && $materias_aprobadas == $total_materias_curso) {
+                // Completó todas las materias requeridas en la historia
+                $e['completado'] = true;
+                $e['nota'] = round($suma_notas / $total_materias_curso);
+            } else {
+                // En progreso
+                $e['completado'] = false;
+                $e['nota'] = $total_materias_curso > 0 && $materias_aprobadas > 0 ? round($suma_notas / $total_materias_curso) : null;
+            }
+        }
+        unset($e); // Romper referencia
         
         $total_inscritos = count($estudiantes_aprobados);
         $aprobados_count = 0;
@@ -67,22 +109,22 @@ if ($id_curso_sel > 0) {
         
         $nota_min = isset($curso_info['nota_minima_aprobatoria']) ? (int)$curso_info['nota_minima_aprobatoria'] : 12;
         foreach ($estudiantes_aprobados as $e) {
-            if (isset($e['completado']) && $e['completado'] == false) {
-                $reprobados_count++; // No completó -> Reprueba
-                $no_completaron_count++;
-            } else {
-                if ($e['nota'] !== null && $e['nota'] !== '') {
-                    $tiene_notas = true;
-                    $nota_val = round((float)$e['nota']);
-                    if ($nota_val >= $nota_min) {
-                        $aprobados_count++;
-                    } else {
-                        $solo_participantes_count++; // Completó pero nota baja -> Participación
-                    }
+        if (isset($e['completado']) && $e['completado'] == false) {
+            $reprobados_count++; // No completó -> Reprueba
+            $no_completaron_count++;
+        } else {
+            if ($e['nota'] !== null && $e['nota'] !== '') {
+                $tiene_notas = true;
+                $nota_val = round((float)$e['nota']);
+                if ($nota_val >= $nota_min) {
+                    $aprobados_count++;
                 } else {
-                    $solo_participantes_count++; // Completó sin nota
+                    $solo_participantes_count++; // Completó pero nota baja -> Participación
                 }
+            } else {
+                $solo_participantes_count++; // Completó sin nota
             }
+        }
         }
     }
 }
@@ -90,7 +132,13 @@ if ($id_curso_sel > 0) {
 
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-file-signature text-primary me-2"></i> Emisión de Actas de Cierre</h1>
+        <div>
+            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-file-signature text-primary me-2"></i> Emisión de Actas de Cierre</h1>
+            <p class="text-muted small mt-1">Generación de actas oficiales inmutables por curso.</p>
+        </div>
+        <a href="javascript:history.back()" class="btn btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50 me-1"></i> Regresar
+        </a>
     </div>
 
     <div class="card shadow mb-4">

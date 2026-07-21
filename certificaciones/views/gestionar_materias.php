@@ -91,9 +91,18 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                                                     onclick="editarMateria(<?= $mat['id_materia_bimestre'] ?>)" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
+                                                <button class="btn btn-primary btn-sm text-white" 
+                                                    onclick="abrirRecuperativo(<?= $mat['id_materia_bimestre'] ?>, '<?= addslashes(htmlspecialchars($mat['nombre_materia'])) ?>')" 
+                                                    style="background-color: #fd7e14; border-color: #fd7e14;" title="Evaluación Recuperativa">
+                                                    <i class="fas fa-life-ring"></i>
+                                                </button>
                                                 <a href="../controllers/generar_acta_materia_fpdf.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"
                                                     target="_blank" class="btn btn-info btn-sm" title="Acta de Cierre">
                                                     <i class="fas fa-file-contract"></i>
+                                                </a>
+                                                <a href="../controllers/generar_acta_materia_fpdf.php?id_materia=<?= $mat['id_materia_bimestre'] ?>&tipo=recuperativo"
+                                                    target="_blank" class="btn btn-secondary btn-sm" style="background-color: #e83e8c; border-color: #e83e8c;" title="Acta de Recuperativo">
+                                                    <i class="fas fa-file-invoice"></i>
                                                 </a>
                                                 <a href="../controllers/generar_constancia_facilitador.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"
                                                     target="_blank" class="btn btn-success btn-sm" title="Constancia de Docencia">
@@ -113,7 +122,9 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                                                 </button>
                                                 <ul class="dropdown-menu shadow border-0" aria-labelledby="dropdownMenu<?= $mat['id_materia_bimestre'] ?>" style="z-index: 1050;">
                                                     <li><a class="dropdown-item py-2" href="#" onclick="editarMateria(<?= $mat['id_materia_bimestre'] ?>)"><i class="fas fa-edit me-2 text-warning"></i> Editar</a></li>
-                                                    <li><a class="dropdown-item py-2" target="_blank" href="../controllers/generar_acta_materia_fpdf.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"><i class="fas fa-file-contract me-2 text-info"></i> Generar Acta</a></li>
+                                                    <li><a class="dropdown-item py-2" href="#" onclick="abrirRecuperativo(<?= $mat['id_materia_bimestre'] ?>, '<?= addslashes(htmlspecialchars($mat['nombre_materia'])) ?>')"><i class="fas fa-life-ring me-2" style="color:#fd7e14;"></i> Ev. Recuperativa</a></li>
+                                                    <li><a class="dropdown-item py-2" target="_blank" href="../controllers/generar_acta_materia_fpdf.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"><i class="fas fa-file-contract me-2 text-info"></i> Acta Regular</a></li>
+                                                    <li><a class="dropdown-item py-2" target="_blank" href="../controllers/generar_acta_materia_fpdf.php?id_materia=<?= $mat['id_materia_bimestre'] ?>&tipo=recuperativo"><i class="fas fa-file-invoice me-2" style="color:#e83e8c;"></i> Acta Recuperativa</a></li>
                                                     <li><a class="dropdown-item py-2" target="_blank" href="../controllers/generar_constancia_facilitador.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"><i class="fas fa-certificate me-2 text-success"></i> Constancia</a></li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li><a class="dropdown-item py-2 text-danger" href="#" onclick="eliminarMateria(<?= $mat['id_materia_bimestre'] ?>)"><i class="fas fa-trash me-2"></i> Eliminar</a></li>
@@ -158,7 +169,19 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
 
                     <div class="mb-3">
                         <label>Nombre Materia</label>
-                        <input type="text" class="form-control" name="nombre_materia" id="nombre_materia" required>
+                        <input type="text" class="form-control" name="nombre_materia" id="nombre_materia" list="materias-list" required>
+                        <?php
+                        $stmtSugerencias = $db->getConn()->prepare("SELECT DISTINCT UPPER(TRIM(nombre_materia)) AS nombre_materia FROM cursos.materias_bimestre ORDER BY nombre_materia");
+                        $stmtSugerencias->execute();
+                        $sugerencias = $stmtSugerencias->fetchAll(PDO::FETCH_ASSOC);
+                        ?>
+                        <datalist id="materias-list">
+                            <?php foreach ($sugerencias as $sug): ?>
+                                <?php if (!empty($sug['nombre_materia'])): ?>
+                                    <option value="<?= htmlspecialchars($sug['nombre_materia']) ?>"></option>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </datalist>
                     </div>
 
                     <div class="row">
@@ -217,6 +240,43 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                 <table class="table table-sm">
                     <tbody id="tablaResultadosDocente"></tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Recuperativo -->
+<div class="modal fade" id="modalRecuperativo" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header text-white" style="background-color: #fd7e14;">
+                <h5 class="modal-title"><i class="fas fa-life-ring me-2"></i>Recuperativo: <span id="tituloMateriaRecuperativo"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formRecuperativo" onsubmit="return false;">
+                    <input type="hidden" name="action" value="guardar_notas_recuperativo">
+                    <input type="hidden" name="id_materia" id="id_materia_recup" value="0">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Cédula</th>
+                                    <th>Estudiante</th>
+                                    <th>Nota Regular</th>
+                                    <th>Nota Recuperativo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaAlumnosRecuperativo">
+                                <tr><td colspan="4" class="text-center">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn text-white" style="background-color: #fd7e14;" onclick="guardarRecuperativo()">Guardar Notas</button>
             </div>
         </div>
     </div>
@@ -324,5 +384,61 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
         $('#docente_id').val(id);
         $('#docente_nombre').val(nombre);
         $('#modalBuscarDocente').modal('hide');
+    }
+
+    function abrirRecuperativo(id_materia, nombre_materia) {
+        $('#id_materia_recup').val(id_materia);
+        $('#tituloMateriaRecuperativo').text(nombre_materia);
+        $('#tablaAlumnosRecuperativo').html('<tr><td colspan="4" class="text-center"><i class="fas fa-spinner fa-spin"></i> Buscando estudiantes reprobados...</td></tr>');
+        $('#modalRecuperativo').modal('show');
+        
+        $.ajax({
+            url: '../controllers/gestion_notas.php',
+            type: 'POST',
+            data: { action: 'obtener_alumnos_reprobados', id_materia: id_materia },
+            dataType: 'json',
+            success: function(res) {
+                if(res.success) {
+                    var html = '';
+                    if(res.alumnos && res.alumnos.length > 0) {
+                        res.alumnos.forEach(function(a) {
+                            html += '<tr>';
+                            html += '<td>' + a.cedula + '</td>';
+                            html += '<td>' + a.apellido + ' ' + a.nombre + '</td>';
+                            html += '<td class="text-danger fw-bold">' + parseFloat(a.nota_regular).toFixed(2) + '</td>';
+                            html += '<td><input type="number" class="form-control form-control-sm" name="notas_recup[' + a.id_usuario + ']" value="' + (a.nota_recuperativa ? parseFloat(a.nota_recuperativa).toFixed(2) : '') + '" min="1" max="100" step="0.01"></td>';
+                            html += '</tr>';
+                        });
+                    } else {
+                        html = '<tr><td colspan="4" class="text-center text-success fw-bold"><i class="fas fa-check-circle"></i> Todos los estudiantes de esta materia están aprobados o no hay datos.</td></tr>';
+                    }
+                    $('#tablaAlumnosRecuperativo').html(html);
+                } else {
+                    $('#tablaAlumnosRecuperativo').html('<tr><td colspan="4" class="text-danger text-center">Error: ' + res.message + '</td></tr>');
+                }
+            },
+            error: function() {
+                $('#tablaAlumnosRecuperativo').html('<tr><td colspan="4" class="text-danger text-center">Error de conexión</td></tr>');
+            }
+        });
+    }
+
+    function guardarRecuperativo() {
+        var datos = $('#formRecuperativo').serialize();
+        $.ajax({
+            url: '../controllers/gestion_notas.php',
+            type: 'POST',
+            data: datos,
+            dataType: 'json',
+            success: function(res) {
+                if(res.success) {
+                    Swal.fire('Guardado', 'Notas de recuperativo guardadas.', 'success');
+                    $('#modalRecuperativo').modal('hide');
+                } else {
+                    Swal.fire('Error', res.message, 'error');
+                }
+            },
+            error: function() { Swal.fire('Error', 'Error de conexión', 'error'); }
+        });
     }
 </script>

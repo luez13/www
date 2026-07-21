@@ -105,11 +105,20 @@ class Nota
     {
         // Obtener alumnos
         // NOTA: Asumimos que id_curso viene del join con materia
-        $sql_users = "SELECT u.id, u.nombre, u.apellido, u.cedula 
+        $sql_users = "SELECT u.id, u.nombre, u.apellido, u.cedula, um.nota_recuperativa
                       FROM cursos.usuarios u
                       JOIN cursos.certificaciones c ON u.id = c.id_usuario
                       JOIN cursos.materias_bimestre m ON c.curso_id = m.id_curso
+                      LEFT JOIN cursos.usuario_materias um ON u.id = um.id_usuario AND m.id_materia_bimestre = um.id_materia_bimestre
                       WHERE m.id_materia_bimestre = :id_materia
+                        AND NOT EXISTS (
+                            SELECT 1 
+                            FROM cursos.usuario_materias um_hist
+                            JOIN cursos.materias_bimestre mb_hist ON um_hist.id_materia_bimestre = mb_hist.id_materia_bimestre
+                            WHERE um_hist.id_usuario = u.id 
+                              AND UPPER(TRIM(mb_hist.nombre_materia)) = UPPER(TRIM(m.nombre_materia)) 
+                              AND um_hist.estado LIKE 'Aprobado%'
+                        )
                       ORDER BY u.apellido";
         $stmt = $this->conn->prepare($sql_users);
         $stmt->execute(['id_materia' => $id_materia]);
@@ -186,6 +195,72 @@ class Nota
             $salida[$r['id_usuario']][$r['id_materia_bimestre']] = number_format($val, 2);
         }
         return $salida;
+    }
+
+    // 6. Obtener Alumnos Reprobados para Recuperativo
+    public function getAlumnosReprobados($id_materia)
+    {
+        $sql = "SELECT 
+                    u.id as id_usuario, u.nombre, u.apellido, u.cedula,
+                    c.nota_minima_aprobatoria,
+                    SUM(np.calificacion_obtenida * (ac.ponderacion_porcentaje / 100)) as nota_regular,
+                    um.nota_recuperativa
+                FROM cursos.usuarios u
+                JOIN cursos.certificaciones cert ON u.id = cert.id_usuario
+                JOIN cursos.materias_bimestre m ON cert.curso_id = m.id_curso
+                JOIN cursos.cursos c ON m.id_curso = c.id_curso
+                LEFT JOIN cursos.actividades_config ac ON m.id_materia_bimestre = ac.id_materia_bimestre
+                LEFT JOIN cursos.notas_participante np ON u.id = np.id_usuario AND ac.id_actividad_config = np.id_actividad_config
+                LEFT JOIN cursos.usuario_materias um ON u.id = um.id_usuario AND m.id_materia_bimestre = um.id_materia_bimestre
+                WHERE m.id_materia_bimestre = :id_materia
+                GROUP BY u.id, u.nombre, u.apellido, u.cedula, c.nota_minima_aprobatoria, um.nota_recuperativa
+                ORDER BY u.apellido";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id_materia' => $id_materia]);
+        $alumnos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $reprobados = [];
+        foreach ($alumnos as $a) {
+            $nota = $a['nota_regular'] !== null ? (float)$a['nota_regular'] : 0.0;
+            if ($nota < $a['nota_minima_aprobatoria']) {
+                $a['nota_regular'] = $nota;
+                $reprobados[] = $a;
+            }
+        }
+        return $reprobados;
+    }
+
+    // 7. Guardar Notas de Recuperativo
+    public function guardarNotasRecuperativo($id_materia, $notas)
+    {
+        $sql_min = "SELECT c.nota_minima_aprobatoria FROM cursos.cursos c
+                    JOIN cursos.materias_bimestre m ON c.id_curso = m.id_curso
+                    WHERE m.id_materia_bimestre = :id_materia";
+        $stmt_min = $this->conn->prepare($sql_min);
+        $stmt_min->execute(['id_materia' => $id_materia]);
+        $nota_minima = $stmt_min->fetchColumn();
+
+        $sql = "INSERT INTO cursos.usuario_materias (id_usuario, id_materia_bimestre, nota_recuperativa, estado)
+                VALUES (:user, :materia, :nota, :estado)
+                ON CONFLICT (id_usuario, id_materia_bimestre) 
+                DO UPDATE SET nota_recuperativa = EXCLUDED.nota_recuperativa, estado = EXCLUDED.estado";
+        
+        $stmt = $this->conn->prepare($sql);
+        
+        foreach ($notas as $user_id => $valor) {
+            if ($valor === '') continue;
+            $valor_float = (float)$valor;
+            $estado = ($valor_float >= $nota_minima) ? 'Aprobado por Recuperativo' : 'Reprobado';
+
+            $stmt->execute([
+                'user' => $user_id,
+                'materia' => $id_materia,
+                'nota' => $valor_float,
+                'estado' => $estado
+            ]);
+        }
+        return true;
     }
 }
 ?>

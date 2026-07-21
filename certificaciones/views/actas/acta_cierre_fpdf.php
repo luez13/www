@@ -16,7 +16,7 @@ $contentWidth = $pageWidth - ($marginX * 2);
 
 // 1. ENCABEZADO
 if (isset($data['img_encabezado']) && file_exists($data['img_encabezado'])) {
-    $pdf->Image($data['img_encabezado'], 0, 0, $pageWidth, 25);
+    $pdf->Image($data['img_encabezado'], 4, 3, $pageWidth, 25);
 }
 
 // 2. TÍTULOS

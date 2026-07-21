@@ -31,7 +31,13 @@ try {
             $id_materia = isset($_POST['id_materia']) ? $_POST['id_materia'] : 0;
             $plan = $notaModel->getPlanEvaluacion($id_materia);
             $alumnos = $notaModel->getNotasDetalladas($id_materia);
-            $response = array('success' => true, 'plan' => $plan, 'alumnos' => $alumnos);
+            
+            // Verificar si el acta regular ya fue generada (cerrada)
+            $stmt_acta = $db->getConn()->prepare("SELECT 1 FROM cursos.actas_cierre WHERE id_materia_bimestre = :id AND tipo_acta = 'Regular' LIMIT 1");
+            $stmt_acta->execute(['id' => $id_materia]);
+            $acta_cerrada = $stmt_acta->fetchColumn() ? true : false;
+            
+            $response = array('success' => true, 'plan' => $plan, 'alumnos' => $alumnos, 'acta_cerrada' => $acta_cerrada);
             break;
 
         // B. Guardar Plan de Evaluación
@@ -73,6 +79,23 @@ try {
             }
 
             if($notaModel->guardarNotasDetalladas($notas_procesadas)) {
+                // Registrar justificación de auditoría si existe
+                $justificacion = isset($_POST['justificacion']) ? trim($_POST['justificacion']) : '';
+                if (!empty($justificacion)) {
+                    $id_materia_audit = isset($_POST['id_materia']) ? (int)$_POST['id_materia'] : 0;
+                    $usuario_actual = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'Sistema';
+                    
+                    $stmt_audit = $db->getConn()->prepare("INSERT INTO cursos.auditoria 
+                        (usuario, accion, tabla_afectada, fecha, dato_previo, dato_modificado, justificacion) 
+                        VALUES (:u, 'Edición de Notas Cerradas', 'notas_participante', NOW(), :prev, :mod, :just)");
+                    $stmt_audit->execute([
+                        'u' => $usuario_actual,
+                        'prev' => "Materia ID: $id_materia_audit",
+                        'mod' => "Notas modificadas post-cierre",
+                        'just' => $justificacion
+                    ]);
+                }
+
                 $response = array('success' => true, 'message' => 'Calificaciones actualizadas.');
             }
             break;
@@ -91,6 +114,31 @@ try {
                 }
             } else {
                 $response = array('success' => false, 'message' => 'Parámetros inválidos.');
+            }
+            break;
+
+        // E. Obtener alumnos reprobados para recuperativo
+        case 'obtener_alumnos_reprobados':
+            $id_materia = isset($_POST['id_materia']) ? (int)$_POST['id_materia'] : 0;
+            if ($id_materia > 0) {
+                $alumnos = $notaModel->getAlumnosReprobados($id_materia);
+                $response = array('success' => true, 'alumnos' => $alumnos);
+            } else {
+                $response = array('success' => false, 'message' => 'ID de materia inválido.');
+            }
+            break;
+
+        // F. Guardar notas de recuperativo
+        case 'guardar_notas_recuperativo':
+            $id_materia = isset($_POST['id_materia']) ? (int)$_POST['id_materia'] : 0;
+            $notas_recup = isset($_POST['notas_recup']) ? $_POST['notas_recup'] : array();
+
+            if ($id_materia > 0 && !empty($notas_recup)) {
+                if ($notaModel->guardarNotasRecuperativo($id_materia, $notas_recup)) {
+                    $response = array('success' => true, 'message' => 'Notas de recuperativo actualizadas.');
+                }
+            } else {
+                $response = array('success' => false, 'message' => 'No hay notas para guardar o faltan parámetros.');
             }
             break;
 

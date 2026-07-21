@@ -24,12 +24,16 @@ if (isset($_GET['valor_unico'])) {
 
         // Lógica de Plantilla Dinámica
         $nombreVistaBD = isset($datos_completos['archivo_vista']) && !empty($datos_completos['archivo_vista']) ? $datos_completos['archivo_vista'] : 'certificado_base.php';
-        $nombreFondo = str_replace('.php', '.jpg', $nombreVistaBD);
         
-        // El fondo específico por curso (.jpg)
-        $rutaFondoAbsoluta = realpath(__DIR__ . '/../public/assets/img/' . $nombreFondo);
+        $nombreFondoPng = str_replace('.php', '.png', $nombreVistaBD);
+        $nombreFondoJpg = str_replace('.php', '.jpg', $nombreVistaBD);
+        
+        $rutaFondoAbsoluta = realpath(__DIR__ . '/../public/assets/img/' . $nombreFondoPng);
         if (!$rutaFondoAbsoluta || !file_exists($rutaFondoAbsoluta)) {
-            $rutaFondoAbsoluta = realpath(__DIR__ . '/../public/assets/img/certificado_base.jpg');
+            $rutaFondoAbsoluta = realpath(__DIR__ . '/../public/assets/img/' . $nombreFondoJpg);
+            if (!$rutaFondoAbsoluta || !file_exists($rutaFondoAbsoluta)) {
+                $rutaFondoAbsoluta = realpath(__DIR__ . '/../public/assets/img/certificado_base.jpg');
+            }
         }
 
         // Lógica de Actas (Reglas Estrictas)
