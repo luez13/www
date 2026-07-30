@@ -118,6 +118,7 @@ class Nota
                             WHERE um_hist.id_usuario = u.id 
                               AND UPPER(TRIM(mb_hist.nombre_materia)) = UPPER(TRIM(m.nombre_materia)) 
                               AND um_hist.estado LIKE 'Aprobado%'
+                              AND mb_hist.id_materia_bimestre != m.id_materia_bimestre
                         )
                       ORDER BY u.apellido";
         $stmt = $this->conn->prepare($sql_users);

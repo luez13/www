@@ -103,6 +103,9 @@ if ($id_curso_sel > 0) {
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Administración de Constancias y Firmas</h1>
+        <a href="#" onclick="loadPage('../views/admin_certificados_materias.php')" class="btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-layer-group fa-sm text-white-50"></i> Asignar Tomo y Folio a Materias
+        </a>
     </div>
 
     <!-- Selector de Curso -->

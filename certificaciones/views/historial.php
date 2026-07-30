@@ -86,9 +86,14 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                 <hr>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <small class="text-muted"><i class="far fa-calendar-alt"></i> Inicio: <?= $curso['inicio_mes'] ?></small>
-                                    <button class="btn btn-primary btn-sm" onclick="loadCourse(<?= $curso['id_curso'] ?>)">
-                                        Continuar <i class="fas fa-arrow-right ml-1"></i>
-                                    </button>
+                                    <div>
+                                        <button class="btn btn-outline-info btn-sm" onclick="verNotasCurso(<?= $curso['id_curso'] ?>)">
+                                            <i class="fas fa-eye"></i> Notas
+                                        </button>
+                                        <button class="btn btn-primary btn-sm ml-1" onclick="loadCourse(<?= $curso['id_curso'] ?>)">
+                                            Continuar <i class="fas fa-arrow-right ml-1"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <?php
                                 // Extraer materias aprobadas para este curso
@@ -113,6 +118,10 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                         </div>
                                     </div>
                                 <?php endif; ?>
+                                
+                                <div class="mt-3 d-none" id="notas_curso_<?= $curso['id_curso'] ?>">
+                                    <div class="text-center"><i class="fas fa-spinner fa-spin"></i> Cargando notas...</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -177,8 +186,11 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                 </div>
                                 <hr>
                                 <div class="d-flex justify-content-end gap-2 mb-2">
+                                    <button onclick="verNotasCurso(<?= $curso['id_curso'] ?>)" class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-eye"></i> Ver Notas
+                                    </button>
                                     <a href="#" onclick="loadCourse(<?= $curso['id_curso'] ?>)" class="btn btn-sm btn-info">
-                                        <i class="fas fa-eye"></i> Detalles
+                                        <i class="fas fa-list"></i> Detalles
                                     </a>
                                     <?php if ($curso['pago'] == 1): ?>
                                         <a href="../controllers/generar_certificado.php?valor_unico=<?= $curso['valor_unico'] ?>" target="_blank" class="btn btn-sm btn-success">
@@ -213,6 +225,10 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                         </div>
                                     </div>
                                 <?php endif; ?>
+
+                                <div class="mt-3 d-none" id="notas_curso_<?= $curso['id_curso'] ?>">
+                                    <div class="text-center"><i class="fas fa-spinner fa-spin"></i> Cargando notas...</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -221,5 +237,24 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
         </div>
     <?php endif; ?>
 </div>
+
+<script>
+function verNotasCurso(id_curso) {
+    const container = document.getElementById('notas_curso_' + id_curso);
+    if (container.classList.contains('d-none')) {
+        container.classList.remove('d-none');
+        fetch(`../controllers/get_notas_curso_ajax.php?id_curso=${id_curso}`)
+            .then(res => res.text())
+            .then(html => {
+                container.innerHTML = html;
+            })
+            .catch(err => {
+                container.innerHTML = '<div class="alert alert-danger">Error al cargar las notas.</div>';
+            });
+    } else {
+        container.classList.add('d-none');
+    }
+}
+</script>
 
 <?php if (!$is_ajax) { include 'footer.php'; } ?>

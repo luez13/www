@@ -15,7 +15,7 @@ $db = new DB();
 $pagoModel = new Pago($db);
 
 // Obtener los cursos del usuario (Certificaciones)
-$sqlCursos = "SELECT c.id_curso, c.nombre_curso, c.costo, cert.pago 
+$sqlCursos = "SELECT c.id_curso, c.nombre_curso, c.costo, c.permitir_pagos, cert.pago 
               FROM cursos.certificaciones cert
               JOIN cursos.cursos c ON cert.curso_id = c.id_curso
               WHERE cert.id_usuario = :user_id";
@@ -109,7 +109,7 @@ function h($str)
                                     $estadoPago = $c['pago'] ? '(Pagado)' : '(Pendiente)';
                                     $costoTexto = $c['costo'] > 0 ? '$' . number_format($c['costo'], 2) : 'Gratis';
                                     ?>
-                                    <option value="<?= $c['id_curso'] ?>">
+                                    <option value="<?= $c['id_curso'] ?>" data-permitir="<?= isset($c['permitir_pagos']) && $c['permitir_pagos'] ? '1' : '0' ?>">
                                         <?= h($c['nombre_curso']) ?> - <?= $costoTexto ?>    <?= $estadoPago ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -163,7 +163,10 @@ function h($str)
                         </div>
 
                         <div class="text-right">
-                            <button type="button" class="btn btn-success btn-lg shadow-sm" onclick="subirComprobantePago()">
+                            <div id="alerta_pago_cerrado" class="alert alert-danger" style="display: none;">
+                                <i class="fas fa-exclamation-triangle me-2"></i> La taquilla de pagos en línea para este cohorte ha sido cerrada administrativamente. Para reportar pagos atrasados o aranceles de grado, comuníquese directamente con el departamento de administración.
+                            </div>
+                            <button type="button" id="btnEnviarPago" class="btn btn-success btn-lg shadow-sm" onclick="subirComprobantePago()">
                                 <i class="fas fa-paper-plane me-2"></i> Enviar Comprobante
                             </button>
                         </div>
@@ -442,6 +445,24 @@ function h($str)
     }
 
     function cargarMaterias(idCurso) {
+        var selectCurso = document.getElementById('select_curso');
+        var btnEnviarPago = document.getElementById('btnEnviarPago');
+        var alertaPagoCerrado = document.getElementById('alerta_pago_cerrado');
+        
+        if (selectCurso.selectedIndex > 0) {
+            var permitir = selectCurso.options[selectCurso.selectedIndex].getAttribute('data-permitir');
+            if (permitir === '0') {
+                btnEnviarPago.disabled = true;
+                alertaPagoCerrado.style.display = 'block';
+            } else {
+                btnEnviarPago.disabled = false;
+                alertaPagoCerrado.style.display = 'none';
+            }
+        } else {
+            btnEnviarPago.disabled = false;
+            alertaPagoCerrado.style.display = 'none';
+        }
+
         var selectMateria = document.getElementById('select_materia');
         var contenedorMaterias = document.getElementById('contenedorMaterias');
 

@@ -179,6 +179,10 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                                     </td>
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-sm btn-outline-info shadow-sm" title="Ver Expediente"
+                                                onclick="event.stopPropagation(); verExpediente(<?= htmlspecialchars($usuario['id']); ?>)">
+                                                <i class="fas fa-eye"></i> Expediente
+                                            </button>
                                             <button class="btn btn-sm btn-outline-primary shadow-sm" title="Editar Usuario"
                                                 onclick="event.stopPropagation(); abrirModalEdicion(<?= htmlspecialchars($usuario['id']); ?>)">
                                                 <i class="fas fa-edit"></i> Editar
@@ -201,6 +205,29 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                 <?= renderPaginationUsuarios($total_pages, $page, $busqueda) ?>
             </div>
         <?php endif; ?>
+    </div>
+
+    <!-- Modal para Ver Expediente (Solo Lectura) -->
+    <div class="modal fade" id="verExpedienteModal" tabindex="-1" aria-labelledby="verExpedienteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-info text-white border-0">
+                    <h5 class="modal-title" id="verExpedienteModalLabel"><i class="fas fa-eye me-2"></i> Expediente Académico</h5>
+                    <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body p-4 bg-light" id="contenedorExpediente">
+                    <div class="text-center p-5">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Cargando expediente forense...</p>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal para Editar Usuario -->
@@ -731,4 +758,29 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
             }
         }
     });
+
+    // Lógica para Ver Expediente
+    function verExpediente(id) {
+        $('#verExpedienteModal').modal('show');
+        $('#contenedorExpediente').html(`
+            <div class="text-center p-5">
+                <div class="spinner-border text-info" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2 text-muted">Consultando historial inmutable...</p>
+            </div>
+        `);
+
+        $.ajax({
+            url: '../controllers/get_expediente.php',
+            type: 'GET',
+            data: { id_usuario: id },
+            success: function(response) {
+                $('#contenedorExpediente').html(response);
+            },
+            error: function() {
+                $('#contenedorExpediente').html('<div class="alert alert-danger">Error crítico al consultar el expediente. Privilegios insuficientes o falla de red.</div>');
+            }
+        });
+    }
 </script>

@@ -231,6 +231,7 @@ switch ($action) {
         $fecha_finalizacion = $_POST['fecha_finalizacion'];
         $firma_digital = isset($_POST['firma_digital']) ? true : false;
         $estado = isset($_POST['estado']) ? $_POST['estado'] : '1';
+        $permitir_pagos = isset($_POST['permitir_pagos']) ? $_POST['permitir_pagos'] : '1';
         $id_plantilla = isset($_POST['id_plantilla']) && $_POST['id_plantilla'] !== '' ? $_POST['id_plantilla'] : null;
         $nota_minima_aprobatoria = isset($_POST['nota_minima_aprobatoria']) ? $_POST['nota_minima_aprobatoria'] : 12;
 
@@ -344,7 +345,8 @@ switch ($action) {
                 $modulos_a_eliminar_ids, // IDs a eliminar
                 $estado,
                 $id_plantilla,
-                $nota_minima_aprobatoria
+                $nota_minima_aprobatoria,
+                $permitir_pagos
             );
 
             if ($resultado_edicion) {

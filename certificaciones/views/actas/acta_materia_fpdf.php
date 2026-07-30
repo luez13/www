@@ -22,7 +22,14 @@ if (isset($data['img_encabezado']) && file_exists($data['img_encabezado'])) {
 
 $pdf->SetY(35);
 $pdf->SetFont('Times', 'B', 13);
-$tituloActa = "ACTA DE CIERRE DEL " . $data['periodo_titulo'] . " DEL DIPLOMADO:";
+$tipoCurso = mb_strtoupper(isset($data['tipo_curso']) && !empty($data['tipo_curso']) ? $data['tipo_curso'] : 'DIPLOMADO', 'UTF-8');
+
+if (isset($data['tipo_acta']) && $data['tipo_acta'] === 'Recuperativo') {
+    $tituloActa = "ACTA DE CIERRE DEL RECUPERATIVO " . $data['periodo_titulo'] . " DEL " . $tipoCurso . ":";
+} else {
+    $tituloActa = "ACTA DE CIERRE DEL " . $data['periodo_titulo'] . " DEL " . $tipoCurso . ":";
+}
+
 $pdf->MultiCell($contentWidth, 6, utf8_decode($tituloActa), 0, 'C');
 $pdf->Ln(1);
 $pdf->MultiCell($contentWidth, 6, utf8_decode($data['curso']), 0, 'C');
@@ -33,7 +40,13 @@ $pdf->SetFont('Times', '', 12);
 $mesNombre = $data['mes_nombre'];
 $sangria = "     ";
 
-$textoIntro = $sangria . "En la ciudad de San Cristóbal, Estado Táchira, a los " . $data['fecha_actual'] . " días del mes de " . $mesNombre . " del año " . $data['anio_actual'] . ", siendo las " . $data['hora_actual'] . ", se procede a realizar el cierre académico correspondiente a la materia del Diplomado impartido en la Universidad Politécnica Territorial Agroindustrial del Estado Táchira.";
+$tipoCursoIntro = mb_convert_case(isset($data['tipo_curso']) && !empty($data['tipo_curso']) ? $data['tipo_curso'] : 'Diplomado', MB_CASE_TITLE, 'UTF-8');
+
+if (isset($data['tipo_acta']) && $data['tipo_acta'] === 'Recuperativo') {
+    $textoIntro = $sangria . "En la ciudad de San Cristóbal, Estado Táchira, a los " . $data['fecha_actual'] . " días del mes de " . $mesNombre . " del año " . $data['anio_actual'] . ", siendo las " . $data['hora_actual'] . ", se procede a realizar el cierre académico correspondiente al recuperativo de la materia del " . $tipoCursoIntro . " impartido en la Universidad Politécnica Territorial Agroindustrial del Estado Táchira.";
+} else {
+    $textoIntro = $sangria . "En la ciudad de San Cristóbal, Estado Táchira, a los " . $data['fecha_actual'] . " días del mes de " . $mesNombre . " del año " . $data['anio_actual'] . ", siendo las " . $data['hora_actual'] . ", se procede a realizar el cierre académico correspondiente a la materia del " . $tipoCursoIntro . " impartido en la Universidad Politécnica Territorial Agroindustrial del Estado Táchira.";
+}
 
 $pdf->MultiCell($contentWidth, 5, utf8_decode($textoIntro), 0, 'J');
 $pdf->Ln(2);

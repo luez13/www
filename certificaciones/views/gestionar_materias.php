@@ -96,14 +96,14 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                                                     style="background-color: #fd7e14; border-color: #fd7e14;" title="Evaluación Recuperativa">
                                                     <i class="fas fa-life-ring"></i>
                                                 </button>
-                                                <a href="../controllers/generar_acta_materia_fpdf.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"
-                                                    target="_blank" class="btn btn-info btn-sm" title="Acta de Cierre">
+                                                <button class="btn btn-info btn-sm" title="Acta de Cierre (Regular)"
+                                                    onclick="abrirModalActaMateria(<?= $mat['id_materia_bimestre'] ?>, 'Regular')">
                                                     <i class="fas fa-file-contract"></i>
-                                                </a>
-                                                <a href="../controllers/generar_acta_materia_fpdf.php?id_materia=<?= $mat['id_materia_bimestre'] ?>&tipo=recuperativo"
-                                                    target="_blank" class="btn btn-secondary btn-sm" style="background-color: #e83e8c; border-color: #e83e8c;" title="Acta de Recuperativo">
+                                                </button>
+                                                <button class="btn btn-secondary btn-sm" style="background-color: #e83e8c; border-color: #e83e8c;" title="Acta de Recuperativo"
+                                                    onclick="abrirModalActaMateria(<?= $mat['id_materia_bimestre'] ?>, 'Recuperativo')">
                                                     <i class="fas fa-file-invoice"></i>
-                                                </a>
+                                                </button>
                                                 <a href="../controllers/generar_constancia_facilitador.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"
                                                     target="_blank" class="btn btn-success btn-sm" title="Constancia de Docencia">
                                                     <i class="fas fa-certificate"></i>
@@ -123,8 +123,8 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                                                 <ul class="dropdown-menu shadow border-0" aria-labelledby="dropdownMenu<?= $mat['id_materia_bimestre'] ?>" style="z-index: 1050;">
                                                     <li><a class="dropdown-item py-2" href="#" onclick="editarMateria(<?= $mat['id_materia_bimestre'] ?>)"><i class="fas fa-edit me-2 text-warning"></i> Editar</a></li>
                                                     <li><a class="dropdown-item py-2" href="#" onclick="abrirRecuperativo(<?= $mat['id_materia_bimestre'] ?>, '<?= addslashes(htmlspecialchars($mat['nombre_materia'])) ?>')"><i class="fas fa-life-ring me-2" style="color:#fd7e14;"></i> Ev. Recuperativa</a></li>
-                                                    <li><a class="dropdown-item py-2" target="_blank" href="../controllers/generar_acta_materia_fpdf.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"><i class="fas fa-file-contract me-2 text-info"></i> Acta Regular</a></li>
-                                                    <li><a class="dropdown-item py-2" target="_blank" href="../controllers/generar_acta_materia_fpdf.php?id_materia=<?= $mat['id_materia_bimestre'] ?>&tipo=recuperativo"><i class="fas fa-file-invoice me-2" style="color:#e83e8c;"></i> Acta Recuperativa</a></li>
+                                                    <li><a class="dropdown-item py-2" href="#" onclick="abrirModalActaMateria(<?= $mat['id_materia_bimestre'] ?>, 'Regular')"><i class="fas fa-file-contract me-2 text-info"></i> Acta Regular</a></li>
+                                                    <li><a class="dropdown-item py-2" href="#" onclick="abrirModalActaMateria(<?= $mat['id_materia_bimestre'] ?>, 'Recuperativo')"><i class="fas fa-file-invoice me-2" style="color:#e83e8c;"></i> Acta Recuperativa</a></li>
                                                     <li><a class="dropdown-item py-2" target="_blank" href="../controllers/generar_constancia_facilitador.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"><i class="fas fa-certificate me-2 text-success"></i> Constancia</a></li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li><a class="dropdown-item py-2 text-danger" href="#" onclick="eliminarMateria(<?= $mat['id_materia_bimestre'] ?>)"><i class="fas fa-trash me-2"></i> Eliminar</a></li>
@@ -441,4 +441,57 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
             error: function() { Swal.fire('Error', 'Error de conexión', 'error'); }
         });
     }
+
+    var actaMateriaSeleccionada = 0;
+    var actaTipoSeleccionado = '';
+
+    window.abrirModalActaMateria = function(id, tipo) {
+        actaMateriaSeleccionada = id;
+        actaTipoSeleccionado = tipo;
+        $('#modalActaMateria').modal('show');
+    };
+
+    window.generarActaFinal = function() {
+        var fecha = $('#inputFechaActa').val();
+        var url = '../controllers/generar_acta_materia_fpdf.php?id_materia=' + actaMateriaSeleccionada;
+        
+        if (actaTipoSeleccionado === 'Recuperativo') {
+            url += '&tipo=recuperativo';
+        }
+        if (fecha) {
+            url += '&fecha_historica=' + fecha;
+        }
+
+        $('#modalActaMateria').modal('hide');
+        window.open(url, '_blank');
+    };
 </script>
+
+<div class="modal fade" id="modalActaMateria" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white border-0">
+                <h5 class="modal-title"><i class="fas fa-file-signature me-2"></i> Emisión de Acta</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <p class="text-muted small">Al emitir el acta, puede fijar una fecha histórica. Esta fecha se registrará de forma inmutable en el sistema y aparecerá en el PDF.</p>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Forzar Nueva Fecha Histórica (Opcional):</label>
+                    <?php $disabled_acta = ($_SESSION['id_rol'] != 4) ? 'disabled' : ''; ?>
+                    <input type="date" id="inputFechaActa" class="form-control" <?= $disabled_acta ?>>
+                    <small class="text-muted mt-1 d-block">Déjelo en blanco para mantener la fecha original de emisión (o usar la de hoy si es la primera vez).</small>
+                    <?php if ($_SESSION['id_rol'] != 4): ?>
+                        <small class="text-danger mt-1 d-block"><i class="fas fa-lock"></i> Solo el Administrador (Rol 4) puede alterar la fecha cronológica.</small>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="window.generarActaFinal()">
+                    <i class="fas fa-print me-1"></i> Generar Acta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

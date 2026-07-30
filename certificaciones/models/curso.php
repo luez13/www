@@ -179,7 +179,8 @@ class Curso
         $modulos_a_eliminar_ids = '',
         $estado = '1',
         $id_plantilla = null,
-        $nota_minima_aprobatoria = 12
+        $nota_minima_aprobatoria = 12,
+        $permitir_pagos = '1'
     ) {
 
         // Restauramos la transacción para un guardado seguro
@@ -207,6 +208,7 @@ class Curso
                 ':fecha_finalizacion' => $fecha_finalizacion,
                 ':firma_digital' => $firma_digital ? 'true' : 'false',
                 ':estado' => $estado == '1' || $estado == 'true' || $estado === true ? 'true' : 'false',
+                ':permitir_pagos' => $permitir_pagos == '1' || $permitir_pagos == 'true' || $permitir_pagos === true ? 'true' : 'false',
                 ':id_plantilla' => $id_plantilla,
                 ':nota_minima_aprobatoria' => $nota_minima_aprobatoria,
                 ':id_curso' => $id_curso
@@ -219,7 +221,7 @@ class Curso
                         nivel_curso = :nivel_curso, costo = :costo, conocimientos_previos = :conocimientos_previos, 
                         requerimientos_implemento = :requerimientos_implemento, desempeno_al_concluir = :desempeno_al_concluir, 
                         horas_cronologicas = :horas_cronologicas, fecha_finalizacion = :fecha_finalizacion, firma_digital = :firma_digital, estado = :estado,
-                        id_plantilla = :id_plantilla, nota_minima_aprobatoria = :nota_minima_aprobatoria";
+                        id_plantilla = :id_plantilla, nota_minima_aprobatoria = :nota_minima_aprobatoria, permitir_pagos = :permitir_pagos";
 
             if ($autorizacion !== null) {
                 $sql .= ', autorizacion = :autorizacion';
@@ -636,7 +638,7 @@ class Curso
                u.nombre AS nombre_estudiante, u.apellido AS apellido_estudiante, u.cedula,
                cert.fecha_inscripcion, cert.tomo, cert.folio,
                cert.nota, cert.completado, p.archivo_vista,
-               c.nota_minima_aprobatoria
+               c.nota_minima_aprobatoria, c.fecha_acta_cierre
         FROM cursos.cursos AS c
         JOIN cursos.certificaciones AS cert ON cert.curso_id = c.id_curso
         JOIN cursos.usuarios AS u ON cert.id_usuario = u.id
@@ -764,6 +766,9 @@ class Curso
                 'nombre' => '[Firmante no asignado]',
                 'titulo' => '',
                 'cargo' => '',
+                'posicion_codigo' => $config['codigo_posicion'],
+                'pagina' => isset($config['pagina']) ? $config['pagina'] : 1,
+                'es_promotor' => $config['usar_promotor_curso']
             ];
 
             $data_firmante = null;

@@ -61,7 +61,7 @@ function formatearPeriodo($textoRaw, $lapsoNumBd) {
 
 // --- 3. OBTENER DATOS DE LA BD ---
 $sql_info = "SELECT m.nombre_materia, m.duracion_bimestres, m.lapso_academico, m.total_horas, m.modalidad, 
-                    c.nombre_curso, c.id_curso,
+                    c.nombre_curso, c.id_curso, c.tipo_curso,
                     u.nombre as nom_doc, u.apellido as ape_doc, u.cedula as ced_doc, u.firma_digital as firma_doc
              FROM cursos.materias_bimestre m
              JOIN cursos.cursos c ON m.id_curso = c.id_curso
@@ -198,6 +198,8 @@ if ($tipo_acta === 'Recuperativo') {
 $meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
 $data = [
+    'tipo_acta' => $tipo_acta,
+    'tipo_curso' => $info['tipo_curso'],
     'curso' => formatoTexto($info['nombre_curso']), 
     'materia' => formatoTexto($info['nombre_materia']),
     'duracion' => formatoTexto($info['duracion_bimestres']),
@@ -226,29 +228,51 @@ $data = [
 ];
 
 // --- 6. REGISTRAR ACTA EN BD Y OBTENER FECHA FORENSE ---
-// Buscar si ya existe el acta para no sobreescribir la fecha de generación
-$stmt_check_acta = $conn->prepare("SELECT fecha_generacion, fecha_cierre FROM cursos.actas_cierre WHERE id_materia_bimestre = :m AND tipo_acta = :tipo LIMIT 1");
+// Buscar si ya existe el acta para no sobreescribir la fecha de generación a menos que lo pida Rol 4
+$stmt_check_acta = $conn->prepare("SELECT id_acta, fecha_generacion, fecha_cierre FROM cursos.actas_cierre WHERE id_materia_bimestre = :m AND tipo_acta = :tipo LIMIT 1");
 $stmt_check_acta->execute(['m' => $id_materia, 'tipo' => $tipo_acta]);
 $acta_existente = $stmt_check_acta->fetch(PDO::FETCH_ASSOC);
 
-if ($acta_existente) {
-    // Si ya existe, usamos la fecha histórica (fecha_cierre original)
-    $ts_historico = strtotime($acta_existente['fecha_cierre']);
-    $data['fecha_actual'] = date('d', $ts_historico);
-    $data['mes_nombre'] = $meses[date('n', $ts_historico)-1];
-    $data['anio_actual'] = date('Y', $ts_historico);
-    $data['hora_actual'] = date('h:i a', $ts_historico);
+$fecha_final_usada = time(); // Por defecto, ahora
+
+// Verificar si el Rol 4 envió una fecha histórica forzada
+if (isset($_GET['fecha_historica']) && !empty($_GET['fecha_historica'])) {
+    if (isset($_SESSION['id_rol']) && $_SESSION['id_rol'] == 4) {
+        $fecha_final_usada = strtotime($_GET['fecha_historica']);
+    }
 } else {
-    // Si es la primera vez, se registra
-    $stmt_acta = $conn->prepare("INSERT INTO cursos.actas_cierre (id_materia_bimestre, fecha_cierre, participantes_inscritos, participantes_aprobados, tipo_acta) 
-                                 VALUES (:m, NOW(), :inscritos, :aprobados, :tipo)");
+    // Si no envió fecha forzada, pero ya existía, usar la existente
+    if ($acta_existente) {
+        $fecha_final_usada = strtotime($acta_existente['fecha_cierre']);
+    }
+}
+
+// Actualizamos o Insertamos el registro
+$fecha_db_str = date('Y-m-d H:i:s', $fecha_final_usada);
+
+if ($acta_existente) {
+    // Actualizar (UPSERT)
+    $stmt_update = $conn->prepare("UPDATE cursos.actas_cierre SET fecha_cierre = :f, fecha_generacion = :fd WHERE id_acta = :id");
+    $stmt_update->execute(['f' => $fecha_db_str, 'fd' => date('Y-m-d', $fecha_final_usada), 'id' => $acta_existente['id_acta']]);
+} else {
+    // Insertar
+    $stmt_acta = $conn->prepare("INSERT INTO cursos.actas_cierre (id_materia_bimestre, fecha_cierre, fecha_generacion, participantes_inscritos, participantes_aprobados, tipo_acta) 
+                                 VALUES (:m, :f, :fd, :inscritos, :aprobados, :tipo)");
     $stmt_acta->execute([
         'm' => $id_materia,
+        'f' => $fecha_db_str,
+        'fd' => date('Y-m-d', $fecha_final_usada),
         'inscritos' => $data['total_participantes'],
         'aprobados' => $data['aprobados'],
         'tipo' => $tipo_acta
     ]);
 }
+
+// Inyectar en el FPDF
+$data['fecha_actual'] = date('d', $fecha_final_usada);
+$data['mes_nombre'] = $meses[date('n', $fecha_final_usada)-1];
+$data['anio_actual'] = date('Y', $fecha_final_usada);
+$data['hora_actual'] = date('h:i a', $fecha_final_usada);
 
 // --- 7. GENERACIÓN CON FPDF ---
 $pdf = new \FPDF();

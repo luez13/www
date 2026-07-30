@@ -53,13 +53,19 @@ $stmtAlumnos = $conn->prepare("
 $stmtAlumnos->execute(['id' => $id_curso]);
 $alumnos = $stmtAlumnos->fetchAll(PDO::FETCH_ASSOC);
 
+$stmtMaterias = $conn->prepare("SELECT id_materia_bimestre, nombre_materia FROM cursos.materias_bimestre WHERE id_curso = :id ORDER BY id_materia_bimestre ASC");
+$stmtMaterias->execute(['id' => $id_curso]);
+$lista_materias = $stmtMaterias->fetchAll(PDO::FETCH_ASSOC);
+
 // 5. EVENTO DE CIERRE EXPLÍCITO Y ARRASTRE DE CRÉDITOS
-$stmtTotal = $conn->prepare("SELECT COUNT(*) FROM cursos.materias_bimestre WHERE id_curso = :id");
-$stmtTotal->execute(['id' => $id_curso]);
-$total_materias_curso = (int)$stmtTotal->fetchColumn();
+$total_materias_curso = count($lista_materias);
 
 $stmtHist = $conn->prepare("
     SELECT 
+        m_pensum.id_materia_bimestre,
+        m_pensum.nombre_materia,
+        MAX(um_hist.nota_regular) as nota_regular,
+        MAX(um_hist.nota_recuperativa) as nota_recuperativa,
         MAX(COALESCE(NULLIF(um_hist.nota_recuperativa, 0), um_hist.nota_regular)) AS nota_historica
     FROM cursos.materias_bimestre m_pensum
     LEFT JOIN cursos.materias_bimestre mb_hist ON UPPER(TRIM(m_pensum.nombre_materia)) = UPPER(TRIM(mb_hist.nombre_materia))
@@ -67,7 +73,8 @@ $stmtHist = $conn->prepare("
                                               AND um_hist.id_usuario = :id_usuario
                                               AND um_hist.estado LIKE 'Aprobado%'
     WHERE m_pensum.id_curso = :id_curso
-    GROUP BY m_pensum.nombre_materia
+    GROUP BY m_pensum.id_materia_bimestre, m_pensum.nombre_materia
+    ORDER BY m_pensum.id_materia_bimestre ASC
 ");
 
 $stmtUpdateCert = $conn->prepare("UPDATE cursos.certificaciones SET nota = :nota, completado = :completado WHERE id_usuario = :id_usuario AND curso_id = :id_curso");
@@ -86,30 +93,45 @@ foreach ($alumnos as &$al) {
     $stmtHist->execute(['id_curso' => $id_curso, 'id_usuario' => $al['id_usuario']]);
     $materias_historial = $stmtHist->fetchAll(PDO::FETCH_ASSOC);
     
+    $al['historial_materias'] = [];
     $materias_aprobadas = 0;
     $suma_notas = 0;
     foreach ($materias_historial as $mh) {
+        $al['historial_materias'][$mh['id_materia_bimestre']] = [
+            'nombre_materia' => $mh['nombre_materia'],
+            'nota_historica' => $mh['nota_historica'],
+            'nota_regular' => $mh['nota_regular'],
+            'nota_recuperativa' => $mh['nota_recuperativa']
+        ];
+        
         if ($mh['nota_historica'] !== null) {
             $materias_aprobadas++;
             $suma_notas += (float)$mh['nota_historica'];
         }
     }
 
-    if ($total_materias_curso > 0 && $materias_aprobadas == $total_materias_curso) {
-        $al['completado'] = true;
-        $al['nota'] = round($suma_notas / $total_materias_curso);
+    if ($total_materias_curso > 0) {
+        if ($materias_aprobadas == $total_materias_curso) {
+            $al['completado'] = true;
+            $al['nota'] = round($suma_notas / $total_materias_curso);
+        } else {
+            $al['completado'] = false;
+            $al['nota'] = $materias_aprobadas > 0 ? round($suma_notas / $total_materias_curso) : null;
+        }
+
+        // Persistir estado final de certificación para inmutabilidad del acta solo si es curso modular
+        $stmtUpdateCert->execute([
+            'nota' => $al['nota'],
+            'completado' => $al['completado'] ? 'true' : 'false',
+            'id_usuario' => $al['id_usuario'],
+            'id_curso' => $id_curso
+        ]);
     } else {
-        $al['completado'] = false;
-        $al['nota'] = $total_materias_curso > 0 && $materias_aprobadas > 0 ? round($suma_notas / $total_materias_curso) : null;
+        // Si no tiene materias (curso normal), conservamos la nota manual de la base de datos
+        $al['completado'] = (bool)$al['completado'];
     }
 
-    // Persistir estado final de certificación para inmutabilidad del acta
-    $stmtUpdateCert->execute([
-        'nota' => $al['nota'],
-        'completado' => $al['completado'] ? 'true' : 'false',
-        'id_usuario' => $al['id_usuario'],
-        'id_curso' => $id_curso
-    ]);
+    // (La actualización a la base de datos se movió dentro del if)
 
     // Calcular contadores para el PDF
     if ($al['completado'] == false) {
@@ -235,6 +257,7 @@ $data = [
     'img_encabezado' => $img_encabezado,
     'img_pie' => $img_pie,
     'alumnos' => $alumnos,
+    'lista_materias' => $lista_materias,
     'nota_minima_aprobatoria' => $nota_min
 ];
 

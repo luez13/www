@@ -60,7 +60,7 @@ if (isset($_GET['valor_unico'])) {
             'paso' => $estadoPaso,
             'fechaInscripcion' => $datos_completos['fecha_inscripcion'],
             'inicioMesCurso' => $datos_completos['inicio_mes'],
-            'fechaFinalizacionCurso' => $datos_completos['fecha_finalizacion'],
+            'fechaFinalizacionCurso' => !empty($datos_completos['fecha_acta_cierre']) ? $datos_completos['fecha_acta_cierre'] : $datos_completos['fecha_finalizacion'],
             'tomo' => $datos_completos['tomo'],
             'folio' => $datos_completos['folio'],
             'nota' => $datos_completos['nota'],

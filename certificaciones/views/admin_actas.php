@@ -189,12 +189,22 @@ if ($id_curso_sel > 0) {
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="fecha_cierre" class="form-label font-weight-bold">Fecha de Cierre:</label>
-                                    <input type="date" class="form-control" id="fecha_cierre" name="fecha_cierre" value="<?= date('Y-m-d') ?>" required>
+                                    <label for="fecha_cierre" class="form-label font-weight-bold">Fecha Maestra (Diplomas/Acta):</label>
+                                    <div class="input-group">
+                                        <?php 
+                                        $fecha_maestra = !empty($curso_info['fecha_acta_cierre']) ? date('Y-m-d', strtotime($curso_info['fecha_acta_cierre'])) : date('Y-m-d');
+                                        $disabled = ($_SESSION['id_rol'] != 4) ? 'disabled' : '';
+                                        ?>
+                                        <input type="date" class="form-control" id="fecha_cierre" name="fecha_cierre" value="<?= $fecha_maestra ?>" <?= $disabled ?> required>
+                                        <?php if ($_SESSION['id_rol'] == 4): ?>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="fijarFechaMaestra(<?= $id_curso_sel ?>)"><i class="fas fa-save"></i> Fijar</button>
+                                        <?php endif; ?>
+                                    </div>
+                                    <small class="text-muted">Fecha impresa en los certificados finales.</small>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="hora_cierre" class="form-label font-weight-bold">Hora de Cierre:</label>
-                                    <input type="text" class="form-control" id="hora_cierre" name="hora_cierre" value="<?= date('h:i a') ?>" placeholder="Ej: 10:30 am" required>
+                                    <input type="text" class="form-control" id="hora_cierre" name="hora_cierre" value="<?= date('h:i a') ?>" placeholder="Ej: 10:30 am" <?= $disabled ?> required>
                                 </div>
                             </div>
                             <div class="alert alert-info py-2 small mb-4">
@@ -349,6 +359,28 @@ if ($id_curso_sel > 0) {
     }
 
     function limpiarActaFiltro() {
+        $('#selectCursoActa').val(null).trigger('change');
         loadPage('../views/admin_actas.php');
+    }
+
+    function fijarFechaMaestra(idCurso) {
+        var fecha = $('#fecha_cierre').val();
+        if(!fecha) {
+            alert('Debe seleccionar una fecha.');
+            return;
+        }
+        if(!confirm('¿Está seguro de fijar ' + fecha + ' como la fecha legal de cierre para los diplomas de este curso?')) return;
+        
+        $.ajax({
+            url: '../controllers/set_fecha_acta.php',
+            type: 'POST',
+            data: { id_curso: idCurso, fecha: fecha },
+            success: function(res) {
+                alert(res);
+            },
+            error: function(xhr) {
+                alert('Error al fijar la fecha: ' + xhr.responseText);
+            }
+        });
     }
 </script>

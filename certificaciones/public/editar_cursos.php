@@ -435,23 +435,31 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                                                     <div class="small text-muted mt-1">Por: <?= h($autorizador) ?>
                                                                     </div>
                                                                 <?php else: ?>
-                                                                    <div class="form-check mt-2">
+                                                                    <div class="form-check mt-2 p-3 bg-light border-left-warning rounded shadow-sm">
                                                                         <input class="form-check-input" type="checkbox"
                                                                             name="autorizacion" value="<?= $_SESSION['user_id'] ?>"
-                                                                            id="auth_check_<?= $curso['id_curso'] ?>">
+                                                                            id="auth_check_<?= $curso['id_curso'] ?>" style="transform: scale(1.5); margin-top: 0.3rem; margin-left: -1rem;">
                                                                         <label
-                                                                            class="form-check-label font-weight-bold text-primary"
-                                                                            for="auth_check_<?= $curso['id_curso'] ?>">AUTORIZAR
-                                                                            CURSO AHORA</label>
+                                                                            class="form-check-label font-weight-bold text-danger ms-2 text-uppercase" style="letter-spacing: 0.5px;"
+                                                                            for="auth_check_<?= $curso['id_curso'] ?>">
+                                                                            <i class="fas fa-exclamation-circle me-1"></i> Autorizar Curso Ahora
+                                                                        </label>
                                                                     </div>
                                                                 <?php endif; ?>
                                                             </div>
                                                         </div>
                                                         <hr>
                                                         <div class="form-check form-switch mb-2">
+                                                            <input type="hidden" name="estado" value="0">
                                                             <input class="form-check-input" type="checkbox" role="switch"
                                                                 name="estado" value="1" <?= ($curso['estado'] ? 'checked' : '') ?>>
                                                             <label class="form-check-label fw-bold text-primary">Curso Activo</label>
+                                                        </div>
+                                                        <div class="form-check form-switch mb-2">
+                                                            <input type="hidden" name="permitir_pagos" value="0">
+                                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                                name="permitir_pagos" value="1" <?= (!isset($curso['permitir_pagos']) || $curso['permitir_pagos'] ? 'checked' : '') ?>>
+                                                            <label class="form-check-label fw-bold text-success">Permitir Recepción de Pagos</label>
                                                         </div>
                                                         <div class="form-check form-switch">
                                                             <input class="form-check-input" type="checkbox" role="switch"
