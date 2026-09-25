@@ -36,32 +36,58 @@ class Curso
         $configuracion_firmas = [],
         $nota_minima_aprobatoria = 12
     ) {
+        $id_extension_admin = $_SESSION['id_extension'];
+        
+        // INYECCIÓN DE VALORES POR DEFECTO (VITRINA MIXTA)
+        if (!$_SESSION['es_academico']) {
+            $descripcion = !empty($descripcion) ? $descripcion : "Concepto administrativo.";
+            $tiempo_asignado = !empty($tiempo_asignado) ? $tiempo_asignado : "0";
+            $conocimientos_previos = !empty($conocimientos_previos) ? $conocimientos_previos : "N/A";
+            $requerimientos_implemento = !empty($requerimientos_implemento) ? $requerimientos_implemento : "N/A";
+            $desempeno_al_concluir = !empty($desempeno_al_concluir) ? $desempeno_al_concluir : "N/A";
+            $limite_inscripciones = !empty($limite_inscripciones) ? $limite_inscripciones : 0;
+            $costo = !empty($costo) ? $costo : 0;
+            $nivel_curso = !empty($nivel_curso) ? $nivel_curso : "N/A";
+            
+            $inicio_mes = !empty($inicio_mes) ? $inicio_mes : null;
+            $horario_inicio = !empty($horario_inicio) ? $horario_inicio : null;
+            $horario_fin = !empty($horario_fin) ? $horario_fin : null;
+            $dias_clase = !empty($dias_clase) && $dias_clase !== '{}' ? $dias_clase : null;
+        }
+
         // Iniciamos la transacción. O todo se guarda, o nada se guarda.
         $this->pdo->beginTransaction();
 
         try {
             // PASO 1: Insertar el curso principal y obtener su nuevo ID
-            $sql_curso = 'INSERT INTO cursos.cursos (nombre_curso, descripcion, tiempo_asignado, inicio_mes, tipo_curso, limite_inscripciones, dias_clase, horario_inicio, horario_fin, nivel_curso, costo, conocimientos_previos, requerimientos_implemento, desempeno_al_concluir, promotor, id_plantilla, nota_minima_aprobatoria) VALUES (:nombre_curso, :descripcion, :tiempo_asignado, :inicio_mes, :tipo_curso, :limite_inscripciones, :dias_clase, :horario_inicio, :horario_fin, :nivel_curso, :costo, :conocimientos_previos, :requerimientos_implemento, :desempeno_al_concluir, :promotor, :id_plantilla, :nota_minima_aprobatoria) RETURNING id_curso';
+            $id_extension = $_SESSION['id_extension'];
+            
+            // Si hay imagen inyectada (Postgrado) - REVOCADO: Las imágenes se manejan en Ajustes Landing
+            $imagen_val = null;
+
+            $sql_curso = 'INSERT INTO cursos.cursos (nombre_curso, descripcion, tiempo_asignado, inicio_mes, tipo_curso, limite_inscripciones, dias_clase, horario_inicio, horario_fin, nivel_curso, costo, conocimientos_previos, requerimientos_implemento, desempeno_al_concluir, promotor, id_plantilla, nota_minima_aprobatoria, id_extension, imagen_portada) VALUES (:nombre_curso, :descripcion, :tiempo_asignado, :inicio_mes, :tipo_curso, :limite_inscripciones, :dias_clase, :horario_inicio, :horario_fin, :nivel_curso, :costo, :conocimientos_previos, :requerimientos_implemento, :desempeno_al_concluir, :promotor, :id_plantilla, :nota_minima_aprobatoria, :id_extension, :imagen_portada) RETURNING id_curso';
 
             $stmt_curso = $this->pdo->prepare($sql_curso);
             $stmt_curso->execute([
-                'nombre_curso' => $nombre,
-                'descripcion' => $descripcion,
-                'tiempo_asignado' => $tiempo_asignado,
-                'inicio_mes' => $inicio_mes,
-                'tipo_curso' => $tipo_curso,
-                'limite_inscripciones' => $limite_inscripciones,
-                'dias_clase' => $dias_clase,
-                'horario_inicio' => $horario_inicio,
-                'horario_fin' => $horario_fin,
-                'nivel_curso' => $nivel_curso,
-                'costo' => $costo,
-                'conocimientos_previos' => $conocimientos_previos,
-                'requerimientos_implemento' => $requerimientos_implemento,
-                'desempeno_al_concluir' => $desempeno_al_concluir,
-                'promotor' => $promotor_id,
-                'id_plantilla' => $id_plantilla,
-                'nota_minima_aprobatoria' => $nota_minima_aprobatoria
+                ':nombre_curso' => $nombre,
+                ':descripcion' => $descripcion,
+                ':tiempo_asignado' => $tiempo_asignado,
+                ':inicio_mes' => $inicio_mes,
+                ':tipo_curso' => $tipo_curso,
+                ':limite_inscripciones' => $limite_inscripciones,
+                ':dias_clase' => $dias_clase,
+                ':horario_inicio' => $horario_inicio,
+                ':horario_fin' => $horario_fin,
+                ':nivel_curso' => $nivel_curso,
+                ':costo' => $costo,
+                ':conocimientos_previos' => $conocimientos_previos,
+                ':requerimientos_implemento' => $requerimientos_implemento,
+                ':desempeno_al_concluir' => $desempeno_al_concluir,
+                ':promotor' => $promotor_id,
+                ':id_plantilla' => $id_plantilla,
+                ':nota_minima_aprobatoria' => $nota_minima_aprobatoria,
+                ':id_extension' => $id_extension,
+                ':imagen_portada' => $imagen_val
             ]);
             $curso_id = $stmt_curso->fetchColumn();
 
@@ -182,6 +208,20 @@ class Curso
         $nota_minima_aprobatoria = 12,
         $permitir_pagos = '1'
     ) {
+        $id_extension_admin = $_SESSION['id_extension'];
+        
+        // INYECCIÓN DE VALORES POR DEFECTO (VITRINA MIXTA)
+        if (!$_SESSION['es_academico']) {
+            $descripcion = !empty($descripcion) ? $descripcion : "Concepto administrativo.";
+            $tiempo_asignado = !empty($tiempo_asignado) ? $tiempo_asignado : "0";
+            $conocimientos_previos = !empty($conocimientos_previos) ? $conocimientos_previos : "N/A";
+            $requerimientos_implemento = !empty($requerimientos_implemento) ? $requerimientos_implemento : "N/A";
+            $desempeno_al_concluir = !empty($desempeno_al_concluir) ? $desempeno_al_concluir : "N/A";
+            $horas_cronologicas = !empty($horas_cronologicas) ? $horas_cronologicas : 0;
+            $limite_inscripciones = !empty($limite_inscripciones) ? $limite_inscripciones : 0;
+            $costo = !empty($costo) ? $costo : 0;
+            $nivel_curso = !empty($nivel_curso) ? $nivel_curso : "N/A";
+        }
 
         // Restauramos la transacción para un guardado seguro
         $this->pdo->beginTransaction();
@@ -429,9 +469,10 @@ class Curso
     public function obtener_contenido($user_id)
     {
         // Preparar la consulta SQL para obtener los cursos creados por el usuario
-        $stmt = $this->pdo->prepare('SELECT * FROM cursos.cursos WHERE promotor = :promotor');
+        $id_extension = $_SESSION['id_extension'];
+        $stmt = $this->pdo->prepare('SELECT * FROM cursos.cursos WHERE promotor = :promotor AND id_extension = :id_extension');
         // Ejecutar la consulta con el id del usuario
-        $stmt->execute(['promotor' => $user_id]);
+        $stmt->execute(['promotor' => $user_id, 'id_extension' => $id_extension]);
         // Obtener el resultado como un array asociativo
         $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -724,8 +765,6 @@ class Curso
                         $imageData = file_get_contents($ruta_absoluta);
                         $imageType = mime_content_type($ruta_absoluta);
                         $firmante_info['firma_base64'] = 'data:' . $imageType . ';base64,' . base64_encode($imageData);
-                    } else {
-                        $firmante_info['cargo'] .= ' (Firma no encontrada)';
                     }
                 }
             }
@@ -745,9 +784,11 @@ class Curso
 
     public function obtenerFirmasCurso($id_curso)
     {
-        $stmt_curso = $this->pdo->prepare("SELECT promotor FROM cursos.cursos WHERE id_curso = :id_curso");
+        $stmt_curso = $this->pdo->prepare("SELECT promotor, firma_digital FROM cursos.cursos WHERE id_curso = :id_curso");
         $stmt_curso->execute([':id_curso' => $id_curso]);
-        $id_promotor_curso = $stmt_curso->fetchColumn();
+        $curso_data = $stmt_curso->fetch(PDO::FETCH_ASSOC);
+        $id_promotor_curso = $curso_data ? $curso_data['promotor'] : null;
+        $firma_digital_habilitada = $curso_data ? (bool)$curso_data['firma_digital'] : false;
 
         $sql_firmas = "
             SELECT ccf.id_cargo_firmante, ccf.usar_promotor_curso, pf.codigo_posicion, pf.pagina
@@ -768,20 +809,21 @@ class Curso
                 'cargo' => '',
                 'posicion_codigo' => $config['codigo_posicion'],
                 'pagina' => isset($config['pagina']) ? $config['pagina'] : 1,
-                'es_promotor' => $config['usar_promotor_curso']
+                'es_promotor' => $config['usar_promotor_curso'],
+                'firma_base64' => null
             ];
 
             $data_firmante = null;
 
             if ($config['usar_promotor_curso'] && $id_promotor_curso) {
-                $stmt_user = $this->pdo->prepare("SELECT nombre, apellido, titulo, cargo FROM cursos.usuarios WHERE id = :id");
+                $stmt_user = $this->pdo->prepare("SELECT nombre, apellido, titulo, cargo, firma_digital FROM cursos.usuarios WHERE id = :id");
                 $stmt_user->execute([':id' => $id_promotor_curso]);
                 $data_firmante = $stmt_user->fetch(PDO::FETCH_ASSOC);
                 if ($data_firmante) {
                     $data_firmante['nombre_cargo_certificado'] = 'Facilitador';
                 }
             } elseif ($config['id_cargo_firmante']) {
-                $stmt_cargo = $this->pdo->prepare("SELECT nombre, apellido, nombre_cargo, titulo FROM cursos.cargos WHERE id_cargo = :id");
+                $stmt_cargo = $this->pdo->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE id_cargo = :id");
                 $stmt_cargo->execute([':id' => $config['id_cargo_firmante']]);
                 $data_firmante = $stmt_cargo->fetch(PDO::FETCH_ASSOC);
                 if ($data_firmante) {
@@ -795,6 +837,17 @@ class Curso
                 $firmante_info['nombre'] = $primer_nombre . ' ' . $primer_apellido;
                 $firmante_info['titulo'] = isset($data_firmante['titulo']) ? $data_firmante['titulo'] : '';
                 $firmante_info['cargo'] = $data_firmante['nombre_cargo_certificado'];
+                
+                $ruta_desde_db = isset($data_firmante['firma_digital']) ? $data_firmante['firma_digital'] : '';
+                if ($firma_digital_habilitada && !empty($ruta_desde_db)) {
+                    $nombre_archivo = basename($ruta_desde_db);
+                    $ruta_absoluta = dirname(__DIR__) . '/public/assets/firmas/' . $nombre_archivo;
+                    if (file_exists($ruta_absoluta)) {
+                        $imageData = file_get_contents($ruta_absoluta);
+                        $imageType = mime_content_type($ruta_absoluta);
+                        $firmante_info['firma_base64'] = 'data:' . $imageType . ';base64,' . base64_encode($imageData);
+                    }
+                }
             }
             $firmantes_procesados[] = $firmante_info;
         }

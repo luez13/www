@@ -15,6 +15,20 @@ try {
     // Manejar el error
     $user = null;
 }
+
+// Obtener el nombre de la sede actual
+$nombre_extension_actual = "";
+if (isset($_SESSION['id_extension'])) {
+    try {
+        $stmtExt = $db->prepare('SELECT nombre_extension FROM cursos.extensiones WHERE id_extension = :id');
+        $stmtExt->execute(['id' => $_SESSION['id_extension']]);
+        if ($ext = $stmtExt->fetch()) {
+            $nombre_extension_actual = $ext['nombre_extension'];
+        }
+    } catch (PDOException $e) {
+        $nombre_extension_actual = "Sede Desconocida";
+    }
+}
 ?>
 <!-- cuerpo -->
 <div id="wrapper">
@@ -34,7 +48,12 @@ try {
         <li class="nav-item active">
             <a class="nav-link" href="perfil.php">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
-                <span>Panel Principal</span>
+                <span class="d-inline-block text-truncate" style="max-width: 100%; white-space: normal; line-height: 1.2;">
+                    Panel Principal<br>
+                    <?php if ($nombre_extension_actual): ?>
+                    <small style="font-size: 0.75em; opacity: 0.8; display: block; margin-top: 2px;"><?= htmlspecialchars($nombre_extension_actual) ?></small>
+                    <?php endif; ?>
+                </span>
             </a>
         </li>
 
@@ -46,7 +65,7 @@ try {
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCatalogo"
                     aria-expanded="true" aria-controls="collapseCatalogo">
                     <i class="fas fa-fw fa-book-reader"></i>
-                    <span>Catálogo de Cursos</span>
+                    <span>Catálogo y Ofertas</span>
                 </a>
                 <div id="collapseCatalogo" class="collapse" aria-labelledby="headingCatalogo"
                     data-parent="#accordionSidebar">
@@ -66,10 +85,13 @@ try {
                                 class="fas fa-microphone me-2 text-muted"></i>Congresos</a>
                         <a class="collapse-item" href="#" onclick="loadCategory('charla', true)"><i
                                 class="fas fa-comments me-2 text-muted"></i>Charlas</a>
+                        <a class="collapse-item" href="#" onclick="loadCategory('recepcion_pago', true)"><i
+                                class="fas fa-money-bill-wave me-2 text-muted"></i>Pagos y Aranceles</a>
                     </div>
                 </div>
             </li>
 
+            <?php if (tieneAcceso([1, 2, 3, 4, 5, 6]) && $_SESSION['es_academico']): ?>
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAprendizaje"
                     aria-expanded="true" aria-controls="collapseAprendizaje">
@@ -87,6 +109,7 @@ try {
                     </div>
                 </div>
             </li>
+            <?php endif; ?>
         <?php endif; ?>
 
         <?php if (tieneAcceso([1, 2, 3, 4, 5, 6])): ?>
@@ -121,11 +144,13 @@ try {
                     <div class="bg-white py-2 collapse-inner rounded shadow-sm">
 
                         <h6 class="collapse-header text-primary">Mis Responsabilidades:</h6>
+                        <?php if ($_SESSION['es_academico']): ?>
                         <a class="collapse-item font-weight-bold text-success" href="#"
                             onclick="loadPage('../views/mis_materias_facilitador.php')">
                             <i class="fas fa-tasks me-2"></i> Mis Materias (Notas)
                         </a>
                         <div class="dropdown-divider"></div>
+                        <?php endif; ?>
                         <h6 class="collapse-header text-info">Creación de Cursos:</h6>
                         <a class="collapse-item" href="#"
                             onclick="loadPage('../public/gestion_cursos.php?action=crear')">Postular Nueva Propuesta</a>
@@ -163,8 +188,10 @@ try {
                             Usuarios</a>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/gestionar_cargos.php')">Directorio y
                             Cargos</a>
+                        <?php if ($_SESSION['es_academico']): ?>
                         <a class="collapse-item font-weight-bold text-primary" style="white-space: normal; line-height: 1.2;" href="#" onclick="loadPage('../views/admin_constancias.php')"><i class="fas fa-file-signature me-2"></i>Emisión de Constancias</a>
                         <a class="collapse-item font-weight-bold text-primary" style="white-space: normal; line-height: 1.2;" href="#" onclick="loadPage('../views/admin_actas.php')"><i class="fas fa-file-contract me-2"></i>Emisión de Actas</a>
+                        <?php endif; ?>
 
                         <div class="dropdown-divider"></div>
                         <?php endif; ?>
@@ -173,6 +200,10 @@ try {
                         <h6 class="collapse-header text-success">Tesorería y Pagos:</h6>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/gestion_pagos.php')"><i
                                 class="fas fa-search-dollar me-2 text-muted"></i>Auditar Pagos</a>
+                        <?php if (tieneAcceso([4, 5])): ?>
+                        <a class="collapse-item font-weight-bold text-success" href="#" onclick="loadPage('../public/taquilla_pagos.php')"><i
+                                class="fas fa-cash-register me-2"></i>Taquilla Física</a>
+                        <?php endif; ?>
                         <?php if (tieneAcceso([4, 6])): ?>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/gestion_cuentas_bancarias.php')"><i
                                 class="fas fa-university me-2 text-muted"></i>Cuentas Destino</a>
@@ -197,14 +228,14 @@ try {
                         <h6 class="collapse-header text-primary">Ajustes Generales:</h6>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/ajustes_sistema.php')"><i
                                 class="fas fa-sliders-h me-2 text-muted"></i>Configuración Global</a>
-                        <a class="collapse-item" href="#" onclick="loadPage('../views/ajustes_landing.php')"><i
-                                class="fas fa-image me-2 text-muted"></i>Ajustes de Landing</a>
                         <a class="collapse-item" href="#" onclick="loadPage('../public/plantillas.php')"><i
                                 class="fas fa-certificate me-2 text-muted"></i>Plantillas Certificados</a>
                         <div class="dropdown-divider"></div>
                         <?php endif; ?>
 
-                        <h6 class="collapse-header text-warning">Retroalimentación:</h6>
+                        <h6 class="collapse-header text-warning">Contenido Público:</h6>
+                        <a class="collapse-item" href="#" onclick="loadPage('../views/ajustes_landing.php')"><i
+                                class="fas fa-image me-2 text-muted"></i>Ajustes de Landing</a>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/sugerencias.php')"><i
                                 class="fas fa-lightbulb me-2 text-muted"></i>Buzón de Sugerencias</a>
 
@@ -315,6 +346,13 @@ try {
                                 </p>
                             </div>
                             <div class="dropdown-divider my-0"></div>
+                            <?php if (isset($_SESSION['es_multisede']) && $_SESSION['es_multisede']): ?>
+                            <a class="dropdown-item py-2 px-4 mt-2 custom-hover-btn text-warning" href="../controllers/cambiar_extension.php">
+                                <i class="fas fa-random fa-sm fa-fw mr-3 text-warning"></i>
+                                Cambiar Sede
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <?php endif; ?>
                             <a class="dropdown-item py-2 px-4 mt-2 custom-hover-btn" href="#" data-toggle="modal"
                                 data-target="#editUserModal">
                                 <i class="fas fa-user-edit fa-sm fa-fw mr-3 text-primary"></i>

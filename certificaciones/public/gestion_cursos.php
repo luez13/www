@@ -47,7 +47,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
             <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Información General</h6></div>
             <div class="card-body">
                 <div class="mb-3">
-                    <label class="form-label">Nombre del curso:</label>
+                    <label class="form-label">Nombre del concepto/curso:</label>
                     <input type="text" class="form-control" name="nombre_curso" required>
                 </div>
                 <div class="mb-3">
@@ -58,6 +58,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Tipo de curso:</label>
                         <select class="form-select" name="tipo_curso" required>
+                            <option value="recepcion_pago">Recepción de Pago</option>
                             <option value="masterclass">MasterClass</option>
                             <option value="taller">Taller</option>
                             <option value="curso">Curso</option>
@@ -65,6 +66,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                             <option value="diplomado">Diplomado</option>
                             <option value="congreso">Congreso</option>
                             <option value="charla">Charla</option>
+                            <?php if ($_SESSION['es_academico']): ?>
                             <option value="masterclass_rectoria">MasterClass Rectoría</option>
                             <option value="taller_rectoria">Taller Rectoría</option>
                             <option value="curso_rectoria">Curso Rectoría</option>
@@ -72,8 +74,10 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                             <option value="diplomado_rectoria">Diplomado Rectoría</option>
                             <option value="congreso_rectoria">Congreso Rectoría</option>
                             <option value="charla_rectoria">Charla Rectoría</option>
+                            <?php endif; ?>
                         </select>
                     </div>
+                    <?php if ($_SESSION['es_academico']): ?>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Nivel del curso:</label>
                         <select class="form-select" name="nivel_curso" required>
@@ -82,7 +86,9 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                             <option value="avanzado">Avanzado</option>
                         </select>
                     </div>
+                    <?php endif; ?>
                 </div>
+                <?php if ($_SESSION['es_academico']): ?>
                 <div class="mb-3">
                     <label class="form-label">Plantilla del Certificado a emitir:</label>
                     <select class="form-select" name="id_plantilla">
@@ -93,9 +99,11 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                     </select>
                     <div class="form-text">Si se deja vacío, el curso usará la plantilla que esté configurada como global.</div>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
 
+        <?php if ($_SESSION['es_academico']): ?>
         <div class="card shadow mb-4">
             <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Fechas y Horarios</h6></div>
             <div class="card-body">
@@ -133,16 +141,18 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
+        <?php if ($_SESSION['es_academico']): ?>
         <div class="card shadow mb-4">
             <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Detalles Académicos</h6></div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-6 mb-3" id="container_limite">
                         <label class="form-label">Límite de inscripciones:</label>
                         <input class="form-control" type="number" name="limite_inscripciones" min="1" required>
                     </div>
-                     <div class="col-md-6 mb-3">
+                     <div class="col-md-6 mb-3" id="container_costo">
                         <label class="form-label">Costo:</label>
                         <input class="form-control" type="number" name="costo" step="0.01" min="0">
                     </div>
@@ -161,7 +171,9 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
+        <?php if ($_SESSION['es_academico']): ?>
         <div class="card shadow mb-4">
             <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Módulos del Curso</h6></div>
             <div class="card-body">
@@ -173,7 +185,9 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                     </div>
             </div>
         </div>
+        <?php endif; ?>
 
+        <?php if ($_SESSION['es_academico']): ?>
         <div class="card shadow mb-4 border-left-info">
             <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-info">Configuración de Firmas por Defecto</h6></div>
             <div class="card-body">
@@ -200,11 +214,13 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                 <?php endif; ?>
             </div>
         </div>
+        <?php endif; ?>
 
         <div class="text-end">
             <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-plus-circle me-2"></i>Crear Propuesta</button>
         </div>
     </form>
+    
 <?php
 // === LÓGICA PARA LA ACCIÓN 'VER' ===
 } elseif (isset($_GET['action']) && $_GET['action'] == 'ver') {
@@ -281,14 +297,14 @@ foreach ($cursos as $curso) {
     
     echo '<li><a class="dropdown-item" href="#" onclick="loadPage(\'../public/detalles_curso.php\', {id: ' . $curso['id_curso'] . '}); return false;"><i class="fas fa-info-circle me-2 text-secondary"></i>Detalles del curso</a></li>';
     echo '<li><a class="dropdown-item" href="#" data-bs-toggle="collapse" data-bs-target="#modulos-' . $curso['id_curso'] . '"><i class="fas fa-list me-2 text-secondary"></i>Ver Módulos</a></li>';
-    echo '<li><a class="dropdown-item" href="#" onclick="generarConstancia(' . $curso['id_curso'] . '); return false;"><i class="fas fa-file-signature me-2 text-secondary"></i>Generar constancia</a></li>';
+    if ($_SESSION['es_academico']) {
+        echo '<li><a class="dropdown-item" href="#" onclick="generarConstancia(' . $curso['id_curso'] . '); return false;"><i class="fas fa-file-signature me-2 text-secondary"></i>Generar constancia</a></li>';
+    }
     echo '<li><a class="dropdown-item" href="#" onclick="duplicarCurso(' . $curso['id_curso'] . '); return false;"><i class="fas fa-copy me-2 text-secondary"></i>Duplicar Curso</a></li>';
     
     // Sección Exclusiva de Diplomados
     $es_diplomado = in_array(strtolower($curso['tipo_curso']), ['diplomado', 'diplomado_rectoria']);
-    // Sección Exclusiva de Diplomados
-    $es_diplomado = in_array(strtolower($curso['tipo_curso']), ['diplomado', 'diplomado_rectoria']);
-    if ($es_diplomado) {
+    if ($_SESSION['es_academico'] && $es_diplomado) {
         // 🔒 RESTRICCIÓN: Gestión completa del diplomado (SOLO ROLES 3 y 4)
         if (tieneAcceso([3, 4])) {
             echo '<li><hr class="dropdown-divider"></li>';

@@ -14,7 +14,7 @@ try {
     $pdo = $db->getConn();
 
     // Obtener detalles del curso público
-    $stmtC = $pdo->prepare("SELECT nombre_curso, descripcion, tipo_curso, imagen_portada FROM cursos.cursos WHERE id_curso = :id_curso AND estado = true");
+    $stmtC = $pdo->prepare("SELECT c.nombre_curso, c.descripcion, c.tipo_curso, c.imagen_portada, c.id_extension, e.es_academico FROM cursos.cursos c JOIN cursos.extensiones e ON c.id_extension = e.id_extension WHERE c.id_curso = :id_curso AND c.estado = true");
     $stmtC->execute([':id_curso' => $id_curso]);
     $curso = $stmtC->fetch(PDO::FETCH_ASSOC);
 

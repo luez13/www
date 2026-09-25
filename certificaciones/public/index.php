@@ -57,7 +57,7 @@ function renderizarCursos($cursosArray)
                 ' . $imgHtml . '
                 <div class="card-body">
                     <h5 class="card-title fw-bold text-dark">' . htmlspecialchars($curso['nombre_curso']) . '</h5>
-                    <p class="text-primary small mb-2"><i class="fas fa-certificate"></i> ' . htmlspecialchars($curso['tipo_curso']) . '</p>
+                    <p class="text-primary small mb-2"><i class="fas fa-certificate"></i> ' . htmlspecialchars(ucwords(str_replace('_', ' ', $curso['tipo_curso']))) . '</p>
                     <p class="card-text text-muted">' . $desc . '</p>
                 </div>
                 <div class="card-footer bg-transparent border-0 pt-0">
@@ -282,7 +282,7 @@ function renderizarCursos($cursosArray)
                         }
 
                         const reqContainer = document.getElementById('courseModalReqContainer');
-                        if (data.requisitos && data.requisitos.trim() !== '') {
+                        if (data.es_academico && data.requisitos && data.requisitos.trim() !== '') {
                             document.getElementById('courseModalReq').textContent = data.requisitos;
                             reqContainer.style.display = 'block';
                         } else {
@@ -290,7 +290,7 @@ function renderizarCursos($cursosArray)
                         }
 
                         const modContainer = document.getElementById('courseModalModContainer');
-                        if (data.modulos && data.modulos.length > 0) {
+                        if (data.es_academico && data.modulos && data.modulos.length > 0) {
                             let html = '';
                             data.modulos.forEach((m, idx) => {
                                 html += `

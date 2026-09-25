@@ -24,8 +24,9 @@ try {
     switch ($action) {
         // --- Acción para LISTAR todos los cargos ---
         case 'listar':
-            $stmt = $db->prepare("SELECT * FROM cursos.cargos ORDER BY activo DESC, nombre_cargo, apellido, nombre");
-            $stmt->execute();
+            $id_extension = $_SESSION['id_extension'];
+            $stmt = $db->prepare("SELECT * FROM cursos.cargos WHERE id_extension = :id_extension ORDER BY activo DESC, nombre_cargo, apellido, nombre");
+            $stmt->execute(['id_extension' => $id_extension]);
             $cargos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Asegurar que la ruta de la firma sea una URL accesible por el navegador
@@ -45,8 +46,8 @@ try {
                 break;
             }
 
-            $stmt = $db->prepare("SELECT * FROM cursos.cargos WHERE id_cargo = :id");
-            $stmt->execute(['id' => $_GET['id']]);
+            $stmt = $db->prepare("SELECT * FROM cursos.cargos WHERE id_cargo = :id AND id_extension = :id_extension");
+            $stmt->execute(['id' => $_GET['id'], 'id_extension' => $_SESSION['id_extension']]);
             $cargo = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($cargo) {
@@ -78,25 +79,32 @@ try {
 
                 if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
                     $rutaFirma = $fileName; // Guardamos solo el nombre del archivo en la BD
+                    $firmaField = ', firma_digital';
+                    $firmaValue = ', :firma_digital';
                 } else {
                     $response['message'] = 'Hubo un error al mover el archivo de la firma.';
                     break;
                 }
             }
 
-            $sql = "INSERT INTO cursos.cargos (titulo, nombre, apellido, nombre_cargo, firma_digital, activo) VALUES (:titulo, :nombre, :apellido, :nombre_cargo, :firma_digital, :activo)";
+            $id_extension = $_SESSION['id_extension'];
+            $sql = "INSERT INTO cursos.cargos (titulo, nombre, apellido, nombre_cargo, activo, id_extension {$firmaField}) VALUES (:titulo, :nombre, :apellido, :nombre_cargo, :activo, :id_extension {$firmaValue})";
             $stmt = $db->prepare($sql);
             
-            $activo = isset($_POST['activo']) ? 1 : 0;
-
-            $stmt->execute(array(
+            $params = array(
                 ':titulo' => isset($_POST['titulo']) ? $_POST['titulo'] : null,
                 ':nombre' => $_POST['nombre'],
                 ':apellido' => $_POST['apellido'],
                 ':nombre_cargo' => $_POST['nombre_cargo'],
-                ':firma_digital' => $rutaFirma,
-                ':activo' => $activo
-            ));
+                ':activo' => isset($_POST['activo']) ? 1 : 0,
+                ':id_extension' => $id_extension
+            );
+            
+            if ($rutaFirma) {
+                $params[':firma_digital'] = $rutaFirma;
+            }
+
+            $stmt->execute($params);
 
             $response = ['success' => true, 'message' => 'Firmante añadido correctamente.'];
             break;
@@ -115,8 +123,8 @@ try {
             // Si se sube una nueva firma, procesarla
             if (isset($_FILES['firma_digital']) && $_FILES['firma_digital']['error'] === UPLOAD_ERR_OK) {
                 // Primero, opcionalmente borrar la firma antigua del servidor para no acumular archivos
-                $stmtOld = $db->prepare("SELECT firma_digital FROM cursos.cargos WHERE id_cargo = :id");
-                $stmtOld->execute(['id' => $id_cargo]);
+                $stmtOld = $db->prepare("SELECT firma_digital FROM cursos.cargos WHERE id_cargo = :id AND id_extension = :id_extension");
+                $stmtOld->execute(['id' => $id_cargo, 'id_extension' => $_SESSION['id_extension']]);
                 $oldFileName = $stmtOld->fetchColumn();
                 if ($oldFileName && file_exists(UPLOAD_DIR . $oldFileName)) {
                     unlink(UPLOAD_DIR . $oldFileName);
@@ -135,7 +143,7 @@ try {
                 }
             }
 
-            $sql = "UPDATE cursos.cargos SET titulo = :titulo, nombre = :nombre, apellido = :apellido, nombre_cargo = :nombre_cargo, activo = :activo {$setFirmaSql} WHERE id_cargo = :id_cargo";
+            $sql = "UPDATE cursos.cargos SET titulo = :titulo, nombre = :nombre, apellido = :apellido, nombre_cargo = :nombre_cargo, activo = :activo {$setFirmaSql} WHERE id_cargo = :id_cargo AND id_extension = :id_extension";
             $stmt = $db->prepare($sql);
 
             $params = array(
@@ -144,7 +152,8 @@ try {
                 ':apellido' => $_POST['apellido'],
                 ':nombre_cargo' => $_POST['nombre_cargo'],
                 ':activo' => isset($_POST['activo']) ? 1 : 0,
-                ':id_cargo' => $id_cargo
+                ':id_cargo' => $id_cargo,
+                ':id_extension' => $_SESSION['id_extension']
             );
 
             // Añadir el parámetro de la firma solo si se va a actualizar
@@ -164,11 +173,12 @@ try {
                 break;
             }
 
-            $sql = "UPDATE cursos.cargos SET activo = :activo WHERE id_cargo = :id_cargo";
+            $sql = "UPDATE cursos.cargos SET activo = :activo WHERE id_cargo = :id_cargo AND id_extension = :id_extension";
             $stmt = $db->prepare($sql);
             $stmt->execute([
                 ':activo' => (int)$_POST['estado'],
-                ':id_cargo' => $_POST['id_cargo']
+                ':id_cargo' => $_POST['id_cargo'],
+                ':id_extension' => $_SESSION['id_extension']
             ]);
             
             $accionTexto = $_POST['estado'] ? 'activado' : 'desactivado';
@@ -179,8 +189,9 @@ try {
         case 'listar_activos':
             // Esta acción es específicamente para poblar los menús desplegables en el formulario de configuración.
             // Solo devuelve los firmantes que están marcados como 'activo = true'.
-            $stmt = $db->prepare("SELECT id_cargo, titulo, nombre, apellido, nombre_cargo FROM cursos.cargos WHERE activo = TRUE ORDER BY nombre_cargo, apellido, nombre");
-            $stmt->execute();
+            $id_extension = $_SESSION['id_extension'];
+            $stmt = $db->prepare("SELECT id_cargo, titulo, nombre, apellido, nombre_cargo FROM cursos.cargos WHERE activo = TRUE AND id_extension = :id_extension ORDER BY nombre_cargo, apellido, nombre");
+            $stmt->execute(['id_extension' => $id_extension]);
             $cargos_activos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
             // Construimos un array más limpio para el frontend

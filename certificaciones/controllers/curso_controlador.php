@@ -38,36 +38,41 @@ function validar_curso(
 
     // --- Bloque 1: Validación de campos vacíos ---
     $campos_vacios = [];
+    $id_extension_admin = $_SESSION['id_extension'];
+    
     if (empty($nombre_curso))
         $campos_vacios[] = 'nombre_curso';
-    if (empty($descripcion))
-        $campos_vacios[] = 'descripcion';
     if (empty($promotor))
         $campos_vacios[] = 'promotor';
-    if (empty($tiempo_asignado))
-        $campos_vacios[] = 'tiempo_asignado';
-    if (empty($inicio_mes))
-        $campos_vacios[] = 'inicio_mes';
     if (empty($tipo_curso))
         $campos_vacios[] = 'tipo_curso';
-    if (empty($limite_inscripciones))
-        $campos_vacios[] = 'limite_inscripciones';
-    if ($dias_clase === '{}')
-        $campos_vacios[] = 'dias_clase';
-    if (empty($horario_inicio))
-        $campos_vacios[] = 'horario_inicio';
-    if (empty($horario_fin))
-        $campos_vacios[] = 'horario_fin';
-    if (empty($nivel_curso))
-        $campos_vacios[] = 'nivel_curso';
-    if (empty($conocimientos_previos))
-        $campos_vacios[] = 'conocimientos_previos';
-    if (empty($requerimientos_implemento))
-        $campos_vacios[] = 'requerimientos_implemento';
-    if (empty($desempeño_al_concluir))
-        $campos_vacios[] = 'desempeño_al_concluir';
-    if (empty($modulos))
-        $campos_vacios[] = 'modulos';
+
+    if ($_SESSION['es_academico']) {
+        if (empty($limite_inscripciones))
+            $campos_vacios[] = 'limite_inscripciones';
+        if (empty($descripcion))
+            $campos_vacios[] = 'descripcion';
+        if (empty($tiempo_asignado))
+            $campos_vacios[] = 'tiempo_asignado';
+        if (empty($inicio_mes))
+            $campos_vacios[] = 'inicio_mes';
+        if ($dias_clase === '{}')
+            $campos_vacios[] = 'dias_clase';
+        if (empty($horario_inicio))
+            $campos_vacios[] = 'horario_inicio';
+        if (empty($horario_fin))
+            $campos_vacios[] = 'horario_fin';
+        if (empty($nivel_curso))
+            $campos_vacios[] = 'nivel_curso';
+        if (empty($conocimientos_previos))
+            $campos_vacios[] = 'conocimientos_previos';
+        if (empty($requerimientos_implemento))
+            $campos_vacios[] = 'requerimientos_implemento';
+        if (empty($desempeño_al_concluir))
+            $campos_vacios[] = 'desempeño_al_concluir';
+        if (empty($modulos))
+            $campos_vacios[] = 'modulos';
+    }
 
     if (!empty($campos_vacios)) {
         error_log("Validación fallida por campos vacíos: " . implode(', ', $campos_vacios));
@@ -76,16 +81,19 @@ function validar_curso(
 
     // --- Bloque 2: Validación de campos numéricos ---
     $invalid_fields = [];
-    if (!is_numeric($tiempo_asignado))
-        $invalid_fields['tiempo_asignado'] = $tiempo_asignado;
-    if (!is_numeric($limite_inscripciones))
-        $invalid_fields['limite_inscripciones'] = $limite_inscripciones;
-    if (!is_numeric($costo) && $costo !== null)
+    if (!is_numeric($costo) && $costo !== null && $costo !== '')
         $invalid_fields['costo'] = $costo;
-    if ($costo < 0)
+    if ($costo < 0 && $costo !== null && $costo !== '')
         $invalid_fields['costo_negativo'] = $costo;
-    if (!is_numeric($horas_cronologicas))
-        $invalid_fields['horas_cronologicas'] = $horas_cronologicas;
+        
+    if ($_SESSION['es_academico']) {
+        if (!is_numeric($limite_inscripciones))
+            $invalid_fields['limite_inscripciones'] = $limite_inscripciones;
+        if (!is_numeric($tiempo_asignado))
+            $invalid_fields['tiempo_asignado'] = $tiempo_asignado;
+        if (!is_numeric($horas_cronologicas))
+            $invalid_fields['horas_cronologicas'] = $horas_cronologicas;
+    }
 
     if (!empty($invalid_fields)) {
         error_log("Validación fallida por campos no numéricos: " . json_encode($invalid_fields));
@@ -94,15 +102,18 @@ function validar_curso(
 
     // --- Bloque 3: Validación de formatos de fecha y hora ---
     $invalid_format = [];
-    if (!preg_match("/^\d{4}-\d{2}-\d{2}$/", $inicio_mes))
-        $invalid_format['inicio_mes'] = $inicio_mes;
-    if (!preg_match("/^\d{2}:\d{2}(:\d{2})?$/", $horario_inicio))
-        $invalid_format['horario_inicio'] = $horario_inicio;
-    if (!preg_match("/^\d{2}:\d{2}(:\d{2})?$/", $horario_fin))
-        $invalid_format['horario_fin'] = $horario_fin;
-    // La fecha de finalización viene con formato de datetime-local
-    if (!preg_match("/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/", $fecha_finalizacion) && !preg_match("/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/", $fecha_finalizacion)) {
-        $invalid_format['fecha_finalizacion'] = $fecha_finalizacion;
+    if ($_SESSION['es_academico']) {
+        if (!preg_match("/^\d{4}-\d{2}-\d{2}$/", $inicio_mes))
+            $invalid_format['inicio_mes'] = $inicio_mes;
+        if (!preg_match("/^\d{2}:\d{2}(:\d{2})?$/", $horario_inicio))
+            $invalid_format['horario_inicio'] = $horario_inicio;
+        if (!preg_match("/^\d{2}:\d{2}(:\d{2})?$/", $horario_fin))
+            $invalid_format['horario_fin'] = $horario_fin;
+        
+        // La fecha de finalización viene con formato de datetime-local
+        if (!empty($fecha_finalizacion) && !preg_match("/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/", $fecha_finalizacion) && !preg_match("/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/", $fecha_finalizacion)) {
+            $invalid_format['fecha_finalizacion'] = $fecha_finalizacion;
+        }
     }
 
     if (!empty($invalid_format)) {
@@ -199,15 +210,15 @@ switch ($action) {
         exit();
         break;
     case 'editar':
-        $id_curso = $_POST['id_curso'];
-        $promotor = $_POST['promotor'];
+        $id_curso = isset($_POST['id_curso']) ? $_POST['id_curso'] : null;
+        $promotor = isset($_POST['promotor']) ? $_POST['promotor'] : null;
         $configuracion_firmas = isset($_POST['config_firmas']) ? $_POST['config_firmas'] : array();
-        $nombre_curso = $_POST['nombre_curso'];
-        $descripcion = $_POST['descripcion'];
-        $tiempo_asignado = $_POST['tiempo_asignado'];
-        $inicio_mes = $_POST['inicio_mes'];
-        $tipo_curso = $_POST['tipo_curso'];
-        $limite_inscripciones = $_POST['limite_inscripciones'];
+        $nombre_curso = isset($_POST['nombre_curso']) ? $_POST['nombre_curso'] : null;
+        $descripcion = isset($_POST['descripcion']) ? $_POST['descripcion'] : null;
+        $tiempo_asignado = isset($_POST['tiempo_asignado']) ? $_POST['tiempo_asignado'] : null;
+        $inicio_mes = isset($_POST['inicio_mes']) ? $_POST['inicio_mes'] : null;
+        $tipo_curso = isset($_POST['tipo_curso']) ? $_POST['tipo_curso'] : null;
+        $limite_inscripciones = isset($_POST['limite_inscripciones']) ? $_POST['limite_inscripciones'] : null;
 
         // Procesamiento de días de clase
         $dias_clase = isset($_POST['dias_clase']) ? $_POST['dias_clase'] : [];
@@ -220,15 +231,43 @@ switch ($action) {
             $dias_clase_pg = '{' . implode(',', $dias_clase) . '}';
         }
 
-        $horario_inicio = $_POST['horario_inicio'];
-        $horario_fin = $_POST['horario_fin'];
-        $nivel_curso = $_POST['nivel_curso'];
-        $costo = $_POST['costo'];
-        $conocimientos_previos = $_POST['conocimientos_previos'];
+        $horario_inicio = isset($_POST['horario_inicio']) ? $_POST['horario_inicio'] : null;
+        $horario_fin = isset($_POST['horario_fin']) ? $_POST['horario_fin'] : null;
+        $nivel_curso = isset($_POST['nivel_curso']) ? $_POST['nivel_curso'] : null;
+        $costo = isset($_POST['costo']) ? $_POST['costo'] : 0;
+        $conocimientos_previos = isset($_POST['conocimientos_previos']) ? $_POST['conocimientos_previos'] : null;
         $requerimientos_implemento = isset($_POST['requerimientos_implementos']) ? $_POST['requerimientos_implementos'] : null;
         $desempeño_al_concluir = isset($_POST['desempeño_al_concluir']) ? $_POST['desempeño_al_concluir'] : null;
-        $horas_cronologicas = $_POST['horas_cronologicas'];
-        $fecha_finalizacion = $_POST['fecha_finalizacion'];
+        $horas_cronologicas = isset($_POST['horas_cronologicas']) ? $_POST['horas_cronologicas'] : null;
+        $fecha_finalizacion = isset($_POST['fecha_finalizacion']) ? $_POST['fecha_finalizacion'] : null;
+
+        if (!$_SESSION['es_academico']) {
+            $limite_inscripciones = null;
+            $descripcion = null;
+            $tiempo_asignado = null;
+            $inicio_mes = null;
+            $horario_inicio = null;
+            $horario_fin = null;
+            $nivel_curso = null;
+            $conocimientos_previos = null;
+            $requerimientos_implemento = null;
+            $desempeño_al_concluir = null;
+            $horas_cronologicas = null;
+            $fecha_finalizacion = null;
+            $dias_clase_pg = '{}';
+            $costo = ($costo === '') ? 0 : $costo;
+        } else {
+            // Transformar cadenas vacías a null para Postgres
+            $limite_inscripciones = ($limite_inscripciones === '') ? null : $limite_inscripciones;
+            $tiempo_asignado = ($tiempo_asignado === '') ? null : $tiempo_asignado;
+            $inicio_mes = ($inicio_mes === '') ? null : $inicio_mes;
+            $horario_inicio = ($horario_inicio === '') ? null : $horario_inicio;
+            $horario_fin = ($horario_fin === '') ? null : $horario_fin;
+            $horas_cronologicas = ($horas_cronologicas === '') ? null : $horas_cronologicas;
+            $fecha_finalizacion = ($fecha_finalizacion === '') ? null : $fecha_finalizacion;
+            $costo = ($costo === '') ? 0 : $costo;
+        }
+        
         $firma_digital = isset($_POST['firma_digital']) ? true : false;
         $estado = isset($_POST['estado']) ? $_POST['estado'] : '1';
         $permitir_pagos = isset($_POST['permitir_pagos']) ? $_POST['permitir_pagos'] : '1';

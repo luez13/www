@@ -47,7 +47,10 @@ class Materia {
                             total_horas = :horas, 
                             modalidad = :modalidad, 
                             docente_id = :docente,
-                            lapso_academico = :lapso
+                            lapso_academico = :lapso,
+                            temario = :temario,
+                            fecha_inicio = :fecha_inicio,
+                            fecha_fin = :fecha_fin
                         WHERE id_materia_bimestre = :id";
                 
                 $stmt = $this->conn->prepare($sql);
@@ -56,9 +59,9 @@ class Materia {
             } else {
                 // INSERT
                 $sql = "INSERT INTO cursos.materias_bimestre 
-                            (id_curso, nombre_materia, duracion_bimestres, total_horas, modalidad, docente_id, lapso_academico) 
+                            (id_curso, nombre_materia, duracion_bimestres, total_horas, modalidad, docente_id, lapso_academico, temario, fecha_inicio, fecha_fin) 
                         VALUES 
-                            (:id_curso, :nombre, :duracion, :horas, :modalidad, :docente, :lapso)";
+                            (:id_curso, :nombre, :duracion, :horas, :modalidad, :docente, :lapso, :temario, :fecha_inicio, :fecha_fin)";
                 
                 $stmt = $this->conn->prepare($sql);
                 if ($id_materia === 0) { 
@@ -71,17 +74,26 @@ class Materia {
             $stmt->bindValue(':duracion', $data['duracion_bimestres']);
             $stmt->bindValue(':horas', (int)$data['total_horas']);
             $stmt->bindValue(':modalidad', $data['modalidad']);
-            $stmt->bindValue(':docente', (int)$data['docente_id']);
+            $stmt->bindValue(':docente', $data['docente_id'], PDO::PARAM_INT);
+            $stmt->bindValue(':lapso', $data['lapso_academico'], PDO::PARAM_INT);
+            $stmt->bindValue(':temario', $data['temario'], PDO::PARAM_STR);
+            if (empty($data['fecha_inicio'])) {
+                $stmt->bindValue(':fecha_inicio', null, PDO::PARAM_NULL);
+            } else {
+                $stmt->bindValue(':fecha_inicio', $data['fecha_inicio'], PDO::PARAM_STR);
+            }
             
-            // Nuevo parámetro: Lapso (si no viene, por defecto es 1)
-            $lapso = isset($data['lapso_academico']) ? (int)$data['lapso_academico'] : 1;
-            $stmt->bindValue(':lapso', $lapso, PDO::PARAM_INT);
-
+            if (empty($data['fecha_fin'])) {
+                $stmt->bindValue(':fecha_fin', null, PDO::PARAM_NULL);
+            } else {
+                $stmt->bindValue(':fecha_fin', $data['fecha_fin'], PDO::PARAM_STR);
+            }
+            
             return $stmt->execute();
 
         } catch (PDOException $e) {
             error_log("Error en saveMateria: " . $e->getMessage());
-            return false;
+            throw $e;
         }
     }
 

@@ -44,6 +44,11 @@ $stmt_roles = $db->prepare("SELECT id_rol, nombre_rol FROM cursos.roles ORDER BY
 $stmt_roles->execute();
 $roles = $stmt_roles->fetchAll(PDO::FETCH_ASSOC);
 
+// Fetch extensiones
+$stmt_ext = $db->prepare("SELECT id_extension, nombre_extension FROM cursos.extensiones WHERE activa = TRUE ORDER BY nombre_extension ASC");
+$stmt_ext->execute();
+$extensiones = $stmt_ext->fetchAll(PDO::FETCH_ASSOC);
+
 function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
 {
     if ($total_pages <= 1)
@@ -305,15 +310,34 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                                     placeholder="Dejar vacío si aplica base">
                             </div>
                             <div class="col-12 mt-3">
-                                <label class="form-label small fw-bold text-muted">Firma Digital (Imagen
-                                    JPG/PNG)</label>
-                                <input class="form-control" type="file" id="edit_firma_digital" name="firma_digital"
-                                    accept="image/png, image/jpeg, image/jpg">
-                                <div class="form-text mt-2"><i class="fas fa-info-circle"></i> Sube una nueva imagen
-                                    transparente de la firma si deseas reemplazar la actual. Necesaria para promotores
-                                    para que sus cursos generen constancias.</div>
+                                <label class="form-label small fw-bold text-muted">Firma Digital (Imagen JPG/PNG)</label>
+                                <input class="form-control" type="file" id="edit_firma_digital" name="firma_digital" accept="image/png, image/jpeg, image/jpg">
+                                
+                                <div class="mt-3 text-center d-none" id="preview_firma_container">
+                                    <p class="small fw-bold text-muted mb-1">Firma Actual Registrada:</p>
+                                    <img id="preview_firma_img" src="" alt="Firma Digital" style="max-height: 80px; object-fit: contain; border: 1px dashed #ccc; padding: 5px; border-radius: 5px; background: #fff;">
+                                </div>
+                                
+                                <div class="form-text mt-2"><i class="fas fa-info-circle"></i> Sube una nueva imagen transparente de la firma si deseas reemplazar la actual. Necesaria para promotores para que sus cursos generen constancias.</div>
                             </div>
                         </div>
+
+                        <?php if (in_array($_SESSION['id_rol'], [4, 7])): ?>
+                        <hr class="my-4">
+                        <h6 class="fw-bold text-info mb-3">Asignación de Sedes (Multi-Tenant)</h6>
+                        <div class="row g-2">
+                            <?php foreach ($extensiones as $ext): ?>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input edit-extension-checkbox" type="checkbox" name="extensiones[]" value="<?= $ext['id_extension'] ?>" id="ext_edit_<?= $ext['id_extension'] ?>">
+                                        <label class="form-check-label small" for="ext_edit_<?= $ext['id_extension'] ?>">
+                                            <?= htmlspecialchars($ext['nombre_extension']) ?>
+                                        </label>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
                     </div>
                     <div class="modal-footer border-0 py-3">
                         <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">Cancelar</button>
@@ -379,7 +403,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                                 <h6 class="text-primary fw-bold mb-0 border-bottom pb-2">Roles y Cargo Universitario
                                 </h6>
                             </div>
-                            <?php if ($_SESSION['id_rol'] == 4): ?>
+                            <?php if (in_array($_SESSION['id_rol'], [4, 7])): ?>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-bold text-muted mb-1">Rol en Sistema</label>
                                     <select class="form-select rounded-3" name="id_rol" id="crear_id_rol" required>
@@ -410,6 +434,24 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                                 <small class="text-muted d-block mt-1">Sugerido: Imagen PNG transparente para firmas en
                                     certificados.</small>
                             </div>
+
+                            <?php if (in_array($_SESSION['id_rol'], [4, 7])): ?>
+                            <div class="col-12 mt-4">
+                                <h6 class="text-primary fw-bold mb-0 border-bottom pb-2">Asignación de Sedes (Multi-Tenant)</h6>
+                                <div class="row g-2 mt-2">
+                                    <?php foreach ($extensiones as $ext): ?>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="extensiones[]" value="<?= $ext['id_extension'] ?>" id="ext_crear_<?= $ext['id_extension'] ?>">
+                                                <label class="form-check-label small" for="ext_crear_<?= $ext['id_extension'] ?>">
+                                                    <?= htmlspecialchars($ext['nombre_extension']) ?>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="modal-footer bg-white border-0 py-3">
@@ -537,6 +579,29 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
 
                 // Limpiar el validador de archivo de firma por seguridad
                 document.getElementById('edit_firma_digital').value = '';
+
+                // Poblar checkboxes de Sedes (Extensiones)
+                $('.edit-extension-checkbox').prop('checked', false); // Limpiar primero
+                if (user.extensiones && user.extensiones.length > 0) {
+                    user.extensiones.forEach(function(id_ext) {
+                        $('#ext_edit_' + id_ext).prop('checked', true);
+                    });
+                }
+                
+                // Mostrar preview de firma si existe
+                var previewContainer = document.getElementById('preview_firma_container');
+                var previewImg = document.getElementById('preview_firma_img');
+                
+                if (user.firma_digital && user.firma_digital.trim() !== '') {
+                    // Extraer solo el nombre del archivo
+                    var fileName = user.firma_digital.split('\\').pop().split('/').pop();
+                    // Usamos un timestamp para evitar cache del navegador si se cambió recientemente
+                    previewImg.src = '../public/assets/firmas/' + fileName + '?t=' + new Date().getTime();
+                    previewContainer.classList.remove('d-none');
+                } else {
+                    previewImg.src = '';
+                    previewContainer.classList.add('d-none');
+                }
 
                 // Abrimos el modal
                 $('#editarUsuarioModal').modal('show');

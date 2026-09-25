@@ -231,10 +231,12 @@ if (!$is_ajax_list):
                                 data-target="#massEnrollModal">
                                 <i class="fas fa-file-import fa-sm text-white-50"></i> Carga Masiva (CSV)
                             </button>
+                            <?php if ($_SESSION['es_academico']): ?>
                             <button type="button" class="btn btn-sm btn-info shadow-sm"
                                 onclick="loadPage('../controllers/generar_certificados_lote.php', { curso_id: <?= htmlspecialchars($id_curso); ?> })">
                                 <i class="fas fa-download fa-sm text-white-50"></i> Certificados PDF
                             </button>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -344,7 +346,7 @@ if (!$is_ajax_list):
                                                 </div>
                                             </div>
                                         </form>
-                                        <?php if ($valor_unico): ?>
+                                        <?php if ($valor_unico && $_SESSION['es_academico']): ?>
                                             <div class="text-center mt-2">
                                                 <a href="../controllers/generar_certificado.php?valor_unico=<?= $valor_unico ?>"
                                                     class="btn btn-info btn-sm shadow-sm" target="_blank"><i

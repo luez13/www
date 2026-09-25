@@ -71,8 +71,10 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                 <h2 class="text-primary fw-bold mb-2"><?= htmlspecialchars($curso_info['nombre_curso']) ?></h2>
                 <p class="text-secondary fs-5 mb-3"><?= htmlspecialchars($curso_info['descripcion']) ?></p>
                 <div class="d-flex align-items-center gap-3">
+                    <?php if ($cupos_disponibles > 0): ?>
                     <span class="badge bg-info text-dark fs-6 px-3 py-2 rounded-pill"><i class="fas fa-users me-2"></i>Cupos
                         disponibles: <?= $cupos_disponibles ?></span>
+                    <?php endif; ?>
                     <?php if (in_array($user_role, [3, 4])): ?>
                     <button id="mostrar-bd-info" class="btn btn-outline-secondary btn-sm"><i class="fas fa-database me-1"></i>
                         Mostrar Info de DB</button>
@@ -102,13 +104,15 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                 <div>
                     <button id="marcar-todas" class="btn btn-outline-primary btn-sm me-2 fw-bold"><i
                             class="fas fa-check-double me-1"></i> Invertir Selección</button>
+                    <?php if ($_SESSION['es_academico']): ?>
                     <button id="actualizar-tomos-folios" class="btn btn-success btn-sm fw-bold"><i class="fas fa-save me-1"></i>
                         Actualizar Tomos y Folios</button>
+                    <?php endif; ?>
                     <a href="../controllers/exportar_participantes_curso.php?id=<?= htmlspecialchars($id_curso) ?>" class="btn btn-info btn-sm fw-bold ms-2 text-white"><i class="fas fa-file-excel me-1"></i> Exportar Participantes</a>
                 </div>
             </div>
             <div class="card-body p-0">
-                <?php if (in_array($user_role, [3, 4])): ?>
+                <?php if (in_array($user_role, [3, 4]) && $_SESSION['es_academico']): ?>
                     <!-- Asignación Masiva de Tomos y Folios -->
                     <div class="bg-light p-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3">
                         <div class="d-flex align-items-center gap-2">
@@ -139,13 +143,19 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                                 <th>Participante</th>
                                 <th>Cédula</th>
                                 <th>Correo</th>
+                                <?php if ($_SESSION['es_academico']): ?>
                                 <th class="text-center">Nota</th>
                                 <th class="text-center">Completado</th>
+                                <?php endif; ?>
                                 <?php if (in_array($user_role, [3, 4])): ?>
                                     <th class="text-center">Pagado</th>
+                                    <?php if ($_SESSION['es_academico']): ?>
                                      <th class="text-center" style="width: 200px; min-width: 180px;">Tomo / Folio</th>
+                                    <?php endif; ?>
                                 <?php endif; ?>
+                                <?php if ($_SESSION['es_academico']): ?>
                                 <th class="text-end" style="width: 250px;">Calificar</th>
+                                <?php endif; ?>
                             </tr>
                         </thead>
                         <tbody>
@@ -166,6 +176,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                                             class="badge bg-light text-dark border"><?= htmlspecialchars($usuario['cedula']) ?></span>
                                     </td>
                                     <td><small class="text-muted"><?= htmlspecialchars($usuario['correo']) ?></small></td>
+                                    <?php if ($_SESSION['es_academico']): ?>
                                     <td class="text-center fw-bold text-primary fs-5 nota" data-id-usuario="<?= $usuario['id'] ?>">
                                         <?= $nota !== null && $nota !== '' ? htmlspecialchars($nota) : '-' ?></td>
                                     <td class="text-center">
@@ -175,6 +186,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                                                 data-id-usuario="<?= $usuario['id'] ?>" <?= $completado ? 'checked' : '' ?>>
                                         </div>
                                     </td>
+                                    <?php endif; ?>
                                     <?php if (in_array($user_role, [3, 4])): ?>
                                         <td class="text-center">
                                             <div class="form-check d-flex justify-content-center m-0">
@@ -183,6 +195,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                                                     data-id-usuario="<?= $usuario['id'] ?>" <?= $pagado ? 'checked' : '' ?>>
                                             </div>
                                         </td>
+                                        <?php if ($_SESSION['es_academico']): ?>
                                          <td>
                                              <div class="d-flex flex-column gap-2" style="max-width: 180px; margin: 0 auto;">
                                                  <div class="input-group input-group-sm" style="box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
@@ -201,7 +214,9 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                                                  </div>
                                              </div>
                                          </td>
+                                        <?php endif; ?>
                                     <?php endif; ?>
+                                    <?php if ($_SESSION['es_academico']): ?>
                                     <td class="text-end">
                                         <form class="asignar-nota m-0 d-flex gap-2 justify-content-end"
                                             data-id-usuario="<?= $usuario['id'] ?>" action="../controllers/asignar_nota.php"
@@ -216,6 +231,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                                                     class="fas fa-check me-1"></i>Subir nota</button>
                                         </form>
                                     </td>
+                                    <?php endif; ?>
                                 </tr>
                             <?php endforeach; ?>
                             <?php if (empty($usuarios)): ?>
@@ -230,9 +246,11 @@ if (is_numeric($id_curso) && $id_curso > 0) {
             </div>
         </div>
 
+        <?php if ($_SESSION['es_academico']): ?>
         <p class="text-muted text-center small"><i class="fas fa-info-circle me-1"></i> Modificar el <strong>Tomo y
                 Folio</strong> requiere pulsar el botón "Actualizar Tomos y Folios" superior. <br>Los checks de Completado y
             Pagado, así como el botón de calificar, se guardan automáticamente al modificarlos.</p>
+        <?php endif; ?>
 
         <?php
     } else {

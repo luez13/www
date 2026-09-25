@@ -45,15 +45,20 @@ try {
                 'total_horas'         => isset($_POST['total_horas']) ? $_POST['total_horas'] : 0,
                 'modalidad'           => isset($_POST['modalidad']) ? $_POST['modalidad'] : 'Virtual',
                 'docente_id'          => $_POST['docente_id'],
-                
+                'temario'             => isset($_POST['temario']) ? $_POST['temario'] : '',
                 // AGREGA ESTA LÍNEA EXACTA AQUÍ:
-                'lapso_academico'     => isset($_POST['lapso_academico']) ? $_POST['lapso_academico'] : 1
+                'lapso_academico'     => isset($_POST['lapso_academico']) ? $_POST['lapso_academico'] : 1,
+                
+                'fecha_inicio'        => !empty($_POST['fecha_inicio']) ? $_POST['fecha_inicio'] : null,
+                'fecha_fin'           => !empty($_POST['fecha_fin']) ? $_POST['fecha_fin'] : null
             );
 
-            if ($materiaModel->saveMateria($datos)) {
-                $response = array('success' => true, 'message' => 'Materia guardada correctamente.');
-            } else {
-                throw new Exception("Error SQL al intentar guardar.");
+            try {
+                if ($materiaModel->saveMateria($datos)) {
+                    $response = array('success' => true, 'message' => 'Materia guardada correctamente.');
+                }
+            } catch (PDOException $e) {
+                throw new Exception("Error SQL: " . $e->getMessage());
             }
             break;
 

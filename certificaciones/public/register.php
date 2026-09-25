@@ -8,6 +8,11 @@ $fm_cedula = isset($_SESSION['form_data']['cedula']) ? $_SESSION['form_data']['c
 $fm_correo = isset($_SESSION['form_data']['correo']) ? $_SESSION['form_data']['correo'] : '';
 $fm_telefono = isset($_SESSION['form_data']['telefono']) ? $_SESSION['form_data']['telefono'] : '';
 unset($_SESSION['form_data']);
+
+require_once __DIR__ . '/../config/model.php';
+$db = new DB();
+$pdo = $db->getConn();
+$extensiones = $pdo->query("SELECT id_extension, nombre_extension FROM cursos.extensiones WHERE activa = true")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <body class="bg-gradient-light" style="background: #f8f9fa;">
@@ -56,6 +61,17 @@ unset($_SESSION['form_data']);
                                     placeholder="Teléfono" value="<?= htmlspecialchars($fm_telefono) ?>" required>
                                 <label for="telefonoInput" class="px-4 text-muted"><i
                                         class="fas fa-phone ms-1 me-2"></i>Teléfono Móvil o Fijo</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <select class="form-select rounded-3" name="id_extension" id="extensionInput" required style="padding-top: 1.625rem; padding-bottom: 0.625rem;">
+                                    <option value="" disabled selected>-- Selecciona tu área de interés --</option>
+                                    <?php foreach ($extensiones as $ext): ?>
+                                        <option value="<?= $ext['id_extension'] ?>"><?= htmlspecialchars($ext['nombre_extension']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <label for="extensionInput" class="px-4 text-muted"><i
+                                        class="fas fa-building ms-1 me-2"></i>Área / Sede a ingresar</label>
                             </div>
 
                             <div class="form-floating mb-3">

@@ -146,6 +146,13 @@ function verificar_sesion()
             exit();
         }
     } else {
+        // Validación de Tenant (Aislamiento de Sesión)
+        // Exceptuamos la página de selección para no crear un bucle infinito
+        if (basename($_SERVER['PHP_SELF']) != 'seleccionar_extension.php' && !isset($_SESSION['id_extension'])) {
+            header('Location: ../public/seleccionar_extension.php');
+            exit();
+        }
+
         // Obtener el rol del usuario y almacenarlo en la sesión
         $db = new DB();
         $stmt = $db->prepare('SELECT id_rol FROM cursos.usuarios WHERE id = :id_usuario');
@@ -227,7 +234,7 @@ if (isset($_POST['action'])) {
     $action = $_POST['action'];
 
     // CSRF Protection
-    $acciones_protegidas = ['login', 'registro', 'editar_perfil', 'recuperar', 'reset'];
+    $acciones_protegidas = ['login', 'registro', 'editar_perfil', 'recuperar', 'reset', 'asignar_sede_inicial'];
     if (in_array($action, $acciones_protegidas)) {
         if (empty($_POST['csrf_token']) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
             $_SESSION['auth_error'] = "Error de seguridad CSRF. Petición bloqueada.";
@@ -238,6 +245,32 @@ if (isset($_POST['action'])) {
 
     // Ejecutar la acción correspondiente
     switch ($action) {
+        case 'asignar_sede_inicial':
+            if (!isset($_SESSION['user_id'])) {
+                header('Location: ../public/index.php');
+                exit;
+            }
+            $id_extension = (int) $_POST['id_extension'];
+            try {
+                $stmt = $db->prepare("INSERT INTO cursos.usuarios_extensiones (id_usuario, id_extension) VALUES (:id_user, :id_ext)");
+                $stmt->execute(['id_user' => $_SESSION['user_id'], 'id_ext' => $id_extension]);
+                
+                // Reiniciar el proceso de login simulando que ya se resolvió el acceso
+                $_SESSION['id_extension'] = $id_extension;
+                
+                // Buscar si es academico
+                $stmtExt = $db->prepare("SELECT es_academico FROM cursos.extensiones WHERE id_extension = :id");
+                $stmtExt->execute(['id' => $id_extension]);
+                $_SESSION['es_academico'] = $stmtExt->fetchColumn();
+                $_SESSION['es_multisede'] = false;
+                
+                redirigir_login();
+            } catch (PDOException $e) {
+                $_SESSION['auth_error'] = "Error al asignar sede: " . $e->getMessage();
+                header('Location: ../public/asignacion_inicial.php');
+                exit;
+            }
+            break;
         case 'registro':
             // Obtener los datos del formulario
             $nombre = $_POST['nombre'];
@@ -262,8 +295,29 @@ if (isset($_POST['action'])) {
                 $hash = password_hash($password, PASSWORD_DEFAULT);
                 // Insertar los datos en la base de datos
                 try {
-                    $stmt = $db->prepare('INSERT INTO cursos.usuarios (nombre, apellido, correo, password, cedula, telefono, token, confirmado, id_rol) VALUES (:nombre, :apellido, :correo, :password, :cedula, :telefono, :token, true, 1)');
+                    $stmt = $db->prepare('INSERT INTO cursos.usuarios (nombre, apellido, correo, password, cedula, telefono, token, confirmado, id_rol) VALUES (:nombre, :apellido, :correo, :password, :cedula, :telefono, :token, true, 1) RETURNING id');
                     $stmt->execute(['nombre' => $nombre, 'apellido' => $apellido, 'correo' => $correo, 'password' => $hash, 'cedula' => $cedula, 'telefono' => $telefono, 'token' => $token]);
+                    
+                    $nuevo_id_usuario = $stmt->fetchColumn();
+
+                    // ASIGNACIÓN JIT (Just-In-Time) DE DEPENDENCIA (TENANT)
+                    // 1. Usar el enviado desde el formulario público si existe (prioridad)
+                    // 2. Si vino redirigido por un curso, intentar usar la sede del curso
+                    // 3. Fallback a 1 (Formación Permanente)
+                    $id_extension_asignar = isset($_POST['id_extension']) ? (int)$_POST['id_extension'] : 1; 
+                    
+                    if (!empty($redirect_id)) {
+                        $stmtExt = $db->prepare("SELECT id_extension FROM cursos.cursos WHERE id_curso = :id_curso");
+                        $stmtExt->execute(['id_curso' => $redirect_id]);
+                        $ext_curso = $stmtExt->fetchColumn();
+                        if ($ext_curso) {
+                            $id_extension_asignar = $ext_curso;
+                        }
+                    }
+
+                    $stmtAsignar = $db->prepare("INSERT INTO cursos.usuarios_extensiones (id_usuario, id_extension) VALUES (:id_user, :id_ext)");
+                    $stmtAsignar->execute(['id_user' => $nuevo_id_usuario, 'id_ext' => $id_extension_asignar]);
+
                     // Enviar un correo de confirmación al usuario
                     enviar_correo_confirmacion($correo, $nombre, $token);
                     // Mostrar un mensaje de éxito al usuario
@@ -312,8 +366,35 @@ if (isset($_POST['action'])) {
                             $_SESSION['correo'] = $user['correo'];
                             $_SESSION['cedula'] = $user['cedula'];
                             $_SESSION['telefono'] = isset($user['telefono']) ? $user['telefono'] : '';
-                            // Redirigir al usuario a la página de perfil
-                            redirigir_login();
+                            
+                            // Multi-tenant: Comprobar a qué sedes (extensiones) tiene acceso
+                            $stmtExt = $db->prepare('
+                                SELECT e.id_extension, e.nombre_extension, e.es_academico 
+                                FROM cursos.usuarios_extensiones ue 
+                                JOIN cursos.extensiones e ON ue.id_extension = e.id_extension 
+                                WHERE ue.id_usuario = :id_usuario AND ue.activo = TRUE AND e.activa = TRUE
+                            ');
+                            $stmtExt->execute([':id_usuario' => $user['id']]);
+                            $extensiones = $stmtExt->fetchAll(PDO::FETCH_ASSOC);
+
+                            if (count($extensiones) == 0) {
+                                // Caso A: Cero Accesos (Usuario Huérfano)
+                                // Redirigir al lobby de asignación inicial
+                                header('Location: ../public/asignacion_inicial.php');
+                                exit;
+                            } else if (count($extensiones) == 1) {
+                                // Caso B: Acceso Único
+                                $_SESSION['id_extension'] = $extensiones[0]['id_extension'];
+                                $_SESSION['es_academico'] = $extensiones[0]['es_academico'];
+                                $_SESSION['es_multisede'] = false;
+                                redirigir_login();
+                            } else {
+                                // Caso C: Multi-Acceso
+                                // Redirigir al Gateway (sin ejecutar redirigir_login)
+                                $_SESSION['es_multisede'] = true;
+                                header('Location: ../public/seleccionar_extension.php');
+                                exit;
+                            }
                         } else {
                             $_SESSION['auth_error'] = "La contraseña es incorrecta.";
                             header('Location: ../public/index.php');

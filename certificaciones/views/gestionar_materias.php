@@ -196,6 +196,17 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                         </div>
                     </div>
 
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label>Fecha de Inicio</label>
+                            <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label>Fecha de Fin</label>
+                            <input type="date" class="form-control" name="fecha_fin" id="fecha_fin">
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label>Modalidad</label>
                         <select class="form-select" name="modalidad" id="modalidad">
@@ -203,6 +214,11 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                             <option value="Presencial">Presencial</option>
                             <option value="Mixta">Mixta</option>
                         </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Temario (Contenido Programático)</label>
+                        <textarea class="form-control" name="temario" id="temario" rows="4" placeholder="Ingrese el temario específico de esta materia. Se usará en el reverso del certificado individual."></textarea>
                     </div>
 
                     <div class="mb-3">
@@ -317,6 +333,9 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
         $('#formMateria')[0].reset();
         $('#id_materia').val(0);
         $('#docente_id').val('');
+        $('#temario').val('');
+        $('#fecha_inicio').val('');
+        $('#fecha_fin').val('');
         // Valor por defecto lapso 1
         $('#lapso_academico').val(1);
         $('#modalMateria').modal('show');
@@ -338,6 +357,9 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                     $('#modalidad').val(d.modalidad);
                     $('#docente_id').val(d.docente_id);
                     $('#docente_nombre').val(d.nombre_docente);
+                    $('#temario').val(d.temario);
+                    $('#fecha_inicio').val(d.fecha_inicio || '');
+                    $('#fecha_fin').val(d.fecha_fin || '');
                     // Cargar el lapso guardado
                     $('#lapso_academico').val(d.lapso_academico || 1);
 

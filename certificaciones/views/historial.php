@@ -87,14 +87,17 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <small class="text-muted"><i class="far fa-calendar-alt"></i> Inicio: <?= $curso['inicio_mes'] ?></small>
                                     <div>
+                                        <?php if ($_SESSION['es_academico']): ?>
                                         <button class="btn btn-outline-info btn-sm" onclick="verNotasCurso(<?= $curso['id_curso'] ?>)">
                                             <i class="fas fa-eye"></i> Notas
                                         </button>
+                                        <?php endif; ?>
                                         <button class="btn btn-primary btn-sm ml-1" onclick="loadCourse(<?= $curso['id_curso'] ?>)">
                                             Continuar <i class="fas fa-arrow-right ml-1"></i>
                                         </button>
                                     </div>
                                 </div>
+                                <?php if ($_SESSION['es_academico']): ?>
                                 <?php
                                 // Extraer materias aprobadas para este curso
                                 $stmtMat = $db->prepare("
@@ -117,6 +120,7 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                             <?php endforeach; ?>
                                         </div>
                                     </div>
+                                <?php endif; ?>
                                 <?php endif; ?>
                                 
                                 <div class="mt-3 d-none" id="notas_curso_<?= $curso['id_curso'] ?>">
@@ -144,6 +148,7 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
         }
         ?>
 
+        <?php if ($_SESSION['es_academico']): ?>
         <div class="card bg-warning text-white shadow mb-4">
             <div class="card-body">
                 <div class="row align-items-center">
@@ -157,6 +162,7 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
         <div class="row">
             <?php if (empty($cursos)): ?>
@@ -176,7 +182,7 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                         <div class="h5 mb-0 font-weight-bold text-gray-800">
                                             <?= htmlspecialchars($curso['nombre_curso']) ?>
                                         </div>
-                                        <?php if(isset($curso['nota'])): ?>
+                                        <?php if($_SESSION['es_academico'] && isset($curso['nota'])): ?>
                                             <div class="mt-2 badge bg-success text-white">Nota: <?= $curso['nota'] ?> pts</div>
                                         <?php endif; ?>
                                     </div>
@@ -186,22 +192,27 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                 </div>
                                 <hr>
                                 <div class="d-flex justify-content-end gap-2 mb-2">
+                                    <?php if ($_SESSION['es_academico']): ?>
                                     <button onclick="verNotasCurso(<?= $curso['id_curso'] ?>)" class="btn btn-sm btn-outline-info">
                                         <i class="fas fa-eye"></i> Ver Notas
                                     </button>
+                                    <?php endif; ?>
                                     <a href="#" onclick="loadCourse(<?= $curso['id_curso'] ?>)" class="btn btn-sm btn-info">
                                         <i class="fas fa-list"></i> Detalles
                                     </a>
                                     <?php if ($curso['pago'] == 1): ?>
+                                        <?php if ($_SESSION['es_academico']): ?>
                                         <a href="../controllers/generar_certificado.php?valor_unico=<?= $curso['valor_unico'] ?>" target="_blank" class="btn btn-sm btn-success">
                                             <i class="fas fa-award"></i> Certificado
                                         </a>
+                                        <?php endif; ?>
                                     <?php else: ?>
                                         <button class="btn btn-sm btn-warning" onclick="loadPage('../views/mis_pagos.php')">
                                             <i class="fas fa-lock"></i> Arancel Pendiente
                                         </button>
                                     <?php endif; ?>
                                 </div>
+                                <?php if ($_SESSION['es_academico']): ?>
                                 <?php
                                 // Extraer materias aprobadas para este curso
                                 $stmtMat = $db->prepare("
@@ -224,6 +235,7 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                             <?php endforeach; ?>
                                         </div>
                                     </div>
+                                <?php endif; ?>
                                 <?php endif; ?>
 
                                 <div class="mt-3 d-none" id="notas_curso_<?= $curso['id_curso'] ?>">

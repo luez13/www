@@ -73,24 +73,25 @@ $info = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$info) { die("Materia no encontrada."); }
 
+// 🔒 Validación de Seguridad Multi-Tenant
+if (!$_SESSION['es_multisede'] && $_SESSION['id_extension'] != $info['id_extension']) {
+    die("Acceso denegado: Esta materia no pertenece a su dependencia operativa.");
+}
+
 // --- 4. DATOS DEL COORDINADOR ---
 $nombre_coordinador = "Coordinación de Formación Permanente";
 $cargo_coordinador = "Coordinador(a)";
-
 $firma_coordinador = "";
 
-$stmtConfig = $conn->prepare("SELECT valor_config FROM cursos.config_sistema WHERE clave_config = 'ID_CARGO_COORD_FP_POR_DEFECTO'");
-$stmtConfig->execute();
-$id_defecto = $stmtConfig->fetchColumn();
-if ($id_defecto) {
-    $stmtCargo = $conn->prepare("SELECT nombre, apellido, nombre_cargo, firma_digital FROM cursos.cargos WHERE id_cargo = :id");
-    $stmtCargo->execute(['id' => $id_defecto]);
-    $coord_sys = $stmtCargo->fetch(PDO::FETCH_ASSOC);
-    if ($coord_sys) {
-        $nombre_coordinador = $coord_sys['nombre'] . ' ' . $coord_sys['apellido'];
-        $cargo_coordinador = $coord_sys['nombre_cargo'];
-        $firma_coordinador = $coord_sys['firma_digital'];
-    }
+$id_extension_curso = $info['id_extension'];
+
+$stmtCargo2 = $conn->prepare("SELECT nombre, apellido, nombre_cargo, firma_digital FROM cursos.cargos WHERE (nombre_cargo ILIKE '%Coord%' OR nombre_cargo ILIKE '%Director%') AND activo = true AND id_extension = :id_extension LIMIT 1");
+$stmtCargo2->execute(['id_extension' => $id_extension_curso]);
+$coord_sys = $stmtCargo2->fetch(PDO::FETCH_ASSOC);
+if ($coord_sys) {
+    $nombre_coordinador = $coord_sys['nombre'] . ' ' . $coord_sys['apellido'];
+    $cargo_coordinador = $coord_sys['nombre_cargo'];
+    $firma_coordinador = $coord_sys['firma_digital'];
 }
 
 // --- 4.5 DATOS DEL ENCARGADO DEL ÁREA ---
@@ -98,18 +99,13 @@ $nombre_encargado = "Vicerrectorado Territorial";
 $cargo_encargado = "Encargado(a)";
 $firma_encargado = "";
 
-$stmtConfigEnc = $conn->prepare("SELECT valor_config FROM cursos.config_sistema WHERE clave_config = 'ID_CARGO_VICERRECTORADO_POR_DEFECTO'");
-$stmtConfigEnc->execute();
-$id_enc_defecto = $stmtConfigEnc->fetchColumn();
-if ($id_enc_defecto) {
-    $stmtCargoEnc = $conn->prepare("SELECT nombre, apellido, nombre_cargo, firma_digital FROM cursos.cargos WHERE id_cargo = :id");
-    $stmtCargoEnc->execute(['id' => $id_enc_defecto]);
-    $enc_sys = $stmtCargoEnc->fetch(PDO::FETCH_ASSOC);
-    if ($enc_sys) {
-        $nombre_encargado = $enc_sys['nombre'] . ' ' . $enc_sys['apellido'];
-        $cargo_encargado = $enc_sys['nombre_cargo'];
-        $firma_encargado = $enc_sys['firma_digital'];
-    }
+$stmtCargoEnc = $conn->prepare("SELECT nombre, apellido, nombre_cargo, firma_digital FROM cursos.cargos WHERE (nombre_cargo ILIKE '%Vice-Rector%' OR nombre_cargo ILIKE '%Vicerrector%') AND activo = true AND id_extension = :id_extension LIMIT 1");
+$stmtCargoEnc->execute(['id_extension' => $id_extension_curso]);
+$enc_sys = $stmtCargoEnc->fetch(PDO::FETCH_ASSOC);
+if ($enc_sys) {
+    $nombre_encargado = $enc_sys['nombre'] . ' ' . $enc_sys['apellido'];
+    $cargo_encargado = $enc_sys['nombre_cargo'];
+    $firma_encargado = $enc_sys['firma_digital'];
 }
 
 // --- 5. PROCESAR NOTAS ---

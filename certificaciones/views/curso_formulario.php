@@ -53,7 +53,12 @@ $curso_editar = $curso->obtener_curso($id_curso);
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Tipo de curso:</label>
                         <select class="form-select" name="tipo_curso" required>
-                            <?php $tipos = ['masterclass', 'seminario', 'diplomado', 'congreso', 'charla', 'taller', 'curso', 'masterclass_rectoria', 'seminario_rectoria', 'diplomado_rectoria', 'congreso_rectoria', 'charla_rectoria', 'taller_rectoria', 'curso_rectoria']; ?>
+                            <?php 
+                                $tipos = ['recepcion_pago', 'masterclass', 'seminario', 'diplomado', 'congreso', 'charla', 'taller', 'curso']; 
+                                if ($_SESSION['es_academico']) {
+                                    $tipos = array_merge($tipos, ['masterclass_rectoria', 'seminario_rectoria', 'diplomado_rectoria', 'congreso_rectoria', 'charla_rectoria', 'taller_rectoria', 'curso_rectoria']);
+                                }
+                            ?>
                             <?php foreach ($tipos as $tipo): ?>
                                 <option value="<?= $tipo ?>" <?= ($curso_editar['tipo_curso'] == $tipo) ? 'selected' : '' ?>>
                                     <?= ucfirst(str_replace('_', ' ', $tipo)) ?>
@@ -61,6 +66,7 @@ $curso_editar = $curso->obtener_curso($id_curso);
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <?php if ($_SESSION['es_academico']): ?>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Nivel del curso:</label>
                         <select class="form-select" name="nivel_curso" required>
@@ -71,6 +77,7 @@ $curso_editar = $curso->obtener_curso($id_curso);
                                 Avanzado</option>
                         </select>
                     </div>
+                    <?php endif; ?>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Estado:</label>
                         <select class="form-select" name="estado" required>
@@ -83,6 +90,7 @@ $curso_editar = $curso->obtener_curso($id_curso);
             </div>
         </div>
 
+        <?php if ($_SESSION['es_academico']): ?>
         <div class="card shadow mb-4">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">Fechas y Horarios</h6>
@@ -92,24 +100,24 @@ $curso_editar = $curso->obtener_curso($id_curso);
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Fecha de inicio:</label>
                         <input class="form-control" type="date" name="inicio_mes"
-                            value="<?= htmlspecialchars($curso_editar['inicio_mes']) ?>" required>
+                            value="<?= htmlspecialchars($curso_editar['inicio_mes']) ?>">
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Duración (semanas):</label>
                         <input class="form-control" type="number" name="tiempo_asignado"
-                            value="<?= htmlspecialchars($curso_editar['tiempo_asignado']) ?>" min="1" required>
+                            value="<?= htmlspecialchars($curso_editar['tiempo_asignado']) ?>" min="1">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Horario de inicio:</label>
                         <input class="form-control" type="time" name="horario_inicio"
-                            value="<?= htmlspecialchars($curso_editar['horario_inicio']) ?>" required>
+                            value="<?= htmlspecialchars($curso_editar['horario_inicio']) ?>">
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Horario de fin:</label>
                         <input class="form-control" type="time" name="horario_fin"
-                            value="<?= htmlspecialchars($curso_editar['horario_fin']) ?>" required>
+                            value="<?= htmlspecialchars($curso_editar['horario_fin']) ?>">
                     </div>
                 </div>
                 <div class="mb-3">
@@ -139,37 +147,36 @@ $curso_editar = $curso->obtener_curso($id_curso);
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Límite de inscripciones:</label>
                         <input class="form-control" type="number" name="limite_inscripciones"
-                            value="<?= htmlspecialchars($curso_editar['limite_inscripciones']) ?>" min="1" required>
+                            value="<?= htmlspecialchars($curso_editar['limite_inscripciones']) ?>" min="1">
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Costo:</label>
                         <input class="form-control" type="number" name="costo"
-                            value="<?= htmlspecialchars($curso_editar['costo']) ?>" step="0.01" min="0" required>
+                            value="<?= htmlspecialchars($curso_editar['costo']) ?>" step="0.01" min="0">
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Nota Mín. Aprobatoria:</label>
                         <input class="form-control" type="number" name="nota_minima_aprobatoria"
-                            value="<?= isset($curso_editar['nota_minima_aprobatoria']) ? htmlspecialchars($curso_editar['nota_minima_aprobatoria']) : '12' ?>" min="1" max="100" required>
+                            value="<?= isset($curso_editar['nota_minima_aprobatoria']) ? htmlspecialchars($curso_editar['nota_minima_aprobatoria']) : '12' ?>" min="1" max="100">
                     </div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Conocimientos previos:</label>
-                    <textarea class="form-control" name="conocimientos_previos"
-                        required><?= htmlspecialchars($curso_editar['conocimientos_previos']) ?></textarea>
+                    <textarea class="form-control" name="conocimientos_previos"><?= htmlspecialchars($curso_editar['conocimientos_previos']) ?></textarea>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Requerimientos e implementos:</label>
-                    <textarea class="form-control" name="requerimientos_implementos"
-                        required><?= htmlspecialchars($curso_editar['requerimientos_implemento']) ?></textarea>
+                    <textarea class="form-control" name="requerimientos_implementos"><?= htmlspecialchars($curso_editar['requerimientos_implemento']) ?></textarea>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Desempeño al concluir:</label>
-                    <textarea class="form-control" name="desempeño_al_concluir"
-                        required><?= htmlspecialchars($curso_editar['desempeno_al_concluir']) ?></textarea>
+                    <textarea class="form-control" name="desempeño_al_concluir"><?= htmlspecialchars($curso_editar['desempeno_al_concluir']) ?></textarea>
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
+        <?php if ($_SESSION['es_academico']): ?>
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary">Módulos del Curso</h6>
@@ -187,12 +194,12 @@ $curso_editar = $curso->obtener_curso($id_curso);
                                 <div class="col-md-8 mb-3">
                                     <label class="form-label">Nombre del módulo:</label>
                                     <input type="text" class="form-control" name="nombre_modulo[]"
-                                        value="<?= htmlspecialchars($modulo['nombre_modulo']) ?>" required>
+                                        value="<?= htmlspecialchars($modulo['nombre_modulo']) ?>">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Número:</label>
                                     <input type="number" class="form-control" name="numero_modulo[]"
-                                        value="<?= htmlspecialchars($modulo['numero']) ?>" required>
+                                        value="<?= htmlspecialchars($modulo['numero']) ?>">
                                 </div>
                             </div>
 
@@ -204,8 +211,7 @@ $curso_editar = $curso->obtener_curso($id_curso);
                                     <?php $contenidos = explode('][', trim($modulo['contenido'], '[]')); ?>
                                     <?php foreach ($contenidos as $contenido): ?>
                                         <div class="d-flex mb-2">
-                                            <textarea class="form-control me-2" name="contenido[]" rows="2"
-                                                required><?= htmlspecialchars($contenido) ?></textarea>
+                                            <textarea class="form-control me-2" name="contenido[]" rows="2"><?= htmlspecialchars($contenido) ?></textarea>
                                             <input type="hidden" name="numero_modulo_contenido[]"
                                                 value="<?= htmlspecialchars($modulo['numero']) ?>">
                                             <input type="hidden" name="id_modulo_contenido[]"
@@ -220,12 +226,12 @@ $curso_editar = $curso->obtener_curso($id_curso);
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Actividad:</label>
                                     <input type="text" class="form-control" name="actividad_modulo[]"
-                                        value="<?= htmlspecialchars($modulo['actividad']) ?>" required>
+                                        value="<?= htmlspecialchars($modulo['actividad']) ?>">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Instrumento:</label>
                                     <input type="text" class="form-control" name="instrumento_modulo[]"
-                                        value="<?= htmlspecialchars($modulo['instrumento']) ?>" required>
+                                        value="<?= htmlspecialchars($modulo['instrumento']) ?>">
                                 </div>
                             </div>
                         </div>
@@ -233,6 +239,7 @@ $curso_editar = $curso->obtener_curso($id_curso);
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
         <div class="text-end mb-4">
             <button type="submit" class="btn btn-primary btn-lg shadow"><i class="fas fa-save me-2"></i>Guardar
@@ -250,7 +257,7 @@ $curso_editar = $curso->obtener_curso($id_curso);
         var newTextArea = document.createElement('textarea');
         newTextArea.name = 'contenido[]';
         newTextArea.placeholder = 'Contenido';
-        newTextArea.required = true;
+        newTextArea.required = false;
         var buttonQuitarContenido = document.createElement('button');
         buttonQuitarContenido.type = 'button';
         buttonQuitarContenido.textContent = 'Quitar contenido';
@@ -268,14 +275,14 @@ $curso_editar = $curso->obtener_curso($id_curso);
         var moduleDiv = document.createElement('div');
         moduleDiv.className = 'module';
         moduleDiv.innerHTML = `
-            <p>Nombre del módulo: <input type="text" name="nombre_modulo[]" required></p>
+            <p>Nombre del módulo: <input type="text" name="nombre_modulo[]"></p>
             <div class="container-contenido">
-                <textarea name="contenido[]" placeholder="Contenido" required></textarea>
+                <textarea name="contenido[]" placeholder="Contenido"></textarea>
             </div>
             <button type="button" onclick="agregarContenido(this)">Agregar contenido</button>
-            <p>Actividad: <input type="text" name="actividad_modulo[]" required></p>
-            <p>Instrumento: <input type="text" name="instrumento_modulo[]" required></p>
-            <p>Número: <input type="number" name="numero_modulo[]" required></p>
+            <p>Actividad: <input type="text" name="actividad_modulo[]"></p>
+            <p>Instrumento: <input type="text" name="instrumento_modulo[]"></p>
+            <p>Número: <input type="number" name="numero_modulo[]"></p>
             <input type="hidden" name="id_modulo[]" value="">
         `;
         container.appendChild(moduleDiv);

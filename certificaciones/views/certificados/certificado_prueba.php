@@ -104,7 +104,7 @@ if (!function_exists('f_FechaRangoC')) {
         $txt1 = date('d', $ts1) . " días del mes de " . $m[date('n', $ts1) - 1] . " de " . date('Y', $ts1);
         $txt2 = date('d', $ts2) . " días del mes de " . $m[date('n', $ts2) - 1] . " de " . date('Y', $ts2);
         
-        return "desarrollado entre los " . $txt1 . " y los " . $txt2 . ".";
+        return "Desarrollado entre los " . $txt1 . " y los " . $txt2 . ".";
     }
 }
 $pdf->SetFont('Arial', '', 12);
@@ -217,7 +217,7 @@ if (!empty($data['nota']) && $data['nota'] != 0) {
 }
 $textoReg .= "El programa tuvo una duración de " . $data['horas_cronologicas'] . " horas cronológicas.\n";
 $tipoCursoUpper = mb_convert_case($data['tipo_curso'], MB_CASE_TITLE, "UTF-8");
-$textoReg .= $tipoCursoUpper . " " . f_FechaRangoC($data['inicioMesCurso'], $data['fechaFinalizacionCurso']);
+$textoReg .= trim($tipoCursoUpper . " " . f_FechaRangoC($data['inicioMesCurso'], $data['fechaFinalizacionCurso']));
 
 $pdf->MultiCell(219.4, 4.5, utf8_decode($textoReg), 0, 'L'); // Interlineado reducido de 6 a 4.5
 

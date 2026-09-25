@@ -15,7 +15,7 @@ $db = new DB();
 $pagoModel = new Pago($db);
 
 // Obtener los cursos del usuario (Certificaciones)
-$sqlCursos = "SELECT c.id_curso, c.nombre_curso, c.costo, c.permitir_pagos, cert.pago 
+$sqlCursos = "SELECT c.id_curso, c.nombre_curso, c.costo, c.permitir_pagos, c.id_extension, cert.pago 
               FROM cursos.certificaciones cert
               JOIN cursos.cursos c ON cert.curso_id = c.id_curso
               WHERE cert.id_usuario = :user_id";
@@ -51,7 +51,7 @@ function h($str)
                     <?php else: ?>
                         <div class="accordion" id="accordionCuentas">
                             <?php foreach ($cuentasActivas as $index => $cuenta): ?>
-                                <div class="card mb-2 border-left-primary shadow-sm">
+                                <div class="card mb-2 border-left-primary shadow-sm cuenta-bancaria-card" data-id-extension="<?= $cuenta['id_extension'] ?>">
                                     <div class="card-header p-0" id="heading<?= $index ?>">
                                         <h2 class="mb-0">
                                             <button
@@ -109,7 +109,7 @@ function h($str)
                                     $estadoPago = $c['pago'] ? '(Pagado)' : '(Pendiente)';
                                     $costoTexto = $c['costo'] > 0 ? '$' . number_format($c['costo'], 2) : 'Gratis';
                                     ?>
-                                    <option value="<?= $c['id_curso'] ?>" data-permitir="<?= isset($c['permitir_pagos']) && $c['permitir_pagos'] ? '1' : '0' ?>">
+                                    <option value="<?= $c['id_curso'] ?>" data-permitir="<?= isset($c['permitir_pagos']) && $c['permitir_pagos'] ? '1' : '0' ?>" data-id-extension="<?= $c['id_extension'] ?>">
                                         <?= h($c['nombre_curso']) ?> - <?= $costoTexto ?>    <?= $estadoPago ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -125,10 +125,23 @@ function h($str)
                         </div>
 
                         <div class="row">
-                            <div class="col-md-4 form-group mb-3">
+                            <div class="col-md-3 form-group mb-3">
+                                <label>Cuenta Destino (Nuestra):</label>
+                                <select name="id_cuenta_destino" id="select_cuenta_destino" class="form-control" required>
+                                    <option value="">-- Seleccione --</option>
+                                    <?php foreach ($cuentasActivas as $cuenta): ?>
+                                        <option value="<?= $cuenta['id_cuenta'] ?>" class="opcion-cuenta-destino" data-id-extension="<?= $cuenta['id_extension'] ?>">
+                                            <?= h($cuenta['banco']) ?> (<?= h(substr($cuenta['numero_cuenta'], -4)) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-3 form-group mb-3">
+                                <label>Moneda:</label>
                                 <select name="moneda" id="select_moneda" class="form-control" required onchange="toggleReferencia()">
-                                    <option value="Bs" selected>Bolívares (Bs.)</option>
-                                    <option value="Divisas">Divisas ($)</option>
+                                    <option value="Bolivares" selected>Bolívares (Bs.)</option>
+                                    <option value="Dolares">Dólares ($)</option>
+                                    <option value="Pesos">Pesos ($)</option>
                                 </select>
                             </div>
                             <div class="col-md-4 form-group mb-3">
@@ -215,13 +228,15 @@ function h($str)
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <?= (isset($pago['moneda']) && $pago['moneda'] === 'Divisas') ? '$' : 'Bs. ' ?><?= number_format($pago['monto'], 2) ?>
+                                        <?= (isset($pago['moneda']) && ($pago['moneda'] === 'Dolares' || $pago['moneda'] === 'Pesos')) ? '$' : 'Bs. ' ?><?= number_format($pago['monto'], 2) ?>
                                     </td>
                                     <td>
-                                        <?php if (isset($pago['moneda']) && $pago['moneda'] === 'Divisas'): ?>
-                                            <span class="badge badge-success">Divisas</span>
+                                        <?php if (isset($pago['moneda']) && $pago['moneda'] === 'Dolares'): ?>
+                                            <span class="badge badge-success">Dólares</span>
+                                        <?php elseif (isset($pago['moneda']) && $pago['moneda'] === 'Pesos'): ?>
+                                            <span class="badge badge-info">Pesos</span>
                                         <?php else: ?>
-                                            <span class="badge badge-primary">Bs.</span>
+                                            <span class="badge badge-primary">Bolívares</span>
                                         <?php endif; ?>
                                     </td>
                                     <td><?= h(isset($pago['numero_operacion']) ? $pago['numero_operacion'] : 'N/A') ?><br><small
@@ -284,8 +299,9 @@ function h($str)
                         <div class="col-md-4 form-group mb-3">
                             <label>Moneda:</label>
                             <select name="moneda" id="edit_moneda" class="form-control" required onchange="toggleReferenciaEdit()">
-                                <option value="Bs">Bolívares (Bs)</option>
-                                <option value="Divisas">Divisas ($)</option>
+                                <option value="Bolivares">Bolívares (Bs)</option>
+                                <option value="Dolares">Dólares ($)</option>
+                                <option value="Pesos">Pesos ($)</option>
                             </select>
                         </div>
                         <div class="col-md-4 form-group mb-3">
@@ -334,13 +350,21 @@ function h($str)
         var moneda = document.getElementById('select_moneda').value;
         var grupo = document.getElementById('grupo_referencia');
         var refer = document.getElementById('input_numero_operacion');
-        if(moneda === 'Divisas') {
+        var banco = document.getElementById('input_banco_origen');
+        
+        if(moneda === 'Dolares' || moneda === 'Pesos') {
             grupo.style.display = 'none';
             refer.removeAttribute('required');
             refer.value = '';
+            banco.value = 'Taquilla de la Universidad';
+            banco.setAttribute('readonly', 'readonly');
         } else {
             grupo.style.display = 'block';
             refer.setAttribute('required', 'required');
+            if (banco.value === 'Taquilla de la Universidad') {
+                banco.value = '';
+            }
+            banco.removeAttribute('readonly');
         }
     }
 
@@ -349,13 +373,21 @@ function h($str)
         var moneda = document.getElementById('edit_moneda').value;
         var grupo = document.getElementById('edit_grupo_referencia');
         var refer = document.getElementById('edit_numero_operacion');
-        if(moneda === 'Divisas') {
+        var banco = document.getElementById('edit_banco_origen');
+        
+        if(moneda === 'Dolares' || moneda === 'Pesos') {
             grupo.style.display = 'none';
             refer.removeAttribute('required');
             refer.value = '';
+            banco.value = 'Taquilla de la Universidad';
+            banco.setAttribute('readonly', 'readonly');
         } else {
             grupo.style.display = 'block';
             refer.setAttribute('required', 'required');
+            if (banco.value === 'Taquilla de la Universidad') {
+                banco.value = '';
+            }
+            banco.removeAttribute('readonly');
         }
     }
 
@@ -450,7 +482,38 @@ function h($str)
         var alertaPagoCerrado = document.getElementById('alerta_pago_cerrado');
         
         if (selectCurso.selectedIndex > 0) {
-            var permitir = selectCurso.options[selectCurso.selectedIndex].getAttribute('data-permitir');
+            var option = selectCurso.options[selectCurso.selectedIndex];
+            var permitir = option.getAttribute('data-permitir');
+            var idExt = option.getAttribute('data-id-extension');
+
+            // Filtrar Cuentas Bancarias por Sede (Aislamiento Visual)
+            var cuentas = document.querySelectorAll('.cuenta-bancaria-card');
+            cuentas.forEach(function(cuenta) {
+                if (!idExt || cuenta.getAttribute('data-id-extension') === idExt) {
+                    cuenta.style.display = 'block';
+                } else {
+                    cuenta.style.display = 'none';
+                }
+            });
+
+            // Filtrar Opciones del Select de Cuenta Destino
+            var opcionesCuentas = document.querySelectorAll('.opcion-cuenta-destino');
+            opcionesCuentas.forEach(function(opt) {
+                if (!idExt || opt.getAttribute('data-id-extension') === idExt) {
+                    opt.style.display = 'block';
+                } else {
+                    opt.style.display = 'none';
+                }
+            });
+            // Resetear valor si la opción seleccionada ya no es visible
+            var selectCuentas = document.getElementById('select_cuenta_destino');
+            if (selectCuentas.selectedIndex > 0) {
+                var selectedOpt = selectCuentas.options[selectCuentas.selectedIndex];
+                if (selectedOpt.style.display === 'none') {
+                    selectCuentas.value = "";
+                }
+            }
+
             if (permitir === '0') {
                 btnEnviarPago.disabled = true;
                 alertaPagoCerrado.style.display = 'block';
@@ -461,6 +524,11 @@ function h($str)
         } else {
             btnEnviarPago.disabled = false;
             alertaPagoCerrado.style.display = 'none';
+            // Restaurar todas si no hay selección (o se podría ocultar todas)
+            var cuentas = document.querySelectorAll('.cuenta-bancaria-card');
+            cuentas.forEach(function(cuenta) { cuenta.style.display = 'block'; });
+            var opcionesCuentas = document.querySelectorAll('.opcion-cuenta-destino');
+            opcionesCuentas.forEach(function(opt) { opt.style.display = 'block'; });
         }
 
         var selectMateria = document.getElementById('select_materia');
@@ -506,7 +574,7 @@ function h($str)
         }
 
         var formData = new FormData(form);
-        var btnSubmit = form.querySelector('button');
+        var btnSubmit = document.getElementById('btnEnviarPago');
         var btnOriginalText = btnSubmit.innerHTML;
         btnSubmit.disabled = true;
         btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Procesando...';
@@ -536,38 +604,9 @@ function h($str)
             }
         });
     }
-
-    function alternarCamposMoneda(selectId, bancoId, numOpDivId, numOpInputId) {
-        const moneda = $('#' + selectId).val();
-        if (moneda === 'Divisas') {
-            $('#' + numOpDivId).hide();
-            $('#' + numOpInputId).removeAttr('required');
-            $('#' + bancoId).val('Taquilla de la Universidad').prop('readonly', true);
-        } else {
-            $('#' + numOpDivId).show();
-            $('#' + numOpInputId).attr('required', true);
-            // Solo limpia si estaba fijado en Taquilla
-            if ($('#' + bancoId).val() === 'Taquilla de la Universidad') {
-                $('#' + bancoId).val('');
-            }
-            $('#' + bancoId).prop('readonly', false);
-        }
-    }
-
     $(document).ready(function () {
-        // Ejecutar trigger si ya existe dentro del DOM principal
         if ($('#select_moneda').length) {
-            $('#select_moneda').trigger('change');
+            toggleReferencia();
         }
     });
-
-    // Delegación de eventos para páginas cargadas por AJAX
-    $(document).off('change', '#select_moneda').on('change', '#select_moneda', function () {
-        alternarCamposMoneda('select_moneda', 'input_banco_origen', 'div_numero_operacion', 'input_numero_operacion');
-    });
-
-    $(document).off('change', '#edit_moneda').on('change', '#edit_moneda', function () {
-        alternarCamposMoneda('edit_moneda', 'edit_banco_origen', 'edit_div_numero_operacion', 'edit_numero_operacion');
-    });
-
 </script>

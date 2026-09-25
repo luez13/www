@@ -180,9 +180,10 @@ if (!$es_diplomado) {
     $colTomo = 16;
     $colFolio = 16;
 } else {
-    // Diplomado: sin Tomo ni Folio
-    $colNom = 138.4;
+    // Diplomado: sin Tomo ni Folio, con Recuperativo
+    $colNom = 113.4;
     $colNota = 25;
+    $colRecup = 25;
     $colEstatus = 26;
 }
 
@@ -191,11 +192,13 @@ $pdf->Cell($colNo, 7, utf8_decode("No."), 1, 0, 'C', true);
 $pdf->Cell($colCed, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
 $pdf->Cell($colNom, 7, utf8_decode("Participante (Nombre y Apellido)"), 1, 0, 'C', true);
 $pdf->Cell($colNota, 7, utf8_decode("Calificación"), 1, 0, 'C', true);
-if (!$es_diplomado) {
-    $pdf->Cell($colTomo, 7, utf8_decode("Tomo"), 1, 0, 'C', true);
-    $pdf->Cell($colFolio, 7, utf8_decode("Folio"), 1, 0, 'C', true);
-}
-$pdf->Cell($colEstatus, 7, utf8_decode("Estatus"), 1, 1, 'C', true);
+    if ($es_diplomado) {
+        $pdf->Cell($colRecup, 7, utf8_decode("Recuperativo"), 1, 0, 'C', true);
+    } else {
+        $pdf->Cell($colTomo, 7, utf8_decode("Tomo"), 1, 0, 'C', true);
+        $pdf->Cell($colFolio, 7, utf8_decode("Folio"), 1, 0, 'C', true);
+    }
+    $pdf->Cell($colEstatus, 7, utf8_decode("Estatus"), 1, 1, 'C', true);
 
 $pdf->SetFont('Times', '', 10);
 $pdf->SetTextColor(0);
@@ -222,7 +225,9 @@ foreach ($alumnos as $idx => $al) {
         $pdf->Cell($colCed, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
         $pdf->Cell($colNom, 7, utf8_decode("Participante (Nombre y Apellido)"), 1, 0, 'C', true);
         $pdf->Cell($colNota, 7, utf8_decode("Calificación"), 1, 0, 'C', true);
-        if (!$es_diplomado) {
+        if ($es_diplomado) {
+            $pdf->Cell($colRecup, 7, utf8_decode("Recuperativo"), 1, 0, 'C', true);
+        } else {
             $pdf->Cell($colTomo, 7, utf8_decode("Tomo"), 1, 0, 'C', true);
             $pdf->Cell($colFolio, 7, utf8_decode("Folio"), 1, 0, 'C', true);
         }
@@ -260,7 +265,13 @@ foreach ($alumnos as $idx => $al) {
     $pdf->Cell($colCed, 6, $al['cedula'], 1, 0, 'C');
     $pdf->Cell($colNom, 6, utf8_decode($nombre_completo), 1, 0, 'L');
     $pdf->Cell($colNota, 6, $nota_str, 1, 0, 'C');
-    if (!$es_diplomado) {
+    if ($es_diplomado) {
+        $recup_str = "-";
+        if (isset($al['recuperativo_diplomado']) && $al['recuperativo_diplomado'] !== null) {
+            $recup_str = round((float)$al['recuperativo_diplomado']);
+        }
+        $pdf->Cell($colRecup, 6, $recup_str, 1, 0, 'C');
+    } else {
         $pdf->Cell($colTomo, 6, isset($al['tomo']) ? $al['tomo'] : '-', 1, 0, 'C');
         $pdf->Cell($colFolio, 6, isset($al['folio']) ? $al['folio'] : '-', 1, 0, 'C');
     }
@@ -272,102 +283,7 @@ if (isset($data['img_pie']) && file_exists($data['img_pie'])) {
     $pdf->Image($data['img_pie'], 10, 195, $pageWidthL - 20, 15);
 }
 
-// ================= PÁGINA 3: ANEXO DE HISTORIAL DE NOTAS POR MATERIA =================
-$pdf->AddPage('L', 'Letter');
-if (isset($data['img_encabezado']) && file_exists($data['img_encabezado'])) {
-    $pdf->Image($data['img_encabezado'], 0, 0, $pageWidthL, 25);
-}
-$pdf->SetY(35);
-$pdf->SetFont('Times', 'B', 14);
-$pdf->Cell($contentWidthL, 7, utf8_decode("ANEXO 2: HISTORIAL DE CALIFICACIONES POR MATERIA"), 0, 1, 'C');
-$pdf->Ln(5);
-
-$pdf->SetFont('Times', 'B', 8);
-$pdf->SetFillColor(44, 62, 80);
-$pdf->SetTextColor(255);
-
-$lista_materias = isset($data['lista_materias']) ? $data['lista_materias'] : [];
-$total_materias = count($lista_materias);
-
-$colNo2 = 10;
-$colCed2 = 22;
-$colNom2 = 55;
-$espacio_disponible = $contentWidthL - ($colNo2 + $colCed2 + $colNom2);
-$colMateria = $total_materias > 0 ? $espacio_disponible / $total_materias : 0;
-
-$pdf->SetX($marginX);
-$pdf->Cell($colNo2, 7, utf8_decode("No."), 1, 0, 'C', true);
-$pdf->Cell($colCed2, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
-$pdf->Cell($colNom2, 7, utf8_decode("Participante (Nombres)"), 1, 0, 'C', true);
-
-foreach ($lista_materias as $mat) {
-    // Truncate the subject name if it's too long
-    $nombre_corto = mb_substr($mat['nombre_materia'], 0, 12, 'UTF-8');
-    if (mb_strlen($mat['nombre_materia'], 'UTF-8') > 12) {
-        $nombre_corto .= '.';
-    }
-    $pdf->Cell($colMateria, 7, utf8_decode($nombre_corto), 1, 0, 'C', true);
-}
-$pdf->Ln();
-$pdf->SetFont('Times', '', 9);
-$pdf->SetTextColor(0);
-
-foreach ($alumnos as $idx => $al) {
-    if ($pdf->GetY() > 190) {
-        if (isset($data['img_pie']) && file_exists($data['img_pie'])) {
-            $pdf->Image($data['img_pie'], 10, 195, $pageWidthL - 20, 15);
-        }
-        $pdf->AddPage('L', 'Letter');
-        if (isset($data['img_encabezado']) && file_exists($data['img_encabezado'])) {
-            $pdf->Image($data['img_encabezado'], 0, 0, $pageWidthL, 25);
-        }
-        $pdf->SetY(35);
-        $pdf->SetFont('Times', 'B', 8);
-        $pdf->SetFillColor(44, 62, 80);
-        $pdf->SetTextColor(255);
-        $pdf->SetX($marginX);
-        $pdf->Cell($colNo2, 7, utf8_decode("No."), 1, 0, 'C', true);
-        $pdf->Cell($colCed2, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
-        $pdf->Cell($colNom2, 7, utf8_decode("Participante (Nombres)"), 1, 0, 'C', true);
-        foreach ($lista_materias as $mat) {
-            $nombre_corto = mb_substr($mat['nombre_materia'], 0, 12, 'UTF-8');
-            if (mb_strlen($mat['nombre_materia'], 'UTF-8') > 12) {
-                $nombre_corto .= '.';
-            }
-            $pdf->Cell($colMateria, 7, utf8_decode($nombre_corto), 1, 0, 'C', true);
-        }
-        $pdf->Ln();
-        $pdf->SetFont('Times', '', 9);
-        $pdf->SetTextColor(0);
-    }
-
-    $pdf->SetX($marginX);
-    $nombre_completo = mb_convert_case($al['nombre'] . ' ' . $al['apellido'], MB_CASE_TITLE, "UTF-8");
-    $nombre_truncado = mb_substr($nombre_completo, 0, 30, 'UTF-8');
-    
-    $pdf->Cell($colNo2, 6, $idx + 1, 1, 0, 'C');
-    $pdf->Cell($colCed2, 6, $al['cedula'], 1, 0, 'C');
-    $pdf->Cell($colNom2, 6, utf8_decode($nombre_truncado), 1, 0, 'L');
-    
-    foreach ($lista_materias as $mat) {
-        $id_mat = $mat['id_materia_bimestre'];
-        $nota_mostrar = "-";
-        if (isset($al['historial_materias'][$id_mat])) {
-            $h = $al['historial_materias'][$id_mat];
-            if ($h['nota_historica'] !== null) {
-                $nota_mostrar = round((float)$h['nota_historica']);
-            }
-        }
-        $pdf->Cell($colMateria, 6, $nota_mostrar, 1, 0, 'C');
-    }
-    $pdf->Ln();
-}
-
-if (isset($data['img_pie']) && file_exists($data['img_pie'])) {
-    $pdf->Image($data['img_pie'], 10, 195, $pageWidthL - 20, 15);
-}
-
-// ================= PÁGINA 4: ANEXO DE EVALUACIONES RECUPERATIVAS =================
+// ================= PÁGINA 3: ANEXO DE EVALUACIONES RECUPERATIVAS =================
 $hay_recuperativos = false;
 $lista_recuperativos = [];
 foreach ($alumnos as $al) {

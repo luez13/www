@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../controllers/init.php';
-if ($_SESSION['id_rol'] != 4)
+if (!in_array($_SESSION['id_rol'], [3, 4]))
     die('<div class="alert alert-danger m-3">Acceso denegado.</div>');
 ?>
 <div class="container-fluid">

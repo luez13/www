@@ -81,10 +81,12 @@ $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP
                         <span class="badge bg-danger rounded-pill">Inactivo</span>
                     <?php endif; ?>
                 </li>
+                <?php if ($cupos_disponibles > 0): ?>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-users me-2 text-info"></i>Cupos Disponibles</strong>
                     <span class="badge bg-info text-dark rounded-pill"><?php echo $cupos_disponibles; ?></span>
                 </li>
+                <?php endif; ?>
                 <li class="list-group-item">
                     <strong><i class="far fa-clock me-2 text-warning"></i>Horario</strong>
                     <br>
@@ -138,7 +140,6 @@ $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP
         <div class="card-footer text-center bg-light p-3">
             <?php if (in_array($_SESSION['id_rol'], [1, 2, 3, 4])): // Permitir que todos los roles actúen como alumnos si lo desean ?>
                 <?php if (!$inscripcion): ?>
-                    <?php if ($cupos_disponibles > 0): ?>
                         <form id="formInscribirCurso" method="POST" action="../controllers/curso_acciones.php">
                             <input type="hidden" name="action" value="inscribirse">
                             <input type="hidden" name="id_usuario" value="<?php echo $_SESSION['user_id']; ?>">
@@ -147,9 +148,6 @@ $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP
                                 <i class="fas fa-user-plus me-2"></i>Inscribirse al curso
                             </button>
                         </form>
-                    <?php else: ?>
-                        <button class="btn btn-secondary btn-lg" disabled>Cupos Agotados</button>
-                    <?php endif; ?>
 
                 <?php else: ?>
                     <div class="alert alert-info">
@@ -168,13 +166,15 @@ $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP
                                 </button>
                             </form>
 
+                            <?php if ($_SESSION['es_academico']): ?>
                             <a href="../controllers/generar_constancia.php?id_curso=<?php echo $id_curso; ?>" target="_blank"
                                 class="btn btn-outline-primary">
                                 <i class="fas fa-file-alt me-2"></i>Constancia
                             </a>
+                            <?php endif; ?>
                         <?php endif; ?>
 
-                        <?php if ($inscripcion['completado'] == 1): ?>
+                        <?php if ($inscripcion['completado'] == 1 && $_SESSION['es_academico']): ?>
                             <?php if ($inscripcion['pago'] == 1):
                                 $valor_unico = $inscripcion['valor_unico'];
                                 ?>

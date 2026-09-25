@@ -29,6 +29,11 @@ if (!$curso_info) {
     die("Curso no encontrado.");
 }
 
+// 🔒 Validación de Seguridad Multi-Tenant
+if (!$_SESSION['es_multisede'] && $_SESSION['id_extension'] != $curso_info['id_extension']) {
+    die("Acceso denegado: Este curso no pertenece a su dependencia operativa.");
+}
+
 // 2. Docente Responsable
 $docente_responsable = "No asignado";
 if (!empty($curso_info['prom_nom'])) {
@@ -96,6 +101,7 @@ foreach ($alumnos as &$al) {
     $al['historial_materias'] = [];
     $materias_aprobadas = 0;
     $suma_notas = 0;
+    $max_recup = null;
     foreach ($materias_historial as $mh) {
         $al['historial_materias'][$mh['id_materia_bimestre']] = [
             'nombre_materia' => $mh['nombre_materia'],
@@ -104,11 +110,19 @@ foreach ($alumnos as &$al) {
             'nota_recuperativa' => $mh['nota_recuperativa']
         ];
         
+        if ($mh['nota_recuperativa'] !== null) {
+            if ($max_recup === null || $mh['nota_recuperativa'] > $max_recup) {
+                $max_recup = $mh['nota_recuperativa'];
+            }
+        }
+        
         if ($mh['nota_historica'] !== null) {
             $materias_aprobadas++;
             $suma_notas += (float)$mh['nota_historica'];
         }
     }
+    
+    $al['recuperativo_diplomado'] = $max_recup;
 
     if ($total_materias_curso > 0) {
         if ($materias_aprobadas == $total_materias_curso) {
@@ -183,39 +197,30 @@ $hora_cierre = htmlspecialchars(date('h:i a', $timestamp_cierre));
 
 // 7. Cargar Firmantes Dinámicos
 $firmantes = [];
+$id_extension_curso = $curso_info['id_extension'];
 
 // A. Vicerrectorado (Encargado del Área)
-$stmtConfig1 = $conn->prepare("SELECT valor_config FROM cursos.config_sistema WHERE clave_config = 'ID_CARGO_VICERRECTORADO_POR_DEFECTO'");
-$stmtConfig1->execute();
-$id_vicerrector = $stmtConfig1->fetchColumn();
-if ($id_vicerrector) {
-    $stmtCargo1 = $conn->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE id_cargo = :id");
-    $stmtCargo1->execute(['id' => $id_vicerrector]);
-    if ($c = $stmtCargo1->fetch(PDO::FETCH_ASSOC)) {
-        $firmantes[] = [
-            'nombre' => trim($c['nombre'] . ' ' . $c['apellido']),
-            'titulo' => !empty($c['titulo']) ? trim($c['titulo']) : '',
-            'cargo' => $c['nombre_cargo'],
-            'firma_digital' => $c['firma_digital']
-        ];
-    }
+$stmtCargo1 = $conn->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE (nombre_cargo ILIKE '%Vice-Rector%' OR nombre_cargo ILIKE '%Vicerrector%') AND activo = true AND id_extension = :id_extension LIMIT 1");
+$stmtCargo1->execute(['id_extension' => $id_extension_curso]);
+if ($c = $stmtCargo1->fetch(PDO::FETCH_ASSOC)) {
+    $firmantes[] = [
+        'nombre' => trim($c['nombre'] . ' ' . $c['apellido']),
+        'titulo' => !empty($c['titulo']) ? trim($c['titulo']) : '',
+        'cargo' => $c['nombre_cargo'],
+        'firma_digital' => $c['firma_digital']
+    ];
 }
 
-// B. Coordinación de Formación Permanente
-$stmtConfig2 = $conn->prepare("SELECT valor_config FROM cursos.config_sistema WHERE clave_config = 'ID_CARGO_COORD_FP_POR_DEFECTO'");
-$stmtConfig2->execute();
-$id_coord = $stmtConfig2->fetchColumn();
-if ($id_coord) {
-    $stmtCargo2 = $conn->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE id_cargo = :id");
-    $stmtCargo2->execute(['id' => $id_coord]);
-    if ($c = $stmtCargo2->fetch(PDO::FETCH_ASSOC)) {
-        $firmantes[] = [
-            'nombre' => trim($c['nombre'] . ' ' . $c['apellido']),
-            'titulo' => !empty($c['titulo']) ? trim($c['titulo']) : '',
-            'cargo' => $c['nombre_cargo'],
-            'firma_digital' => $c['firma_digital']
-        ];
-    }
+// B. Coordinador(a) / Director(a) de la Dependencia
+$stmtCargo2 = $conn->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE (nombre_cargo ILIKE '%Coord%' OR nombre_cargo ILIKE '%Director%') AND activo = true AND id_extension = :id_extension LIMIT 1");
+$stmtCargo2->execute(['id_extension' => $id_extension_curso]);
+if ($c = $stmtCargo2->fetch(PDO::FETCH_ASSOC)) {
+    $firmantes[] = [
+        'nombre' => trim($c['nombre'] . ' ' . $c['apellido']),
+        'titulo' => !empty($c['titulo']) ? trim($c['titulo']) : '',
+        'cargo' => $c['nombre_cargo'],
+        'firma_digital' => $c['firma_digital']
+    ];
 }
 
 // C. Facilitador del Curso

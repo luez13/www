@@ -79,9 +79,9 @@ class Pago
     public function registrarComprobante($datos)
     {
         $sql = "INSERT INTO cursos.comprobantes_pago 
-                (id_usuario, id_curso, id_materia_bimestre, archivo_ruta, numero_operacion, banco_origen, monto, estado, fecha_pago, fecha_subida, moneda) 
+                (id_usuario, id_curso, id_materia_bimestre, archivo_ruta, numero_operacion, banco_origen, monto, estado, fecha_pago, fecha_subida, moneda, id_extension, id_cuenta_destino) 
                 VALUES 
-                (:id_usuario, :id_curso, :id_materia_bimestre, :archivo_ruta, :numero_operacion, :banco_origen, :monto, 'Pendiente', :fecha_pago, CURRENT_TIMESTAMP, :moneda)";
+                (:id_usuario, :id_curso, :id_materia_bimestre, :archivo_ruta, :numero_operacion, :banco_origen, :monto, 'Pendiente', :fecha_pago, CURRENT_TIMESTAMP, :moneda, (SELECT id_extension FROM cursos.cursos WHERE id_curso = :id_curso LIMIT 1), :id_cuenta_destino)";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             'id_usuario' => $datos['id_usuario'],
@@ -92,7 +92,8 @@ class Pago
             'banco_origen' => $datos['banco_origen'],
             'monto' => $datos['monto'],
             'fecha_pago' => $datos['fecha_pago'],
-            'moneda' => isset($datos['moneda']) ? $datos['moneda'] : 'Bs'
+            'moneda' => isset($datos['moneda']) ? $datos['moneda'] : 'Bs',
+            'id_cuenta_destino' => isset($datos['id_cuenta_destino']) ? $datos['id_cuenta_destino'] : null
         ]);
     }
 
@@ -154,30 +155,33 @@ class Pago
 
     public function obtenerComprobantesPorCurso($id_curso)
     {
+        $id_extension = $_SESSION['id_extension'];
         $sql = "SELECT cp.*, u.nombre, u.apellido, u.cedula, c.nombre_curso, m.nombre_materia, admin.nombre as admin_nombre, admin.apellido as admin_apellido
                 FROM cursos.comprobantes_pago cp
                 JOIN cursos.usuarios u ON cp.id_usuario = u.id
                 JOIN cursos.cursos c ON cp.id_curso = c.id_curso
                 LEFT JOIN cursos.usuarios admin ON cp.id_admin_gestor = admin.id
                 LEFT JOIN cursos.materias_bimestre m ON cp.id_materia_bimestre = m.id_materia_bimestre
-                WHERE cp.id_curso = :id_curso
+                WHERE cp.id_curso = :id_curso AND cp.id_extension = :id_extension
                 ORDER BY cp.fecha_subida DESC";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['id_curso' => $id_curso]);
+        $stmt->execute(['id_curso' => $id_curso, 'id_extension' => $id_extension]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function obtenerTodosLosComprobantes()
     {
+        $id_extension = $_SESSION['id_extension'];
         $sql = "SELECT cp.*, u.nombre, u.apellido, u.cedula, c.nombre_curso, m.nombre_materia, admin.nombre as admin_nombre, admin.apellido as admin_apellido
                 FROM cursos.comprobantes_pago cp
                 JOIN cursos.usuarios u ON cp.id_usuario = u.id
                 JOIN cursos.cursos c ON cp.id_curso = c.id_curso
                 LEFT JOIN cursos.usuarios admin ON cp.id_admin_gestor = admin.id
                 LEFT JOIN cursos.materias_bimestre m ON cp.id_materia_bimestre = m.id_materia_bimestre
+                WHERE cp.id_extension = :id_extension
                 ORDER BY cp.fecha_subida DESC";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute();
+        $stmt->execute(['id_extension' => $id_extension]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

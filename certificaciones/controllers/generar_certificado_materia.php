@@ -13,14 +13,16 @@ if (isset($_GET['valor_unico'])) {
     $valor_unico = $_GET['valor_unico'];
     
     $sql = "SELECT u.id as id_usuario, u.nombre, u.apellido, u.cedula,
-                   m.id_materia_bimestre as id_materia, m.nombre_materia, m.total_horas, m.fecha_finalizacion, m.docente_id,
-                   c.id_curso, c.nombre_curso, c.tipo_curso, c.nota_minima_aprobatoria, c.articulo_tipo_curso, c.promotor,
-                   um.nota_regular, um.nota_recuperativa, um.estado as estado_materia
+                   m.id_materia_bimestre as id_materia, m.nombre_materia, m.total_horas, m.docente_id, m.temario, m.fecha_inicio, m.fecha_fin,
+                   c.id_curso, c.nombre_curso, c.tipo_curso, c.nota_minima_aprobatoria, c.promotor,
+                   um.nota_regular, um.nota_recuperativa, um.estado as estado_materia,
+                   p.archivo_vista, cm.fecha_emision as fecha_acta_materia, c.fecha_finalizacion
             FROM cursos.certificaciones_materias cm
             JOIN cursos.usuarios u ON cm.id_usuario = u.id
             JOIN cursos.materias_bimestre m ON cm.id_materia_bimestre = m.id_materia_bimestre
             JOIN cursos.usuario_materias um ON (u.id = um.id_usuario AND m.id_materia_bimestre = um.id_materia_bimestre)
             JOIN cursos.cursos c ON m.id_curso = c.id_curso
+            LEFT JOIN cursos.plantillas_certificados p ON c.id_plantilla = p.id
             WHERE cm.valor_unico = :vu";
             
     $stmt = $conn->prepare($sql);
@@ -38,14 +40,16 @@ if (isset($_GET['valor_unico'])) {
     $cedula = $_GET['cedula'];
 
     $sql = "SELECT u.id as id_usuario, u.nombre, u.apellido, u.cedula,
-                   m.nombre_materia, m.total_horas, m.docente_id,
+                   m.nombre_materia, m.total_horas, m.docente_id, m.temario, m.fecha_inicio, m.fecha_fin,
                    c.id_curso, c.nombre_curso, c.tipo_curso, c.promotor,
                    um.nota_regular, um.nota_recuperativa, um.estado as estado_materia,
-                   ac.fecha_cierre as fecha_acta_materia
+                   ac.fecha_cierre as fecha_acta_materia,
+                   p.archivo_vista
             FROM cursos.usuarios u
             JOIN cursos.usuario_materias um ON u.id = um.id_usuario
             JOIN cursos.materias_bimestre m ON um.id_materia_bimestre = m.id_materia_bimestre
             JOIN cursos.cursos c ON m.id_curso = c.id_curso
+            LEFT JOIN cursos.plantillas_certificados p ON c.id_plantilla = p.id
             LEFT JOIN cursos.actas_cierre ac ON ac.id_materia_bimestre = m.id_materia_bimestre AND ac.tipo_acta = 'Regular'
             WHERE u.cedula = :cedula AND m.id_materia_bimestre = :id_materia";
 
@@ -114,20 +118,29 @@ $data['folio'] = $folio_db;
 $data['horas_cronologicas'] = $info['total_horas'] ? $info['total_horas'] : '';
 $data['inicioMesCurso'] = $info['fecha_acta_materia'];
 $data['fechaFinalizacionCurso'] = $info['fecha_acta_materia'];
+$data['fecha_inicio_materia'] = $info['fecha_inicio'];
+$data['fecha_fin_materia'] = $info['fecha_fin'];
+$data['tipo_certificado'] = 'materia';
+$data['temario'] = $info['temario'];
 
 // Lógica de validación QR
 $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}" . explode('/controllers/', $_SERVER['PHP_SELF'])[0];
 $data['certificadoUrl'] = $baseUrl . "/controllers/generar_certificado_materia.php?valor_unico={$valor_unico}";
 $data['valor_unico'] = $valor_unico;
 
-// Fondo
-$data['fondoPath'] = realpath(__DIR__ . '/../public/assets/img/certificado_logo_ministerio.png');
+// Plantilla y Fondo Dinámico
+$nombreVistaBD = isset($info['archivo_vista']) && !empty($info['archivo_vista']) ? $info['archivo_vista'] : 'certificado_base.php';
+$nombreFondoPng = str_replace('.php', '.png', $nombreVistaBD);
+$nombreFondoJpg = str_replace('.php', '.jpg', $nombreVistaBD);
+
+$data['fondoPath'] = realpath(__DIR__ . '/../public/assets/img/' . $nombreFondoPng);
 if (!$data['fondoPath'] || !file_exists($data['fondoPath'])) {
-    $data['fondoPath'] = realpath(__DIR__ . '/../public/assets/img/certificado_logo_ministerio.jpg');
+    $data['fondoPath'] = realpath(__DIR__ . '/../public/assets/img/' . $nombreFondoJpg);
     if (!$data['fondoPath'] || !file_exists($data['fondoPath'])) {
         $data['fondoPath'] = realpath(__DIR__ . '/../public/assets/img/certificado_base.jpg');
     }
 }
+$data['archivo_vista'] = $nombreVistaBD;
 
 // Obtener firmas configuradas para el curso (diplomado) base
 require_once __DIR__ . '/../models/curso.php';
@@ -162,7 +175,6 @@ if (!empty($info['docente_id'])) {
                     $f['firma_base64'] = $firma_base64;
                 } else {
                     $f['firma_base64'] = null;
-                    $f['cargo'] .= ' (Firma no encontrada)';
                 }
             }
         }
@@ -179,11 +191,13 @@ $stmt_eval = $conn->prepare("SELECT nombre_actividad as nombre_modulo, ROW_NUMBE
 $stmt_eval->execute(['id_materia' => $id_materia]);
 $data['modulos'] = $stmt_eval->fetchAll(PDO::FETCH_ASSOC);
 
-// Código QR
+// Código QR en archivo temporal
 $qrCode = new QrCode($data['certificadoUrl']);
-$qrCode->setSize(300);
-$qrCode->setMargin(10);
-$data['qrImageBase64'] = base64_encode($qrCode->writeString());
+$qrCode->setSize(150);
+$qrCode->setMargin(0);
+$qrCode->setWriterByName('png');
+$qrTempPath = sys_get_temp_dir() . '/qr_' . uniqid() . '.png';
+file_put_contents($qrTempPath, $qrCode->writeString());
 
 // ==========================================
 // INICIA FPDF
@@ -196,6 +210,14 @@ if (!defined('FPDF_FONTPATH')) {
 $pdf = new \FPDF('L', 'mm', 'Letter');
 $pdf->SetAutoPageBreak(false);
 
-require __DIR__ . '/../views/certificados/certificado_logo_ministerio.php';
+$rutaVista = realpath(__DIR__ . '/../views/certificados/' . $data['archivo_vista']);
+if ($rutaVista && file_exists($rutaVista)) {
+    require $rutaVista;
+} else {
+    require __DIR__ . '/../views/certificados/certificado_base.php';
+}
+
+// Limpiar archivo temporal del QR
+@unlink($qrTempPath);
 
 $pdf->Output('I', 'Certificado_' . $info['cedula'] . '_' . str_replace(' ', '_', $info['nombre_materia']) . '.pdf');

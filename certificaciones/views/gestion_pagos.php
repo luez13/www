@@ -138,6 +138,13 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                         Limpiar</button>
                 </div>
             </div>
+            <div class="row mb-2">
+                <div class="col-12 d-flex justify-content-end">
+                    <button class="btn btn-success shadow-sm" type="button" onclick="descargarConsolidado()">
+                        <i class="fas fa-file-excel"></i> Descargar Consolidado (Pendientes y Comprobados)
+                    </button>
+                </div>
+            </div>
             <div class="alert alert-info mb-0 small mt-2">
                 <i class="fas fa-info-circle"></i> <strong>Tip de exportación:</strong> Puedes hacer clic en las filas
                 que desees para seleccionarlas. Si hay filas seleccionadas, al presionar "Excel", "PDF" o "Imprimir"
@@ -240,10 +247,12 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <?php if (isset($comp['moneda']) && $comp['moneda'] === 'Divisas'): ?>
-                                            <span class="badge badge-success">Divisas</span>
+                                        <?php if (isset($comp['moneda']) && $comp['moneda'] === 'Dolares'): ?>
+                                            <span class="badge badge-success">Dólares</span>
+                                        <?php elseif (isset($comp['moneda']) && $comp['moneda'] === 'Pesos'): ?>
+                                            <span class="badge badge-info">Pesos</span>
                                         <?php else: ?>
-                                            <span class="badge badge-primary">Bs.</span>
+                                            <span class="badge badge-primary">Bolívares</span>
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-left">
@@ -269,7 +278,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                     <td class="align-middle">
                                         <span class="text-success font-weight-bold" style="font-size: 1.1rem;">
                                             <?php 
-                                            $simbolo = (isset($comp['moneda']) && $comp['moneda'] === 'Divisas') ? '$' : 'Bs.';
+                                            $simbolo = (isset($comp['moneda']) && ($comp['moneda'] === 'Dolares' || $comp['moneda'] === 'Pesos')) ? '$' : 'Bs.';
                                             echo $simbolo . number_format($comp['monto'], 2);
                                             ?>
                                         </span>
@@ -373,8 +382,9 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                         <div class="col-md-4 form-group mb-3">
                             <label>Moneda:</label>
                             <select name="moneda" id="admin_edit_moneda" class="form-control" onchange="toggleReferenciaAdmin()" required>
-                                <option value="Bs" selected>Bolívares (Bs.)</option>
-                                <option value="Divisas">Divisas ($)</option>
+                                <option value="Bolivares" selected>Bolívares (Bs.)</option>
+                                <option value="Dolares">Dólares ($)</option>
+                                <option value="Pesos">Pesos ($)</option>
                             </select>
                         </div>
                         <div class="col-md-4 form-group mb-3">
@@ -443,6 +453,16 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <script>
+    function descargarConsolidado() {
+        const desde = document.getElementById('fechaDesde').value;
+        const hasta = document.getElementById('fechaHasta').value;
+        
+        let url = '../controllers/exportar_consolidado.php?';
+        if (desde) url += 'desde=' + encodeURIComponent(desde) + '&';
+        if (hasta) url += 'hasta=' + encodeURIComponent(hasta);
+        
+        window.location.href = url;
+    }
     $(document).ready(function () {
         // 1. Evitar acumulación de filtros al recargar esta vista por AJAX múltiples veces
         if ($.fn.dataTable.ext && $.fn.dataTable.ext.search) {
@@ -913,7 +933,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
         var refer = document.getElementById('admin_edit_numero_operacion');
         var simbolo = document.getElementById('admin_edit_monto_simbolo');
 
-        if(moneda === 'Divisas') {
+        if(moneda === 'Dolares' || moneda === 'Pesos') {
             grupo.style.display = 'none';
             refer.removeAttribute('required');
             refer.value = '';
@@ -968,7 +988,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                         let fechaFormat = `${partes[2]}/${partes[1]}/${partes[0]}`;
 
                         let nuevoMoneda = formData.get('moneda');
-                        let simbolo = (nuevoMoneda === 'Divisas') ? '$' : 'Bs.';
+                        let simbolo = (nuevoMoneda === 'Dolares' || nuevoMoneda === 'Pesos') ? '$' : 'Bs.';
                         
                         let idCurso = formData.get('id_curso');
                         let idMateria = formData.get('id_materia') || 'null';
@@ -997,7 +1017,9 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                         data[6] = cursoHtml;
 
                         // Índice 7: Moneda
-                        data[7] = (nuevoMoneda === 'Divisas') ? '<span class="badge badge-success">Divisas</span>' : '<span class="badge badge-primary">Bs.</span>';
+                        if (nuevoMoneda === 'Dolares') data[7] = '<span class="badge badge-success">Dólares</span>';
+                        else if (nuevoMoneda === 'Pesos') data[7] = '<span class="badge badge-info">Pesos</span>';
+                        else data[7] = '<span class="badge badge-primary">Bolívares</span>';
 
                         // Índice 8: Referencia / Banco
                         // Preservar la observación si existe

@@ -83,6 +83,19 @@ function f_Fecha($f) {
     return "los " . date('d', $ts) . " días del mes de " . $m[date('n', $ts) - 1] . " de " . date('Y', $ts);
 }
 
+function f_FechaDictada($f1, $f2) {
+    if (!$f1 || !$f2) return "";
+    $m = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    $ts1 = strtotime($f1);
+    $ts2 = strtotime($f2);
+    if (!$ts1 || !$ts2) return "";
+    
+    $txt1 = date('d', $ts1) . " de " . $m[date('n', $ts1) - 1] . " de " . date('Y', $ts1);
+    $txt2 = date('d', $ts2) . " de " . $m[date('n', $ts2) - 1] . " de " . date('Y', $ts2);
+    
+    return "dictada desde el " . $txt1 . " hasta el " . $txt2 . ".";
+}
+
 function f_FechaRango($f1, $f2) {
     if (!$f1 || !$f2) return "periodo no especificado";
     $m = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -93,7 +106,7 @@ function f_FechaRango($f1, $f2) {
     $txt1 = date('d', $ts1) . " días del mes de " . $m[date('n', $ts1) - 1] . " de " . date('Y', $ts1);
     $txt2 = date('d', $ts2) . " días del mes de " . $m[date('n', $ts2) - 1] . " de " . date('Y', $ts2);
     
-    return "desarrollado entre los " . $txt1 . " y los " . $txt2 . ".";
+    return "Desarrollado entre los " . $txt1 . " y los " . $txt2 . ".";
 }
 $pdf->SetFont('Arial', '', 12);
 $pdf->SetXY(0, 140);
@@ -187,13 +200,29 @@ if (isset($qrTempPath) && file_exists($qrTempPath)) {
     $pdf->Image($qrTempPath, 210, 35, 35, 35);
 }
 
-// 3. Lista de Módulos (Y = 60mm)
-$pdf->SetFont('Arial', '', 11); // Un punto menos por si son muchos
+// 3. Lista de Módulos / Temario (Y = 60mm)
 $pdf->SetXY(30, 60);
-foreach ($data['modulos'] as $i => $mod) {
-    $pdf->SetX(30);
-    // MultiCell a 175mm para dejar espacio libre al QR que empieza en 210
-    $pdf->MultiCell(175, 6, utf8_decode(($i + 1) . '. ' . $mod['nombre_modulo']), 0, 'L');
+
+$tipoCert = isset($data['tipo_certificado']) ? $data['tipo_certificado'] : 'diplomado';
+
+if ($tipoCert === 'materia') {
+    $pdf->SetFont('Arial', '', 11);
+    
+    // Sanitización defensiva recomendada por el auditor:
+    // 1. Eliminar etiquetas HTML (strip_tags)
+    // 2. Convertir codificación a ISO-8859-1 (utf8_decode) para evitar caracteres raros en FPDF
+    $temario = isset($data['temario']) ? $data['temario'] : '';
+    $temarioLimpio = utf8_decode(strip_tags($temario));
+    
+    // MultiCell para impresión autoajustada del párrafo
+    $pdf->MultiCell(175, 6, $temarioLimpio, 0, 'L');
+} else {
+    $pdf->SetFont('Arial', '', 11); // Un punto menos por si son muchos
+    foreach ($data['modulos'] as $i => $mod) {
+        $pdf->SetX(30);
+        // MultiCell a 175mm para dejar espacio libre al QR que empieza en 210
+        $pdf->MultiCell(175, 6, utf8_decode(($i + 1) . '. ' . $mod['nombre_modulo']), 0, 'L');
+    }
 }
 
 // 4. Registro Inferior (Y = 145mm)
@@ -205,7 +234,11 @@ if (!empty($data['nota']) && $data['nota'] != 0) {
 }
 $textoReg .= "El programa tuvo una duración de " . $data['horas_cronologicas'] . " horas cronológicas.\n";
 $tipoCursoUpper = mb_convert_case($data['tipo_curso'], MB_CASE_TITLE, "UTF-8");
-$textoReg .= $tipoCursoUpper . " " . f_FechaRango($data['inicioMesCurso'], $data['fechaFinalizacionCurso']);
+if (isset($data['tipo_certificado']) && $data['tipo_certificado'] == 'materia' && !empty($data['fecha_inicio_materia']) && !empty($data['fecha_fin_materia'])) {
+    $textoReg .= trim($tipoCursoUpper . " " . f_FechaDictada($data['fecha_inicio_materia'], $data['fecha_fin_materia']));
+} else {
+    $textoReg .= trim($tipoCursoUpper . " " . f_FechaRango($data['inicioMesCurso'], $data['fechaFinalizacionCurso']));
+}
 
 $pdf->MultiCell(219.4, 4.5, utf8_decode($textoReg), 0, 'L'); // Interlineado reducido de 6 a 4.5
 

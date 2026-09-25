@@ -124,7 +124,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             enviarCorreo($correo, $asunto, $mensajeHtml);
 
-            echo "Usuario creado con éxito. \nContraseña: " . $pwd_raw;
+            $target_user_id = $new_user_id;
+            $msg_success = "Usuario creado con éxito. \nContraseña: " . $pwd_raw;
 
         } else {
             // Lógica original de Edición (UPDATE)
@@ -192,8 +193,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $db->prepare($sql);
             $stmt->execute($params);
 
-            echo "Usuario actualizado con éxito.";
+            $target_user_id = $id;
+            $msg_success = "Usuario actualizado con éxito.";
         }
+
+        // --- ASIGNACIÓN DE SEDES (MULTI-TENANT) ---
+        if (in_array($_SESSION['id_rol'], [4, 7])) {
+            $extensiones = isset($_POST['extensiones']) ? $_POST['extensiones'] : [];
+            
+            // Eliminar mapeos actuales para recrearlos (sincronización simple)
+            $stmt_del = $db->prepare("DELETE FROM cursos.usuarios_extensiones WHERE id_usuario = :id");
+            $stmt_del->execute([':id' => $target_user_id]);
+            
+            if (!empty($extensiones)) {
+                $stmt_ins = $db->prepare("INSERT INTO cursos.usuarios_extensiones (id_usuario, id_extension, activo) VALUES (:id_usuario, :id_extension, TRUE)");
+                foreach ($extensiones as $ext_id) {
+                    $stmt_ins->execute([
+                        ':id_usuario' => $target_user_id,
+                        ':id_extension' => (int) $ext_id
+                    ]);
+                }
+            }
+        }
+
+        echo $msg_success;
 
     } catch (PDOException $e) {
         http_response_code(500);

@@ -31,8 +31,8 @@ function fmt_date($date_str)
 }
 
 // Datos auxiliares
-$stmt_cargos = $db->prepare("SELECT id_cargo, nombre_cargo, nombre, apellido FROM cursos.cargos WHERE activo = true ORDER BY nombre_cargo");
-$stmt_cargos->execute();
+$stmt_cargos = $db->prepare("SELECT id_cargo, nombre_cargo, nombre, apellido FROM cursos.cargos WHERE activo = true AND id_extension = :id_extension ORDER BY nombre_cargo");
+$stmt_cargos->execute(['id_extension' => $_SESSION['id_extension']]);
 $cargos_firmantes = $stmt_cargos->fetchAll(PDO::FETCH_ASSOC);
 
 $stmt_posiciones = $db->prepare("SELECT id_posicion, codigo_posicion, descripcion_posicion FROM cursos.posiciones_firma ORDER BY id_posicion");
@@ -54,6 +54,10 @@ $offset = ($page - 1) * $limit;
 
 $sql_base = "FROM cursos.cursos WHERE 1=1";
 $params = [];
+
+// Aislamiento de Sede (Tenant Shielding)
+$sql_base .= " AND id_extension = :id_ext_sess";
+$params[':id_ext_sess'] = $_SESSION['id_extension'];
 
 if (!empty($busqueda)) {
     $sql_base .= " AND (nombre_curso ILIKE :busqueda OR CAST(id_curso AS TEXT) LIKE :busqueda)";
@@ -280,17 +284,19 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">Tipo de curso</label>
                                                 <select class="form-select" name="tipo_curso" required>
-                                                    <?php $tipos = ['masterclass', 'seminario', 'diplomado', 'congreso', 'charla', 'taller', 'curso', 'masterclass_rectoria', 'seminario_rectoria', 'diplomado_rectoria', 'congreso_rectoria', 'charla_rectoria', 'taller_rectoria', 'curso_rectoria']; ?>
+                                                    <?php $tipos = ['recepcion_pago', 'masterclass', 'seminario', 'diplomado', 'congreso', 'charla', 'taller', 'curso', 'masterclass_rectoria', 'seminario_rectoria', 'diplomado_rectoria', 'congreso_rectoria', 'charla_rectoria', 'taller_rectoria', 'curso_rectoria']; ?>
                                                     <?php foreach ($tipos as $tipo): ?>
                                                         <option value="<?= $tipo ?>" <?= ($curso['tipo_curso'] == $tipo) ? 'selected' : '' ?>><?= ucfirst(str_replace('_', ' ', $tipo)) ?></option>
                                                     <?php endforeach; ?>
                                                 </select>
                                             </div>
+                                            <?php if ($_SESSION['es_academico']): ?>
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">Nivel del curso</label>
                                                 <input type="text" class="form-control" name="nivel_curso"
                                                     value="<?= h($curso['nivel_curso']) ?>" required>
                                             </div>
+                                            <?php endif; ?>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Plantilla del Certificado a emitir:</label>
@@ -305,6 +311,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                     </div>
                                 </div>
 
+                                <?php if ($_SESSION['es_academico']): ?>
                                 <div class="card shadow mb-4">
                                     <div class="card-header py-3">
                                         <h6 class="m-0 font-weight-bold text-primary">Fechas y Horarios</h6>
@@ -314,29 +321,29 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                             <div class="col-md-4 mb-3">
                                                 <label class="form-label">Fecha de Inicio</label>
                                                 <input type="date" class="form-control" name="inicio_mes"
-                                                    value="<?= h($curso['inicio_mes']) ?>" required>
+                                                    value="<?= h($curso['inicio_mes']) ?>">
                                             </div>
                                             <div class="col-md-4 mb-3">
                                                 <label class="form-label">Fecha de Finalización</label>
                                                 <input type="datetime-local" class="form-control" name="fecha_finalizacion"
-                                                    value="<?= fmt_date($curso['fecha_finalizacion']) ?>" required>
+                                                    value="<?= fmt_date($curso['fecha_finalizacion']) ?>">
                                             </div>
                                             <div class="col-md-4 mb-3">
                                                 <label class="form-label">Duración (semanas)</label>
                                                 <input type="number" class="form-control" name="tiempo_asignado"
-                                                    value="<?= h($curso['tiempo_asignado']) ?>" min="1" required>
+                                                    value="<?= h($curso['tiempo_asignado']) ?>" min="1">
                                             </div>
                                         </div>
                                         <div class="row">
                                             <div class="col-md-4 mb-3">
                                                 <label class="form-label">Horario Inicio</label>
                                                 <input type="time" class="form-control" name="horario_inicio"
-                                                    value="<?= h($curso['horario_inicio']) ?>" required>
+                                                    value="<?= h($curso['horario_inicio']) ?>">
                                             </div>
                                             <div class="col-md-4 mb-3">
                                                 <label class="form-label">Horario Fin</label>
                                                 <input type="time" class="form-control" name="horario_fin"
-                                                    value="<?= h($curso['horario_fin']) ?>" required>
+                                                    value="<?= h($curso['horario_fin']) ?>">
                                             </div>
                                             <div class="col-md-4 mb-3">
                                                 <label class="form-label d-block">Días de clase</label>
@@ -370,30 +377,31 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                             <div class="col-md-4 mb-3">
                                                 <label class="form-label">Costo</label>
                                                 <input type="number" class="form-control" name="costo"
-                                                    value="<?= h($curso['costo']) ?>" step="0.01" required>
+                                                    value="<?= h($curso['costo']) ?>" step="0.01">
                                             </div>
                                             <div class="col-md-4 mb-3">
                                                 <label class="form-label">Horas cronológicas</label>
                                                 <input type="number" class="form-control" name="horas_cronologicas"
-                                                    value="<?= h($curso['horas_cronologicas']) ?>" step="0.1" required>
+                                                    value="<?= h($curso['horas_cronologicas']) ?>" step="0.1">
                                             </div>
                                             <div class="col-md-4 mb-3">
                                                 <label class="form-label">Límite Inscripción</label>
                                                 <input type="number" class="form-control" name="limite_inscripciones"
-                                                    value="<?= h($curso['limite_inscripciones']) ?>" required>
+                                                    value="<?= h($curso['limite_inscripciones']) ?>">
                                             </div>
                                         </div>
                                         <div class="mb-3"><label class="form-label">Conocimientos previos</label><textarea
                                                 class="form-control" name="conocimientos_previos"
-                                                required><?= h($curso['conocimientos_previos']) ?></textarea></div>
+                                                ><?= h($curso['conocimientos_previos']) ?></textarea></div>
                                         <div class="mb-3"><label class="form-label">Requerimientos</label><textarea
                                                 class="form-control" name="requerimientos_implementos"
-                                                required><?= h($curso['requerimientos_implemento']) ?></textarea></div>
+                                                ><?= h($curso['requerimientos_implemento']) ?></textarea></div>
                                         <div class="mb-3"><label class="form-label">Desempeño al concluir</label><textarea
                                                 class="form-control" name="desempeño_al_concluir"
-                                                required><?= h($curso['desempeno_al_concluir']) ?></textarea></div>
+                                                ><?= h($curso['desempeno_al_concluir']) ?></textarea></div>
                                     </div>
                                 </div>
+                                <?php endif; // Fin del primer bloque académico ?>
 
                                 <div class="card shadow mb-4">
                                     <div class="card-header py-3">
@@ -473,6 +481,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                     </div>
                                 </div>
 
+                                <?php if ($_SESSION['es_academico']): // Inicio del segundo bloque académico ?>
                                 <div class="card shadow mb-4">
                                     <div class="card-header py-3 d-flex justify-content-between align-items-center">
                                         <h6 class="m-0 font-weight-bold text-primary">Módulos del Curso</h6>
@@ -482,36 +491,37 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                     </div>
                                     <div class="card-body">
                                         <div id="contenedor_modulos_<?= $curso['id_curso'] ?>">
-                                            <?php foreach ($modulos_existentes as $index => $modulo): ?>
+                                            <?php foreach ($modulos_existentes as $index => $modulo):
+                                                $id_mod = $modulo['id_modulo']; ?>
                                                 <div class="p-3 border rounded mb-3 module-border"
-                                                    id="modulo_existente_<?= $modulo['id_modulo'] ?>">
-                                                    <input type="hidden" name="modulos[<?= $modulo['id_modulo'] ?>][id_modulo]"
-                                                        value="<?= $modulo['id_modulo'] ?>">
+                                                    id="modulo_existente_<?= $id_mod ?>">
+                                                    <input type="hidden" name="modulos[<?= $id_mod ?>][id_modulo]"
+                                                        value="<?= $id_mod ?>">
                                                     <div class="d-flex justify-content-between mb-2">
                                                         <h5>Módulo <span class="numero-modulo"><?= h($modulo['numero']) ?></span>
                                                             (Existente)</h5>
                                                         <button type="button" class="btn btn-danger btn-sm"
-                                                            onclick="eliminarModuloExistente(<?= $modulo['id_modulo'] ?>, <?= $curso['id_curso'] ?>)"><i
+                                                            onclick="eliminarModuloExistente(<?= $id_mod ?>, <?= $curso['id_curso'] ?>)"><i
                                                                 class="fas fa-trash"></i></button>
                                                     </div>
                                                     <div class="row">
                                                         <div class="col-md-8 mb-3">
                                                             <label class="form-label">Nombre del módulo</label>
                                                             <input type="text" class="form-control"
-                                                                name="modulos[<?= $modulo['id_modulo'] ?>][nombre_modulo]"
-                                                                value="<?= h($modulo['nombre_modulo']) ?>" required>
+                                                                name="modulos[<?= $id_mod ?>][nombre_modulo]"
+                                                                value="<?= h($modulo['nombre_modulo']) ?>">
                                                         </div>
                                                         <div class="col-md-4 mb-3">
                                                             <label class="form-label">Número</label>
                                                             <input type="number" class="form-control"
-                                                                name="modulos[<?= $modulo['id_modulo'] ?>][numero]"
-                                                                value="<?= h($modulo['numero']) ?>" required>
+                                                                name="modulos[<?= $id_mod ?>][numero]"
+                                                                value="<?= h($modulo['numero']) ?>">
                                                         </div>
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label d-flex justify-content-between">Contenido <button
                                                                 type="button" class="btn btn-secondary btn-circle-sm"
-                                                                onclick="agregarTextareaContenido(this, 'modulos[<?= $modulo['id_modulo'] ?>][contenido][]')"><i
+                                                                onclick="agregarTextareaContenido(this, 'modulos[<?= $id_mod ?>][contenido][]')"><i
                                                                     class="fas fa-plus"></i></button></label>
                                                         <div class="contenidos-container">
                                                             <?php
@@ -523,8 +533,8 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                                                 ?>
                                                                 <div class="d-flex mb-2">
                                                                     <textarea class="form-control me-2"
-                                                                        name="modulos[<?= $modulo['id_modulo'] ?>][contenido][]"
-                                                                        rows="2" required><?= h($cont) ?></textarea>
+                                                                        name="modulos[<?= $id_mod ?>][contenido][]"
+                                                                        rows="2"><?= h($cont) ?></textarea>
                                                                     <button type="button" class="btn btn-outline-danger btn-sm"
                                                                         onclick="eliminarTextareaContenido(this)"><i
                                                                             class="fas fa-minus"></i></button>
@@ -535,13 +545,13 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                                     <div class="row">
                                                         <div class="col-md-6 mb-3"><label class="form-label">Actividad</label><input
                                                                 type="text" class="form-control"
-                                                                name="modulos[<?= $modulo['id_modulo'] ?>][actividad]"
-                                                                value="<?= h($modulo['actividad']) ?>" required></div>
+                                                                name="modulos[<?= $id_mod ?>][actividad]"
+                                                                value="<?= h($modulo['actividad']) ?>"></div>
                                                         <div class="col-md-6 mb-3"><label
                                                                 class="form-label">Instrumento</label><input type="text"
                                                                 class="form-control"
-                                                                name="modulos[<?= $modulo['id_modulo'] ?>][instrumento]"
-                                                                value="<?= h($modulo['instrumento']) ?>" required></div>
+                                                                name="modulos[<?= $id_mod ?>][instrumento]"
+                                                                value="<?= h($modulo['instrumento']) ?>"></div>
                                                     </div>
                                                 </div>
                                             <?php endforeach; ?>
@@ -626,6 +636,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                         </div>
                                     </div>
                                 <?php endif; ?>
+                                <?php endif; // Fin if(es_academico) ?>
 
                                 <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                                     <div class="btn-group" role="group">
@@ -740,12 +751,12 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
             <button type="button" class="btn btn-danger btn-sm" onclick="eliminarModuloNuevo('${tempId}')"><i class="fas fa-times"></i></button>
         </div>
         <div class="row">
-            <div class="col-md-8 mb-3"><label class="form-label">Nombre</label><input type="text" class="form-control" name="modulos[${tempId}][nombre_modulo]" required></div>
-            <div class="col-md-4 mb-3"><label class="form-label">Número</label><input type="number" class="form-control" name="modulos[${tempId}][numero]" value="${nextNum}" required></div>
+            <div class="col-md-8 mb-3"><label class="form-label">Nombre</label><input type="text" class="form-control" name="modulos[${tempId}][nombre_modulo]"></div>
+            <div class="col-md-4 mb-3"><label class="form-label">Número</label><input type="number" class="form-control" name="modulos[${tempId}][numero]" value="${nextNum}"></div>
         </div>
         <div class="mb-3"><label class="form-label d-flex justify-content-between">Contenido <button type="button" class="btn btn-secondary btn-circle-sm" onclick="agregarTextareaContenido(this, 'modulos[${tempId}][contenido][]')"><i class="fas fa-plus"></i></button></label>
-        <div class="contenidos-container"><div class="d-flex mb-2"><textarea class="form-control me-2" name="modulos[${tempId}][contenido][]" rows="2" required></textarea><button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarTextareaContenido(this)"><i class="fas fa-minus"></i></button></div></div></div>
-        <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Actividad</label><input type="text" class="form-control" name="modulos[${tempId}][actividad]" required></div><div class="col-md-6 mb-3"><label class="form-label">Instrumento</label><input type="text" class="form-control" name="modulos[${tempId}][instrumento]" required></div></div>
+        <div class="contenidos-container"><div class="d-flex mb-2"><textarea class="form-control me-2" name="modulos[${tempId}][contenido][]" rows="2"></textarea><button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarTextareaContenido(this)"><i class="fas fa-minus"></i></button></div></div></div>
+        <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Actividad</label><input type="text" class="form-control" name="modulos[${tempId}][actividad]"></div><div class="col-md-6 mb-3"><label class="form-label">Instrumento</label><input type="text" class="form-control" name="modulos[${tempId}][instrumento]"></div></div>
     </div>`;
         container.insertAdjacentHTML('beforeend', html);
     }
@@ -762,7 +773,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
     function agregarTextareaContenido(btn, nameAttr) {
         var div = document.createElement('div');
         div.className = 'd-flex mb-2';
-        div.innerHTML = `<textarea class="form-control me-2" name="${nameAttr}" rows="2" required></textarea><button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarTextareaContenido(this)"><i class="fas fa-minus"></i></button>`;
+        div.innerHTML = `<textarea class="form-control me-2" name="${nameAttr}" rows="2"></textarea><button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarTextareaContenido(this)"><i class="fas fa-minus"></i></button>`;
         btn.closest('.contenidos-container').appendChild(div);
     }
     function eliminarTextareaContenido(btn) {

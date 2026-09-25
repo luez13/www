@@ -74,6 +74,7 @@ if (isset($_GET['valor_unico'])) {
             'firmantes' => isset($datos_completos['firmantes']) ? $datos_completos['firmantes'] : array(),
             'archivo_vista' => $nombreVistaBD,
             'mostrar_firmas' => isset($datos_completos['firma_digital']) ? $datos_completos['firma_digital'] : false,
+            'tipo_certificado' => 'diplomado',
         ];
     } else {
         die("No se encontraron datos de certificación.");

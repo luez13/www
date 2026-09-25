@@ -29,7 +29,7 @@ switch ($action) {
         $moneda = isset($_POST['moneda']) ? $_POST['moneda'] : 'Bs';
 
         // Validar que se hayan enviado los datos requeridos básicos
-        $requeridos = ['id_curso', 'monto', 'fecha_pago'];
+        $requeridos = ['id_curso', 'monto', 'fecha_pago', 'id_cuenta_destino'];
         if ($moneda === 'Bs') {
             $requeridos[] = 'numero_operacion';
             $requeridos[] = 'banco_origen';
@@ -40,6 +40,17 @@ switch ($action) {
                 echo json_encode(['success' => false, 'message' => "El campo $campo es obligatorio."]);
                 exit;
             }
+        }
+
+        $id_curso = $_POST['id_curso'];
+        $id_cuenta_destino = $_POST['id_cuenta_destino'];
+
+        // PARCHE DE SEGURIDAD: Validar que la cuenta destino pertenezca a la misma dependencia que el curso
+        $stmtVal = $db->prepare("SELECT count(*) FROM cursos.cuentas_bancarias cb JOIN cursos.cursos c ON cb.id_extension = c.id_extension WHERE cb.id_cuenta = :id_cuenta AND c.id_curso = :id_curso");
+        $stmtVal->execute(['id_cuenta' => $id_cuenta_destino, 'id_curso' => $id_curso]);
+        if ($stmtVal->fetchColumn() == 0) {
+            echo json_encode(['success' => false, 'message' => 'Error Crítico: La cuenta destino seleccionada no corresponde a la dependencia de este curso.']);
+            exit;
         }
 
         $rutaBD = null;
@@ -76,10 +87,9 @@ switch ($action) {
             }
         } else {
             $id_usuario = $_SESSION['user_id'];
-            $id_curso = $_POST['id_curso'];
         }
 
-        $banco_origen = ($moneda === 'Divisas') ? 'Taquilla de la Universidad' : trim($_POST['banco_origen']);
+        $banco_origen = ($moneda === 'Dolares' || $moneda === 'Pesos') ? 'Taquilla de la Universidad' : trim($_POST['banco_origen']);
 
         // Archivo guardado físicamente o no se subió, procedemos a registrar en BD
         $datosPago = [
@@ -91,7 +101,8 @@ switch ($action) {
             'banco_origen' => $banco_origen,
             'monto' => floatval($_POST['monto']),
             'fecha_pago' => $_POST['fecha_pago'],
-            'moneda' => $moneda
+            'moneda' => $moneda,
+            'id_cuenta_destino' => $id_cuenta_destino
         ];
 
         if ($pagoModel->registrarComprobante($datosPago)) {
@@ -245,7 +256,7 @@ switch ($action) {
         $origen_peticion = isset($_POST['origen']) ? $_POST['origen'] : '';
         $estado_final = ($origen_peticion === 'usuario') ? 'Pendiente' : ($es_admin ? null : 'Pendiente');
 
-        $banco_origen = ($moneda === 'Divisas') ? 'Taquilla de la Universidad' : trim($_POST['banco_origen']);
+        $banco_origen = ($moneda === 'Dolares' || $moneda === 'Pesos') ? 'Taquilla de la Universidad' : trim($_POST['banco_origen']);
 
         $datosActualizar = [
             'id_comprobante' => $id_comprobante,

@@ -3,7 +3,7 @@
 include 'init.php';
 include '../config/model.php';
 
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['id_rol'], [3, 4])) {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['id_rol'], [3, 4, 7])) {
     http_response_code(403);
     die(json_encode(['error' => 'No autorizado']));
 }
@@ -27,6 +27,12 @@ try {
     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($usuario) {
+        // Obtenemos las sedes (extensiones) asignadas
+        $stmt_ext = $db->prepare("SELECT id_extension FROM cursos.usuarios_extensiones WHERE id_usuario = :id");
+        $stmt_ext->execute([':id' => $id]);
+        $extensiones_db = $stmt_ext->fetchAll(PDO::FETCH_COLUMN);
+        $usuario['extensiones'] = $extensiones_db;
+
         header('Content-Type: application/json');
         echo json_encode($usuario);
     } else {
