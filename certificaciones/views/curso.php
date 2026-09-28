@@ -103,6 +103,7 @@ $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP
                 </li>
             </ul>
 
+            <?php if ($_SESSION['es_academico']): ?>
             <h4 class="mt-4 border-bottom pb-2">Módulos del Curso</h4>
             <div class="accordion" id="accordionModulos">
                 <?php
@@ -135,6 +136,7 @@ $is_ajax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP
                     </div>
                 <?php endforeach; ?>
             </div>
+            <?php endif; ?>
         </div>
 
         <div class="card-footer text-center bg-light p-3">

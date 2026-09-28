@@ -45,9 +45,8 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
 
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-            <h6 class="m-0 font-weight-bold text-primary">Materias de: <?= htmlspecialchars($nombre_curso) ?></h6>
-            <button class="btn btn-success btn-sm" onclick="abrirModalMateria()"><i class="fas fa-plus"></i> Nueva
-                Materia</button>
+            <h6 class="m-0 font-weight-bold text-primary"><?= $_SESSION['es_academico'] ? 'Materias de:' : 'Términos de:' ?> <?= htmlspecialchars($nombre_curso) ?></h6>
+            <button class="btn btn-success btn-sm" onclick="abrirModalMateria()"><i class="fas fa-plus"></i> <?= $_SESSION['es_academico'] ? 'Nueva Materia' : 'Nuevo Término' ?></button>
         </div>
         <div class="card-body">
             <?php if (empty($materias)): ?>
@@ -70,10 +69,12 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                         <table class="table table-bordered table-hover mb-0" width="100%">
                             <thead class="bg-light">
                                 <tr>
-                                    <th>Materia</th>
+                                    <th><?= $_SESSION['es_academico'] ? 'Materia' : 'Término' ?></th>
+                                    <?php if ($_SESSION['es_academico']): ?>
                                     <th>Duración (Texto)</th>
                                     <th>Modalidad</th>
                                     <th>Facilitador</th>
+                                    <?php endif; ?>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -81,9 +82,11 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                                 <?php foreach ($grupoMaterias as $mat): ?>
                                     <tr>
                                         <td><?= htmlspecialchars($mat['nombre_materia']) ?></td>
+                                        <?php if ($_SESSION['es_academico']): ?>
                                         <td><?= htmlspecialchars($mat['duracion_bimestres']) ?></td>
                                         <td><?= htmlspecialchars($mat['modalidad']) ?></td>
                                         <td><?= htmlspecialchars($mat['nombre_docente'] . ' ' . $mat['apellido_docente']) ?></td>
+                                        <?php endif; ?>
                                         <td class="text-center">
                                             <!-- Desktop View Actions -->
                                             <div class="d-none d-md-block">
@@ -91,9 +94,10 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                                                     onclick="editarMateria(<?= $mat['id_materia_bimestre'] ?>)" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
+                                                <?php if ($_SESSION['es_academico']): ?>
                                                 <button class="btn btn-primary btn-sm text-white" 
                                                     onclick="abrirRecuperativo(<?= $mat['id_materia_bimestre'] ?>, '<?= addslashes(htmlspecialchars($mat['nombre_materia'])) ?>')" 
-                                                    style="background-color: #fd7e14; border-color: #fd7e14;" title="Evaluación Recuperativa">
+                                                    style="background-color: #fd7e14; border-color: #fd7e14;" title="Evaluacin Recuperativa">
                                                     <i class="fas fa-life-ring"></i>
                                                 </button>
                                                 <button class="btn btn-info btn-sm" title="Acta de Cierre (Regular)"
@@ -108,6 +112,7 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                                                     target="_blank" class="btn btn-success btn-sm" title="Constancia de Docencia">
                                                     <i class="fas fa-certificate"></i>
                                                 </a>
+                                                <?php endif; ?>
                                                 <button class="btn btn-danger btn-sm"
                                                     onclick="eliminarMateria(<?= $mat['id_materia_bimestre'] ?>)" title="Eliminar">
                                                     <i class="fas fa-trash"></i>
@@ -122,10 +127,12 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                                                 </button>
                                                 <ul class="dropdown-menu shadow border-0" aria-labelledby="dropdownMenu<?= $mat['id_materia_bimestre'] ?>" style="z-index: 1050;">
                                                     <li><a class="dropdown-item py-2" href="#" onclick="editarMateria(<?= $mat['id_materia_bimestre'] ?>)"><i class="fas fa-edit me-2 text-warning"></i> Editar</a></li>
+                                                    <?php if ($_SESSION['es_academico']): ?>
                                                     <li><a class="dropdown-item py-2" href="#" onclick="abrirRecuperativo(<?= $mat['id_materia_bimestre'] ?>, '<?= addslashes(htmlspecialchars($mat['nombre_materia'])) ?>')"><i class="fas fa-life-ring me-2" style="color:#fd7e14;"></i> Ev. Recuperativa</a></li>
                                                     <li><a class="dropdown-item py-2" href="#" onclick="abrirModalActaMateria(<?= $mat['id_materia_bimestre'] ?>, 'Regular')"><i class="fas fa-file-contract me-2 text-info"></i> Acta Regular</a></li>
                                                     <li><a class="dropdown-item py-2" href="#" onclick="abrirModalActaMateria(<?= $mat['id_materia_bimestre'] ?>, 'Recuperativo')"><i class="fas fa-file-invoice me-2" style="color:#e83e8c;"></i> Acta Recuperativa</a></li>
                                                     <li><a class="dropdown-item py-2" target="_blank" href="../controllers/generar_constancia_facilitador.php?id_materia=<?= $mat['id_materia_bimestre'] ?>"><i class="fas fa-certificate me-2 text-success"></i> Constancia</a></li>
+                                                    <?php endif; ?>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li><a class="dropdown-item py-2 text-danger" href="#" onclick="eliminarMateria(<?= $mat['id_materia_bimestre'] ?>)"><i class="fas fa-trash me-2"></i> Eliminar</a></li>
                                                 </ul>
@@ -147,7 +154,7 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="modalMateriaLabel">Gestión de Materia</h5>
+                <h5 class="modal-title" id="modalMateriaLabel"><?= $_SESSION['es_academico'] ? 'Gestión de Materia' : 'Gestión de Término' ?></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="formMateria" onsubmit="return false;">
@@ -168,7 +175,7 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                     </div>
 
                     <div class="mb-3">
-                        <label>Nombre Materia</label>
+                        <label><?= $_SESSION['es_academico'] ? 'Nombre Materia' : 'Descripción del Término (Ej. Arancel Término 1)' ?></label>
                         <input type="text" class="form-control" name="nombre_materia" id="nombre_materia" list="materias-list" required>
                         <?php
                         $stmtSugerencias = $db->getConn()->prepare("SELECT DISTINCT UPPER(TRIM(nombre_materia)) AS nombre_materia FROM cursos.materias_bimestre ORDER BY nombre_materia");
@@ -184,6 +191,7 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                         </datalist>
                     </div>
 
+                    <?php if ($_SESSION['es_academico']): ?>
                     <div class="row">
                         <div class="col-6 mb-3">
                             <label>Duración (Texto)</label>
@@ -195,6 +203,7 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                             <input type="number" class="form-control" name="total_horas" id="total_horas" required>
                         </div>
                     </div>
+                    <?php endif; ?>
 
                     <div class="row">
                         <div class="col-6 mb-3">
@@ -207,6 +216,7 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                         </div>
                     </div>
 
+                    <?php if ($_SESSION['es_academico']): ?>
                     <div class="mb-3">
                         <label>Modalidad</label>
                         <select class="form-select" name="modalidad" id="modalidad">
@@ -231,6 +241,7 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                                     class="fas fa-search"></i></button>
                         </div>
                     </div>
+                    <?php endif; ?>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -303,7 +314,7 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
 
     function guardarMateriaAJAX() {
         if ($('#nombre_materia').val() == '') { alert('Falta el nombre'); return; }
-        if ($('#docente_id').val() == '') { alert('Falta el docente'); return; }
+        if ($('#docente_id').length > 0 && $('#docente_id').is(':visible') && $('#docente_id').val() == '') { alert('Falta el docente'); return; }
 
         var datos = $('#formMateria').serialize();
 

@@ -107,10 +107,10 @@ function h($str)
                                 <?php foreach ($misCursos as $c): ?>
                                     <?php
                                     $estadoPago = $c['pago'] ? '(Pagado)' : '(Pendiente)';
-                                    $costoTexto = $c['costo'] > 0 ? '$' . number_format($c['costo'], 2) : 'Gratis';
+                                    $costoTexto = $c['costo'] > 0 ? ' - $' . number_format($c['costo'], 2) : '';
                                     ?>
                                     <option value="<?= $c['id_curso'] ?>" data-permitir="<?= isset($c['permitir_pagos']) && $c['permitir_pagos'] ? '1' : '0' ?>" data-id-extension="<?= $c['id_extension'] ?>">
-                                        <?= h($c['nombre_curso']) ?> - <?= $costoTexto ?>    <?= $estadoPago ?>
+                                        <?= h($c['nombre_curso']) ?><?= $costoTexto ?>    <?= $estadoPago ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -152,7 +152,7 @@ function h($str)
                             <div class="col-md-4 form-group mb-3" id="grupo_referencia">
                                 <label>N° de Referencia / Operación:</label>
                                 <input type="text" name="numero_operacion" id="input_numero_operacion"
-                                    class="form-control" placeholder="Ej: 12345678" required>
+                                    class="form-control" placeholder="Ej: 12345678" required minlength="4" pattern="[0-9]{4,}" title="Debe ingresar al menos 4 nmeros para la referencia">
                             </div>
                         </div>
 
@@ -310,7 +310,7 @@ function h($str)
                         </div>
                         <div class="col-md-4 form-group mb-3" id="edit_grupo_referencia">
                             <label>N° de Referencia:</label>
-                            <input type="text" name="numero_operacion" id="edit_numero_operacion" class="form-control" required>
+                            <input type="text" name="numero_operacion" id="edit_numero_operacion" class="form-control" required minlength="4" pattern="[0-9]{4,}" title="Debe ingresar al menos 4 nmeros para la referencia">
                         </div>
                     </div>
 
@@ -550,7 +550,7 @@ function h($str)
                     response.data.forEach(function (materia) {
                         var option = document.createElement('option');
                         option.value = materia.id_materia_bimestre;
-                        option.text = 'Bimestre ' + materia.lapso_academico + ' - ' + materia.nombre_materia;
+                        option.text = response.is_pnfa ? materia.nombre_materia : 'Bimestre ' + materia.lapso_academico + ' - ' + materia.nombre_materia;
                         selectMateria.appendChild(option);
                     });
                     contenedorMaterias.style.display = 'block';

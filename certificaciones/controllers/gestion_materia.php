@@ -35,7 +35,7 @@ try {
         case 'guardar':
             // Validaciones
             if (empty($_POST['nombre_materia'])) throw new Exception("El nombre es obligatorio.");
-            if (empty($_POST['docente_id'])) throw new Exception("Debe seleccionar un docente.");
+            if (empty($_POST['docente_id']) && (isset($_SESSION['es_academico']) && $_SESSION['es_academico'])) throw new Exception("Debe seleccionar un docente.");
 
             $datos = array(
                 'id_materia_bimestre' => isset($_POST['id_materia']) ? $_POST['id_materia'] : 0,
@@ -44,7 +44,7 @@ try {
                 'duracion_bimestres'  => isset($_POST['duracion_bimestres']) ? $_POST['duracion_bimestres'] : '',
                 'total_horas'         => isset($_POST['total_horas']) ? $_POST['total_horas'] : 0,
                 'modalidad'           => isset($_POST['modalidad']) ? $_POST['modalidad'] : 'Virtual',
-                'docente_id'          => $_POST['docente_id'],
+                'docente_id'          => (!empty($_POST['docente_id']) ? $_POST['docente_id'] : $_SESSION['user_id']),
                 'temario'             => isset($_POST['temario']) ? $_POST['temario'] : '',
                 // AGREGA ESTA LÍNEA EXACTA AQUÍ:
                 'lapso_academico'     => isset($_POST['lapso_academico']) ? $_POST['lapso_academico'] : 1,

@@ -109,7 +109,7 @@ $icono_titulo = ($action == 'finalizados') ? 'fa-award' : 'fa-book-reader';
                                 $stmtMat->execute(['id_usuario' => $user_id, 'id_curso' => $curso['id_curso']]);
                                 $materias_aprobadas = $stmtMat->fetchAll(PDO::FETCH_ASSOC);
                                 ?>
-                                <?php if (count($materias_aprobadas) > 0): ?>
+                                <?php if (count($materias_aprobadas) > 0 && $_SESSION['es_academico']): ?>
                                     <div class="mt-3">
                                         <h6 class="small font-weight-bold text-success mb-2 border-bottom pb-1">Certificados Modulares:</h6>
                                         <div class="d-flex flex-wrap gap-1">

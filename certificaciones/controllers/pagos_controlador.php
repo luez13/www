@@ -41,6 +41,15 @@ switch ($action) {
                 exit;
             }
         }
+        // Parche de Seguridad: Validacion estricta de numero de operacion en backend
+        if (isset($_POST['numero_operacion']) && !empty(trim($_POST['numero_operacion']))) {
+            $ref = trim($_POST['numero_operacion']);
+            if (strlen($ref) < 4 || !preg_match('/^[0-9]+$/', $ref)) {
+                echo json_encode(['success' => false, 'message' => 'Error Crtico: El nmero de referencia debe contener al menos 4 dgitos numricos vlidos. Transaccin abortada.']);
+                exit;
+            }
+        }
+
 
         $id_curso = $_POST['id_curso'];
         $id_cuenta_destino = $_POST['id_cuenta_destino'];
@@ -123,9 +132,88 @@ switch ($action) {
         }
         $id_curso = isset($_POST['id_curso']) ? $_POST['id_curso'] : (isset($_GET['id_curso']) ? $_GET['id_curso'] : null);
         require_once '../models/Materia.php';
+        require_once '../models/curso.php';
+        
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+        
         $materiaModel = new Materia($db);
+        $cursoModel = new Curso($db);
         $materias = $materiaModel->getMateriasByCurso($id_curso);
-        echo json_encode(['success' => true, 'data' => $materias]);
+        $curso_detalle = $cursoModel->obtener_curso($id_curso);
+        
+        $is_pnfa = (isset($curso_detalle['tipo_curso']) && $curso_detalle['tipo_curso'] === 'PNFA');
+        $estado_pnfa = 'libre'; 
+        $mensaje_bloqueo = '';
+        
+        if ($is_pnfa && !empty($materias)) {
+            $user_id = $_SESSION['user_id'];
+            $pdo = $db->getConn();
+            $stmt_pagos = $pdo->prepare("SELECT id_materia_bimestre, estado FROM cursos.comprobantes_pago WHERE id_usuario = ? AND id_curso = ?");
+            $stmt_pagos->execute([$user_id, $id_curso]);
+            $pagos = $stmt_pagos->fetchAll(PDO::FETCH_ASSOC);
+            
+            $pagos_por_materia = [];
+            foreach ($pagos as $p) {
+                $id_mat = $p['id_materia_bimestre'];
+                if (!isset($pagos_por_materia[$id_mat])) $pagos_por_materia[$id_mat] = [];
+                $pagos_por_materia[$id_mat][] = $p['estado'];
+            }
+            
+            $termino_a_pagar = null;
+            
+            foreach ($materias as $m) {
+                if (stripos($m['nombre_materia'], 'otro') !== false || stripos($m['nombre_materia'], 'repitencia') !== false) {
+                    continue; 
+                }
+                
+                $id_mat = $m['id_materia_bimestre'];
+                $estados_pago = isset($pagos_por_materia[$id_mat]) ? $pagos_por_materia[$id_mat] : [];
+                
+                $aprobado = false;
+                $pendiente = false;
+                
+                foreach ($estados_pago as $ep) {
+                    if ($ep === 'Comprobado') $aprobado = true;
+                    if ($ep === 'Pendiente') $pendiente = true;
+                }
+                
+                if ($aprobado) {
+                    continue; // Skip, already approved
+                }
+                
+                if ($pendiente) {
+                    $estado_pnfa = 'bloqueado';
+                    $mensaje_bloqueo = 'Tienes un pago en proceso de verificación para el Término ' . $m['lapso_academico'] . '.';
+                    $termino_a_pagar = null;
+                    break;
+                }
+                
+                // If neither approved nor pending (or rejected), this is the one!
+                $termino_a_pagar = $m;
+                break;
+            }
+            
+            $materias_filtradas = [];
+            if ($termino_a_pagar) {
+                $materias_filtradas[] = $termino_a_pagar;
+            }
+            foreach ($materias as $m) {
+                if (stripos($m['nombre_materia'], 'otro') !== false || stripos($m['nombre_materia'], 'repitencia') !== false) {
+                    $materias_filtradas[] = $m;
+                }
+            }
+            $materias = $materias_filtradas;
+        }
+        
+        echo json_encode([
+            'success' => true, 
+            'data' => $materias,
+            'is_pnfa' => $is_pnfa,
+            'estado_pnfa' => $estado_pnfa,
+            'mensaje_bloqueo' => $mensaje_bloqueo
+        ]);
         break;
 
     case 'actualizar_estado_comprobante':
@@ -234,6 +322,15 @@ switch ($action) {
                 exit;
             }
         }
+        // Parche de Seguridad: Validacion estricta de numero de operacion en backend
+        if (isset($_POST['numero_operacion']) && !empty(trim($_POST['numero_operacion']))) {
+            $ref = trim($_POST['numero_operacion']);
+            if (strlen($ref) < 4 || !preg_match('/^[0-9]+$/', $ref)) {
+                echo json_encode(['success' => false, 'message' => 'Error Crtico: El nmero de referencia debe contener al menos 4 dgitos numricos vlidos. Transaccin abortada.']);
+                exit;
+            }
+        }
+
 
         $id_comprobante = $_POST['id_comprobante'];
         $comprobante_actual = $pagoModel->obtenerComprobantePorId($id_comprobante);
@@ -380,7 +477,8 @@ switch ($action) {
             'correo' => isset($_POST['correo']) ? $_POST['correo'] : '',
             'tipo_cuenta' => isset($_POST['tipo_cuenta']) ? $_POST['tipo_cuenta'] : '',
             'numero_cuenta' => isset($_POST['numero_cuenta']) ? $_POST['numero_cuenta'] : '',
-            // Los checkboxes HTML no envían nada si no están marcados
+            'id_extension' => isset($_POST['id_extension']) && $_POST['id_extension'] !== '' ? intval($_POST['id_extension']) : null,
+            // Los checkboxes HTML no envian nada si no estan marcados
             'activo' => isset($_POST['activo']) ? true : false
         ];
 

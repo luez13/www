@@ -66,6 +66,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                             <option value="diplomado">Diplomado</option>
                             <option value="congreso">Congreso</option>
                             <option value="charla">Charla</option>
+                            <option value="PNFA">Programa Nacional de Formación Avanzada (PNFA)</option>
                             <?php if ($_SESSION['es_academico']): ?>
                             <option value="masterclass_rectoria">MasterClass Rectoría</option>
                             <option value="taller_rectoria">Taller Rectoría</option>
@@ -143,8 +144,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
         </div>
         <?php endif; ?>
 
-        <?php if ($_SESSION['es_academico']): ?>
-        <div class="card shadow mb-4">
+        <div class="card shadow mb-4" id="section_detalles_academicos" style="<?= $_SESSION['es_academico'] ? '' : 'display:none;' ?>">
             <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Detalles Académicos</h6></div>
             <div class="card-body">
                 <div class="row">
@@ -171,21 +171,18 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                 </div>
             </div>
         </div>
-        <?php endif; ?>
 
-        <?php if ($_SESSION['es_academico']): ?>
-        <div class="card shadow mb-4">
-            <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Módulos del Curso</h6></div>
+        <div class="card shadow mb-4" id="section_modulos" style="<?= $_SESSION['es_academico'] ? '' : 'display:none;' ?>">
+            <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary" id="modulos_title"><i class="fas fa-layer-group me-2"></i>Módulos del Curso</h6></div>
             <div class="card-body">
                 <div class="mb-3">
-                    <label class="form-label">Número de módulos:</label>
+                    <label class="form-label" id="modulos_label">Número de módulos:</label>
                     <input class="form-control" type="number" id="numero_modulos" name="numero_modulos" min="1" required onblur="addModuleFields()">
                 </div>
                 <div id="moduleContainer">
                     </div>
             </div>
         </div>
-        <?php endif; ?>
 
         <?php if ($_SESSION['es_academico']): ?>
         <div class="card shadow mb-4 border-left-info">
@@ -359,6 +356,68 @@ echo '</div>'; // Fin table-responsive
 echo '</div>';
 ?>
 
+<script>
+(function() {
+    var tipoSelect = document.querySelector('select[name="tipo_curso"]');
+    if (tipoSelect) {
+        tipoSelect.addEventListener('change', function() {
+            var val = this.value;
+            var sec = document.getElementById('section_modulos');
+            var secDetalles = document.getElementById('section_detalles_academicos');
+            var title = document.getElementById('modulos_title');
+            var label = document.getElementById('modulos_label');
+            var isAcad = <?= $_SESSION['es_academico'] ? 'true' : 'false' ?>;
+            var numModulosInput = document.getElementById('numero_modulos');
+            var moduleContainer = document.getElementById('moduleContainer');
+            
+            function toggleDetalles(show) {
+                if (!secDetalles) return;
+                secDetalles.style.display = show ? 'block' : 'none';
+                var inputs = secDetalles.querySelectorAll('input, textarea');
+                inputs.forEach(function(inp) {
+                    if (inp.name === 'costo') {
+                        inp.disabled = !show;
+                    } else {
+                        inp.disabled = !show;
+                        inp.required = show;
+                    }
+                });
+            }
+
+            if (val === 'PNFA') {
+                sec.style.display = 'block';
+                toggleDetalles(true);
+                numModulosInput.disabled = false;
+                numModulosInput.required = true;
+                title.innerHTML = '<i class="fas fa-layer-group me-2"></i>Términos del PNFA';
+                label.innerHTML = 'Número de términos (Máx 12 + Otro):';
+                window.isPNFA = true;
+                if (numModulosInput.value) numModulosInput.dispatchEvent(new Event('blur'));
+            } else if (isAcad) {
+                sec.style.display = 'block';
+                toggleDetalles(true);
+                numModulosInput.disabled = false;
+                numModulosInput.required = true;
+                title.innerHTML = '<i class="fas fa-layer-group me-2"></i>Módulos del Curso';
+                label.innerHTML = 'Número de módulos:';
+                window.isPNFA = false;
+                if (numModulosInput.value) numModulosInput.dispatchEvent(new Event('blur'));
+            } else {
+                sec.style.display = 'none';
+                toggleDetalles(false);
+                numModulosInput.disabled = true;
+                numModulosInput.required = false;
+                numModulosInput.value = '';
+                if (moduleContainer) moduleContainer.innerHTML = '';
+                window.isPNFA = false;
+            }
+        });
+        
+        // Disparar el evento para limpiar los constraints
+        tipoSelect.dispatchEvent(new Event('change'));
+    }
+})();
+</script>
 <script src="../models/module_processing.js"></script>
 <script>
 

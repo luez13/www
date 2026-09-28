@@ -33,7 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_extension'])) {
     if ($data) {
         // Es válido, establecer sesión y redirigir
         $_SESSION['id_extension'] = $id_extension;
-        $_SESSION['es_academico'] = $data['es_academico'];
+        $val = $data['es_academico'];
+        $_SESSION['es_academico'] = ($val === true || $val === 1 || $val === '1' || $val === 't' || $val === 'true');
         redirigir_login(); // Este manda a perfil.php (Dashboard)
     } else {
         // Intento de inyección o acceso no autorizado

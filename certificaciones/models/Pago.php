@@ -17,7 +17,10 @@ class Pago
 
     public function obtenerCuentas()
     {
-        $sql = "SELECT * FROM cursos.cuentas_bancarias ORDER BY id_cuenta DESC";
+        $sql = "SELECT c.*, e.nombre_extension 
+                FROM cursos.cuentas_bancarias c
+                LEFT JOIN cursos.extensiones e ON c.id_extension = e.id_extension 
+                ORDER BY c.id_cuenta DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -35,9 +38,9 @@ class Pago
     public function crearCuenta($datos)
     {
         $sql = "INSERT INTO cursos.cuentas_bancarias 
-                (banco, titular, cedula_rif, telefono, correo, tipo_cuenta, numero_cuenta, activo) 
+                (banco, titular, cedula_rif, telefono, correo, tipo_cuenta, numero_cuenta, activo, id_extension) 
                 VALUES 
-                (:banco, :titular, :cedula_rif, :telefono, :correo, :tipo_cuenta, :numero_cuenta, :activo)";
+                (:banco, :titular, :cedula_rif, :telefono, :correo, :tipo_cuenta, :numero_cuenta, :activo, :id_extension)";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             'banco' => $datos['banco'],
@@ -47,7 +50,8 @@ class Pago
             'correo' => $datos['correo'],
             'tipo_cuenta' => $datos['tipo_cuenta'],
             'numero_cuenta' => $datos['numero_cuenta'],
-            'activo' => isset($datos['activo']) ? $datos['activo'] : true // Por defecto true
+            'activo' => isset($datos['activo']) ? $datos['activo'] : true, // Por defecto true
+            'id_extension' => isset($datos['id_extension']) ? $datos['id_extension'] : null
         ]);
     }
 
@@ -56,8 +60,7 @@ class Pago
         $sql = "UPDATE cursos.cuentas_bancarias 
                 SET banco = :banco, titular = :titular, cedula_rif = :cedula_rif, 
                     telefono = :telefono, correo = :correo, tipo_cuenta = :tipo_cuenta, 
-                    numero_cuenta = :numero_cuenta, activo = :activo 
-                WHERE id_cuenta = :id_cuenta";
+                    numero_cuenta = :numero_cuenta, activo = :activo, id_extension = :id_extension WHERE id_cuenta = :id_cuenta";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             'banco' => $datos['banco'],
@@ -68,6 +71,7 @@ class Pago
             'tipo_cuenta' => $datos['tipo_cuenta'],
             'numero_cuenta' => $datos['numero_cuenta'],
             'activo' => $datos['activo'],
+            'id_extension' => isset($datos['id_extension']) ? $datos['id_extension'] : null,
             'id_cuenta' => $datos['id_cuenta']
         ]);
     }

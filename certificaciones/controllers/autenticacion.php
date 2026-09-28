@@ -261,7 +261,8 @@ if (isset($_POST['action'])) {
                 // Buscar si es academico
                 $stmtExt = $db->prepare("SELECT es_academico FROM cursos.extensiones WHERE id_extension = :id");
                 $stmtExt->execute(['id' => $id_extension]);
-                $_SESSION['es_academico'] = $stmtExt->fetchColumn();
+                $val = $stmtExt->fetchColumn();
+                $_SESSION['es_academico'] = ($val === true || $val === 1 || $val === '1' || $val === 't' || $val === 'true');
                 $_SESSION['es_multisede'] = false;
                 
                 redirigir_login();
@@ -385,7 +386,8 @@ if (isset($_POST['action'])) {
                             } else if (count($extensiones) == 1) {
                                 // Caso B: Acceso Único
                                 $_SESSION['id_extension'] = $extensiones[0]['id_extension'];
-                                $_SESSION['es_academico'] = $extensiones[0]['es_academico'];
+                                $val = $extensiones[0]['es_academico'];
+                                $_SESSION['es_academico'] = ($val === true || $val === 1 || $val === '1' || $val === 't' || $val === 'true');
                                 $_SESSION['es_multisede'] = false;
                                 redirigir_login();
                             } else {

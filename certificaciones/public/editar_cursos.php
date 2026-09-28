@@ -178,6 +178,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
         <div class="d-flex flex-wrap gap-2">
             <select id="filtroTipoCurso" class="form-select bg-light border-0 small" style="width: auto;" onchange="ejecutarBusquedaCurso()">
                 <option value="">Todos los Tipos</option>
+                <option value="PNFA" <?= $filtro_tipo == 'PNFA' ? 'selected' : '' ?>>Programa Nacional de Formación Avanzada (PNFA)</option>
                 <option value="diplomado" <?= $filtro_tipo == 'diplomado' ? 'selected' : '' ?>>Diplomados</option>
                 <option value="curso" <?= $filtro_tipo == 'curso' ? 'selected' : '' ?>>Cursos</option>
                 <option value="taller" <?= $filtro_tipo == 'taller' ? 'selected' : '' ?>>Talleres</option>
@@ -284,7 +285,12 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                             <div class="col-md-6 mb-3">
                                                 <label class="form-label">Tipo de curso</label>
                                                 <select class="form-select" name="tipo_curso" required>
-                                                    <?php $tipos = ['recepcion_pago', 'masterclass', 'seminario', 'diplomado', 'congreso', 'charla', 'taller', 'curso', 'masterclass_rectoria', 'seminario_rectoria', 'diplomado_rectoria', 'congreso_rectoria', 'charla_rectoria', 'taller_rectoria', 'curso_rectoria']; ?>
+                                                    <?php 
+                                                    $tipos = ['PNFA', 'recepcion_pago', 'masterclass', 'seminario', 'diplomado', 'congreso', 'charla', 'taller', 'curso']; 
+                                                    if ($_SESSION['es_academico']) {
+                                                        $tipos = array_merge($tipos, ['masterclass_rectoria', 'seminario_rectoria', 'diplomado_rectoria', 'congreso_rectoria', 'charla_rectoria', 'taller_rectoria', 'curso_rectoria']);
+                                                    }
+                                                    ?>
                                                     <?php foreach ($tipos as $tipo): ?>
                                                         <option value="<?= $tipo ?>" <?= ($curso['tipo_curso'] == $tipo) ? 'selected' : '' ?>><?= ucfirst(str_replace('_', ' ', $tipo)) ?></option>
                                                     <?php endforeach; ?>
@@ -297,7 +303,14 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                                     value="<?= h($curso['nivel_curso']) ?>" required>
                                             </div>
                                             <?php endif; ?>
+                                            
+                                            <div class="col-md-12 mb-3">
+                                                <label class="form-label">Costo Arancelario (Dejar en 0 si es gratuito, o usar decimales para $)</label>
+                                                <input type="number" class="form-control" name="costo"
+                                                    value="<?= h($curso['costo']) ?>" step="0.01">
+                                            </div>
                                         </div>
+                                        <?php if ($_SESSION['es_academico']): ?>
                                         <div class="mb-3">
                                             <label class="form-label">Plantilla del Certificado a emitir:</label>
                                             <select class="form-select" name="id_plantilla">
@@ -308,6 +321,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                             </select>
                                             <div class="form-text">Si se deja vacío, el curso usará la plantilla que esté configurada como global.</div>
                                         </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
 
@@ -374,11 +388,7 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            <div class="col-md-4 mb-3">
-                                                <label class="form-label">Costo</label>
-                                                <input type="number" class="form-control" name="costo"
-                                                    value="<?= h($curso['costo']) ?>" step="0.01">
-                                            </div>
+                                            
                                             <div class="col-md-4 mb-3">
                                                 <label class="form-label">Horas cronológicas</label>
                                                 <input type="number" class="form-control" name="horas_cronologicas"
@@ -605,22 +615,25 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                     </div>
                                 </div>
 
-                                <?php $es_diplomado = in_array($curso['tipo_curso'], ['diplomado', 'diplomado_rectoria']); ?>
+                                <?php endif; // Fin if(es_academico) ?>
+
+                                <?php $es_diplomado = in_array($curso['tipo_curso'], ['diplomado', 'diplomado_rectoria', 'PNFA']); ?>
                                 <?php if ($es_diplomado): ?>
                                     <div class="card shadow mb-4 border-left-success">
                                         <div class="card-header py-3 bg-success text-white">
-                                            <h6 class="m-0 font-weight-bold">Gestión de Módulos, Notas y Acta de Cierre (Diplomado)
+                                            <h6 class="m-0 font-weight-bold">Gestión de Módulos, Notas y Acta de Cierre (Diplomado y Postgrado)
                                             </h6>
                                         </div>
                                         <div class="card-body">
                                             <p class="text-secondary small">Herramientas exclusivas para la gestión académica de
-                                                Diplomados.</p>
+                                                Diplomados y Postgrados.</p>
                                             <div class="d-grid gap-2 d-md-block">
                                                 <a href="#" class="btn btn-primary btn-icon-split"
                                                     onclick="loadPage('../views/gestionar_materias.php', { id_curso: <?= $curso['id_curso'] ?> }); return false;">
                                                     <span class="icon text-white-50"><i class="fas fa-fw fa-book"></i></span>
-                                                    <span class="text">Materias/Bimestres</span>
+                                                    <span class="text">Materias / Términos</span>
                                                 </a>
+                                                <?php if ($_SESSION['es_academico']): ?>
                                                 <a href="#" class="btn btn-info btn-icon-split"
                                                     onclick="loadPage('../views/gestionar_notas.php', { id_curso: <?= $curso['id_curso'] ?> }); return false;">
                                                     <span class="icon text-white-50"><i class="fas fa-fw fa-calculator"></i></span>
@@ -632,11 +645,13 @@ function renderPagination($total_pages, $current_page, $pagina_actual, $busqueda
                                                             class="fas fa-fw fa-file-signature"></i></span>
                                                     <span class="text">Acta de Cierre Final</span>
                                                 </a>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                     </div>
                                 <?php endif; ?>
-                                <?php endif; // Fin if(es_academico) ?>
+
+
 
                                 <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                                     <div class="btn-group" role="group">

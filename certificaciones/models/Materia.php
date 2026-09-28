@@ -74,7 +74,11 @@ class Materia {
             $stmt->bindValue(':duracion', $data['duracion_bimestres']);
             $stmt->bindValue(':horas', (int)$data['total_horas']);
             $stmt->bindValue(':modalidad', $data['modalidad']);
-            $stmt->bindValue(':docente', $data['docente_id'], PDO::PARAM_INT);
+            if (empty($data['docente_id'])) {
+                $stmt->bindValue(':docente', null, PDO::PARAM_NULL);
+            } else {
+                $stmt->bindValue(':docente', $data['docente_id'], PDO::PARAM_INT);
+            }
             $stmt->bindValue(':lapso', $data['lapso_academico'], PDO::PARAM_INT);
             $stmt->bindValue(':temario', $data['temario'], PDO::PARAM_STR);
             if (empty($data['fecha_inicio'])) {

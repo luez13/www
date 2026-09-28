@@ -14,6 +14,9 @@ $db = new DB();
 $pagoModel = new Pago($db);
 $cuentas = $pagoModel->obtenerCuentas();
 
+$stmt_ext = $db->getConn()->query("SELECT id_extension, nombre_extension FROM cursos.extensiones ORDER BY nombre_extension ASC");
+$extensiones = $stmt_ext->fetchAll(PDO::FETCH_ASSOC);
+
 // Función auxiliar para sanitizar HTML
 function h($str)
 {
@@ -42,7 +45,8 @@ function h($str)
                             <th style="width: 15%;">Banco</th>
                             <th style="width: 20%;">Titular</th>
                             <th style="width: 15%;">Cédula/RIF</th>
-                            <th style="width: 15%;">Tipo / Nro.</th>
+                            <th style="width: 10%;">Sede</th>
+                              <th style="width: 15%;">Tipo / Nro.</th>
                             <th style="width: 15%;">Contacto</th>
                             <th style="width: 10%;">Estado</th>
                             <th style="width: 5%;">Acciones</th>
@@ -60,6 +64,9 @@ function h($str)
                                     <td class="align-middle font-weight-bold text-dark"><?= h($c['banco']) ?></td>
                                     <td class="align-middle text-left"><?= h($c['titular']) ?></td>
                                     <td class="align-middle"><?= h($c['cedula_rif']) ?></td>
+                                    <td class="align-middle font-weight-bold text-primary">
+                                        <?= $c['id_extension'] ? h($c['nombre_extension']) : 'Global' ?>
+                                    </td>
                                     <td class="align-middle text-left">
                                         <span class="badge badge-info mb-1"><?= h($c['tipo_cuenta']) ?></span><br>
                                         <small><?= h($c['numero_cuenta']) ?: '<i class="text-muted">N/A</i>' ?></small>
@@ -114,6 +121,18 @@ function h($str)
                     <input type="hidden" id="id_cuenta" name="id_cuenta" value="">
 
                     <div class="row">
+                        <div class="col-md-12 form-group">
+                            <label class="font-weight-bold">Sede / Departamento <span class="text-danger">*</span></label>
+                            <select class="form-control" id="id_extension" name="id_extension" required>
+                                <option value="">-- Seleccione --</option>
+                                <option value="0">Global (Todas las Sedes / General)</option>
+                                <?php foreach ($extensiones as $ext): ?>
+                                    <option value="<?= $ext['id_extension'] ?>"><?= htmlspecialchars($ext['nombre_extension']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <small class="form-text text-muted">Selecciona "Global" si esta cuenta recibe pagos de cualquier sede.</small>
+                        </div>
+
                         <div class="col-md-6 form-group">
                             <label class="font-weight-bold">Banco <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="banco" name="banco"
@@ -197,6 +216,7 @@ function h($str)
         // Configurar inputs ocultos
         $('#cuenta_action').val('crear_cuenta');
         $('#id_cuenta').val('');
+        $('#id_extension').val('');
 
         // Configurar visuales
         $('#modalCuentaLabel span').text('Nueva Cuenta Bancaria');
@@ -214,6 +234,7 @@ function h($str)
         // Configurar inputs ocultos
         $('#cuenta_action').val('actualizar_cuenta');
         $('#id_cuenta').val(cuenta.id_cuenta);
+        $('#id_extension').val(cuenta.id_extension || '0');
 
         // Rellenar campos de texto
         $('#banco').val(cuenta.banco);

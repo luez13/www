@@ -279,7 +279,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                         <span class="text-success font-weight-bold" style="font-size: 1.1rem;">
                                             <?php 
                                             $simbolo = (isset($comp['moneda']) && ($comp['moneda'] === 'Dolares' || $comp['moneda'] === 'Pesos')) ? '$' : 'Bs.';
-                                            echo $simbolo . number_format($comp['monto'], 2);
+                                            echo $simbolo . number_format($comp['monto'], 2, ',', '.');
                                             ?>
                                         </span>
                                     </td>
@@ -395,7 +395,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                         <div class="col-md-4 form-group mb-3" id="admin_grupo_referencia">
                             <label>N° de Referencia:</label>
                             <input type="text" name="numero_operacion" id="admin_edit_numero_operacion"
-                                class="form-control" required>
+                                class="form-control" required minlength="4" pattern="[0-9]{4,}" title="Debe ingresar al menos 4 nmeros para la referencia">
                         </div>
                     </div>
 

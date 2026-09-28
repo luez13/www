@@ -49,7 +49,7 @@ $modalidad = "Multimodal";
 
 // 4. Obtener todos los alumnos del curso
 $stmtAlumnos = $conn->prepare("
-    SELECT u.cedula, u.nombre, u.apellido, cert.nota, cert.completado, cert.tomo, cert.folio, u.id as id_usuario
+    SELECT u.cedula, u.nombre, u.apellido, cert.nota, cert.nota as nota_original_bd, cert.completado, cert.tomo, cert.folio, u.id as id_usuario
     FROM cursos.certificaciones cert
     JOIN cursos.usuarios u ON cert.id_usuario = u.id
     WHERE cert.curso_id = :id
@@ -124,7 +124,10 @@ foreach ($alumnos as &$al) {
     
     $al['recuperativo_diplomado'] = $max_recup;
 
-    if ($total_materias_curso > 0) {
+    if (isset($al['nota_original_bd']) && $al['nota_original_bd'] !== null && $al['nota_original_bd'] !== '') {
+        $al['completado'] = true;
+        $al['nota'] = $al['nota_original_bd'];
+    } elseif ($total_materias_curso > 0) {
         if ($materias_aprobadas == $total_materias_curso) {
             $al['completado'] = true;
             $al['nota'] = round($suma_notas / $total_materias_curso);

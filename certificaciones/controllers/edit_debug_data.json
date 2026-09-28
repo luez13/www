@@ -1,14 +1,12 @@
 {
     "course_data": {
         "action": "editar",
-        "id_curso": "11",
+        "id_curso": "12",
         "modulos_a_eliminar": "",
-        "nombre_curso": "Recepcion pagos aranceles 20xx",
-        "descripcion": "algo",
-        "tipo_curso": "masterclass",
-        "id_plantilla": "",
-        "promotor": "2",
-        "autorizacion": "2",
+        "nombre_curso": "PNFA",
+        "descripcion": "Concepto administrativo.",
+        "tipo_curso": "PNFA",
+        "promotor": "51",
         "estado": "0",
         "permitir_pagos": "1"
     },

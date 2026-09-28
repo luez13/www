@@ -120,8 +120,9 @@ if (count($firmasP1) > 0) {
         // --- Cálculo de Posición Horizontal (Grilla de 4 Columnas) ---
         $posX = 105; // Default: Centro
         $pCod = strtolower($f['posicion_codigo']);
-        
-        if (strpos($pCod, 'izq') !== false) $posX = 35;
+        if (count($firmasP1) === 1) {
+            $posX = 140;
+        } else if (strpos($pCod, 'izq') !== false) $posX = 35;
         else if (strpos($pCod, 'der') !== false) $posX = 245;
         else if (strpos($pCod, 'cen') !== false) $posX = 105;
         else if (strpos($pCod, 'cuarta') !== false || strpos($pCod, 'firme4') !== false || strpos($pCod, 'extra') !== false) $posX = 175;
@@ -250,8 +251,9 @@ if (count($firmasP2) > 0) {
         // --- Cálculo de Posición Horizontal (Grilla de 4 Columnas) ---
         $posX2 = 175; // Default: Cuarta
         $pCod2 = strtolower($f['posicion_codigo']);
-        
-        if (strpos($pCod2, 'izq') !== false) $posX2 = 35;
+        if (count($firmasP2) === 1) {
+            $posX2 = 140;
+        } else if (strpos($pCod2, 'izq') !== false) $posX2 = 35;
         else if (strpos($pCod2, 'der') !== false) $posX2 = 245;
         else if (strpos($pCod2, 'cen') !== false) $posX2 = 105;
         else if (strpos($pCod2, 'cuarta') !== false || strpos($pCod2, 'firme4') !== false || strpos($pCod2, 'extra') !== false) $posX2 = 175;

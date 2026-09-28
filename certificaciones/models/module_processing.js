@@ -11,8 +11,10 @@ function addModuleFields() {
 function createModuleDiv(index) {
     const moduleDiv = document.createElement("div");
     moduleDiv.className = "module mb-4 p-3 border"; // Using Bootstrap classes for margin, padding, and border
-    moduleDiv.appendChild(createElement("h4", "Módulo " + (index + 1)));
-    moduleDiv.appendChild(createInput("text", "nombre_modulo[]", "Nombre del módulo"));
+    var termName = window.isPNFA ? (index === 12 ? "Otro" : "Término " + (index + 1)) : "Módulo " + (index + 1);
+    moduleDiv.appendChild(createElement("h4", termName));
+    var termPlaceholder = window.isPNFA ? "Nombre del término" : "Nombre del módulo";
+    moduleDiv.appendChild(createInput("text", "nombre_modulo[]", termPlaceholder));
     const containerContenido = createContainerContenido();
     moduleDiv.appendChild(containerContenido);
     const buttonAgregarContenido = createButton("Agregar contenido", function() {

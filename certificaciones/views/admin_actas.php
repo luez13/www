@@ -49,7 +49,7 @@ if ($id_curso_sel > 0) {
 
         // Obtener todos los estudiantes registrados
         $stmtEst = $conn->prepare("
-            SELECT u.cedula, u.nombre, u.apellido, cert.nota, cert.completado, u.id as id_usuario
+            SELECT u.cedula, u.nombre, u.apellido, cert.nota, cert.nota as nota_original_bd, cert.completado, u.id as id_usuario
             FROM cursos.certificaciones cert
             JOIN cursos.usuarios u ON cert.id_usuario = u.id
             WHERE cert.curso_id = :id
@@ -88,14 +88,20 @@ if ($id_curso_sel > 0) {
                 }
             }
 
-            if ($total_materias_curso > 0 && $materias_aprobadas == $total_materias_curso) {
-                // Completó todas las materias requeridas en la historia
+            if (isset($e['nota_original_bd']) && $e['nota_original_bd'] !== null && $e['nota_original_bd'] !== '') {
+                // Si ya tiene nota cargada manualmente (ej. 18), se respeta y se asume completado
+                $e['nota'] = $e['nota_original_bd'];
+                $e['completado'] = true;
+            } elseif ($total_materias_curso > 0 && $materias_aprobadas == $total_materias_curso) {
+                // Complet todas las materias requeridas en la historia
                 $e['completado'] = true;
                 $e['nota'] = round($suma_notas / $total_materias_curso);
-            } else {
+            } elseif ($total_materias_curso > 0) {
                 // En progreso
                 $e['completado'] = false;
-                $e['nota'] = $total_materias_curso > 0 && $materias_aprobadas > 0 ? round($suma_notas / $total_materias_curso) : null;
+                $e['nota'] = $materias_aprobadas > 0 ? round($suma_notas / $total_materias_curso) : null;
+            } else {
+                $e['completado'] = (bool)$e['completado'];
             }
         }
         unset($e); // Romper referencia

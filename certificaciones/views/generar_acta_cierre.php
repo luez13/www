@@ -13,11 +13,12 @@ $id_curso = isset($_REQUEST['id_curso']) ? (int)$_REQUEST['id_curso'] : 0;
 if ($id_curso === 0) { echo '<div class="alert alert-danger">Error ID.</div>'; exit; }
 
 // 1. Datos del Curso
-$stmt = $conn->prepare("SELECT nombre_curso, fecha_finalizacion, inicio_mes FROM cursos.cursos WHERE id_curso = :id");
+$stmt = $conn->prepare("SELECT nombre_curso, fecha_finalizacion, inicio_mes, nota_minima_aprobatoria FROM cursos.cursos WHERE id_curso = :id");
 $stmt->execute(['id' => $id_curso]);
 $curso = $stmt->fetch(PDO::FETCH_ASSOC);
 $nombre_curso = $curso ? $curso['nombre_curso'] : 'Desconocido';
 $fecha_fin = $curso ? date('d/m/Y', strtotime($curso['fecha_finalizacion'])) : date('d/m/Y');
+$nota_min = isset($curso['nota_minima_aprobatoria']) ? (int)$curso['nota_minima_aprobatoria'] : 12;
 
 // --- Obtener Firmantes Oficiales ---
 $firma_coord_nombre = "";
@@ -62,25 +63,17 @@ try {
 
 
 // 2. Estadísticas Reales y Listado para PDF
-// Calculamos el promedio ponderado
 $sql_stats = "
     SELECT 
         u.id, u.nombre, u.apellido, u.cedula,
-        AVG(promedio_materia) as promedio_decimal
-    FROM (
-        SELECT 
-            np.id_usuario,
-            m.id_materia_bimestre,
-            SUM(np.calificacion_obtenida * (ac.ponderacion_porcentaje / 100)) as promedio_materia
-        FROM cursos.notas_participante np
-        JOIN cursos.actividades_config ac ON np.id_actividad_config = ac.id_actividad_config
-        JOIN cursos.materias_bimestre m ON ac.id_materia_bimestre = m.id_materia_bimestre
-        WHERE m.id_curso = :id
-        GROUP BY np.id_usuario, m.id_materia_bimestre
-    ) as promedios_por_materia
-    JOIN cursos.usuarios u ON promedios_por_materia.id_usuario = u.id
-    GROUP BY u.id, u.nombre, u.apellido, u.cedula
-    ORDER BY u.apellido ASC
+        cert.nota as promedio_decimal,
+        cert.completado,
+        cert.tomo,
+        cert.folio
+    FROM cursos.certificaciones cert
+    JOIN cursos.usuarios u ON cert.id_usuario = u.id
+    WHERE cert.curso_id = :id
+    ORDER BY u.apellido ASC, u.nombre ASC
 ";
 
 $stmt_stats = $conn->prepare($sql_stats);
@@ -97,41 +90,48 @@ $suma_promedios = 0;
 $lista_para_pdf = array(); 
 
 foreach($resultados as $r) {
-    $prom_dec = (float)$r['promedio_decimal'];
+    $estado = '';
+    $nota_final = 'N/A';
     
-    // --- LÓGICA DE REDONDEO ---
-    // round() en PHP sigue la regla estándar: .5 sube, .4 baja.
-    $nota_final = round($prom_dec);
-    
-    $suma_promedios += $nota_final;
-    
-    // Determinar estado (Asumiendo 12 como mínima aprobatoria ya que 11.5 sube a 12)
-    // Si la mínima es 10, cambia el 12 por 10.
-    if (!isset($r['completado']) || $r['completado'] == false) {
-        $estado = 'REPROBADO';
-        $reprobados++;
-    } else {
-        if ($nota_final >= 12) {
+    // VERIFICACIÓN INFALIBLE BASADA EN LA NOTA:
+    // Si el usuario tiene una nota en la base de datos, manda la nota.
+    if ($r['promedio_decimal'] !== null && $r['promedio_decimal'] !== '') {
+        $nota_final = round((float)$r['promedio_decimal']);
+        $suma_promedios += $nota_final;
+        
+        if ($nota_final >= $nota_min) {
             $estado = 'APROBADO';
             $aprobados++;
         } else {
             $estado = 'PARTICIPACIÓN';
             $participantes_count++;
         }
+    } else {
+        // No tiene nota. Verificamos si completado es literalmente verdadero (t, 1, true).
+        $es_completado = (isset($r['completado']) && ($r['completado'] === true || $r['completado'] == '1' || $r['completado'] === 't' || $r['completado'] === 'true'));
+        
+        // Si tiene tomo y folio, asumimos que al menos participó (por si el booleano falla).
+        $tiene_certificado = (!empty($r['tomo']) && !empty($r['folio']));
+
+        if ($es_completado || $tiene_certificado) {
+            $estado = 'PARTICIPACIÓN';
+            $participantes_count++;
+        } else {
+            $estado = 'REPROBADO';
+            $reprobados++;
+        }
     }
 
-    // Agregar a la lista del PDF
     $lista_para_pdf[] = array(
         'cedula' => $r['cedula'],
         'alumno' => strtoupper($r['apellido'] . ' ' . $r['nombre']),
-        'nota'   => $nota_final, // Nota redondeada (entero)
+        'nota'   => $nota_final,
         'estado' => $estado
     );
 }
 
 $promedio_general = $total_inscritos > 0 ? ($suma_promedios / $total_inscritos) : 0;
 
-// Convertir datos PHP a JSON para JS
 $json_pdf = json_encode($lista_para_pdf);
 ?>
 
@@ -196,7 +196,7 @@ $json_pdf = json_encode($lista_para_pdf);
                     
                     <p class="text-muted small mb-3">
                         Se generará el Acta de Cierre con la lista de calificaciones finales redondeadas.
-                        <br><strong>Criterio:</strong> Nota >= 12 aprueba (redondeo 0.5 hacia arriba).
+                        <br><strong>Criterio:</strong> Nota >= <?= $nota_min ?> aprueba (redondeo 0.5 hacia arriba).
                     </p>
 
                     <?php if ($total_inscritos > 0): ?>
@@ -259,23 +259,19 @@ $json_pdf = json_encode($lista_para_pdf);
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // --- 1. ENCABEZADO ---
-        // Intentar cargar logo (Asegúrate que la ruta sea accesible públicamente)
         var logoImg = new Image();
-        logoImg.src = "../public/assets/img/logo.png"; // Ruta relativa a la carpeta public
+        logoImg.src = "../public/assets/img/logo.png";
         
-        // Dibujar logo si carga, sino solo texto
         logoImg.onload = function() {
             doc.addImage(logoImg, 'PNG', 15, 10, 25, 25);
             generarContenidoPDF(doc);
         };
         logoImg.onerror = function() {
-            generarContenidoPDF(doc); // Generar sin logo si falla
+            generarContenidoPDF(doc);
         };
     }
 
     function generarContenidoPDF(doc) {
-        // Títulos
         doc.setFont("helvetica", "bold");
         doc.setFontSize(16);
         doc.text("ACTA DE CIERRE FINAL DE DIPLOMADO", 105, 20, null, null, "center");
@@ -284,13 +280,10 @@ $json_pdf = json_encode($lista_para_pdf);
         doc.setFont("helvetica", "normal");
         doc.text("UPTAIET - Coordinación de Formación Permanente", 105, 28, null, null, "center");
 
-        // Info del Curso
         doc.setFontSize(11);
         doc.text("Diplomado: " + INFO_CURSO.nombre, 14, 45);
         doc.text("Fecha de Cierre: " + INFO_CURSO.fecha, 14, 52);
 
-        // --- 2. TABLA DE NOTAS (Usando AutoTable) ---
-        // Preparamos los datos para la tabla [Cédula, Nombre, Nota, Estado]
         let bodyData = DATOS_ACTA.map(d => [d.cedula, d.alumno, d.nota, d.estado]);
 
         doc.autoTable({
@@ -300,35 +293,30 @@ $json_pdf = json_encode($lista_para_pdf);
             theme: 'grid',
             headStyles: { fillColor: [44, 62, 80], textColor: 255, halign: 'center' },
             columnStyles: {
-                0: { cellWidth: 30 }, // Cédula
-                2: { cellWidth: 25, halign: 'center', fontStyle: 'bold' }, // Nota
-                3: { cellWidth: 30, halign: 'center' }  // Estado
+                0: { cellWidth: 30 },
+                2: { cellWidth: 25, halign: 'center', fontStyle: 'bold' },
+                3: { cellWidth: 30, halign: 'center' }
             },
             didParseCell: function(data) {
-                // Colorear texto de Reprobados
                 if (data.section === 'body' && data.column.index === 3) {
                     if (data.cell.raw === 'REPROBADO') {
-                        data.cell.styles.textColor = [231, 76, 60]; // Rojo
+                        data.cell.styles.textColor = [231, 76, 60];
                     } else {
-                        data.cell.styles.textColor = [39, 174, 96]; // Verde
+                        data.cell.styles.textColor = [39, 174, 96];
                     }
                 }
             }
         });
 
-        // --- 3. FIRMAS (Al final) ---
-        let finalY = doc.lastAutoTable.finalY + 40; // Espacio después de la tabla
+        let finalY = doc.lastAutoTable.finalY + 40;
         
-        // Verificar si cabe en la hoja, si no, nueva página
         if (finalY > 250) {
             doc.addPage();
             finalY = 40;
         }
 
-        // Líneas de firma en tres columnas equidistantes
         doc.setLineWidth(0.5);
         
-        // Columna 1: Coordinador (x de 13 a 63, centro en 38)
         doc.line(13, finalY, 63, finalY);
         doc.setFontSize(9);
         if (INFO_CURSO.firma_coord_nombre) {
@@ -340,7 +328,6 @@ $json_pdf = json_encode($lista_para_pdf);
             doc.text(INFO_CURSO.firma_coord_cargo, 38, finalY + 5, null, null, "center");
         }
 
-        // Columna 2: Encargado del Área (x de 83 a 133, centro en 108)
         doc.line(83, finalY, 133, finalY);
         if (INFO_CURSO.firma_enc_nombre) {
             doc.setFont("helvetica", "bold");
@@ -351,7 +338,6 @@ $json_pdf = json_encode($lista_para_pdf);
             doc.text(INFO_CURSO.firma_enc_cargo, 108, finalY + 5, null, null, "center");
         }
 
-        // Columna 3: Vicerrectorado (x de 153 a 203, centro en 178)
         doc.line(153, finalY, 203, finalY);
         if (INFO_CURSO.firma_vice_nombre) {
             doc.setFont("helvetica", "bold");
@@ -362,7 +348,6 @@ $json_pdf = json_encode($lista_para_pdf);
             doc.text(INFO_CURSO.firma_vice_cargo, 178, finalY + 5, null, null, "center");
         }
 
-        // Guardar
         doc.save("Acta_Cierre_" + INFO_CURSO.nombre + ".pdf");
     }
 </script>
