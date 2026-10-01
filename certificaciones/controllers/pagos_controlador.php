@@ -25,6 +25,99 @@ $action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ?
 // 5. Procesar las peticiones
 switch ($action) {
 
+    case 'obtener_cuentas_caja':
+        if (!tieneAcceso([4, 5, 6])) {
+            echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
+            exit;
+        }
+        $id_curso = isset($_POST['id_curso']) ? intval($_POST['id_curso']) : 0;
+        
+        // Obtener el id_extension del curso
+        $pdo = $db->getConn();
+        $stmt_ext = $pdo->prepare("SELECT id_extension FROM cursos.cursos WHERE id_curso = ?");
+        $stmt_ext->execute([$id_curso]);
+        $ext = $stmt_ext->fetchColumn();
+
+        if ($ext) {
+            // Obtener cuentas de tipo Bveda o Caja Fisica de esa extension
+            $stmt = $pdo->prepare("SELECT id_cuenta, banco, tipo_cuenta, numero_cuenta 
+                                   FROM cursos.cuentas_bancarias 
+                                   WHERE activo = true 
+                                   AND id_extension = ? 
+                                   AND (tipo_cuenta ILIKE '%caja%' OR tipo_cuenta ILIKE '%boveda%' OR banco ILIKE '%efectivo%' OR banco ILIKE '%caja%')");
+            $stmt->execute([$ext]);
+            $cuentas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode(['success' => true, 'cuentas' => $cuentas]);
+        } else {
+            echo json_encode(['success' => false, 'cuentas' => []]);
+        }
+        break;
+
+
+
+    case 'registrar_pago_manual':
+        if (!tieneAcceso([4, 5, 6])) {
+            echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
+            exit;
+        }
+        
+        $id_usuario = isset($_POST['id_estudiante']) ? intval($_POST['id_estudiante']) : 0;
+        $id_curso = isset($_POST['id_curso']) ? intval($_POST['id_curso']) : 0;
+        $id_materia = isset($_POST['id_materia']) ? intval($_POST['id_materia']) : 0;
+        $id_cuenta = isset($_POST['id_cuenta_bancaria']) ? intval($_POST['id_cuenta_bancaria']) : 0;
+        
+        $monto = isset($_POST['monto']) ? floatval($_POST['monto']) : 0;
+        $moneda = isset($_POST['moneda']) ? trim($_POST['moneda']) : 'Dolares';
+        $metodo_pago = isset($_POST['metodo_pago']) ? trim($_POST['metodo_pago']) : '';
+        $banco_origen = ($metodo_pago === 'Efectivo') ? 'Taquilla de la Universidad' : trim($_POST['banco_origen']);
+        $referencia = trim($_POST['numero_operacion']);
+        $fecha_pago = isset($_POST['fecha_pago']) ? $_POST['fecha_pago'] : date('Y-m-d');
+        
+        if ($id_usuario <= 0 || $id_curso <= 0 || $monto <= 0 || empty($referencia) || $id_cuenta <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Datos incompletos.']);
+            exit;
+        }
+
+        if (strlen($referencia) < 6) {
+            echo json_encode(['success' => false, 'message' => 'La referencia debe tener un minimo 6 digitos.']);
+            exit;
+        }
+
+        if (!preg_match('/^[a-zA-Z0-9-]+$/', $referencia)) {
+            echo json_encode(['success' => false, 'message' => 'La referencia contiene caracteres invlidos.']);
+            exit;
+        }
+
+        // Siempre entra como pendiente por la regla de segregacin de funciones
+        $estado = 'Pendiente';
+
+        try {
+            $pdo = $db->getConn();
+            
+            // Get id_extension from the course
+            $stmt_ext = $pdo->prepare("SELECT id_extension FROM cursos.cursos WHERE id_curso = ?");
+            $stmt_ext->execute([$id_curso]);
+            $id_extension = $stmt_ext->fetchColumn();
+
+            $sql = "INSERT INTO cursos.comprobantes_pago 
+                    (id_usuario, id_curso, id_materia_bimestre, id_cuenta_destino, id_extension, metodo_pago, banco_origen, 
+                     numero_operacion, fecha_pago, moneda, monto, estado, archivo_comprobante, creado_en)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NOW())";
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                $id_usuario, $id_curso, $id_materia, $id_cuenta, $id_extension, $metodo_pago, $banco_origen,
+                $referencia, $fecha_pago, $moneda, $monto, $estado
+            ]);
+            
+            echo json_encode(['success' => true, 'message' => 'Pago manual registrado correctamente como Pendiente.']);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Error al registrar el pago: ' . $e->getMessage()]);
+        }
+        break;
+
+
+
     case 'subir_comprobante':
         $moneda = isset($_POST['moneda']) ? $_POST['moneda'] : 'Bs';
 
@@ -44,8 +137,8 @@ switch ($action) {
         // Parche de Seguridad: Validacion estricta de numero de operacion en backend
         if (isset($_POST['numero_operacion']) && !empty(trim($_POST['numero_operacion']))) {
             $ref = trim($_POST['numero_operacion']);
-            if (strlen($ref) < 4 || !preg_match('/^[0-9]+$/', $ref)) {
-                echo json_encode(['success' => false, 'message' => 'Error Crtico: El nmero de referencia debe contener al menos 4 dgitos numricos vlidos. Transaccin abortada.']);
+            if (strlen($ref) < 6 || !preg_match('/^[0-9]+$/', $ref)) {
+                echo json_encode(['success' => false, 'message' => 'Error Crtico: El nmero de referencia debe contener al menos 6 dgitos numricos vlidos. Transaccin abortada.']);
                 exit;
             }
         }
@@ -148,7 +241,12 @@ switch ($action) {
         $mensaje_bloqueo = '';
         
         if ($is_pnfa && !empty($materias)) {
-            $user_id = $_SESSION['user_id'];
+            
+            if (isset($_POST['id_estudiante']) && tieneAcceso([4, 5, 6])) {
+                $user_id = $_POST['id_estudiante'];
+            } else {
+                $user_id = $_SESSION['user_id'];
+            }
             $pdo = $db->getConn();
             $stmt_pagos = $pdo->prepare("SELECT id_materia_bimestre, estado FROM cursos.comprobantes_pago WHERE id_usuario = ? AND id_curso = ?");
             $stmt_pagos->execute([$user_id, $id_curso]);
@@ -164,7 +262,7 @@ switch ($action) {
             $termino_a_pagar = null;
             
             foreach ($materias as $m) {
-                if (stripos($m['nombre_materia'], 'otro') !== false || stripos($m['nombre_materia'], 'repitencia') !== false) {
+                if (($m['exento_prelacion'] == 1 || $m['exento_prelacion'] == true) || stripos($m['nombre_materia'], 'repitencia') !== false) {
                     continue; 
                 }
                 
@@ -200,7 +298,7 @@ switch ($action) {
                 $materias_filtradas[] = $termino_a_pagar;
             }
             foreach ($materias as $m) {
-                if (stripos($m['nombre_materia'], 'otro') !== false || stripos($m['nombre_materia'], 'repitencia') !== false) {
+                if (($m['exento_prelacion'] == 1 || $m['exento_prelacion'] == true) || stripos($m['nombre_materia'], 'repitencia') !== false) {
                     $materias_filtradas[] = $m;
                 }
             }
@@ -325,8 +423,8 @@ switch ($action) {
         // Parche de Seguridad: Validacion estricta de numero de operacion en backend
         if (isset($_POST['numero_operacion']) && !empty(trim($_POST['numero_operacion']))) {
             $ref = trim($_POST['numero_operacion']);
-            if (strlen($ref) < 4 || !preg_match('/^[0-9]+$/', $ref)) {
-                echo json_encode(['success' => false, 'message' => 'Error Crtico: El nmero de referencia debe contener al menos 4 dgitos numricos vlidos. Transaccin abortada.']);
+            if (strlen($ref) < 6 || !preg_match('/^[0-9]+$/', $ref)) {
+                echo json_encode(['success' => false, 'message' => 'Error Crtico: El nmero de referencia debe contener al menos 6 dgitos numricos vlidos. Transaccin abortada.']);
                 exit;
             }
         }
@@ -479,7 +577,7 @@ switch ($action) {
             'numero_cuenta' => isset($_POST['numero_cuenta']) ? $_POST['numero_cuenta'] : '',
             'id_extension' => isset($_POST['id_extension']) && $_POST['id_extension'] !== '' ? intval($_POST['id_extension']) : null,
             // Los checkboxes HTML no envian nada si no estan marcados
-            'activo' => isset($_POST['activo']) ? true : false
+            'activo' => isset($_POST['activo']) ? 'true' : 'false'
         ];
 
         // Validar únicamente los campos estrictamente necesarios

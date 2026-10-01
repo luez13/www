@@ -85,8 +85,8 @@ if (isset($_SESSION['id_extension'])) {
                                 class="fas fa-microphone me-2 text-muted"></i>Congresos</a>
                         <a class="collapse-item" href="#" onclick="loadCategory('charla', true)"><i
                                 class="fas fa-comments me-2 text-muted"></i>Charlas</a>
-                        <a class="collapse-item" href="#" onclick="loadCategory('recepcion_pago', true)"><i
-                                class="fas fa-money-bill-wave me-2 text-muted"></i>Pagos y Aranceles</a>
+                        <a class="collapse-item" href="#" onclick="loadCategory('pnfa', true)"><i class="fas fa-university me-2 text-muted"></i>PNFA</a>
+                        <a class="collapse-item" href="#" onclick="loadCategory('recepcion_pago', true)"><i class="fas fa-money-bill-wave me-2 text-muted"></i>Pagos y Aranceles</a>
                     </div>
                 </div>
             </li>
@@ -182,7 +182,7 @@ if (isset($_SESSION['id_extension'])) {
                     data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded shadow-sm">
 
-                        <?php if (tieneAcceso([3, 4])): ?>
+                        <?php if (tieneAcceso([4])): ?>
                         <h6 class="collapse-header text-primary">Gestión de Personas:</h6>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/usuarios.php')">Verificación de
                             Usuarios</a>
@@ -216,7 +216,8 @@ if (isset($_SESSION['id_extension'])) {
         <?php endif; ?>
 
         <?php if (tieneAcceso([3, 4])): ?>
-            <li class="nav-item">
+            <?php if (tieneAcceso([4, 5, 6])): ?>
+<li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAjustes"
                     aria-expanded="true" aria-controls="collapseAjustes">
                     <i class="fas fa-fw fa-cogs"></i>
@@ -250,6 +251,7 @@ if (isset($_SESSION['id_extension'])) {
                     </div>
                 </div>
             </li>
+<?php endif; ?>
         <?php endif; ?>
 
         <hr class="sidebar-divider d-none d-md-block">

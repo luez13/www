@@ -133,7 +133,7 @@ try {
             $stmt = $pdo->prepare("INSERT INTO cursos.comprobantes_pago 
                 (id_usuario, id_curso, numero_operacion, banco_origen, monto, estado, fecha_pago, observacion, moneda, id_admin_gestor, fecha_gestion, id_cuenta_destino, id_extension) 
                 VALUES 
-                (:id_usuario, :id_curso, :numero_operacion, 'Taquilla Física', :monto, 'Comprobado', CURRENT_DATE, :observacion, :moneda, :id_admin, CURRENT_TIMESTAMP, :id_cuenta_destino, (SELECT id_extension FROM cursos.cursos WHERE id_curso = :id_curso LIMIT 1))");
+                  (:id_usuario, :id_curso, :numero_operacion, 'Taquilla Física', :monto, 'Pendiente', CURRENT_DATE, :observacion, :moneda, :id_admin, CURRENT_TIMESTAMP, :id_cuenta_destino, (SELECT id_extension FROM cursos.cursos WHERE id_curso = :id_curso LIMIT 1))");
             
             $stmt->execute([
                 ':id_usuario' => $id_usuario,

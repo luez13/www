@@ -50,7 +50,8 @@ class Materia {
                             lapso_academico = :lapso,
                             temario = :temario,
                             fecha_inicio = :fecha_inicio,
-                            fecha_fin = :fecha_fin
+                            fecha_fin = :fecha_fin,
+                              exento_prelacion = :exento
                         WHERE id_materia_bimestre = :id";
                 
                 $stmt = $this->conn->prepare($sql);
@@ -59,9 +60,9 @@ class Materia {
             } else {
                 // INSERT
                 $sql = "INSERT INTO cursos.materias_bimestre 
-                            (id_curso, nombre_materia, duracion_bimestres, total_horas, modalidad, docente_id, lapso_academico, temario, fecha_inicio, fecha_fin) 
+                            (id_curso, nombre_materia, duracion_bimestres, total_horas, modalidad, docente_id, lapso_academico, temario, fecha_inicio, fecha_fin, exento_prelacion) 
                         VALUES 
-                            (:id_curso, :nombre, :duracion, :horas, :modalidad, :docente, :lapso, :temario, :fecha_inicio, :fecha_fin)";
+                            (:id_curso, :nombre, :duracion, :horas, :modalidad, :docente, :lapso, :temario, :fecha_inicio, :fecha_fin, :exento)";
                 
                 $stmt = $this->conn->prepare($sql);
                 if ($id_materia === 0) { 
@@ -81,6 +82,7 @@ class Materia {
             }
             $stmt->bindValue(':lapso', $data['lapso_academico'], PDO::PARAM_INT);
             $stmt->bindValue(':temario', $data['temario'], PDO::PARAM_STR);
+              $stmt->bindValue(':exento', $data['exento_prelacion'], PDO::PARAM_BOOL);
             if (empty($data['fecha_inicio'])) {
                 $stmt->bindValue(':fecha_inicio', null, PDO::PARAM_NULL);
             } else {

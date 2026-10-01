@@ -191,6 +191,15 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                         </datalist>
                     </div>
 
+                    <div class="col-md-12 mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="exento_prelacion" id="exento_prelacion" value="1">
+                            <label class="form-check-label font-weight-bold" style="color: #d9534f; opacity: 0.85;" for="exento_prelacion">
+                                <i class="fas fa-unlock-alt me-1"></i> Eximir de secuencia prelatoria? (Ej: Otros o Trabajo Especial de Grado)
+                            </label>
+                        </div>
+                    </div>
+
                     <?php if ($_SESSION['es_academico']): ?>
                     <div class="row">
                         <div class="col-6 mb-3">
@@ -343,6 +352,7 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
     function abrirModalMateria() {
         $('#formMateria')[0].reset();
         $('#id_materia').val(0);
+        $('#exento_prelacion').prop('checked', false);
         $('#docente_id').val('');
         $('#temario').val('');
         $('#fecha_inicio').val('');
@@ -367,6 +377,7 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                     $('#total_horas').val(d.total_horas);
                     $('#modalidad').val(d.modalidad);
                     $('#docente_id').val(d.docente_id);
+                    $('#exento_prelacion').prop('checked', d.exento_prelacion == 1 || d.exento_prelacion == true);
                     $('#docente_nombre').val(d.nombre_docente);
                     $('#temario').val(d.temario);
                     $('#fecha_inicio').val(d.fecha_inicio || '');

@@ -130,6 +130,7 @@ function h($str)
                                 <select name="id_cuenta_destino" id="select_cuenta_destino" class="form-control" required>
                                     <option value="">-- Seleccione --</option>
                                     <?php foreach ($cuentasActivas as $cuenta): ?>
+                                      <?php if (stripos($cuenta['tipo_cuenta'], 'caja') !== false || stripos($cuenta['tipo_cuenta'], 'boveda') !== false || stripos($cuenta['banco'], 'fisica') !== false || stripos($cuenta['banco'], 'efectivo') !== false) continue; // Ocultar cajas fisicas a los estudiantes ?>
                                         <option value="<?= $cuenta['id_cuenta'] ?>" class="opcion-cuenta-destino" data-id-extension="<?= $cuenta['id_extension'] ?>">
                                             <?= h($cuenta['banco']) ?> (<?= h(substr($cuenta['numero_cuenta'], -4)) ?>)
                                         </option>
@@ -152,7 +153,7 @@ function h($str)
                             <div class="col-md-4 form-group mb-3" id="grupo_referencia">
                                 <label>N° de Referencia / Operación:</label>
                                 <input type="text" name="numero_operacion" id="input_numero_operacion"
-                                    class="form-control" placeholder="Ej: 12345678" required minlength="4" pattern="[0-9]{4,}" title="Debe ingresar al menos 4 nmeros para la referencia">
+                                    class="form-control" placeholder="Ej: 12345678" required minlength="6" pattern="[0-9]{6,}" title="Debe ingresar al menos 4 nmeros para la referencia">
                             </div>
                         </div>
 
@@ -310,7 +311,7 @@ function h($str)
                         </div>
                         <div class="col-md-4 form-group mb-3" id="edit_grupo_referencia">
                             <label>N° de Referencia:</label>
-                            <input type="text" name="numero_operacion" id="edit_numero_operacion" class="form-control" required minlength="4" pattern="[0-9]{4,}" title="Debe ingresar al menos 4 nmeros para la referencia">
+                            <input type="text" name="numero_operacion" id="edit_numero_operacion" class="form-control" required minlength="6" pattern="[0-9]{6,}" title="Debe ingresar al menos 4 nmeros para la referencia">
                         </div>
                     </div>
 

@@ -77,6 +77,7 @@ $curso_editar = $curso->obtener_curso($id_curso);
                                 Avanzado</option>
                         </select>
                     </div>
+<div class="col-md-4 mb-3"><label class="form-label">Costo (Obligatorio):</label><input class="form-control" type="number" name="costo" value="<?= isset($curso_editar[\'costo\']) ? htmlspecialchars($curso_editar[\'costo\']) : \'\' ?>" step="0.01" min="0" required></div>
                     <?php endif; ?>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Estado:</label>
@@ -90,7 +91,7 @@ $curso_editar = $curso->obtener_curso($id_curso);
             </div>
         </div>
 
-        <?php if ($_SESSION['es_academico'] || (isset($curso_editar['tipo_curso']) && $curso_editar['tipo_curso'] === 'PNFA')): ?>
+        <?php if ($_SESSION['es_academico']): ?>
         <div class="card shadow mb-4">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">Fechas y Horarios</h6>
@@ -173,7 +174,7 @@ $curso_editar = $curso->obtener_curso($id_curso);
         <?php endif; ?>
 
         <?php $is_pnfa = (isset($curso_editar['tipo_curso']) && $curso_editar['tipo_curso'] === 'PNFA'); ?>
-        <?php if ($_SESSION['es_academico'] || $is_pnfa): ?>
+        <?php if ($_SESSION['es_academico']): ?>
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary"><?= $is_pnfa ? '<i class="fas fa-layer-group me-2"></i>Términos del PNFA' : 'Módulos del Curso' ?></h6>

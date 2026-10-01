@@ -44,10 +44,11 @@ try {
                 'duracion_bimestres'  => isset($_POST['duracion_bimestres']) ? $_POST['duracion_bimestres'] : '',
                 'total_horas'         => isset($_POST['total_horas']) ? $_POST['total_horas'] : 0,
                 'modalidad'           => isset($_POST['modalidad']) ? $_POST['modalidad'] : 'Virtual',
-                'docente_id'          => (!empty($_POST['docente_id']) ? $_POST['docente_id'] : $_SESSION['user_id']),
+                'docente_id'          => (!empty($_POST['docente_id']) ? $_POST['docente_id'] : null),
                 'temario'             => isset($_POST['temario']) ? $_POST['temario'] : '',
                 // AGREGA ESTA LÍNEA EXACTA AQUÍ:
                 'lapso_academico'     => isset($_POST['lapso_academico']) ? $_POST['lapso_academico'] : 1,
+                  'exento_prelacion'    => isset($_POST['exento_prelacion']) ? 1 : 0,
                 
                 'fecha_inicio'        => !empty($_POST['fecha_inicio']) ? $_POST['fecha_inicio'] : null,
                 'fecha_fin'           => !empty($_POST['fecha_fin']) ? $_POST['fecha_fin'] : null

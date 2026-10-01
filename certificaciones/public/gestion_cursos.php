@@ -87,6 +87,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                             <option value="avanzado">Avanzado</option>
                         </select>
                     </div>
+<div class="col-md-4 mb-3"><label class="form-label">Costo (Obligatorio):</label><input class="form-control" type="number" name="costo" step="0.01" min="0" required></div>
                     <?php endif; ?>
                 </div>
                 <?php if ($_SESSION['es_academico']): ?>
@@ -152,10 +153,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                         <label class="form-label">Límite de inscripciones:</label>
                         <input class="form-control" type="number" name="limite_inscripciones" min="1" required>
                     </div>
-                     <div class="col-md-6 mb-3" id="container_costo">
-                        <label class="form-label">Costo:</label>
-                        <input class="form-control" type="number" name="costo" step="0.01" min="0">
-                    </div>
+
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Conocimientos previos:</label>
@@ -385,14 +383,11 @@ echo '</div>';
             }
 
             if (val === 'PNFA') {
-                sec.style.display = 'block';
-                toggleDetalles(true);
-                numModulosInput.disabled = false;
-                numModulosInput.required = true;
-                title.innerHTML = '<i class="fas fa-layer-group me-2"></i>Términos del PNFA';
-                label.innerHTML = 'Número de términos (Máx 12 + Otro):';
+                sec.style.display = 'none';
+                toggleDetalles(false);
+                numModulosInput.disabled = true;
+                numModulosInput.required = false;
                 window.isPNFA = true;
-                if (numModulosInput.value) numModulosInput.dispatchEvent(new Event('blur'));
             } else if (isAcad) {
                 sec.style.display = 'block';
                 toggleDetalles(true);

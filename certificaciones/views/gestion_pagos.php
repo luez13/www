@@ -64,6 +64,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-money-check-alt me-2"></i> Administración de Pagos</h1>
+          <button class="btn btn-primary shadow-sm" data-toggle="modal" data-target="#modalPagoManual"><i class="fas fa-plus fa-sm text-white-50"></i> Registrar Pago Manual</button>
     </div>
 
     <?php
@@ -207,6 +208,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                 <th class="text-left">Referencia</th>
                                 <th class="text-left">Observación</th>
                                 <th class="text-left">Gestionado Por</th>
+                                <th>Fecha Gestión</th>
                                 <th>Banco</th>
                                 <th>Monto</th>
                                 <th>Acciones</th>
@@ -395,7 +397,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                         <div class="col-md-4 form-group mb-3" id="admin_grupo_referencia">
                             <label>N° de Referencia:</label>
                             <input type="text" name="numero_operacion" id="admin_edit_numero_operacion"
-                                class="form-control" required minlength="4" pattern="[0-9]{4,}" title="Debe ingresar al menos 4 nmeros para la referencia">
+                                class="form-control" required minlength="6" pattern="[0-9]{6,}" title="Debe ingresar al menos 4 nmeros para la referencia">
                         </div>
                     </div>
 
@@ -1057,4 +1059,116 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
             }
         });
     }
+</script>
+
+<script>
+$(document).ready(function() {
+    // Buscar estudiante
+    $('#btn_buscar_est').click(function() {
+        var query = $('#buscador_estudiante').val();
+        if(query.length < 3) {
+            alert('Ingrese al menos 3 caracteres de la cdula o nombre.');
+            return;
+        }
+        $.ajax({
+            url: '../controllers/buscar_usuarios_ajax.php',
+            type: 'GET',
+            data: { q: query },
+            success: function(response) {
+                var res = JSON.parse(response);
+                if(Array.isArray(res) && res.length > 0) {
+                    var select = $('#id_estudiante_manual');
+                    select.empty().removeClass('d-none');
+                    res.forEach(function(u) {
+                        select.append('<option value="'+u.id+'">'+u.nombre+' '+u.apellido+' (C.I: '+u.cedula+')</option>');
+                    });
+                } else if (res.error) {
+                    alert('Error: ' + res.error);
+                } else {
+                    alert('No se encontraron estudiantes.');
+                    $('#id_estudiante_manual').addClass('d-none').empty();
+                }
+            }
+        });
+    });
+
+    // Cargar materias del curso y cuentas de la extension
+    $('#id_curso_manual').change(function() {
+        var id_curso = $(this).val();
+        var id_est = $('#id_estudiante_manual').val();
+        if(!id_curso) return;
+
+        // Materias
+        $.ajax({
+            url: '../controllers/pagos_controlador.php',
+            type: 'POST',
+            data: { action: 'obtener_materias', id_curso: id_curso, id_estudiante: id_est },
+            success: function(res) {
+                var data = typeof res === 'string' ? JSON.parse(res) : res;
+                var s = $('#id_materia_manual');
+                s.empty();
+                if(data.success && data.materias.length > 0) {
+                    data.materias.forEach(function(m) {
+                        s.append('<option value="'+m.id_materia_bimestre+'">'+m.nombre_materia+'</option>');
+                    });
+                } else {
+                    s.append('<option value="">No hay conceptos disponibles</option>');
+                }
+            }
+        });
+
+        // Cuentas
+        $.ajax({
+            url: '../controllers/pagos_controlador.php',
+            type: 'POST',
+            data: { action: 'obtener_cuentas_caja', id_curso: id_curso },
+            success: function(res) {
+                var data = typeof res === 'string' ? JSON.parse(res) : res;
+                var c = $('#id_cuenta_manual');
+                c.empty();
+                if(data.success && data.cuentas.length > 0) {
+                    data.cuentas.forEach(function(cuenta) {
+                        c.append('<option value="'+cuenta.id_cuenta+'">'+cuenta.banco+' - '+cuenta.tipo_cuenta+' - '+cuenta.numero_cuenta+'</option>');
+                    });
+                } else {
+                    c.append('<option value="">No hay cuentas configuradas</option>');
+                }
+            }
+        });
+    });
+
+    // Metodo de pago Efectivo auto-fill
+    $('#metodo_pago_manual').change(function() {
+        if($(this).val() === 'Efectivo') {
+            $('#banco_origen_manual').val('Taquilla Fsica').prop('readonly', true);
+            $('#ref_manual').attr('placeholder', 'Ej. CAJA-001');
+        } else {
+            $('#banco_origen_manual').val('').prop('readonly', false);
+            $('#ref_manual').attr('placeholder', 'Min. 6 dgitos');
+        }
+    });
+
+    // Enviar form
+    $('#formPagoManual').submit(function(e) {
+        e.preventDefault();
+        var fd = new FormData(this);
+        $.ajax({
+            url: '../controllers/pagos_controlador.php',
+            type: 'POST',
+            data: fd,
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                var data = typeof res === 'string' ? JSON.parse(res) : res;
+                if(data.success) {
+                    alert('Pago registrado correctamente. Queda en estado Pendiente.');
+                    $('#modalPagoManual').modal('hide');
+                    loadPage('../views/gestion_pagos.php');
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            }
+        });
+    });
+});
 </script>
