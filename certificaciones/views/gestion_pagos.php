@@ -7,7 +7,7 @@ require_once '../config/model.php';
 require_once '../models/Pago.php';
 
 // Validar Permisos Financieros
-if (!tieneAcceso([5, 6])) {
+if (!tieneAcceso([4, 5, 6])) {
     die('<div class="alert alert-danger text-center mt-5"><b>Acceso denegado:</b> No tienes permisos administrativos para ver esta página. Área Financiera.</div>');
 }
 
@@ -64,7 +64,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-money-check-alt me-2"></i> Administración de Pagos</h1>
-          <button class="btn btn-primary shadow-sm" data-toggle="modal" data-target="#modalPagoManual"><i class="fas fa-plus fa-sm text-white-50"></i> Registrar Pago Manual</button>
+          
     </div>
 
     <?php
@@ -275,6 +275,9 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-left">
+                                        <?= isset($comp['fecha_gestion']) && $comp['fecha_gestion'] ? date('d/m/Y H:i', strtotime($comp['fecha_gestion'])) : 'N/A' ?>
+                                    </td>
+                                    <td class="text-left">
                                         <strong><?= h($comp['banco_origen'] ? $comp['banco_origen'] : 'N/A') ?></strong>
                                     </td>
                                     <td class="align-middle">
@@ -293,6 +296,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                                 <i class="fas fa-eye"></i>
                                             </button>
 
+                                            <?php if (tieneAcceso([5, 6])): ?>
                                             <?php if ($sec['estado_filtro'] === 'Pendiente'): ?>
                                                 <button type="button" class="btn btn-sm btn-success shadow-sm"
                                                     onclick="actualizarEstadoPago(<?= $comp['id_comprobante'] ?>, 'Comprobado')"
@@ -310,6 +314,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                                     title="Revertir a Pendiente">
                                                     <i class="fas fa-undo text-dark"></i>
                                                 </button>
+                                            <?php endif; ?>
                                             <?php endif; ?>
 
                                             <?php if (tieneAcceso([6])): ?>

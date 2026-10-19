@@ -91,21 +91,21 @@ if (isset($_SESSION['id_extension'])) {
                 </div>
             </li>
 
-            <?php if (tieneAcceso([1, 2, 3, 4, 5, 6]) && $_SESSION['es_academico']): ?>
+            <?php if (tieneAcceso([1, 2, 3, 4, 5, 6])): ?>
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAprendizaje"
                     aria-expanded="true" aria-controls="collapseAprendizaje">
                     <i class="fas fa-fw fa-user-graduate"></i>
-                    <span>Mi Aprendizaje</span>
+                    <span>Mis Inscripciones</span>
                 </a>
                 <div id="collapseAprendizaje" class="collapse" aria-labelledby="headingAprendizaje"
                     data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded shadow-sm">
                         <h6 class="collapse-header text-success">Mi Expediente:</h6>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/historial.php?action=inscritos')"><i
-                                class="fas fa-play-circle me-2 text-muted"></i>Cursos en Progreso</a>
+                                class="fas fa-play-circle me-2 text-muted"></i>Inscripciones Activas</a>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/historial.php?action=finalizados')"><i
-                                class="fas fa-check-circle me-2 text-muted"></i>Cursos Finalizados</a>
+                                class="fas fa-check-circle me-2 text-muted"></i>Historial</a>
                     </div>
                 </div>
             </li>
@@ -196,16 +196,18 @@ if (isset($_SESSION['id_extension'])) {
                         <div class="dropdown-divider"></div>
                         <?php endif; ?>
 
-                        <?php if (tieneAcceso([4, 5, 6])): ?>
+                        <?php if (tieneAcceso([3, 4, 5, 6])): ?>
                         <h6 class="collapse-header text-success">Tesorería y Pagos:</h6>
+                        <?php if (tieneAcceso([4, 5, 6])): ?>
                         <a class="collapse-item" href="#" onclick="loadPage('../views/gestion_pagos.php')"><i
                                 class="fas fa-search-dollar me-2 text-muted"></i>Auditar Pagos</a>
-                        <?php if (tieneAcceso([4, 5])): ?>
+                        <?php endif; ?>
+                        <?php if (tieneAcceso([3, 4, 5])): ?>
                         <a class="collapse-item font-weight-bold text-success" href="#" onclick="loadPage('../public/taquilla_pagos.php')"><i
                                 class="fas fa-cash-register me-2"></i>Taquilla Física</a>
                         <?php endif; ?>
                         <?php if (tieneAcceso([4, 6])): ?>
-                        <a class="collapse-item" href="#" onclick="loadPage('../views/gestion_cuentas_bancarias.php')"><i
+                          <a class="collapse-item" href="#" onclick="loadPage('../views/gestion_cuentas_bancarias.php')"><i
                                 class="fas fa-university me-2 text-muted"></i>Cuentas Destino</a>
                         <?php endif; ?>
                         <?php endif; ?>
@@ -215,8 +217,7 @@ if (isset($_SESSION['id_extension'])) {
             </li>
         <?php endif; ?>
 
-        <?php if (tieneAcceso([3, 4])): ?>
-            <?php if (tieneAcceso([4, 5, 6])): ?>
+        <?php if (tieneAcceso([])): // Vacío para que solo el Rol 7 (SUPER_ADMIN) pase el bypass ?>
 <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAjustes"
                     aria-expanded="true" aria-controls="collapseAjustes">
@@ -252,7 +253,6 @@ if (isset($_SESSION['id_extension'])) {
                 </div>
             </li>
 <?php endif; ?>
-        <?php endif; ?>
 
         <hr class="sidebar-divider d-none d-md-block">
 

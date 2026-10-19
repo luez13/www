@@ -8,10 +8,12 @@ require_once 'autenticacion.php';
 header('Content-Type: application/json; charset=utf-8');
 
 // Validar acceso: Solo Roles 4 (ADMIN) y 5 (ANALISTA)
-if (!isset($_SESSION['user_id']) || !tieneAcceso([4, 5])) {
+if (!isset($_SESSION['user_id']) || !tieneAcceso([3, 4, 5])) {
     echo json_encode(['status' => 'error', 'message' => 'Acceso denegado.']);
     exit;
 }
+
+$id_admin = $_SESSION['user_id'];
 
 if (!isset($_POST['action'])) {
     echo json_encode(['status' => 'error', 'message' => 'Acción no especificada.']);
@@ -101,16 +103,17 @@ try {
             echo json_encode(['status' => 'success', 'cursos' => $cursos]);
             break;
             
-        case 'registrar_pago_taquilla':
+                case 'registrar_pago_taquilla':
             $id_usuario = (int)$_POST['id_usuario'];
             $id_curso = (int)$_POST['id_curso'];
             $numero_operacion = trim($_POST['numero_operacion']);
             $monto = (float)$_POST['monto'];
             $moneda = trim($_POST['moneda']);
             $observacion = isset($_POST['observacion']) ? trim($_POST['observacion']) : '';
+            $tipo_recepcion = isset($_POST['tipo_recepcion']) ? trim($_POST['tipo_recepcion']) : 'transferencia';
             
             if (empty($id_usuario) || empty($id_curso) || empty($numero_operacion) || $monto <= 0 || empty($moneda)) {
-                throw new Exception("Datos de pago incompletos o inválidos.");
+                throw new Exception("Datos de pago incompletos o invlidos.");
             }
             
             // Verificar que el curso pertenece a la sede actual
@@ -120,29 +123,48 @@ try {
                 throw new Exception("El concepto a pagar no pertenece a su Sede.");
             }
             
-            // Obtener la cuenta bancaria CAJA FISICA para esta sede
-            $stmtCuenta = $pdo->prepare("SELECT id_cuenta FROM cursos.cuentas_bancarias WHERE id_extension = :id_ext AND banco = 'CAJA FÍSICA' LIMIT 1");
-            $stmtCuenta->execute([':id_ext' => $id_extension_activa]);
-            $cuenta_caja = $stmtCuenta->fetch(PDO::FETCH_ASSOC);
-            if (!$cuenta_caja) {
-                throw new Exception("Error contable: No existe una CAJA FÍSICA configurada para esta sede.");
+            $estado_pago = 'Pendiente';
+            $banco_origen = '';
+            $id_cuenta_destino = null;
+
+            if ($tipo_recepcion === 'efectivo_punto') {
+                $estado_pago = 'Comprobado';
+                $banco_origen = 'Taquilla Fsica';
+                
+                // Obtener la cuenta bancaria CAJA FISICA para esta sede
+                $stmtCuenta = $pdo->prepare("SELECT id_cuenta FROM cursos.cuentas_bancarias WHERE id_extension = :id_ext AND banco ILIKE 'CAJA F%SICA' LIMIT 1");
+                $stmtCuenta->execute([':id_ext' => $id_extension_activa]);
+                $cuenta_caja = $stmtCuenta->fetch(PDO::FETCH_ASSOC);
+                if (!$cuenta_caja) {
+                    throw new Exception("Error contable: No existe una CAJA FSICA configurada para esta sede.");
+                }
+                $id_cuenta_destino = $cuenta_caja['id_cuenta'];
+            } else {
+                $estado_pago = 'Pendiente';
+                $banco_origen = trim($_POST['banco_origen']);
+                $id_cuenta_destino = (int)$_POST['id_cuenta_destino'];
+                
+                if (empty($banco_origen) || empty($id_cuenta_destino)) {
+                    throw new Exception("Debe especificar el Banco de Origen y la Cuenta Destino para una transferencia.");
+                }
             }
-            $id_cuenta_destino = $cuenta_caja['id_cuenta'];
             
-            // Registrar pago AUTO-APROBADO
+            // Registrar pago
             $stmt = $pdo->prepare("INSERT INTO cursos.comprobantes_pago 
                 (id_usuario, id_curso, numero_operacion, banco_origen, monto, estado, fecha_pago, observacion, moneda, id_admin_gestor, fecha_gestion, id_cuenta_destino, id_extension) 
                 VALUES 
-                  (:id_usuario, :id_curso, :numero_operacion, 'Taquilla Física', :monto, 'Pendiente', CURRENT_DATE, :observacion, :moneda, :id_admin, CURRENT_TIMESTAMP, :id_cuenta_destino, (SELECT id_extension FROM cursos.cursos WHERE id_curso = :id_curso LIMIT 1))");
+                  (:id_usuario, :id_curso, :numero_operacion, :banco_origen, :monto, :estado, CURRENT_DATE, :observacion, :moneda, :id_admin, CURRENT_TIMESTAMP, :id_cuenta_destino, (SELECT id_extension FROM cursos.cursos WHERE id_curso = :id_curso LIMIT 1))");
             
             $stmt->execute([
                 ':id_usuario' => $id_usuario,
                 ':id_curso' => $id_curso,
                 ':numero_operacion' => $numero_operacion,
+                ':banco_origen' => $banco_origen,
                 ':monto' => $monto,
+                ':estado' => $estado_pago,
                 ':observacion' => $observacion,
                 ':moneda' => $moneda,
-                ':id_admin' => $_SESSION['user_id'],
+                ':id_admin' => $id_admin,
                 ':id_cuenta_destino' => $id_cuenta_destino
             ]);
             

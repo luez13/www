@@ -9,7 +9,7 @@ $user_id = $_SESSION['user_id'];
 $pagina_actual = '../public/editar_cursos.php';
 
 require_once __DIR__ . '/../controllers/autenticacion.php';
-if (!esPerfil3($user_id) && !esPerfil4($user_id)) {
+if (!tieneAcceso([3, 4])) {
     die('No tienes permiso para ver esta página.');
 }
 

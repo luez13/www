@@ -260,6 +260,11 @@ function h($str)
                                             <a href="../public/<?= h($pago['archivo_ruta']) ?>" target="_blank" class="btn btn-sm btn-info shadow-sm mb-1">
                                                 <i class="fas fa-eye"></i> Ver
                                             </a>
+                                            <?php if ($pago['estado'] === 'Comprobado' || $pago['estado'] === 'Aprobado'): ?>
+                                                <a href="../public/recibo_pago.php?id=<?= $pago['id_comprobante'] ?>" target="_blank" class="btn btn-sm btn-success shadow-sm mb-1">
+                                                    <i class="fas fa-receipt"></i> Recibo
+                                                </a>
+                                            <?php endif; ?>
                                             <?php if ($pago['estado'] === 'Pendiente'): ?>
                                                 <button type="button" class="btn btn-sm btn-warning shadow-sm mb-1 text-dark"
                                                     onclick="abrirModalEditComprobante(<?= $pago['id_comprobante'] ?>, '<?= h($pago['banco_origen']) ?>', '<?= h(isset($pago['numero_operacion']) ? $pago['numero_operacion'] : '') ?>', <?= $pago['monto'] ?>, '<?= date('Y-m-d', strtotime($pago['fecha_pago'])) ?>', '<?= isset($pago['moneda']) ? $pago['moneda'] : 'Bs' ?>')">
@@ -490,7 +495,7 @@ function h($str)
             // Filtrar Cuentas Bancarias por Sede (Aislamiento Visual)
             var cuentas = document.querySelectorAll('.cuenta-bancaria-card');
             cuentas.forEach(function(cuenta) {
-                if (!idExt || cuenta.getAttribute('data-id-extension') === idExt) {
+                if (!idExt || !cuenta.getAttribute('data-id-extension') || cuenta.getAttribute('data-id-extension') === idExt) {
                     cuenta.style.display = 'block';
                 } else {
                     cuenta.style.display = 'none';
@@ -500,7 +505,7 @@ function h($str)
             // Filtrar Opciones del Select de Cuenta Destino
             var opcionesCuentas = document.querySelectorAll('.opcion-cuenta-destino');
             opcionesCuentas.forEach(function(opt) {
-                if (!idExt || opt.getAttribute('data-id-extension') === idExt) {
+                if (!idExt || !opt.getAttribute('data-id-extension') || opt.getAttribute('data-id-extension') === idExt) {
                     opt.style.display = 'block';
                 } else {
                     opt.style.display = 'none';

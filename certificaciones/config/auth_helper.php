@@ -1,7 +1,7 @@
 <?php
 /**
- * Helper de Autorización (Auth)
- * Centraliza la validación de roles en todo el sistema.
+ * Helper de Autorizacin (Auth)
+ * Centraliza la validacin de roles en todo el sistema.
  */
 
 function tieneAcceso($roles_permitidos) {
@@ -9,11 +9,11 @@ function tieneAcceso($roles_permitidos) {
         return false;
     }
     
-    // El Administrador (4) siempre tiene acceso a todo el backend
-    if ($_SESSION['id_rol'] == 4) {
+    // El Super Admin (7) siempre tiene acceso a todo el backend
+    if ($_SESSION['id_rol'] == 7) {
         return true;
     }
     
-    // Validar si el rol actual está en la lista de permitidos para esta acción
+    // Validar si el rol actual est en la lista de permitidos para esta accin
     return in_array($_SESSION['id_rol'], $roles_permitidos);
 }

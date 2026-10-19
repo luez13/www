@@ -51,7 +51,7 @@ $curso_editar = $curso->obtener_curso($id_curso);
                 </div>
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Tipo de curso:</label>
+                        <label class="form-label"><?= $_SESSION['es_academico'] ? 'Tipo de curso:' : 'Tipo de propuesta / concepto:' ?></label>
                         <select class="form-select" name="tipo_curso" required>
                             <?php 
                                 $tipos = ['recepcion_pago', 'masterclass', 'seminario', 'diplomado', 'congreso', 'charla', 'taller', 'curso']; 

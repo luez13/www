@@ -6,7 +6,7 @@ require_once '../config/model.php';
 require_once '../models/Pago.php';
 
 // Validar Permisos Financieros
-if (!tieneAcceso([6])) {
+if (!tieneAcceso([3, 4, 6])) {
     die('<div class="alert alert-danger text-center mt-5"><b>Acceso denegado:</b> No tienes permisos administrativos para gestionar cuentas bancarias.</div>');
 }
 
@@ -160,6 +160,8 @@ function h($str)
                                 <option value="Pago Móvil">Pago Móvil</option>
                                 <option value="Zelle">Zelle</option>
                                 <option value="Transferencia Internacional">Transferencia Internacional</option>
+                                <option value="Caja Física (Efectivo)">Caja Física (Efectivo)</option>
+                                <option value="Bóveda (Efectivo)">Bóveda (Efectivo)</option>
                             </select>
                         </div>
 

@@ -6,12 +6,21 @@ require_once '../config/model.php';
 require_once '../controllers/autenticacion.php';
 
 // Validar acceso: Solo Roles 4 (ADMIN) y 5 (ANALISTA)
-if (!isset($_SESSION['user_id']) || !tieneAcceso([4, 5])) {
+if (!isset($_SESSION['user_id']) || !tieneAcceso([3, 4, 5])) {
     echo '<div class="alert alert-danger">Acceso denegado. No tienes permisos para operar la Taquilla.</div>';
     exit;
 }
 
+
 $id_extension_admin = $_SESSION['id_extension'];
+
+// Obtener cuentas bancarias de la sede
+$db = new DB();
+$pdo = $db->getConn();
+$stmtCuentas = $pdo->prepare("SELECT id_cuenta, banco, titular, numero_cuenta FROM cursos.cuentas_bancarias WHERE (id_extension = :id_ext OR id_extension IS NULL) AND activo = true AND banco NOT ILIKE 'CAJA F%SICA'");
+$stmtCuentas->execute([':id_ext' => $id_extension_admin]);
+$cuentas_sede = $stmtCuentas->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <div class="container-fluid py-4">
@@ -51,7 +60,7 @@ $id_extension_admin = $_SESSION['id_extension'];
             <h6 class="m-0 font-weight-bold text-success">2. Registrar Pago en Taquilla</h6>
         </div>
         <div class="card-body">
-            <form id="registrarPagoForm">
+                        <form id="registrarPagoForm">
                 <input type="hidden" id="id_usuario_pago" name="id_usuario">
                 <input type="hidden" name="action" value="registrar_pago_taquilla">
                 
@@ -67,11 +76,47 @@ $id_extension_admin = $_SESSION['id_extension'];
                         </select>
                     </div>
                 </div>
+
+                <div class="card bg-light mb-3 border-0">
+                    <div class="card-body py-2">
+                        <label class="form-label fw-bold mb-2">Tipo de Operacin:</label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="tipo_recepcion" id="tipo_transferencia" value="transferencia" checked>
+                                <label class="form-check-label text-primary fw-bold" for="tipo_transferencia">
+                                    <i class="fas fa-university"></i> Recepcin de Transferencia
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="tipo_recepcion" id="tipo_efectivo" value="efectivo_punto">
+                                <label class="form-check-label text-success fw-bold" for="tipo_efectivo">
+                                    <i class="fas fa-money-bill-wave"></i> Efectivo / Punto de Venta
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3" id="row_bancos">
+                    <div class="col-md-6">
+                        <label class="form-label">Banco de Origen:</label>
+                        <input type="text" class="form-control" name="banco_origen" id="banco_origen" placeholder="Ej: Banco de Venezuela, Provincial...">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Cuenta Destino:</label>
+                        <select class="form-select" name="id_cuenta_destino" id="id_cuenta_destino">
+                            <option value="">-- Seleccione la Cuenta --</option>
+                            <?php foreach($cuentas_sede as $cta): ?>
+                                <option value="<?= $cta['id_cuenta'] ?>"><?= htmlspecialchars($cta['banco'] . ' - ' . $cta['numero_cuenta']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
                 
                 <div class="row mb-3">
                     <div class="col-md-4">
-                        <label class="form-label">Método / Referencia:</label>
-                        <input type="text" class="form-control" name="numero_operacion" placeholder="Ej: Efectivo, Punto de Venta, Ref..." required>
+                        <label class="form-label">Referencia / N Operacin:</label>
+                        <input type="text" class="form-control" name="numero_operacion" placeholder="Ej: 123456789" required>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Monto Recibido:</label>
@@ -80,24 +125,28 @@ $id_extension_admin = $_SESSION['id_extension'];
                     <div class="col-md-4">
                         <label class="form-label">Moneda:</label>
                         <select class="form-select" name="moneda" required>
-                            <option value="Bolivares">Bolívares (Bs)</option>
-                            <option value="Dolares">Dólares ($)</option>
+                            <option value="Bolivares">Bolvares (Bs)</option>
+                            <option value="Dolares">Dlares ($)</option>
                             <option value="Pesos">Pesos ($)</option>
                         </select>
                     </div>
                 </div>
                 
                 <div class="mb-3">
-                    <label class="form-label">Observación (Opcional):</label>
+                    <label class="form-label">Observacin (Opcional):</label>
                     <textarea class="form-control" name="observacion" rows="2" placeholder="Notas sobre el pago..."></textarea>
                 </div>
                 
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i> <strong>Atención:</strong> Al registrar este pago, quedará <strong>aprobado automáticamente</strong> en el sistema bajo su autoría.
+                <div class="alert alert-info" id="alert_transferencia">
+                    <i class="fas fa-info-circle me-2"></i> <strong>Atencin:</strong> Al registrar una transferencia, el pago quedar en estado <strong>Pendiente</strong> a la espera de conciliacin bancaria.
+                </div>
+                
+                <div class="alert alert-warning" id="alert_efectivo" style="display:none;">
+                    <i class="fas fa-exclamation-triangle me-2"></i> <strong>Atencin:</strong> Al registrar Efectivo/Punto, el pago quedar <strong>Aprobado Automticamente</strong> bajo su autora.
                 </div>
                 
                 <div class="text-end">
-                    <button type="submit" class="btn btn-success btn-lg" id="btnProcesarPago"><i class="fas fa-check-circle me-2"></i> Procesar y Aprobar Pago</button>
+                    <button type="submit" class="btn btn-primary btn-lg" id="btnProcesarPago"><i class="fas fa-save me-2"></i> Registrar Pago</button>
                 </div>
             </form>
         </div>
@@ -106,6 +155,25 @@ $id_extension_admin = $_SESSION['id_extension'];
 
 <script>
 $(document).ready(function() {
+
+    // Toggle Payment Mode
+    $('input[name="tipo_recepcion"]').change(function() {
+        if ($(this).val() === 'transferencia') {
+            $('#row_bancos').slideDown();
+            $('#banco_origen, #id_cuenta_destino').prop('required', true);
+            $('#alert_transferencia').show();
+            $('#alert_efectivo').hide();
+            $('#btnProcesarPago').removeClass('btn-success').addClass('btn-primary').html('<i class="fas fa-save me-2"></i> Registrar Transferencia (Pendiente)');
+        } else {
+            $('#row_bancos').slideUp();
+            $('#banco_origen, #id_cuenta_destino').prop('required', false);
+            $('#alert_transferencia').hide();
+            $('#alert_efectivo').show();
+            $('#btnProcesarPago').removeClass('btn-primary').addClass('btn-success').html('<i class="fas fa-check-circle me-2"></i> Procesar y Aprobar (Efectivo)');
+        }
+    });
+    $('input[name="tipo_recepcion"]:checked').trigger('change');
+
     // Buscar Estudiante
     $('#buscarEstudianteForm').submit(function(e) {
         e.preventDefault();

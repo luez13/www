@@ -56,7 +56,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'crear') {
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Tipo de curso:</label>
+                        <label class="form-label"><?= $_SESSION['es_academico'] ? 'Tipo de curso:' : 'Tipo de propuesta / concepto:' ?></label>
                         <select class="form-select" name="tipo_curso" required>
                             <option value="recepcion_pago">Recepción de Pago</option>
                             <option value="masterclass">MasterClass</option>

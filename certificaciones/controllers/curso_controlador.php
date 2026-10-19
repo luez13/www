@@ -282,7 +282,7 @@ switch ($action) {
         }
 
         $user_id = $_SESSION['user_id'];
-        $is_admin_or_authorizer = esPerfil3($user_id) || esPerfil4($user_id);
+        $is_admin_or_authorizer = tieneAcceso([3, 4]);
 
         // Obtener la lista de módulos a eliminar
         $modulos_a_eliminar_ids = isset($_POST['modulos_a_eliminar']) ? $_POST['modulos_a_eliminar'] : '';

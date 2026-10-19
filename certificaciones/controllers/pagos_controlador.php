@@ -148,7 +148,7 @@ switch ($action) {
         $id_cuenta_destino = $_POST['id_cuenta_destino'];
 
         // PARCHE DE SEGURIDAD: Validar que la cuenta destino pertenezca a la misma dependencia que el curso
-        $stmtVal = $db->prepare("SELECT count(*) FROM cursos.cuentas_bancarias cb JOIN cursos.cursos c ON cb.id_extension = c.id_extension WHERE cb.id_cuenta = :id_cuenta AND c.id_curso = :id_curso");
+        $stmtVal = $db->prepare("SELECT count(*) FROM cursos.cuentas_bancarias cb JOIN cursos.cursos c ON (cb.id_extension = c.id_extension OR cb.id_extension IS NULL) WHERE cb.id_cuenta = :id_cuenta AND c.id_curso = :id_curso");
         $stmtVal->execute(['id_cuenta' => $id_cuenta_destino, 'id_curso' => $id_curso]);
         if ($stmtVal->fetchColumn() == 0) {
             echo json_encode(['success' => false, 'message' => 'Error Crítico: La cuenta destino seleccionada no corresponde a la dependencia de este curso.']);
