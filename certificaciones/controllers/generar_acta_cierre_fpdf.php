@@ -30,7 +30,7 @@ if (!$curso_info) {
 }
 
 // 🔒 Validación de Seguridad Multi-Tenant
-if (!$_SESSION['es_multisede'] && $_SESSION['id_extension'] != $curso_info['id_extension']) {
+if ($_SESSION['id_rol'] != 7 && !$_SESSION['es_multisede'] && $_SESSION['id_extension'] != $curso_info['id_extension']) {
     die("Acceso denegado: Este curso no pertenece a su dependencia operativa.");
 }
 
@@ -64,6 +64,8 @@ $lista_materias = $stmtMaterias->fetchAll(PDO::FETCH_ASSOC);
 
 // 5. EVENTO DE CIERRE EXPLÍCITO Y ARRASTRE DE CRÉDITOS
 $total_materias_curso = count($lista_materias);
+$tipo_acta = (isset($_GET['tipo_acta']) && $_GET['tipo_acta'] === 'Recuperativo') ? 'Recuperativo' : 'Regular';
+$mapa_recup_curso = $cursoModel->obtenerMapaRecuperativosCurso($id_curso);
 
 $stmtHist = $conn->prepare("
     SELECT 
@@ -94,8 +96,12 @@ $tiene_notas = false;
 $nota_min = isset($curso_info['nota_minima_aprobatoria']) ? (int)$curso_info['nota_minima_aprobatoria'] : 12;
 
 foreach ($alumnos as &$al) {
+    $uid = (int)$al['id_usuario'];
+    $al['nota_regular_curso'] = ($al['nota_original_bd'] !== null && $al['nota_original_bd'] !== '') ? round((float)$al['nota_original_bd']) : null;
+    $al['nota_recuperativa_curso'] = null;
+
     // Calculamos el arrastre
-    $stmtHist->execute(['id_curso' => $id_curso, 'id_usuario' => $al['id_usuario']]);
+    $stmtHist->execute(['id_curso' => $id_curso, 'id_usuario' => $uid]);
     $materias_historial = $stmtHist->fetchAll(PDO::FETCH_ASSOC);
     
     $al['historial_materias'] = [];
@@ -124,7 +130,21 @@ foreach ($alumnos as &$al) {
     
     $al['recuperativo_diplomado'] = $max_recup;
 
-    if (isset($al['nota_original_bd']) && $al['nota_original_bd'] !== null && $al['nota_original_bd'] !== '') {
+    if ($total_materias_curso == 0 && isset($mapa_recup_curso[$uid]) && $mapa_recup_curso[$uid]['nota_recuperativa'] !== null) {
+        $al['nota_regular_curso'] = $mapa_recup_curso[$uid]['nota_regular'] !== null ? round((float)$mapa_recup_curso[$uid]['nota_regular']) : 0;
+        $al['nota_recuperativa_curso'] = round((float)$mapa_recup_curso[$uid]['nota_recuperativa']);
+        $al['nota'] = max((float)$al['nota_regular_curso'], (float)$al['nota_recuperativa_curso']);
+        $al['completado'] = ($al['nota'] >= $nota_min);
+        $al['recuperativo_diplomado'] = $al['nota_recuperativa_curso'];
+
+        // Inyectar en historial_materias para que el Anexo 3 también funcione en cursos normales
+        $al['historial_materias'][0] = [
+            'nombre_materia' => $curso_info['nombre_curso'],
+            'nota_historica' => $al['nota'],
+            'nota_regular' => $al['nota_regular_curso'],
+            'nota_recuperativa' => $al['nota_recuperativa_curso']
+        ];
+    } elseif (isset($al['nota_original_bd']) && $al['nota_original_bd'] !== null && $al['nota_original_bd'] !== '') {
         $al['completado'] = true;
         $al['nota'] = $al['nota_original_bd'];
     } elseif ($total_materias_curso > 0) {
@@ -148,8 +168,6 @@ foreach ($alumnos as &$al) {
         $al['completado'] = (bool)$al['completado'];
     }
 
-    // (La actualización a la base de datos se movió dentro del if)
-
     // Calcular contadores para el PDF
     if ($al['completado'] == false) {
         $reprobados++; // No completó -> Reprueba
@@ -169,6 +187,31 @@ foreach ($alumnos as &$al) {
     }
 }
 unset($al);
+
+// Si el usuario solicitó explícitamente el Acta de Cierre de Recuperativo, filtramos y recalculamos métricas
+if ($tipo_acta === 'Recuperativo') {
+    $alumnos_recup = [];
+    $aprobados = 0;
+    $reprobados = 0;
+    $participantes = 0;
+    $no_completaron = 0;
+    $tiene_notas = true;
+
+    foreach ($alumnos as $al) {
+        $tiene_recup = ($al['nota_recuperativa_curso'] !== null) || ($al['recuperativo_diplomado'] !== null);
+        if ($tiene_recup) {
+            $nota_eval = $al['nota_recuperativa_curso'] !== null ? (float)$al['nota_recuperativa_curso'] : (float)$al['recuperativo_diplomado'];
+            if ($nota_eval >= $nota_min) {
+                $aprobados++;
+            } else {
+                $reprobados++;
+            }
+            $alumnos_recup[] = $al;
+        }
+    }
+    $alumnos = $alumnos_recup;
+    $inscritos = count($alumnos);
+}
 
 // 6. Configurar la Fecha y Hora de Cierre (Lógica Forense)
 if (!empty($curso_info['fecha_acta_cierre'])) {
@@ -198,31 +241,72 @@ $mes_cierre = $meses[date("m", $timestamp_cierre)];
 $anio_cierre = date("Y", $timestamp_cierre);
 $hora_cierre = htmlspecialchars(date('h:i a', $timestamp_cierre));
 
-// 7. Cargar Firmantes Dinámicos
+// 7. Cargar Firmantes Dinámicos (Extensión + Fallback a Configuración Global)
 $firmantes = [];
-$id_extension_curso = $curso_info['id_extension'];
+$id_extension_curso = !empty($curso_info['id_extension']) ? (int)$curso_info['id_extension'] : (isset($_SESSION['id_extension']) ? (int)$_SESSION['id_extension'] : 1);
+
+$configs_globales = [];
+try {
+    $stmtCfg = $conn->query("SELECT clave_config, valor_config FROM cursos.config_sistema WHERE clave_config IN ('ID_CARGO_COORD_FP_POR_DEFECTO', 'ID_CARGO_ENCARGADO_POR_DEFECTO', 'ID_CARGO_VICERRECTORADO_POR_DEFECTO')");
+    $configs_globales = $stmtCfg->fetchAll(PDO::FETCH_KEY_PAIR);
+} catch (Exception $e) {
+    $configs_globales = [];
+}
 
 // A. Vicerrectorado (Encargado del Área)
-$stmtCargo1 = $conn->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE (nombre_cargo ILIKE '%Vice-Rector%' OR nombre_cargo ILIKE '%Vicerrector%') AND activo = true AND id_extension = :id_extension LIMIT 1");
-$stmtCargo1->execute(['id_extension' => $id_extension_curso]);
-if ($c = $stmtCargo1->fetch(PDO::FETCH_ASSOC)) {
+$c1 = null;
+$id_cfg_enc = !empty($configs_globales['ID_CARGO_VICERRECTORADO_POR_DEFECTO'])
+    ? (int)$configs_globales['ID_CARGO_VICERRECTORADO_POR_DEFECTO']
+    : (!empty($configs_globales['ID_CARGO_ENCARGADO_POR_DEFECTO']) ? (int)$configs_globales['ID_CARGO_ENCARGADO_POR_DEFECTO'] : 0);
+
+$enc_deshabilitado_global = (
+    (array_key_exists('ID_CARGO_VICERRECTORADO_POR_DEFECTO', $configs_globales) || array_key_exists('ID_CARGO_ENCARGADO_POR_DEFECTO', $configs_globales))
+    && $id_cfg_enc === 0
+);
+
+if (!$enc_deshabilitado_global) {
+    if ($id_cfg_enc > 0) {
+        $stmtC1Cfg = $conn->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE id_cargo = :id AND activo = true LIMIT 1");
+        $stmtC1Cfg->execute(['id' => $id_cfg_enc]);
+        $c1 = $stmtC1Cfg->fetch(PDO::FETCH_ASSOC);
+    }
+    if (!$c1 && $id_extension_curso) {
+        $stmtCargo1 = $conn->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE (nombre_cargo ILIKE '%Vice-Rector%' OR nombre_cargo ILIKE '%Vicerrector%' OR nombre_cargo ILIKE '%Encargad%') AND activo = true AND id_extension = :id_extension LIMIT 1");
+        $stmtCargo1->execute(['id_extension' => $id_extension_curso]);
+        $c1 = $stmtCargo1->fetch(PDO::FETCH_ASSOC);
+    }
+}
+if ($c1) {
     $firmantes[] = [
-        'nombre' => trim($c['nombre'] . ' ' . $c['apellido']),
-        'titulo' => !empty($c['titulo']) ? trim($c['titulo']) : '',
-        'cargo' => $c['nombre_cargo'],
-        'firma_digital' => $c['firma_digital']
+        'nombre' => trim($c1['nombre'] . ' ' . $c1['apellido']),
+        'titulo' => !empty($c1['titulo']) ? trim($c1['titulo']) : '',
+        'cargo' => $c1['nombre_cargo'],
+        'firma_digital' => $c1['firma_digital']
     ];
 }
 
 // B. Coordinador(a) / Director(a) de la Dependencia
-$stmtCargo2 = $conn->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE (nombre_cargo ILIKE '%Coord%' OR nombre_cargo ILIKE '%Director%') AND activo = true AND id_extension = :id_extension LIMIT 1");
-$stmtCargo2->execute(['id_extension' => $id_extension_curso]);
-if ($c = $stmtCargo2->fetch(PDO::FETCH_ASSOC)) {
+$c2 = null;
+$coord_deshabilitado_global = (array_key_exists('ID_CARGO_COORD_FP_POR_DEFECTO', $configs_globales) && trim((string)$configs_globales['ID_CARGO_COORD_FP_POR_DEFECTO']) === '');
+
+if (!$coord_deshabilitado_global) {
+    if (!empty($configs_globales['ID_CARGO_COORD_FP_POR_DEFECTO'])) {
+        $stmtC2Cfg = $conn->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE id_cargo = :id AND activo = true LIMIT 1");
+        $stmtC2Cfg->execute(['id' => (int)$configs_globales['ID_CARGO_COORD_FP_POR_DEFECTO']]);
+        $c2 = $stmtC2Cfg->fetch(PDO::FETCH_ASSOC);
+    }
+    if (!$c2 && $id_extension_curso) {
+        $stmtCargo2 = $conn->prepare("SELECT nombre, apellido, nombre_cargo, titulo, firma_digital FROM cursos.cargos WHERE (nombre_cargo ILIKE '%Coord%' OR nombre_cargo ILIKE '%Director%') AND activo = true AND id_extension = :id_extension LIMIT 1");
+        $stmtCargo2->execute(['id_extension' => $id_extension_curso]);
+        $c2 = $stmtCargo2->fetch(PDO::FETCH_ASSOC);
+    }
+}
+if ($c2) {
     $firmantes[] = [
-        'nombre' => trim($c['nombre'] . ' ' . $c['apellido']),
-        'titulo' => !empty($c['titulo']) ? trim($c['titulo']) : '',
-        'cargo' => $c['nombre_cargo'],
-        'firma_digital' => $c['firma_digital']
+        'nombre' => trim($c2['nombre'] . ' ' . $c2['apellido']),
+        'titulo' => !empty($c2['titulo']) ? trim($c2['titulo']) : '',
+        'cargo' => $c2['nombre_cargo'],
+        'firma_digital' => $c2['firma_digital']
     ];
 }
 
@@ -245,6 +329,7 @@ $img_pie = realpath(__DIR__ . '/../public/assets/img/piePagina.jpg');
 
 // Preparar los datos consolidados para la vista FPDF
 $data = [
+    'tipo_acta' => $tipo_acta,
     'nombre_diplomado' => $curso_info['nombre_curso'],
     'tipo_curso' => $tipo_curso,
     'duracion' => $duracion,
@@ -274,5 +359,6 @@ $pdf = new \FPDF();
 $pdf->SetAutoPageBreak(true, 25);
 require_once __DIR__ . '/../views/actas/acta_cierre_fpdf.php';
 
-$pdf->Output('I', 'Acta_Cierre_' . preg_replace('/[^a-zA-Z0-9_]/', '_', strtolower($curso_info['nombre_curso'])) . '.pdf');
+$prefijo_pdf = ($tipo_acta === 'Recuperativo') ? 'Acta_Cierre_Recuperativo_' : 'Acta_Cierre_';
+$pdf->Output('I', $prefijo_pdf . preg_replace('/[^a-zA-Z0-9_]/', '_', strtolower($curso_info['nombre_curso'])) . '.pdf');
 exit;

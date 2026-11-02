@@ -4,8 +4,8 @@
 require_once '../controllers/init.php';
 require_once '../config/model.php';
 
-// Seguridad: SOLO Súper Administrador (Rol 4)
-if (!isset($_SESSION['user_id']) || $_SESSION['id_rol'] != 4) {
+// Seguridad: SOLO Súper Administrador (Rol 7)
+if (!isset($_SESSION['user_id']) || !tieneAcceso([])) {
     die('<div class="alert alert-danger text-center mt-5"><b>Acceso denegado (403):</b> Esta sección está restringida EXCLUSIVAMENTE al Súper Administrador.</div>');
 }
 ?>

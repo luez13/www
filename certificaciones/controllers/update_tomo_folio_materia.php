@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/model.php';
 
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['id_rol']) || !in_array($_SESSION['id_rol'], [3, 4])) {
+if (!tieneAcceso([3, 4])) {
     echo json_encode(['success' => false, 'message' => 'Acceso denegado.']);
     exit;
 }

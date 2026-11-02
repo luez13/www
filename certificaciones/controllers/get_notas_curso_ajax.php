@@ -8,8 +8,8 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $id_curso = isset($_GET['id_curso']) ? (int)$_GET['id_curso'] : 0;
-// Si es admin (rol 3,4,6) puede ver notas de otros usuarios, si es rol 2 solo las suyas
-$id_usuario = isset($_GET['id_usuario']) && in_array($_SESSION['id_rol'], [3,4,6]) ? (int)$_GET['id_usuario'] : $_SESSION['user_id'];
+// Si es admin (rol 3,4,6,7) puede ver notas de otros usuarios, si es rol 2 solo las suyas
+$id_usuario = isset($_GET['id_usuario']) && tieneAcceso([3, 4, 6]) ? (int)$_GET['id_usuario'] : $_SESSION['user_id'];
 
 if ($id_curso <= 0 || $id_usuario <= 0) {
     die('Parámetros inválidos.');
@@ -107,7 +107,7 @@ if (count($materias) === 0) {
     </table>
 </div>
 
-<?php if (in_array($_SESSION['id_rol'], [3,4,6])): ?>
+<?php if (tieneAcceso([3, 4, 6])): ?>
 <div class="text-end mt-3 border-top pt-2">
     <a href="../controllers/generar_constancia_notas_fpdf.php?id_curso=<?= $id_curso ?>&id_usuario=<?= $id_usuario ?>" target="_blank" class="btn btn-primary btn-sm">
         <i class="fas fa-print"></i> Descargar Constancia PDF

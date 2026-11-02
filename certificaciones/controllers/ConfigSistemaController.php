@@ -5,15 +5,15 @@ require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/../config/model.php';
 
 // Establecer la cabecera para devolver respuestas en formato JSON
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 // Respuesta por defecto
 $response = ['success' => false, 'message' => 'Acción no reconocida.'];
 // Determinar la acción a realizar (desde GET o POST)
 $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : null;
 
-// Solo el rol 4 (Admin) puede ejecutar estas acciones
-if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 4) {
+// Solo el rol 4 (Admin) o 7 (Super Admin) puede ejecutar estas acciones
+if (!tieneAcceso([4])) {
     $response['message'] = 'Acceso denegado.';
     echo json_encode($response);
     exit;
@@ -21,6 +21,7 @@ if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 4) {
 
 try {
     $db = new DB();
+    $pdo = $db->getConn();
 
     switch ($action) {
         
@@ -29,7 +30,7 @@ try {
             if (empty($_GET['clave'])) {
                 throw new Exception('No se especificó la clave de configuración.');
             }
-            $stmt = $db->prepare("SELECT valor_config FROM cursos.config_sistema WHERE clave_config = :clave");
+            $stmt = $pdo->prepare("SELECT valor_config FROM cursos.config_sistema WHERE clave_config = :clave");
             $stmt->execute([':clave' => $_GET['clave']]);
             $config = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -47,12 +48,11 @@ try {
                 throw new Exception('Faltan datos para guardar la configuración.');
             }
             
-            $clave = $_POST['clave_config'];
-            $valor = $_POST['valor_config'];
+            $clave = trim($_POST['clave_config']);
+            $valor = trim($_POST['valor_config']);
 
-            // Usamos la sintaxis "UPSERT" de PostgreSQL. Es muy eficiente.
-            // Si la 'clave_config' ya existe, actualiza el 'valor_config'.
-            // Si no existe, inserta una nueva fila.
+            // Usamos la sintaxis "UPSERT" de PostgreSQL.
+            // Si valor es "" (Sin firmante), se guarda cadena vacía para indicar que se dejó sin firmante explícitamente.
             $sql = "INSERT INTO cursos.config_sistema (clave_config, valor_config, fecha_modificacion)
                     VALUES (:clave, :valor, CURRENT_TIMESTAMP)
                     ON CONFLICT (clave_config) 
@@ -60,12 +60,13 @@ try {
                         valor_config = EXCLUDED.valor_config,
                         fecha_modificacion = CURRENT_TIMESTAMP";
 
-            $stmt = $db->prepare($sql);
+            $stmt = $pdo->prepare($sql);
             $stmt->execute([':clave' => $clave, ':valor' => $valor]);
 
-            // rowCount() > 0 indica que se hizo una inserción o una actualización real.
-            // Si el valor no cambió, rowCount() podría ser 0, pero la operación fue exitosa.
-            $response = ['success' => true, 'message' => 'Configuración guardada exitosamente.'];
+            $msg = ($valor === '') 
+                ? 'Configuración actualizada: se dejó el espacio sin firmante.' 
+                : 'Configuración guardada exitosamente.';
+            $response = ['success' => true, 'message' => $msg];
             
             break;
 

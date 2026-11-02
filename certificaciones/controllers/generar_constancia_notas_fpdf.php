@@ -3,7 +3,7 @@ require_once 'init.php';
 require_once '../config/model.php';
 require_once '../vendor/autoload.php';
 
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['id_rol'], [3,4,6])) {
+if (!isset($_SESSION['user_id']) || !tieneAcceso([3, 4, 6])) {
     http_response_code(403);
     die('Acceso denegado. Privilegios insuficientes.');
 }

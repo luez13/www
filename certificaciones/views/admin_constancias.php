@@ -4,8 +4,8 @@
 require_once __DIR__ . '/../controllers/init.php';
 require_once __DIR__ . '/../config/model.php';
 
-// Verificar permisos (Coordinador = 3, Admin = 4)
-if (!in_array($_SESSION['id_rol'], [3, 4])) {
+// Verificar permisos (Coordinador = 3, Admin = 4, Super Admin = 7)
+if (!tieneAcceso([3, 4])) {
     die('<div class="alert alert-danger m-3">Acceso denegado.</div>');
 }
 

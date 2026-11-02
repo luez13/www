@@ -278,21 +278,25 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <?php $disableForAutorizador = ($_SESSION['id_rol'] == 3) ? 'disabled' : ''; ?>
+                                <?php $canChangeRole = ($_SESSION['id_rol'] == 7); ?>
+                                <?php $disablePassword = ($_SESSION['id_rol'] == 3) ? 'disabled' : ''; ?>
                                 <label class="form-label small fw-bold text-muted">Rol en el Sistema</label>
-                                <select class="form-select" id="edit_id_rol" name="id_rol" required <?= $disableForAutorizador ?>>
+                                <select class="form-select" id="edit_id_rol" name="id_rol" required <?= $canChangeRole ? '' : 'disabled' ?>>
                                     <?php foreach ($roles as $rol): ?>
                                         <option value="<?= htmlspecialchars($rol['id_rol']) ?>">
                                             <?= htmlspecialchars($rol['nombre_rol']) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+                                <?php if (!$canChangeRole): ?>
+                                    <small class="text-muted d-block mt-1"><i class="fas fa-lock"></i> Solo el Súper Administrador puede cambiar roles.</small>
+                                <?php endif; ?>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted">Nueva Contraseña
                                     <small>(Opcional)</small></label>
                                 <input type="password" class="form-control" id="edit_nueva_password"
-                                    name="nueva_password" placeholder="Dejar en blanco para no cambiar" <?= $disableForAutorizador ?>>
+                                    name="nueva_password" placeholder="Dejar en blanco para no cambiar" <?= $disablePassword ?>>
                             </div>
                         </div>
 
@@ -403,7 +407,7 @@ function renderPaginationUsuarios($total_pages, $current_page, $busqueda)
                                 <h6 class="text-primary fw-bold mb-0 border-bottom pb-2">Roles y Cargo Universitario
                                 </h6>
                             </div>
-                            <?php if (in_array($_SESSION['id_rol'], [4, 7])): ?>
+                            <?php if ($_SESSION['id_rol'] == 7): ?>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-bold text-muted mb-1">Rol en Sistema</label>
                                     <select class="form-select rounded-3" name="id_rol" id="crear_id_rol" required>

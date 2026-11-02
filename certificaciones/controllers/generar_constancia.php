@@ -21,7 +21,7 @@ if (isset($_GET['id_curso'])) {
     $id_usuario = $_SESSION['user_id'];
     
     // Permitir a administradores generar constancias de terceros
-    if (isset($_GET['id_usuario']) && isset($_SESSION['id_rol']) && in_array($_SESSION['id_rol'], [3, 4])) {
+    if (isset($_GET['id_usuario']) && tieneAcceso([3, 4])) {
         $id_usuario = intval($_GET['id_usuario']);
     }
     

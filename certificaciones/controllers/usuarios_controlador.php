@@ -11,8 +11,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['action'])) {
 }
 
 try {
-    // Creamos la instancia de la base de datos UNA SOLA VEZ
+    // Creamos la instancia de la base de datos UNA SOLA VEZ (esto inicia sesión y carga auth_helper)
     $db = new DB();
+    
+    if (!isset($_SESSION['user_id']) || !tieneAcceso([3, 4])) {
+        http_response_code(403);
+        die('Acceso no autorizado.');
+    }
+
     $action = $_POST['action'];
 
     if ($action === 'editar_perfil') {
@@ -32,22 +38,36 @@ try {
             $telefono = null;
         }
         
-        $id_rol = $_POST['id_rol'];
         $titulo = isset($_POST['titulo']) ? $_POST['titulo'] : '';
         $cargo = isset($_POST['cargo']) ? $_POST['cargo'] : '';
 
-        $stmt = $db->prepare("UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula, telefono = :telefono, id_rol = :id_rol, titulo = :titulo, cargo = :cargo WHERE id = :id");
-        $stmt->execute([
-            ':nombre' => $nombre,
-            ':apellido' => $apellido,
-            ':correo' => $correo,
-            ':cedula' => $cedula,
-            ':telefono' => $telefono,
-            ':id_rol' => $id_rol,
-            ':titulo' => $titulo,
-            ':cargo' => $cargo,
-            ':id' => $id
-        ]);
+        if ($_SESSION['id_rol'] == 7 && isset($_POST['id_rol'])) {
+            $id_rol = (int) $_POST['id_rol'];
+            $stmt = $db->prepare("UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula, telefono = :telefono, id_rol = :id_rol, titulo = :titulo, cargo = :cargo WHERE id = :id");
+            $stmt->execute([
+                ':nombre' => $nombre,
+                ':apellido' => $apellido,
+                ':correo' => $correo,
+                ':cedula' => $cedula,
+                ':telefono' => $telefono,
+                ':id_rol' => $id_rol,
+                ':titulo' => $titulo,
+                ':cargo' => $cargo,
+                ':id' => $id
+            ]);
+        } else {
+            $stmt = $db->prepare("UPDATE cursos.usuarios SET nombre = :nombre, apellido = :apellido, correo = :correo, cedula = :cedula, telefono = :telefono, titulo = :titulo, cargo = :cargo WHERE id = :id");
+            $stmt->execute([
+                ':nombre' => $nombre,
+                ':apellido' => $apellido,
+                ':correo' => $correo,
+                ':cedula' => $cedula,
+                ':telefono' => $telefono,
+                ':titulo' => $titulo,
+                ':cargo' => $cargo,
+                ':id' => $id
+            ]);
+        }
 
         // Si se proporcionó una nueva contraseña, la actualizamos también
         if (!empty($_POST['nueva_contrasena'])) {

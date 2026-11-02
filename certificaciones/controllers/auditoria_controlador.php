@@ -4,8 +4,8 @@
 require_once 'init.php';
 include_once '../config/model.php';
 
-// Seguridad: SOLO Súper Administrador (Rol 4)
-if (!isset($_SESSION['user_id']) || $_SESSION['id_rol'] != 4) {
+// Seguridad: SOLO Súper Administrador (Rol 7)
+if (!isset($_SESSION['user_id']) || !tieneAcceso([])) {
     header('HTTP/1.1 403 Forbidden');
     echo json_encode(['error' => 'Acceso denegado. Se requiere nivel de Súper Administrador.']);
     exit;

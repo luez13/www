@@ -7,9 +7,9 @@ header('Content-Type: application/json');
 $response = ['success' => false, 'message' => 'Acción no reconocida.'];
 $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : null;
 
-// Solo el rol 4 (Admin) puede ejecutar la mayoría de estas acciones
+// Solo el rol 4 (Admin) o 7 (Super Admin) puede ejecutar la mayoría de estas acciones
 // Se exceptúan visualizaciones públicas si hiciéramos endpoints públicos aquí
-if ($_SESSION['id_rol'] != 4 && $action !== 'listar_carrusel_publico' && $action !== 'listar_cursos_landing') {
+if (!tieneAcceso([4]) && $action !== 'listar_carrusel_publico' && $action !== 'listar_cursos_landing') {
     $response['message'] = 'Acceso denegado.';
     echo json_encode($response);
     exit;

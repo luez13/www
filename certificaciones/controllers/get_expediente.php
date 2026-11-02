@@ -3,7 +3,7 @@ require_once 'init.php';
 require_once '../config/model.php';
 
 // Verificación estricta (Forensis): Solo roles autorizados pueden ver expedientes (Ej. 3,4,6)
-if (!isset($_SESSION['id_rol']) || !in_array($_SESSION['id_rol'], [3, 4, 6])) {
+if (!isset($_SESSION['id_rol']) || !tieneAcceso([3, 4, 6])) {
     http_response_code(403);
     die('<div class="alert alert-danger">Acceso denegado. Privilegios insuficientes.</div>');
 }

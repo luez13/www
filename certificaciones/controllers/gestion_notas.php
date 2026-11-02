@@ -128,7 +128,7 @@ try {
             }
             break;
 
-        // F. Guardar notas de recuperativo
+        // F. Guardar notas de recuperativo (Materias de Diplomado)
         case 'guardar_notas_recuperativo':
             $id_materia = isset($_POST['id_materia']) ? (int)$_POST['id_materia'] : 0;
             $notas_recup = isset($_POST['notas_recup']) ? $_POST['notas_recup'] : array();
@@ -139,6 +139,29 @@ try {
                 }
             } else {
                 $response = array('success' => false, 'message' => 'No hay notas para guardar o faltan parámetros.');
+            }
+            break;
+
+        // G. Guardar notas de recuperativo para Cursos / Propuestas Normales (Híbrido Opción A + Opción B)
+        case 'guardar_recuperativo_curso':
+            require_once '../models/curso.php';
+            $id_curso = isset($_POST['id_curso']) ? (int)$_POST['id_curso'] : 0;
+            $notas_regulares = isset($_POST['notas_regular']) && is_array($_POST['notas_regular']) ? $_POST['notas_regular'] : array();
+            $notas_recup = isset($_POST['notas_recup']) && is_array($_POST['notas_recup']) ? $_POST['notas_recup'] : array();
+
+            if ($id_curso > 0 && (!empty($notas_recup) || !empty($notas_regulares))) {
+                $cursoModel = new Curso($db);
+                if ($cursoModel->guardarRecuperativosCurso($id_curso, $notas_regulares, $notas_recup)) {
+                    $modo = $cursoModel->tieneColumnaNotaRecuperativa() ? 'Columna BD (Opción B)' : 'Respaldo de Sistema (Opción A)';
+                    $response = array(
+                        'success' => true,
+                        'message' => 'Calificaciones recuperativas actualizadas correctamente (' . $modo . ').'
+                    );
+                } else {
+                    $response = array('success' => false, 'message' => 'No se pudieron guardar las calificaciones recuperativas.');
+                }
+            } else {
+                $response = array('success' => false, 'message' => 'Faltan parámetros del curso o calificaciones.');
             }
             break;
 

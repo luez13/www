@@ -667,7 +667,11 @@ class Curso
 
     public function obtener_datos_certificacion($valor_unico)
     {
-        $stmt = $this->pdo->prepare('
+        $select_nota = $this->tieneColumnaNotaRecuperativa()
+            ? 'COALESCE(GREATEST(cert.nota, cert.nota_recuperativa), cert.nota_recuperativa, cert.nota) AS nota, cert.nota_recuperativa,'
+            : 'cert.nota,';
+
+        $stmt = $this->pdo->prepare("
         SELECT c.id_curso, c.nombre_curso, c.descripcion, c.tipo_curso,
                c.tiempo_asignado, c.inicio_mes,
                c.estado, c.dias_clase,
@@ -678,14 +682,14 @@ class Curso
                c.promotor, c.fecha_finalizacion,
                u.nombre AS nombre_estudiante, u.apellido AS apellido_estudiante, u.cedula,
                cert.fecha_inscripcion, cert.tomo, cert.folio,
-               cert.nota, cert.completado, p.archivo_vista,
+               {$select_nota} cert.completado, p.archivo_vista,
                c.nota_minima_aprobatoria, c.fecha_acta_cierre
         FROM cursos.cursos AS c
         JOIN cursos.certificaciones AS cert ON cert.curso_id = c.id_curso
         JOIN cursos.usuarios AS u ON cert.id_usuario = u.id
         LEFT JOIN cursos.plantillas_certificados AS p ON c.id_plantilla = p.id
         WHERE cert.valor_unico = :valor_unico
-    ');
+    ");
         $stmt->execute(['valor_unico' => $valor_unico]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -946,6 +950,216 @@ class Curso
 
         return $stmt->execute();
     }
+    public function tieneColumnaNotaRecuperativa()
+    {
+        static $hasCol = null;
+        if ($hasCol !== null) {
+            return $hasCol;
+        }
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT 1 FROM information_schema.columns 
+                WHERE table_schema = 'cursos' 
+                  AND table_name = 'certificaciones' 
+                  AND column_name = 'nota_recuperativa'
+                LIMIT 1
+            ");
+            $stmt->execute();
+            $hasCol = (bool)$stmt->fetchColumn();
+        } catch (Exception $e) {
+            $hasCol = false;
+        }
+        return $hasCol;
+    }
+
+    public function obtenerMapaRecuperativosCurso($id_curso)
+    {
+        $id_curso = (int)$id_curso;
+        $mapa = [];
+
+        // Opción A (Fallback persistente sin requerir DDL): Leer mapa desde config_sistema
+        try {
+            $stmtCfg = $this->pdo->prepare("SELECT descripcion_config FROM cursos.config_sistema WHERE clave_config = :clave LIMIT 1");
+            $stmtCfg->execute([':clave' => 'RECUP_CURSO_' . $id_curso]);
+            $json = $stmtCfg->fetchColumn();
+            if ($json) {
+                $decoded = json_decode($json, true);
+                if (is_array($decoded)) {
+                    foreach ($decoded as $uid => $datos) {
+                        $mapa[(int)$uid] = [
+                            'nota_regular' => isset($datos['nota_regular']) && $datos['nota_regular'] !== null && $datos['nota_regular'] !== '' ? (float)$datos['nota_regular'] : null,
+                            'nota_recuperativa' => isset($datos['nota_recuperativa']) && $datos['nota_recuperativa'] !== null && $datos['nota_recuperativa'] !== '' ? (float)$datos['nota_recuperativa'] : null
+                        ];
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            // Silencioso en caso de restricción de lectura
+        }
+
+        // Opción B (Columna nativa nota_recuperativa en cursos.certificaciones)
+        if ($this->tieneColumnaNotaRecuperativa()) {
+            try {
+                $stmtCert = $this->pdo->prepare("SELECT id_usuario, nota, nota_recuperativa FROM cursos.certificaciones WHERE curso_id = :id_curso");
+                $stmtCert->execute([':id_curso' => $id_curso]);
+                $rows = $stmtCert->fetchAll(PDO::FETCH_ASSOC);
+
+                $stmtSync = $this->pdo->prepare("UPDATE cursos.certificaciones SET nota_recuperativa = :nrec WHERE curso_id = :id_curso AND id_usuario = :id_usuario");
+
+                foreach ($rows as $r) {
+                    $uid = (int)$r['id_usuario'];
+                    if ($r['nota_recuperativa'] !== null && $r['nota_recuperativa'] !== '') {
+                        $n_rec = (float)$r['nota_recuperativa'];
+                        $n_reg = isset($mapa[$uid]['nota_regular']) && $mapa[$uid]['nota_regular'] !== null
+                            ? (float)$mapa[$uid]['nota_regular']
+                            : ($r['nota'] !== null && $r['nota'] !== '' ? (float)$r['nota'] : 0);
+                        $mapa[$uid] = [
+                            'nota_regular' => $n_reg,
+                            'nota_recuperativa' => $n_rec
+                        ];
+                    } elseif (isset($mapa[$uid]['nota_recuperativa']) && $mapa[$uid]['nota_recuperativa'] !== null) {
+                        // Auto-sincronización: Si se guardó con Opción A y el DBA acaba de crear la columna (Opción B), sincronizar automáticamente
+                        $stmtSync->execute([
+                            ':nrec' => round((float)$mapa[$uid]['nota_recuperativa']),
+                            ':id_curso' => $id_curso,
+                            ':id_usuario' => $uid
+                        ]);
+                    }
+                }
+            } catch (Exception $e) {
+                // Continuar con el mapa de Opción A
+            }
+        }
+
+        return $mapa;
+    }
+
+    public function guardarRecuperativosCurso($id_curso, $notas_regulares, $notas_recup)
+    {
+        $id_curso = (int)$id_curso;
+        if ($id_curso <= 0) {
+            return false;
+        }
+
+        $stmtMin = $this->pdo->prepare("SELECT nota_minima_aprobatoria FROM cursos.cursos WHERE id_curso = :id");
+        $stmtMin->execute([':id' => $id_curso]);
+        $nota_minima = $stmtMin->fetchColumn();
+        $nota_minima = ($nota_minima !== false && $nota_minima !== null) ? (int)$nota_minima : 12;
+
+        $mapa = $this->obtenerMapaRecuperativosCurso($id_curso);
+        $hasCol = $this->tieneColumnaNotaRecuperativa();
+
+        $stmtActuales = $this->pdo->prepare("SELECT id_usuario, nota, completado FROM cursos.certificaciones WHERE curso_id = :id_curso");
+        $stmtActuales->execute([':id_curso' => $id_curso]);
+        $actuales = [];
+        foreach ($stmtActuales->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $actuales[(int)$row['id_usuario']] = $row;
+        }
+
+        if ($hasCol) {
+            $stmtUpd = $this->pdo->prepare("
+                UPDATE cursos.certificaciones 
+                SET nota = :nota, nota_recuperativa = :nota_recup, completado = :completado 
+                WHERE curso_id = :id_curso AND id_usuario = :id_usuario
+            ");
+        } else {
+            $stmtUpd = $this->pdo->prepare("
+                UPDATE cursos.certificaciones 
+                SET nota = :nota, completado = :completado 
+                WHERE curso_id = :id_curso AND id_usuario = :id_usuario
+            ");
+        }
+
+        foreach ($notas_recup as $user_id => $val_recup) {
+            $uid = (int)$user_id;
+            if (!isset($actuales[$uid])) {
+                continue;
+            }
+
+            // Determinar nota regular original del participante
+            if (isset($notas_regulares[$uid]) && trim((string)$notas_regulares[$uid]) !== '') {
+                $nota_reg = round((float)$notas_regulares[$uid]);
+            } elseif (isset($mapa[$uid]['nota_regular']) && $mapa[$uid]['nota_regular'] !== null) {
+                $nota_reg = round((float)$mapa[$uid]['nota_regular']);
+            } elseif ($actuales[$uid]['nota'] !== null && $actuales[$uid]['nota'] !== '') {
+                $nota_reg = round((float)$actuales[$uid]['nota']);
+            } else {
+                $nota_reg = 0;
+            }
+
+            $val_recup_str = trim((string)$val_recup);
+
+            if ($val_recup_str === '') {
+                // Si el usuario dejó vacío el recuperativo pero ya tenía uno guardado, se limpia y restaura la nota regular
+                if (isset($mapa[$uid])) {
+                    unset($mapa[$uid]);
+                    $comp_restaurado = ($nota_reg >= $nota_minima) ? 'true' : 'false';
+                    $params = [
+                        ':nota' => $nota_reg > 0 ? $nota_reg : null,
+                        ':completado' => $comp_restaurado,
+                        ':id_curso' => $id_curso,
+                        ':id_usuario' => $uid
+                    ];
+                    if ($hasCol) {
+                        $params[':nota_recup'] = null;
+                    }
+                    $stmtUpd->execute($params);
+                } elseif (isset($notas_regulares[$uid]) && trim((string)$notas_regulares[$uid]) !== '') {
+                    // Si solo actualizó la nota regular en el modal
+                    $comp_reg = ($nota_reg >= $nota_minima) ? 'true' : 'false';
+                    $params = [
+                        ':nota' => $nota_reg,
+                        ':completado' => $comp_reg,
+                        ':id_curso' => $id_curso,
+                        ':id_usuario' => $uid
+                    ];
+                    if ($hasCol) {
+                        $params[':nota_recup'] = null;
+                    }
+                    $stmtUpd->execute($params);
+                }
+            } else {
+                $nota_rec = round((float)$val_recup_str);
+                $nota_definitiva = max($nota_reg, $nota_rec);
+                $comp_final = ($nota_definitiva >= $nota_minima) ? 'true' : 'false';
+
+                $mapa[$uid] = [
+                    'nota_regular' => $nota_reg,
+                    'nota_recuperativa' => $nota_rec
+                ];
+
+                $params = [
+                    ':nota' => $nota_definitiva,
+                    ':completado' => $comp_final,
+                    ':id_curso' => $id_curso,
+                    ':id_usuario' => $uid
+                ];
+                if ($hasCol) {
+                    $params[':nota_recup'] = $nota_rec;
+                }
+                $stmtUpd->execute($params);
+            }
+        }
+
+        // Persistir respaldo híbrido (Opción A) en config_sistema
+        $stmtSaveCfg = $this->pdo->prepare("
+            INSERT INTO cursos.config_sistema (clave_config, valor_config, descripcion_config, fecha_modificacion)
+            VALUES (:clave, :valor, :desc, CURRENT_TIMESTAMP)
+            ON CONFLICT (clave_config)
+            DO UPDATE SET 
+                valor_config = EXCLUDED.valor_config,
+                descripcion_config = EXCLUDED.descripcion_config,
+                fecha_modificacion = CURRENT_TIMESTAMP
+        ");
+        $stmtSaveCfg->execute([
+            ':clave' => 'RECUP_CURSO_' . $id_curso,
+            ':valor' => count($mapa) . ' recuperativos',
+            ':desc' => json_encode($mapa)
+        ]);
+
+        return true;
+    }
+
     public function write_log($message)
     {
         $log_file = '../controllers/log.txt';

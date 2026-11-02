@@ -2,7 +2,10 @@
 // init.php
 // Asegúrate de que la ruta a autenticacion.php sea correcta desde la ubicación de init.php
 // Usar __DIR__ es más robusto para la inclusión de archivos.
-require_once '../controllers/autenticacion.php'; // Ajusta esta ruta si es necesario
+require_once __DIR__ . '/../controllers/autenticacion.php';
+if (!function_exists('tieneAcceso')) {
+    require_once __DIR__ . '/../config/auth_helper.php';
+}
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -21,7 +24,7 @@ function verificar_sesion_ajax($roles_permitidos = []) {
         echo "<div class='alert alert-danger m-3'>Acceso denegado. Sesión no iniciada.</div>";
         exit;
     }
-    if (!empty($roles_permitidos) && !in_array($_SESSION['id_rol'], $roles_permitidos)) {
+    if (!empty($roles_permitidos) && !tieneAcceso($roles_permitidos)) {
         http_response_code(403); // Forbidden
         echo "<div class='alert alert-danger m-3'>Acceso denegado. No tienes los permisos necesarios.</div>";
         exit;

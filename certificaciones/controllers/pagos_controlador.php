@@ -4,26 +4,31 @@
 // 1. Iniciar sesión e incluir dependencias
 include 'init.php'; // Asegúrate de que este archivo tiene session_start()
 require_once '../config/model.php';
+if (!function_exists('tieneAcceso')) {
+    require_once '../config/auth_helper.php';
+}
 require_once '../models/Pago.php';
 
-// Configurar la cabecera para devolver siempre JSON
-header('Content-Type: application/json; charset=utf-8');
+// 2. Capturar la acción y configurar la cabecera JSON (excepto en descargas directas)
+$action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ? $_GET['action'] : '');
+if ($action !== 'backup_comprobantes') {
+    header('Content-Type: application/json; charset=utf-8');
+}
 
-// 2. Verificar autenticación básica
+// 3. Verificar autenticación básica
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['success' => false, 'message' => 'Acceso denegado. Usuario no autenticado.']);
     exit;
 }
 
-// 3. Instanciar conexión y modelo
-$db = new DB();
-$pagoModel = new Pago($db);
+try {
+    // 4. Instanciar conexión y modelo
+    $db = new DB();
+    $pdo = $db->getConn();
+    $pagoModel = new Pago($db);
 
-// 4. Capturar la acción
-$action = isset($_POST['action']) ? $_POST['action'] : (isset($_GET['action']) ? $_GET['action'] : '');
-
-// 5. Procesar las peticiones
-switch ($action) {
+    // 5. Procesar las peticiones
+    switch ($action) {
 
     case 'obtener_cuentas_caja':
         if (!tieneAcceso([4, 5, 6])) {
@@ -33,13 +38,12 @@ switch ($action) {
         $id_curso = isset($_POST['id_curso']) ? intval($_POST['id_curso']) : 0;
         
         // Obtener el id_extension del curso
-        $pdo = $db->getConn();
         $stmt_ext = $pdo->prepare("SELECT id_extension FROM cursos.cursos WHERE id_curso = ?");
         $stmt_ext->execute([$id_curso]);
         $ext = $stmt_ext->fetchColumn();
 
         if ($ext) {
-            // Obtener cuentas de tipo Bveda o Caja Fisica de esa extension
+            // Obtener cuentas de tipo Bóveda o Caja Física de esa extensión
             $stmt = $pdo->prepare("SELECT id_cuenta, banco, tipo_cuenta, numero_cuenta 
                                    FROM cursos.cuentas_bancarias 
                                    WHERE activo = true 
@@ -63,14 +67,14 @@ switch ($action) {
         
         $id_usuario = isset($_POST['id_estudiante']) ? intval($_POST['id_estudiante']) : 0;
         $id_curso = isset($_POST['id_curso']) ? intval($_POST['id_curso']) : 0;
-        $id_materia = isset($_POST['id_materia']) ? intval($_POST['id_materia']) : 0;
+        $id_materia = !empty($_POST['id_materia']) ? intval($_POST['id_materia']) : null;
         $id_cuenta = isset($_POST['id_cuenta_bancaria']) ? intval($_POST['id_cuenta_bancaria']) : 0;
         
         $monto = isset($_POST['monto']) ? floatval($_POST['monto']) : 0;
         $moneda = isset($_POST['moneda']) ? trim($_POST['moneda']) : 'Dolares';
         $metodo_pago = isset($_POST['metodo_pago']) ? trim($_POST['metodo_pago']) : '';
-        $banco_origen = ($metodo_pago === 'Efectivo') ? 'Taquilla de la Universidad' : trim($_POST['banco_origen']);
-        $referencia = trim($_POST['numero_operacion']);
+        $banco_origen = ($metodo_pago === 'Efectivo') ? 'Taquilla de la Universidad' : (isset($_POST['banco_origen']) ? trim($_POST['banco_origen']) : 'Taquilla de la Universidad');
+        $referencia = isset($_POST['numero_operacion']) ? trim($_POST['numero_operacion']) : '';
         $fecha_pago = isset($_POST['fecha_pago']) ? $_POST['fecha_pago'] : date('Y-m-d');
         
         if ($id_usuario <= 0 || $id_curso <= 0 || $monto <= 0 || empty($referencia) || $id_cuenta <= 0) {
@@ -79,38 +83,34 @@ switch ($action) {
         }
 
         if (strlen($referencia) < 6) {
-            echo json_encode(['success' => false, 'message' => 'La referencia debe tener un minimo 6 digitos.']);
+            echo json_encode(['success' => false, 'message' => 'La referencia debe tener un mínimo de 6 dígitos.']);
             exit;
         }
 
         if (!preg_match('/^[a-zA-Z0-9-]+$/', $referencia)) {
-            echo json_encode(['success' => false, 'message' => 'La referencia contiene caracteres invlidos.']);
+            echo json_encode(['success' => false, 'message' => 'La referencia contiene caracteres inválidos.']);
             exit;
         }
 
-        // Siempre entra como pendiente por la regla de segregacin de funciones
-        $estado = 'Pendiente';
-
         try {
-            $pdo = $db->getConn();
-            
-            // Get id_extension from the course
-            $stmt_ext = $pdo->prepare("SELECT id_extension FROM cursos.cursos WHERE id_curso = ?");
-            $stmt_ext->execute([$id_curso]);
-            $id_extension = $stmt_ext->fetchColumn();
+            $datosPagoManual = [
+                'id_usuario' => $id_usuario,
+                'id_curso' => $id_curso,
+                'id_materia_bimestre' => $id_materia,
+                'archivo_ruta' => null,
+                'numero_operacion' => $referencia,
+                'banco_origen' => $banco_origen,
+                'monto' => $monto,
+                'fecha_pago' => $fecha_pago,
+                'moneda' => $moneda,
+                'id_cuenta_destino' => $id_cuenta
+            ];
 
-            $sql = "INSERT INTO cursos.comprobantes_pago 
-                    (id_usuario, id_curso, id_materia_bimestre, id_cuenta_destino, id_extension, metodo_pago, banco_origen, 
-                     numero_operacion, fecha_pago, moneda, monto, estado, archivo_comprobante, creado_en)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NOW())";
-            
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([
-                $id_usuario, $id_curso, $id_materia, $id_cuenta, $id_extension, $metodo_pago, $banco_origen,
-                $referencia, $fecha_pago, $moneda, $monto, $estado
-            ]);
-            
-            echo json_encode(['success' => true, 'message' => 'Pago manual registrado correctamente como Pendiente.']);
+            if ($pagoModel->registrarComprobante($datosPagoManual)) {
+                echo json_encode(['success' => true, 'message' => 'Pago manual registrado correctamente como Pendiente.']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error al registrar el pago en la base de datos.']);
+            }
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Error al registrar el pago: ' . $e->getMessage()]);
         }
@@ -119,11 +119,11 @@ switch ($action) {
 
 
     case 'subir_comprobante':
-        $moneda = isset($_POST['moneda']) ? $_POST['moneda'] : 'Bs';
+        $moneda = isset($_POST['moneda']) ? trim($_POST['moneda']) : 'Bs';
 
         // Validar que se hayan enviado los datos requeridos básicos
         $requeridos = ['id_curso', 'monto', 'fecha_pago', 'id_cuenta_destino'];
-        if ($moneda === 'Bs') {
+        if ($moneda === 'Bs' || $moneda === 'Bolivares') {
             $requeridos[] = 'numero_operacion';
             $requeridos[] = 'banco_origen';
         }
@@ -134,24 +134,29 @@ switch ($action) {
                 exit;
             }
         }
-        // Parche de Seguridad: Validacion estricta de numero de operacion en backend
+        // Parche de Seguridad: Validación estricta de número de operación en backend
         if (isset($_POST['numero_operacion']) && !empty(trim($_POST['numero_operacion']))) {
             $ref = trim($_POST['numero_operacion']);
             if (strlen($ref) < 6 || !preg_match('/^[0-9]+$/', $ref)) {
-                echo json_encode(['success' => false, 'message' => 'Error Crtico: El nmero de referencia debe contener al menos 6 dgitos numricos vlidos. Transaccin abortada.']);
+                echo json_encode(['success' => false, 'message' => 'Error Crítico: El número de referencia debe contener al menos 6 dígitos numéricos válidos. Transacción abortada.']);
                 exit;
             }
         }
 
 
-        $id_curso = $_POST['id_curso'];
-        $id_cuenta_destino = $_POST['id_cuenta_destino'];
+        $id_curso = intval($_POST['id_curso']);
+        $id_cuenta_destino = intval($_POST['id_cuenta_destino']);
 
-        // PARCHE DE SEGURIDAD: Validar que la cuenta destino pertenezca a la misma dependencia que el curso
-        $stmtVal = $db->prepare("SELECT count(*) FROM cursos.cuentas_bancarias cb JOIN cursos.cursos c ON (cb.id_extension = c.id_extension OR cb.id_extension IS NULL) WHERE cb.id_cuenta = :id_cuenta AND c.id_curso = :id_curso");
+        // PARCHE DE SEGURIDAD: Validar que la cuenta destino esté activa y pertenezca exclusivamente al mismo departamento (id_extension) que el curso
+        $stmtVal = $pdo->prepare("
+            SELECT count(*) 
+            FROM cursos.cuentas_bancarias cb 
+            JOIN cursos.cursos c ON cb.id_extension = c.id_extension
+            WHERE cb.id_cuenta = :id_cuenta AND c.id_curso = :id_curso AND cb.activo = true
+        ");
         $stmtVal->execute(['id_cuenta' => $id_cuenta_destino, 'id_curso' => $id_curso]);
         if ($stmtVal->fetchColumn() == 0) {
-            echo json_encode(['success' => false, 'message' => 'Error Crítico: La cuenta destino seleccionada no corresponde a la dependencia de este curso.']);
+            echo json_encode(['success' => false, 'message' => 'Error Crítico: La cuenta destino seleccionada no está activa o no corresponde a la dependencia de este curso.']);
             exit;
         }
 
@@ -168,6 +173,24 @@ switch ($action) {
                 exit;
             }
 
+            // Validar tamaño máximo (5 MB)
+            if ($archivo['size'] > 5 * 1024 * 1024) {
+                echo json_encode(['success' => false, 'message' => 'El archivo supera el tamaño máximo permitido de 5MB.']);
+                exit;
+            }
+
+            // Validar MIME real del archivo para evitar subida de scripts renombrados
+            if (function_exists('finfo_open')) {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mimeReal = finfo_file($finfo, $archivo['tmp_name']);
+                finfo_close($finfo);
+                $mimesPermitidos = ['application/pdf', 'image/jpeg', 'image/png'];
+                if (!in_array($mimeReal, $mimesPermitidos)) {
+                    echo json_encode(['success' => false, 'message' => 'El contenido del archivo no corresponde a una imagen o PDF válido.']);
+                    exit;
+                }
+            }
+
             // Preparar directorio de subida
             $directorioDestino = '../public/assets/comprobantes/';
             if (!file_exists($directorioDestino)) {
@@ -176,7 +199,6 @@ switch ($action) {
 
             // Generar nombre único: idUsuario_idCurso_timestamp.ext
             $id_usuario = $_SESSION['user_id'];
-            $id_curso = $_POST['id_curso'];
             $nombreUnico = $id_usuario . '_' . $id_curso . '_' . time() . '.' . $extension;
             $rutaFisica = $directorioDestino . $nombreUnico;
 
@@ -191,7 +213,7 @@ switch ($action) {
             $id_usuario = $_SESSION['user_id'];
         }
 
-        $banco_origen = ($moneda === 'Dolares' || $moneda === 'Pesos') ? 'Taquilla de la Universidad' : trim($_POST['banco_origen']);
+        $banco_origen = ($moneda === 'Dolares' || $moneda === 'Pesos') ? 'Taquilla de la Universidad' : (isset($_POST['banco_origen']) ? trim($_POST['banco_origen']) : '');
 
         // Archivo guardado físicamente o no se subió, procedemos a registrar en BD
         $datosPago = [
@@ -223,7 +245,7 @@ switch ($action) {
             echo json_encode(['success' => false, 'message' => 'Falta el id del curso.']);
             exit;
         }
-        $id_curso = isset($_POST['id_curso']) ? $_POST['id_curso'] : (isset($_GET['id_curso']) ? $_GET['id_curso'] : null);
+        $id_curso = isset($_POST['id_curso']) ? intval($_POST['id_curso']) : (isset($_GET['id_curso']) ? intval($_GET['id_curso']) : 0);
         require_once '../models/Materia.php';
         require_once '../models/curso.php';
         
@@ -231,7 +253,8 @@ switch ($action) {
             session_start();
         }
         
-        $materiaModel = new Materia($db);
+        // Pasar la instancia PDO ($pdo) a Materia tal como espera su constructor
+        $materiaModel = new Materia($pdo);
         $cursoModel = new Curso($db);
         $materias = $materiaModel->getMateriasByCurso($id_curso);
         $curso_detalle = $cursoModel->obtener_curso($id_curso);
@@ -247,7 +270,6 @@ switch ($action) {
             } else {
                 $user_id = $_SESSION['user_id'];
             }
-            $pdo = $db->getConn();
             $stmt_pagos = $pdo->prepare("SELECT id_materia_bimestre, estado FROM cursos.comprobantes_pago WHERE id_usuario = ? AND id_curso = ?");
             $stmt_pagos->execute([$user_id, $id_curso]);
             $pagos = $stmt_pagos->fetchAll(PDO::FETCH_ASSOC);
@@ -262,7 +284,8 @@ switch ($action) {
             $termino_a_pagar = null;
             
             foreach ($materias as $m) {
-                if (($m['exento_prelacion'] == 1 || $m['exento_prelacion'] == true) || stripos($m['nombre_materia'], 'repitencia') !== false) {
+                $exento = !empty($m['exento_prelacion']);
+                if ($exento || stripos($m['nombre_materia'], 'repitencia') !== false) {
                     continue; 
                 }
                 
@@ -298,7 +321,8 @@ switch ($action) {
                 $materias_filtradas[] = $termino_a_pagar;
             }
             foreach ($materias as $m) {
-                if (($m['exento_prelacion'] == 1 || $m['exento_prelacion'] == true) || stripos($m['nombre_materia'], 'repitencia') !== false) {
+                $exento = !empty($m['exento_prelacion']);
+                if ($exento || stripos($m['nombre_materia'], 'repitencia') !== false) {
                     $materias_filtradas[] = $m;
                 }
             }
@@ -343,7 +367,7 @@ switch ($action) {
             if ($estado === 'Comprobado') {
                 require_once '../config/mailer.php';
                 try {
-                    $stmtInfo = $db->prepare("
+                    $stmtInfo = $pdo->prepare("
                         SELECT u.correo, u.nombre, c.nombre_curso as curso_nombre
                         FROM cursos.comprobantes_pago p
                         JOIN cursos.usuarios u ON p.id_usuario = u.id
@@ -405,11 +429,11 @@ switch ($action) {
         break;
 
     case 'editar_comprobante':
-        $moneda = isset($_POST['moneda']) ? $_POST['moneda'] : 'Bs';
+        $moneda = isset($_POST['moneda']) ? trim($_POST['moneda']) : 'Bs';
 
         // Validar requeridos básicos
         $requeridos = ['id_comprobante', 'monto', 'fecha_pago'];
-        if ($moneda === 'Bs') {
+        if ($moneda === 'Bs' || $moneda === 'Bolivares') {
             $requeridos[] = 'numero_operacion';
             $requeridos[] = 'banco_origen';
         }
@@ -420,11 +444,11 @@ switch ($action) {
                 exit;
             }
         }
-        // Parche de Seguridad: Validacion estricta de numero de operacion en backend
+        // Parche de Seguridad: Validación estricta de número de operación en backend
         if (isset($_POST['numero_operacion']) && !empty(trim($_POST['numero_operacion']))) {
             $ref = trim($_POST['numero_operacion']);
             if (strlen($ref) < 6 || !preg_match('/^[0-9]+$/', $ref)) {
-                echo json_encode(['success' => false, 'message' => 'Error Crtico: El nmero de referencia debe contener al menos 6 dgitos numricos vlidos. Transaccin abortada.']);
+                echo json_encode(['success' => false, 'message' => 'Error Crítico: El número de referencia debe contener al menos 6 dígitos numéricos válidos. Transacción abortada.']);
                 exit;
             }
         }
@@ -451,7 +475,7 @@ switch ($action) {
         $origen_peticion = isset($_POST['origen']) ? $_POST['origen'] : '';
         $estado_final = ($origen_peticion === 'usuario') ? 'Pendiente' : ($es_admin ? null : 'Pendiente');
 
-        $banco_origen = ($moneda === 'Dolares' || $moneda === 'Pesos') ? 'Taquilla de la Universidad' : trim($_POST['banco_origen']);
+        $banco_origen = ($moneda === 'Dolares' || $moneda === 'Pesos') ? 'Taquilla de la Universidad' : (isset($_POST['banco_origen']) ? trim($_POST['banco_origen']) : '');
 
         $datosActualizar = [
             'id_comprobante' => $id_comprobante,
@@ -615,5 +639,13 @@ switch ($action) {
         // Acción no reconocida
         echo json_encode(['success' => false, 'message' => 'Acción no válida o no especificada.']);
         break;
+    }
+} catch (Throwable $e) {
+    error_log("Error en pagos_controlador.php: " . $e->getMessage());
+    $detalle = (function_exists('esSuperAdmin') && esSuperAdmin()) ? (' (' . $e->getMessage() . ')') : '';
+    echo json_encode([
+        'success' => false,
+        'message' => 'Ocurrió un error al procesar la solicitud de pago.' . $detalle
+    ]);
 }
 ?>

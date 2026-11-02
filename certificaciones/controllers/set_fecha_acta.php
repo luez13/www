@@ -3,10 +3,10 @@ require_once 'init.php';
 require_once '../config/model.php';
 
 // LA DIRECTRIZ DEL AUDITOR TÉCNICO: EL CANDADO DEL BACKEND
-// Solo el Rol 4 puede modificar la fecha maestra del diploma/acta final.
-if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 4) {
+// Solo el Rol 4 o Rol 7 puede modificar la fecha maestra del diploma/acta final.
+if (!tieneAcceso([4])) {
     http_response_code(403);
-    die("Error crítico de seguridad: No tiene autorización (Rol 4) para fijar fechas forenses.");
+    die("Error crítico de seguridad: No tiene autorización para fijar fechas forenses.");
 }
 
 $id_curso = isset($_POST['id_curso']) ? (int)$_POST['id_curso'] : 0;

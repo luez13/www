@@ -522,11 +522,11 @@ ksort($materiasPorLapso); // Ordenar claves (1, 2, 3...)
                 <p class="text-muted small">Al emitir el acta, puede fijar una fecha histórica. Esta fecha se registrará de forma inmutable en el sistema y aparecerá en el PDF.</p>
                 <div class="mb-3">
                     <label class="form-label fw-bold">Forzar Nueva Fecha Histórica (Opcional):</label>
-                    <?php $disabled_acta = ($_SESSION['id_rol'] != 4) ? 'disabled' : ''; ?>
+                    <?php $disabled_acta = (!tieneAcceso([4])) ? 'disabled' : ''; ?>
                     <input type="date" id="inputFechaActa" class="form-control" <?= $disabled_acta ?>>
                     <small class="text-muted mt-1 d-block">Déjelo en blanco para mantener la fecha original de emisión (o usar la de hoy si es la primera vez).</small>
-                    <?php if ($_SESSION['id_rol'] != 4): ?>
-                        <small class="text-danger mt-1 d-block"><i class="fas fa-lock"></i> Solo el Administrador (Rol 4) puede alterar la fecha cronológica.</small>
+                    <?php if (!tieneAcceso([4])): ?>
+                        <small class="text-danger mt-1 d-block"><i class="fas fa-lock"></i> Solo el Administrador puede alterar la fecha cronológica.</small>
                     <?php endif; ?>
                 </div>
             </div>

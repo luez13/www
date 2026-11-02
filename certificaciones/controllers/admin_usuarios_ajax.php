@@ -4,7 +4,7 @@ include 'init.php';
 include '../config/model.php';
 include '../config/mailer.php';
 
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['id_rol'], [3, 4])) {
+if (!isset($_SESSION['user_id']) || !tieneAcceso([3, 4])) {
     http_response_code(403);
     die("No autorizado");
 }
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $apellido = $_POST['apellido'];
     $cedula = $_POST['cedula'];
     $correo = strtolower($_POST['correo']);
-    $id_rol = (int) $_POST['id_rol'];
+    $id_rol = isset($_POST['id_rol']) ? (int) $_POST['id_rol'] : 1;
     $titulo = isset($_POST['titulo']) ? $_POST['titulo'] : '';
     $cargo = isset($_POST['cargo']) ? $_POST['cargo'] : '';
 
@@ -30,9 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $telefono = null;
     }
 
-    // Si el usuario actual es Rol 3, no puede cambiar roles ni contraseñas
-    if ($_SESSION['id_rol'] == 3) {
-        $id_rol = null; // Para no actualizarlo
+    // Solo el SUPER_ADMIN (Rol 7) tiene poder para asignar o cambiar roles
+    if ($_SESSION['id_rol'] != 7) {
+        $id_rol = ($action === 'crear_admin') ? 1 : null;
     }
 
     try {
@@ -153,12 +153,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':id' => $id
             ];
 
-            // Solo actualizar id_rol si no es Rol 3
-            if ($_SESSION['id_rol'] != 3) {
-                $sql = str_replace("id_rol = :id_rol, ", "id_rol = :id_rol, ", $sql); // (Already in sql, just binding it)
+            // Solo actualizar id_rol si es SUPER_ADMIN (Rol 7)
+            if ($_SESSION['id_rol'] == 7 && $id_rol !== null) {
                 $params[':id_rol'] = $id_rol;
             } else {
                 // Remove id_rol = :id_rol, from $sql
+                $sql = str_replace("id_rol = :id_rol, \r\n", "", $sql);
                 $sql = str_replace("id_rol = :id_rol, \n", "", $sql);
                 $sql = str_replace("id_rol = :id_rol, ", "", $sql);
             }

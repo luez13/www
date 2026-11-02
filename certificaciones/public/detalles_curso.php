@@ -49,7 +49,7 @@ $curso_info = $curso->obtener_curso($id_curso);
 $promotor_id = $curso_info['promotor'];
 
 // Verificar si el usuario tiene permiso para ver la página
-if (!in_array($user_role, [3, 4]) && $user_id != $promotor_id) {
+if (!tieneAcceso([3, 4]) && $user_id != $promotor_id) {
     echo '<p>No tienes permiso para ver esta página.</p>';
     include __DIR__ . '/../views/footer.php';
     exit;
@@ -75,7 +75,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                     <span class="badge bg-info text-dark fs-6 px-3 py-2 rounded-pill"><i class="fas fa-users me-2"></i>Cupos
                         disponibles: <?= $cupos_disponibles ?></span>
                     <?php endif; ?>
-                    <?php if (in_array($user_role, [3, 4])): ?>
+                    <?php if (tieneAcceso([3, 4])): ?>
                     <button id="mostrar-bd-info" class="btn btn-outline-secondary btn-sm"><i class="fas fa-database me-1"></i>
                         Mostrar Info de DB</button>
                     <?php endif; ?>
@@ -112,7 +112,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                 </div>
             </div>
             <div class="card-body p-0">
-                <?php if (in_array($user_role, [3, 4]) && $_SESSION['es_academico']): ?>
+                <?php if (tieneAcceso([3, 4]) && $_SESSION['es_academico']): ?>
                     <!-- Asignación Masiva de Tomos y Folios -->
                     <div class="bg-light p-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3">
                         <div class="d-flex align-items-center gap-2">
@@ -147,7 +147,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                                 <th class="text-center">Nota</th>
                                 <th class="text-center">Completado</th>
                                 <?php endif; ?>
-                                <?php if (in_array($user_role, [3, 4])): ?>
+                                <?php if (tieneAcceso([3, 4])): ?>
                                     <th class="text-center">Pagado</th>
                                     <?php if ($_SESSION['es_academico']): ?>
                                      <th class="text-center" style="width: 200px; min-width: 180px;">Tomo / Folio</th>
@@ -187,7 +187,7 @@ if (is_numeric($id_curso) && $id_curso > 0) {
                                         </div>
                                     </td>
                                     <?php endif; ?>
-                                    <?php if (in_array($user_role, [3, 4])): ?>
+                                    <?php if (tieneAcceso([3, 4])): ?>
                                         <td class="text-center">
                                             <div class="form-check d-flex justify-content-center m-0">
                                                 <input type="checkbox" class="form-check-input pagado"

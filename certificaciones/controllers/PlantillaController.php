@@ -1,10 +1,15 @@
 <?php
-session_start();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 require_once __DIR__ . '/../config/model.php';
+if (!function_exists('tieneAcceso')) {
+    require_once __DIR__ . '/../config/auth_helper.php';
+}
 require_once __DIR__ . '/../models/Plantilla.php';
 
-// Validar que el usuario sea administrador
-if (!isset($_SESSION['user_rol']) || (int)$_SESSION['user_rol'] !== 4) {
+// Validar que el usuario sea administrador (Rol 4) o Super Admin (Rol 7)
+if (!isset($_SESSION['user_id']) || !tieneAcceso([4])) {
     header("Location: ../public/index.php");
     exit();
 }

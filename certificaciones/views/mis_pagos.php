@@ -11,21 +11,54 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+$id_extension_activa = isset($_SESSION['id_extension']) ? (int)$_SESSION['id_extension'] : 1;
 $db = new DB();
+$pdo = $db->getConn();
 $pagoModel = new Pago($db);
 
-// Obtener los cursos del usuario (Certificaciones)
+// Obtener nombre del departamento activo para mostrarlo claramente
+$nombre_departamento_activo = 'Departamento Actual';
+try {
+    $stmtDep = $pdo->prepare("SELECT nombre_extension FROM cursos.extensiones WHERE id_extension = :id_ext LIMIT 1");
+    $stmtDep->execute(['id_ext' => $id_extension_activa]);
+    $nomDep = $stmtDep->fetchColumn();
+    if (!empty($nomDep)) {
+        $nombre_departamento_activo = $nomDep;
+    }
+} catch (Exception $e) {
+    // Fallback silencioso
+}
+
+// Obtener los cursos del usuario (Certificaciones) EXCLUSIVOS del departamento activo
 $sqlCursos = "SELECT c.id_curso, c.nombre_curso, c.costo, c.permitir_pagos, c.id_extension, cert.pago 
               FROM cursos.certificaciones cert
               JOIN cursos.cursos c ON cert.curso_id = c.id_curso
-              WHERE cert.id_usuario = :user_id";
-$stmtCursos = $db->getConn()->prepare($sqlCursos);
-$stmtCursos->execute(['user_id' => $user_id]);
+              WHERE cert.id_usuario = :user_id AND c.id_extension = :id_extension";
+$stmtCursos = $pdo->prepare($sqlCursos);
+$stmtCursos->execute(['user_id' => $user_id, 'id_extension' => $id_extension_activa]);
 $misCursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
 
-// Obtener información de pagos
-$cuentasActivas = $pagoModel->obtenerCuentasActivas();
-$historialPagos = $pagoModel->obtenerComprobantesPorUsuario($user_id);
+// Obtener cuentas bancarias EXCLUSIVAS del departamento activo desde el primer momento (ocultando cajas físicas/bóvedas)
+$cuentasRaw = $pagoModel->obtenerCuentasActivas($id_extension_activa);
+$cuentasActivas = [];
+foreach ($cuentasRaw as $cuenta) {
+    if ((int)$cuenta['id_extension'] !== $id_extension_activa) {
+        continue;
+    }
+    if (
+        stripos($cuenta['tipo_cuenta'], 'caja') !== false ||
+        stripos($cuenta['tipo_cuenta'], 'boveda') !== false ||
+        stripos($cuenta['tipo_cuenta'], 'bóveda') !== false ||
+        stripos($cuenta['banco'], 'fisica') !== false ||
+        stripos($cuenta['banco'], 'física') !== false ||
+        stripos($cuenta['banco'], 'efectivo') !== false
+    ) {
+        continue;
+    }
+    $cuentasActivas[] = $cuenta;
+}
+
+$historialPagos = $pagoModel->obtenerComprobantesPorUsuario($user_id, $id_extension_activa);
 
 // Función auxiliar para sanitizar salidas HTML
 function h($str)
@@ -37,13 +70,16 @@ function h($str)
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-wallet me-2"></i> Mis Pagos y Aranceles</h1>
+        <span class="badge badge-primary p-2 px-3" style="font-size: 0.95rem;">
+            <i class="fas fa-building me-1"></i> <?= h($nombre_departamento_activo) ?>
+        </span>
     </div>
 
     <div class="row">
         <div class="col-lg-5 mb-4">
             <div class="card shadow mb-4">
-                <div class="card-header py-3 bg-dark text-white">
-                    <h6 class="m-0 font-weight-bold"><i class="fas fa-university me-2"></i> Cuentas Destino (Dónde pagar)</h6>
+                <div class="card-header py-3 bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold"><i class="fas fa-university me-2"></i> Cuentas Destino (<?= h($nombre_departamento_activo) ?>)</h6>
                 </div>
                 <div class="card-body">
                     <?php if (empty($cuentasActivas)): ?>
@@ -490,35 +526,6 @@ function h($str)
         if (selectCurso.selectedIndex > 0) {
             var option = selectCurso.options[selectCurso.selectedIndex];
             var permitir = option.getAttribute('data-permitir');
-            var idExt = option.getAttribute('data-id-extension');
-
-            // Filtrar Cuentas Bancarias por Sede (Aislamiento Visual)
-            var cuentas = document.querySelectorAll('.cuenta-bancaria-card');
-            cuentas.forEach(function(cuenta) {
-                if (!idExt || !cuenta.getAttribute('data-id-extension') || cuenta.getAttribute('data-id-extension') === idExt) {
-                    cuenta.style.display = 'block';
-                } else {
-                    cuenta.style.display = 'none';
-                }
-            });
-
-            // Filtrar Opciones del Select de Cuenta Destino
-            var opcionesCuentas = document.querySelectorAll('.opcion-cuenta-destino');
-            opcionesCuentas.forEach(function(opt) {
-                if (!idExt || !opt.getAttribute('data-id-extension') || opt.getAttribute('data-id-extension') === idExt) {
-                    opt.style.display = 'block';
-                } else {
-                    opt.style.display = 'none';
-                }
-            });
-            // Resetear valor si la opción seleccionada ya no es visible
-            var selectCuentas = document.getElementById('select_cuenta_destino');
-            if (selectCuentas.selectedIndex > 0) {
-                var selectedOpt = selectCuentas.options[selectCuentas.selectedIndex];
-                if (selectedOpt.style.display === 'none') {
-                    selectCuentas.value = "";
-                }
-            }
 
             if (permitir === '0') {
                 btnEnviarPago.disabled = true;
@@ -530,11 +537,6 @@ function h($str)
         } else {
             btnEnviarPago.disabled = false;
             alertaPagoCerrado.style.display = 'none';
-            // Restaurar todas si no hay selección (o se podría ocultar todas)
-            var cuentas = document.querySelectorAll('.cuenta-bancaria-card');
-            cuentas.forEach(function(cuenta) { cuenta.style.display = 'block'; });
-            var opcionesCuentas = document.querySelectorAll('.opcion-cuenta-destino');
-            opcionesCuentas.forEach(function(opt) { opt.style.display = 'block'; });
         }
 
         var selectMateria = document.getElementById('select_materia');

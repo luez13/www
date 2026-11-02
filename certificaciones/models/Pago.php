@@ -26,8 +26,17 @@ class Pago
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerCuentasActivas()
+    public function obtenerCuentasActivas($id_extension = null)
     {
+        if ($id_extension === null && isset($_SESSION['id_extension'])) {
+            $id_extension = (int)$_SESSION['id_extension'];
+        }
+        if (!empty($id_extension)) {
+            $sql = "SELECT * FROM cursos.cuentas_bancarias WHERE activo = true AND id_extension = :id_extension ORDER BY id_cuenta DESC";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute(['id_extension' => (int)$id_extension]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
         // En PostgreSQL los booleanos se evalúan directamente
         $sql = "SELECT * FROM cursos.cuentas_bancarias WHERE activo = true ORDER BY id_cuenta DESC";
         $stmt = $this->db->prepare($sql);
@@ -80,25 +89,88 @@ class Pago
     // MÉTODOS PARA COMPROBANTES DE PAGO
     // ==========================================
 
+    private function sanearExtensionComprobantesHuerfanos()
+    {
+        try {
+            $this->db->exec("
+                UPDATE cursos.comprobantes_pago cp
+                SET id_extension = COALESCE(
+                    (SELECT c.id_extension FROM cursos.cursos c WHERE c.id_curso = cp.id_curso),
+                    (SELECT cb.id_extension FROM cursos.cuentas_bancarias cb WHERE cb.id_cuenta = cp.id_cuenta_destino)
+                )
+                WHERE cp.id_extension IS NULL
+            ");
+        } catch (Exception $e) {
+            // Ignorar si no aplica
+        }
+    }
+
     public function registrarComprobante($datos)
     {
-        $sql = "INSERT INTO cursos.comprobantes_pago 
-                (id_usuario, id_curso, id_materia_bimestre, archivo_ruta, numero_operacion, banco_origen, monto, estado, fecha_pago, fecha_subida, moneda, id_extension, id_cuenta_destino) 
-                VALUES 
-                (:id_usuario, :id_curso, :id_materia_bimestre, :archivo_ruta, :numero_operacion, :banco_origen, :monto, 'Pendiente', :fecha_pago, CURRENT_TIMESTAMP, :moneda, (SELECT id_extension FROM cursos.cursos WHERE id_curso = :id_curso LIMIT 1), :id_cuenta_destino)";
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute([
+        // Resolver id_extension garantizando que nunca quede en NULL
+        $id_extension = !empty($datos['id_extension']) ? (int)$datos['id_extension'] : null;
+
+        if (empty($id_extension) && !empty($datos['id_curso'])) {
+            try {
+                $stmtExt = $this->db->prepare("SELECT id_extension FROM cursos.cursos WHERE id_curso = :id_curso LIMIT 1");
+                $stmtExt->execute(['id_curso' => $datos['id_curso']]);
+                $extVal = $stmtExt->fetchColumn();
+                if (!empty($extVal)) {
+                    $id_extension = (int)$extVal;
+                }
+            } catch (Exception $e) {
+                // Continuar al siguiente fallback
+            }
+        }
+
+        if (empty($id_extension) && !empty($datos['id_cuenta_destino'])) {
+            try {
+                $stmtExtCta = $this->db->prepare("SELECT id_extension FROM cursos.cuentas_bancarias WHERE id_cuenta = :id_cuenta LIMIT 1");
+                $stmtExtCta->execute(['id_cuenta' => $datos['id_cuenta_destino']]);
+                $extCtaVal = $stmtExtCta->fetchColumn();
+                if (!empty($extCtaVal)) {
+                    $id_extension = (int)$extCtaVal;
+                }
+            } catch (Exception $e) {
+                // Continuar al siguiente fallback
+            }
+        }
+
+        if (empty($id_extension)) {
+            $id_extension = !empty($_SESSION['id_extension']) ? (int)$_SESSION['id_extension'] : 1;
+        }
+
+        $paramsBase = [
             'id_usuario' => $datos['id_usuario'],
             'id_curso' => $datos['id_curso'],
-            'id_materia_bimestre' => $datos['id_materia_bimestre'],
-            'archivo_ruta' => $datos['archivo_ruta'],
-            'numero_operacion' => $datos['numero_operacion'],
-            'banco_origen' => $datos['banco_origen'],
+            'id_materia_bimestre' => !empty($datos['id_materia_bimestre']) ? $datos['id_materia_bimestre'] : null,
+            'archivo_ruta' => isset($datos['archivo_ruta']) ? $datos['archivo_ruta'] : null,
+            'numero_operacion' => isset($datos['numero_operacion']) ? $datos['numero_operacion'] : null,
+            'banco_origen' => isset($datos['banco_origen']) ? $datos['banco_origen'] : '',
             'monto' => $datos['monto'],
             'fecha_pago' => $datos['fecha_pago'],
-            'moneda' => isset($datos['moneda']) ? $datos['moneda'] : 'Bs',
-            'id_cuenta_destino' => isset($datos['id_cuenta_destino']) ? $datos['id_cuenta_destino'] : null
-        ]);
+            'moneda' => isset($datos['moneda']) ? $datos['moneda'] : 'Bs'
+        ];
+
+        try {
+            $sql = "INSERT INTO cursos.comprobantes_pago 
+                    (id_usuario, id_curso, id_materia_bimestre, archivo_ruta, numero_operacion, banco_origen, monto, estado, fecha_pago, fecha_subida, moneda, id_extension, id_cuenta_destino) 
+                    VALUES 
+                    (:id_usuario, :id_curso, :id_materia_bimestre, :archivo_ruta, :numero_operacion, :banco_origen, :monto, 'Pendiente', :fecha_pago, CURRENT_TIMESTAMP, :moneda, :id_extension, :id_cuenta_destino)";
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute(array_merge($paramsBase, [
+                'id_extension' => $id_extension,
+                'id_cuenta_destino' => !empty($datos['id_cuenta_destino']) ? $datos['id_cuenta_destino'] : null
+            ]));
+        } catch (Exception $e) {
+            // Fallback por si el entorno local no tiene las columnas opcionales
+            $sqlFallback = "INSERT INTO cursos.comprobantes_pago 
+                            (id_usuario, id_curso, id_materia_bimestre, archivo_ruta, numero_operacion, banco_origen, monto, estado, fecha_pago, fecha_subida, moneda) 
+                            VALUES 
+                            (:id_usuario, :id_curso, :id_materia_bimestre, :archivo_ruta, :numero_operacion, :banco_origen, :monto, 'Pendiente', :fecha_pago, CURRENT_TIMESTAMP, :moneda)";
+            $stmtFallback = $this->db->prepare($sqlFallback);
+            return $stmtFallback->execute($paramsBase);
+        }
     }
 
     public function actualizarComprobante($datos)
@@ -159,38 +231,70 @@ class Pago
 
     public function obtenerComprobantesPorCurso($id_curso)
     {
-        $id_extension = $_SESSION['id_extension'];
+        $this->sanearExtensionComprobantesHuerfanos();
+        $id_extension = isset($_SESSION['id_extension']) ? (int)$_SESSION['id_extension'] : 1;
         $sql = "SELECT cp.*, u.nombre, u.apellido, u.cedula, c.nombre_curso, m.nombre_materia, admin.nombre as admin_nombre, admin.apellido as admin_apellido
                 FROM cursos.comprobantes_pago cp
                 JOIN cursos.usuarios u ON cp.id_usuario = u.id
                 JOIN cursos.cursos c ON cp.id_curso = c.id_curso
                 LEFT JOIN cursos.usuarios admin ON cp.id_admin_gestor = admin.id
                 LEFT JOIN cursos.materias_bimestre m ON cp.id_materia_bimestre = m.id_materia_bimestre
-                WHERE cp.id_curso = :id_curso AND cp.id_extension = :id_extension
+                WHERE cp.id_curso = :id_curso
+                  AND COALESCE(cp.id_extension, c.id_extension, :id_ext_fallback) = :id_extension
                 ORDER BY cp.fecha_subida DESC";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['id_curso' => $id_curso, 'id_extension' => $id_extension]);
+        $stmt->execute([
+            'id_curso' => $id_curso,
+            'id_ext_fallback' => $id_extension,
+            'id_extension' => $id_extension
+        ]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function obtenerTodosLosComprobantes()
     {
-        $id_extension = $_SESSION['id_extension'];
+        $this->sanearExtensionComprobantesHuerfanos();
+        $id_extension = isset($_SESSION['id_extension']) ? (int)$_SESSION['id_extension'] : 1;
         $sql = "SELECT cp.*, u.nombre, u.apellido, u.cedula, c.nombre_curso, m.nombre_materia, admin.nombre as admin_nombre, admin.apellido as admin_apellido
                 FROM cursos.comprobantes_pago cp
                 JOIN cursos.usuarios u ON cp.id_usuario = u.id
                 JOIN cursos.cursos c ON cp.id_curso = c.id_curso
                 LEFT JOIN cursos.usuarios admin ON cp.id_admin_gestor = admin.id
                 LEFT JOIN cursos.materias_bimestre m ON cp.id_materia_bimestre = m.id_materia_bimestre
-                WHERE cp.id_extension = :id_extension
+                WHERE COALESCE(cp.id_extension, c.id_extension, :id_ext_fallback) = :id_extension
                 ORDER BY cp.fecha_subida DESC";
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(['id_extension' => $id_extension]);
+        $stmt->execute([
+            'id_ext_fallback' => $id_extension,
+            'id_extension' => $id_extension
+        ]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerComprobantesPorUsuario($id_usuario)
+    public function obtenerComprobantesPorUsuario($id_usuario, $id_extension = null)
     {
+        $this->sanearExtensionComprobantesHuerfanos();
+        if ($id_extension === null && isset($_SESSION['id_extension'])) {
+            $id_extension = (int)$_SESSION['id_extension'];
+        }
+        if (!empty($id_extension)) {
+            $sql = "SELECT cp.*, c.nombre_curso, m.nombre_materia, admin.nombre as admin_nombre, admin.apellido as admin_apellido
+                    FROM cursos.comprobantes_pago cp
+                    JOIN cursos.cursos c ON cp.id_curso = c.id_curso
+                    LEFT JOIN cursos.usuarios admin ON cp.id_admin_gestor = admin.id
+                    LEFT JOIN cursos.materias_bimestre m ON cp.id_materia_bimestre = m.id_materia_bimestre
+                    WHERE cp.id_usuario = :id_usuario
+                      AND COALESCE(cp.id_extension, c.id_extension, :id_ext_fallback) = :id_extension
+                    ORDER BY cp.fecha_subida DESC";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([
+                'id_usuario' => $id_usuario,
+                'id_ext_fallback' => (int)$id_extension,
+                'id_extension' => (int)$id_extension
+            ]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
         $sql = "SELECT cp.*, c.nombre_curso, m.nombre_materia, admin.nombre as admin_nombre, admin.apellido as admin_apellido
                 FROM cursos.comprobantes_pago cp
                 JOIN cursos.cursos c ON cp.id_curso = c.id_curso

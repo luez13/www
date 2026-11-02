@@ -1,13 +1,18 @@
 <?php
-session_start();
-// Validar que el usuario sea administrador (rol 4)
-if (!isset($_SESSION['user_rol']) || (int)$_SESSION['user_rol'] !== 4) {
-    header("Location: index.php");
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+require_once '../config/model.php';
+if (!function_exists('tieneAcceso')) {
+    require_once '../config/auth_helper.php';
+}
+require_once '../models/Plantilla.php';
+
+// Validar que el usuario sea administrador (Rol 4) o Super Admin (Rol 7)
+if (!isset($_SESSION['user_id']) || !tieneAcceso([4])) {
+    echo '<div class="alert alert-danger m-3">Acceso denegado. No tienes permisos para gestionar plantillas.</div>';
     exit();
 }
-
-require_once '../config/model.php';
-require_once '../models/Plantilla.php';
 
 $db = new DB();
 $plantillaModel = new Plantilla($db);

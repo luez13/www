@@ -19,10 +19,10 @@ $sql = "SELECT cp.fecha_pago, u.cedula, u.nombre, u.apellido, c.nombre_curso, cp
         JOIN cursos.usuarios u ON cp.id_usuario = u.id
         JOIN cursos.cursos c ON cp.id_curso = c.id_curso
         LEFT JOIN cursos.usuarios gestor ON cp.id_admin_gestor = gestor.id
-        WHERE cp.id_extension = :id_extension
+        WHERE COALESCE(cp.id_extension, c.id_extension, :id_ext_fallback) = :id_extension
         AND cp.estado IN ('Pendiente', 'Comprobado')";
 
-$params = [':id_extension' => $id_extension];
+$params = [':id_ext_fallback' => $id_extension, ':id_extension' => $id_extension];
 
 if (!empty($fechaDesde)) {
     $sql .= " AND cp.fecha_pago >= :desde";

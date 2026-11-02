@@ -22,14 +22,23 @@ if (isset($data['img_encabezado']) && file_exists($data['img_encabezado'])) {
 // 2. TÍTULOS
 $tipo_curso_str = isset($data['tipo_curso']) ? strtolower($data['tipo_curso']) : 'curso';
 $es_diplomado = in_array($tipo_curso_str, ['diplomado', 'diplomado_rectoria']);
+$es_acta_recuperativo = (isset($data['tipo_acta']) && $data['tipo_acta'] === 'Recuperativo');
 
 $pdf->SetY(27);
 $pdf->SetFont('Times', 'B', 13);
 
-if ($es_diplomado) {
-    $pdf->MultiCell($contentWidth, 6, utf8_decode("ACTA DE CIERRE FINAL DE DIPLOMADO"), 0, 'C');
+if ($es_acta_recuperativo) {
+    if ($es_diplomado) {
+        $pdf->MultiCell($contentWidth, 6, utf8_decode("ACTA DE CIERRE DE RECUPERATIVO DE DIPLOMADO"), 0, 'C');
+    } else {
+        $pdf->MultiCell($contentWidth, 6, utf8_decode("ACTA DE CIERRE DE RECUPERATIVO DE " . mb_strtoupper(str_replace('_', ' ', $tipo_curso_str), 'UTF-8')), 0, 'C');
+    }
 } else {
-    $pdf->MultiCell($contentWidth, 6, utf8_decode("ACTA DE CIERRE FINAL DE " . mb_strtoupper(str_replace('_', ' ', $tipo_curso_str), 'UTF-8')), 0, 'C');
+    if ($es_diplomado) {
+        $pdf->MultiCell($contentWidth, 6, utf8_decode("ACTA DE CIERRE FINAL DE DIPLOMADO"), 0, 'C');
+    } else {
+        $pdf->MultiCell($contentWidth, 6, utf8_decode("ACTA DE CIERRE FINAL DE " . mb_strtoupper(str_replace('_', ' ', $tipo_curso_str), 'UTF-8')), 0, 'C');
+    }
 }
 $pdf->Ln(1);
 $pdf->SetFont('Times', 'B', 11);
@@ -42,7 +51,9 @@ $sangria = "     ";
 
 $fechaActa = $data['dia_cierre'] . " días del mes de " . $data['mes_cierre'] . " del año " . $data['anio_cierre'];
 
-if ($es_diplomado) {
+if ($es_acta_recuperativo) {
+    $textoIntro = $sangria . "En la ciudad de San Cristóbal, Estado Táchira, a los " . $fechaActa . ", siendo las " . $data['hora_cierre'] . ", se procede a realizar el cierre académico correspondiente a la evaluación recuperativa del " . str_replace('_', ' ', $tipo_curso_str) . " denominado " . $data['nombre_diplomado'] . ", impartido en la Universidad Politécnica Territorial Agroindustrial del Estado Táchira. Teniendo las siguientes especificaciones curriculares:";
+} elseif ($es_diplomado) {
     $textoIntro = $sangria . "En la ciudad de San Cristóbal, Estado Táchira, a los " . $fechaActa . ", siendo las " . $data['hora_cierre'] . ", se procede a realizar el cierre del diplomado correspondiente al " . $data['nombre_diplomado'] . ", impartido en la Universidad Politécnica Territorial Agroindustrial del Estado Táchira. Teniendo las siguientes especificaciones curriculares:";
 } else {
     $textoIntro = $sangria . "En la ciudad de San Cristóbal, Estado Táchira, a los " . $fechaActa . ", siendo las " . $data['hora_cierre'] . ", se procede a realizar el cierre del " . str_replace('_', ' ', $tipo_curso_str) . " correspondiente al " . $data['nombre_diplomado'] . ", impartido en la Universidad Politécnica Territorial Agroindustrial del Estado Táchira. Teniendo las siguientes especificaciones curriculares:";
@@ -82,7 +93,11 @@ $participantes_count = isset($data['participantes']) ? $data['participantes'] : 
 $aprobados_count = isset($data['aprobados']) ? $data['aprobados'] : 0;
 $reprobados_count = isset($data['no_aprobaron']) ? $data['no_aprobaron'] : 0;
 
-if ($es_diplomado) {
+if ($es_acta_recuperativo) {
+    $p1 = "En cumplimiento con los lineamientos establecidos por la institución y con el objetivo de evaluar el desempeño académico en instancia de recuperación de los participantes que no alcanzaron la calificación mínima en el corte regular, se procede a dar cierre formal al proceso de evaluación recuperativa del " . str_replace('_', ' ', $tipo_curso_str) . ".";
+    $p2 = "En esta instancia de evaluación recuperativa se registró la participación de un total de " . $data['inscritos'] . " participante(s), obteniéndose como resultado definitivo " . $aprobados_count . " participante(s) aprobado(s) y " . $reprobados_count . " participante(s) reprobado(s).";
+    $p3 = "En cuanto a los resultados, las calificaciones obtenidas en la prueba o actividad recuperativa han sido asentadas de acuerdo con los criterios establecidos por la coordinación académica. Agradecemos al cuerpo docente y administrativo de la Universidad Politécnica Territorial Agroindustrial del Estado Táchira por su apoyo y supervisión durante este proceso formativo.";
+} elseif ($es_diplomado) {
     $p1 = "En cumplimiento con los lineamientos establecidos por la institución y con el objetivo de evaluar el desarrollo académico de los participantes, así como el cumplimiento de los objetivos planteados al inicio del diplomado, se procede a dar cierre formal al mismo.";
     if ($tiene_notas) {
         $p2 = "Durante el transcurso de este diplomado, se llevaron a cabo diversas actividades académicas, que incluyeron clases teóricas, talleres prácticos y evaluaciones continuas, las cuales permitieron a los participantes adquirir competencias y habilidades en el área de estudio. Por otra parte, se registró una inscripción de un total de " . $data['inscritos'] . " participantes, con la culminación de " . $aprobados_count . " participantes aprobados, " . $participantes_count . " con certificado de participación y " . $reprobados_count . " que no aprobaron.";
@@ -123,25 +138,28 @@ $firmantes = isset($data['firmantes']) && !empty($data['firmantes']) ? $data['fi
 if (count($firmantes) > 0) {
     $numFirmas = count($firmantes);
     $colW = $contentWidth / $numFirmas;
+    $anchoLinea = 46;
+    $anchoBloque = min($colW, 65);
     
     for ($i = 0; $i < $numFirmas; $i++) {
         $x = $marginX + ($i * $colW);
-        $lineMarg = 5;
+        $centroX = $x + ($colW / 2);
+        $xBloque = $centroX - ($anchoBloque / 2);
         $f = $firmantes[$i];
         
-        // Línea para la firma (centrada en la columna)
-        $pdf->Line($x + $lineMarg, $yFirmas, $x + $colW - $lineMarg, $yFirmas);
+        // Línea para la firma (centrada en la columna con ancho normal estándar)
+        $pdf->Line($centroX - ($anchoLinea / 2), $yFirmas, $centroX + ($anchoLinea / 2), $yFirmas);
         
         $titulo = !empty($f['titulo']) ? trim($f['titulo']) . ' ' : '';
         $nombreF = mb_convert_case($titulo . $f['nombre'], MB_CASE_TITLE, "UTF-8");
         
-        $pdf->SetXY($x, $yFirmas + 2);
+        $pdf->SetXY($xBloque, $yFirmas + 2);
         $pdf->SetFont('Times', 'B', 9);
-        $pdf->MultiCell($colW, 4, utf8_decode($nombreF), 0, 'C');
+        $pdf->MultiCell($anchoBloque, 4, utf8_decode($nombreF), 0, 'C');
         
-        $pdf->SetX($x);
+        $pdf->SetX($xBloque);
         $pdf->SetFont('Times', '', 8);
-        $pdf->MultiCell($colW, 3.5, utf8_decode($f['cargo']), 0, 'C');
+        $pdf->MultiCell($anchoBloque, 3.5, utf8_decode($f['cargo']), 0, 'C');
     }
 }
 
@@ -150,7 +168,7 @@ if (isset($data['img_pie']) && file_exists($data['img_pie'])) {
     $pdf->Image($data['img_pie'], 10, 260, $pageWidth - 20, 15);
 }
 
-// ================= PÁGINA 2: ANEXO DE ESTUDIANTES APROBADOS =================
+// ================= PÁGINA 2: ANEXO DE ESTUDIANTES =================
 $pdf->AddPage('L', 'Letter');
 $pageWidthL = 279.4; // Landscape width
 $contentWidthL = $pageWidthL - ($marginX * 2);
@@ -162,7 +180,11 @@ if (isset($data['img_encabezado']) && file_exists($data['img_encabezado'])) {
 
 $pdf->SetY(35);
 $pdf->SetFont('Times', 'B', 14);
-$pdf->Cell($contentWidthL, 7, utf8_decode("ANEXO: LISTADO DE PARTICIPANTES"), 0, 1, 'C');
+if ($es_acta_recuperativo) {
+    $pdf->Cell($contentWidthL, 7, utf8_decode("ANEXO: REGISTRO DE CALIFICACIONES DE RECUPERATIVO"), 0, 1, 'C');
+} else {
+    $pdf->Cell($contentWidthL, 7, utf8_decode("ANEXO: LISTADO DE PARTICIPANTES"), 0, 1, 'C');
+}
 $pdf->Ln(5);
 
 $pdf->SetFont('Times', 'B', 9);
@@ -170,10 +192,19 @@ $pdf->SetFillColor(44, 62, 80);
 $pdf->SetTextColor(255);
 
 $colNo = 10;
-$colCed = 30;
+$colCed = 28;
 
-if (!$es_diplomado) {
-    // Si NO es diplomado (es curso general), mostramos Tomo y Folio
+if ($es_acta_recuperativo && !$es_diplomado) {
+    // Curso normal en Acta de Recuperativo: Muestra Nota Regular, Nota Recuperativa, Tomo, Folio y Estatus
+    $colNom = 92.4;
+    $colNotaReg = 22;
+    $colNotaRec = 25;
+    $colTomo = 14;
+    $colFolio = 14;
+    $colEstatus = 24;
+} elseif (!$es_diplomado) {
+    // Curso normal en Acta Regular: Muestra Calificación, Tomo, Folio y Estatus
+    $colCed = 30;
     $colNom = 110.4;
     $colNota = 22;
     $colEstatus = 25;
@@ -181,29 +212,50 @@ if (!$es_diplomado) {
     $colFolio = 16;
 } else {
     // Diplomado: sin Tomo ni Folio, con Recuperativo
+    $colCed = 30;
     $colNom = 113.4;
     $colNota = 25;
     $colRecup = 25;
     $colEstatus = 26;
 }
 
-$pdf->SetX($marginX);
-$pdf->Cell($colNo, 7, utf8_decode("No."), 1, 0, 'C', true);
-$pdf->Cell($colCed, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
-$pdf->Cell($colNom, 7, utf8_decode("Participante (Nombre y Apellido)"), 1, 0, 'C', true);
-$pdf->Cell($colNota, 7, utf8_decode("Calificación"), 1, 0, 'C', true);
-    if ($es_diplomado) {
+$imprimirCabeceraTablaP2 = function() use ($pdf, $marginX, $es_acta_recuperativo, $es_diplomado, $colNo, $colCed, $colNom, &$colNota, &$colNotaReg, &$colNotaRec, &$colRecup, &$colTomo, &$colFolio, $colEstatus) {
+    $pdf->SetFont('Times', 'B', 9);
+    $pdf->SetFillColor(44, 62, 80);
+    $pdf->SetTextColor(255);
+    $pdf->SetX($marginX);
+    $pdf->Cell($colNo, 7, utf8_decode("No."), 1, 0, 'C', true);
+    $pdf->Cell($colCed, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
+    $pdf->Cell($colNom, 7, utf8_decode("Participante (Nombre y Apellido)"), 1, 0, 'C', true);
+
+    if ($es_acta_recuperativo && !$es_diplomado) {
+        $pdf->Cell($colNotaReg, 7, utf8_decode("N. Regular"), 1, 0, 'C', true);
+        $pdf->Cell($colNotaRec, 7, utf8_decode("N. Recuperativa"), 1, 0, 'C', true);
+        $pdf->Cell($colTomo, 7, utf8_decode("Tomo"), 1, 0, 'C', true);
+        $pdf->Cell($colFolio, 7, utf8_decode("Folio"), 1, 0, 'C', true);
+    } elseif ($es_diplomado) {
+        $pdf->Cell($colNota, 7, utf8_decode("Calificación"), 1, 0, 'C', true);
         $pdf->Cell($colRecup, 7, utf8_decode("Recuperativo"), 1, 0, 'C', true);
     } else {
+        $pdf->Cell($colNota, 7, utf8_decode("Calificación"), 1, 0, 'C', true);
         $pdf->Cell($colTomo, 7, utf8_decode("Tomo"), 1, 0, 'C', true);
         $pdf->Cell($colFolio, 7, utf8_decode("Folio"), 1, 0, 'C', true);
     }
     $pdf->Cell($colEstatus, 7, utf8_decode("Estatus"), 1, 1, 'C', true);
+    $pdf->SetFont('Times', '', 10);
+    $pdf->SetTextColor(0);
+};
 
-$pdf->SetFont('Times', '', 10);
-$pdf->SetTextColor(0);
+$imprimirCabeceraTablaP2();
 
 $alumnos = isset($data['alumnos']) ? $data['alumnos'] : [];
+$nota_min = isset($data['nota_minima_aprobatoria']) ? (int)$data['nota_minima_aprobatoria'] : 12;
+
+if (empty($alumnos)) {
+    $pdf->SetX($marginX);
+    $pdf->Cell($contentWidthL, 8, utf8_decode("No se registraron participantes en esta instancia evaluativa."), 1, 1, 'C');
+}
+
 foreach ($alumnos as $idx => $al) {
     // Si cabe en la página, continuar, si no, crear nueva página y repetir cabecera
     if ($pdf->GetY() > 190) { // Landscape page is shorter (~215.9 height)
@@ -217,45 +269,35 @@ foreach ($alumnos as $idx => $al) {
         }
         
         $pdf->SetY(35);
-        $pdf->SetFont('Times', 'B', 9);
-        $pdf->SetFillColor(44, 62, 80);
-        $pdf->SetTextColor(255);
-        $pdf->SetX($marginX);
-        $pdf->Cell($colNo, 7, utf8_decode("No."), 1, 0, 'C', true);
-        $pdf->Cell($colCed, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
-        $pdf->Cell($colNom, 7, utf8_decode("Participante (Nombre y Apellido)"), 1, 0, 'C', true);
-        $pdf->Cell($colNota, 7, utf8_decode("Calificación"), 1, 0, 'C', true);
-        if ($es_diplomado) {
-            $pdf->Cell($colRecup, 7, utf8_decode("Recuperativo"), 1, 0, 'C', true);
-        } else {
-            $pdf->Cell($colTomo, 7, utf8_decode("Tomo"), 1, 0, 'C', true);
-            $pdf->Cell($colFolio, 7, utf8_decode("Folio"), 1, 0, 'C', true);
-        }
-        $pdf->Cell($colEstatus, 7, utf8_decode("Estatus"), 1, 1, 'C', true);
-        $pdf->SetFont('Times', '', 10);
-        $pdf->SetTextColor(0);
+        $imprimirCabeceraTablaP2();
     }
 
-    $nota_min = isset($data['nota_minima_aprobatoria']) ? (int)$data['nota_minima_aprobatoria'] : 12;
     $nota_str = "-";
     $estatus_str = "-";
     
-    if (isset($al['completado']) && $al['completado'] == false) {
-        if ($al['nota'] !== null && $al['nota'] !== '') {
-            $nota_str = round((float)$al['nota']);
-        }
-        $estatus_str = "Reprobado"; // No completó -> Reprueba
+    if ($es_acta_recuperativo && !$es_diplomado) {
+        $n_reg_str = (isset($al['nota_regular_curso']) && $al['nota_regular_curso'] !== null) ? round((float)$al['nota_regular_curso']) : '-';
+        $n_rec_val = (isset($al['nota_recuperativa_curso']) && $al['nota_recuperativa_curso'] !== null) ? round((float)$al['nota_recuperativa_curso']) : null;
+        $n_rec_str = $n_rec_val !== null ? $n_rec_val : '-';
+        $estatus_str = ($n_rec_val !== null && $n_rec_val >= $nota_min) ? "Aprobado" : "Reprobado";
     } else {
-        if ($al['nota'] !== null && $al['nota'] !== '') {
-            $nota_val = round((float)$al['nota']);
-            $nota_str = $nota_val;
-            if ($nota_val >= $nota_min) {
-                $estatus_str = "Aprobado";
-            } else {
-                $estatus_str = "Participación"; // Completó pero nota < mínima
+        if (isset($al['completado']) && $al['completado'] == false) {
+            if ($al['nota'] !== null && $al['nota'] !== '') {
+                $nota_str = round((float)$al['nota']);
             }
+            $estatus_str = "Reprobado"; // No completó -> Reprueba
         } else {
-            $estatus_str = "Participación"; // Completó sin nota
+            if ($al['nota'] !== null && $al['nota'] !== '') {
+                $nota_val = round((float)$al['nota']);
+                $nota_str = $nota_val;
+                if ($nota_val >= $nota_min) {
+                    $estatus_str = "Aprobado";
+                } else {
+                    $estatus_str = "Participación"; // Completó pero nota < mínima
+                }
+            } else {
+                $estatus_str = "Participación"; // Completó sin nota
+            }
         }
     }
 
@@ -264,16 +306,23 @@ foreach ($alumnos as $idx => $al) {
     $pdf->Cell($colNo, 6, $idx + 1, 1, 0, 'C');
     $pdf->Cell($colCed, 6, $al['cedula'], 1, 0, 'C');
     $pdf->Cell($colNom, 6, utf8_decode($nombre_completo), 1, 0, 'L');
-    $pdf->Cell($colNota, 6, $nota_str, 1, 0, 'C');
-    if ($es_diplomado) {
+
+    if ($es_acta_recuperativo && !$es_diplomado) {
+        $pdf->Cell($colNotaReg, 6, $n_reg_str, 1, 0, 'C');
+        $pdf->Cell($colNotaRec, 6, $n_rec_str, 1, 0, 'C');
+        $pdf->Cell($colTomo, 6, isset($al['tomo']) && $al['tomo'] !== '' ? $al['tomo'] : '-', 1, 0, 'C');
+        $pdf->Cell($colFolio, 6, isset($al['folio']) && $al['folio'] !== '' ? $al['folio'] : '-', 1, 0, 'C');
+    } elseif ($es_diplomado) {
+        $pdf->Cell($colNota, 6, $nota_str, 1, 0, 'C');
         $recup_str = "-";
         if (isset($al['recuperativo_diplomado']) && $al['recuperativo_diplomado'] !== null) {
             $recup_str = round((float)$al['recuperativo_diplomado']);
         }
         $pdf->Cell($colRecup, 6, $recup_str, 1, 0, 'C');
     } else {
-        $pdf->Cell($colTomo, 6, isset($al['tomo']) ? $al['tomo'] : '-', 1, 0, 'C');
-        $pdf->Cell($colFolio, 6, isset($al['folio']) ? $al['folio'] : '-', 1, 0, 'C');
+        $pdf->Cell($colNota, 6, $nota_str, 1, 0, 'C');
+        $pdf->Cell($colTomo, 6, isset($al['tomo']) && $al['tomo'] !== '' ? $al['tomo'] : '-', 1, 0, 'C');
+        $pdf->Cell($colFolio, 6, isset($al['folio']) && $al['folio'] !== '' ? $al['folio'] : '-', 1, 0, 'C');
     }
     $pdf->Cell($colEstatus, 6, utf8_decode($estatus_str), 1, 1, 'C');
 }
@@ -284,20 +333,23 @@ if (isset($data['img_pie']) && file_exists($data['img_pie'])) {
 }
 
 // ================= PÁGINA 3: ANEXO DE EVALUACIONES RECUPERATIVAS =================
+// En Acta Regular (o en Diplomados), si existen evaluaciones recuperativas se anexa el desglose detallado
 $hay_recuperativos = false;
 $lista_recuperativos = [];
-foreach ($alumnos as $al) {
-    if (isset($al['historial_materias'])) {
-        foreach ($al['historial_materias'] as $id_mat => $h) {
-            if ($h['nota_recuperativa'] !== null) {
-                $hay_recuperativos = true;
-                $lista_recuperativos[] = [
-                    'cedula' => $al['cedula'],
-                    'nombre' => $al['nombre'] . ' ' . $al['apellido'],
-                    'materia' => $h['nombre_materia'],
-                    'nota_regular' => $h['nota_regular'],
-                    'nota_recuperativa' => $h['nota_recuperativa']
-                ];
+if (!($es_acta_recuperativo && !$es_diplomado)) {
+    foreach ($alumnos as $al) {
+        if (isset($al['historial_materias'])) {
+            foreach ($al['historial_materias'] as $id_mat => $h) {
+                if ($h['nota_recuperativa'] !== null) {
+                    $hay_recuperativos = true;
+                    $lista_recuperativos[] = [
+                        'cedula' => $al['cedula'],
+                        'nombre' => $al['nombre'] . ' ' . $al['apellido'],
+                        'materia' => $h['nombre_materia'],
+                        'nota_regular' => $h['nota_regular'],
+                        'nota_recuperativa' => $h['nota_recuperativa']
+                    ];
+                }
             }
         }
     }
@@ -320,11 +372,12 @@ if ($hay_recuperativos) {
     $colCed3 = 25;
     $colNom3 = 60;
     $colMat3 = $contentWidthL - ($colCed3 + $colNom3 + 25 + 25 + 25);
+    $tituloColMateria = $es_diplomado ? "Materia" : "Programa / Unidad Curricular";
     
     $pdf->SetX($marginX);
     $pdf->Cell($colCed3, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
     $pdf->Cell($colNom3, 7, utf8_decode("Participante"), 1, 0, 'C', true);
-    $pdf->Cell($colMat3, 7, utf8_decode("Materia"), 1, 0, 'C', true);
+    $pdf->Cell($colMat3, 7, utf8_decode($tituloColMateria), 1, 0, 'C', true);
     $pdf->Cell(25, 7, utf8_decode("N. Regular"), 1, 0, 'C', true);
     $pdf->Cell(25, 7, utf8_decode("N. Recuperativa"), 1, 0, 'C', true);
     $pdf->Cell(25, 7, utf8_decode("Estatus Final"), 1, 1, 'C', true);
@@ -348,7 +401,7 @@ if ($hay_recuperativos) {
             $pdf->SetX($marginX);
             $pdf->Cell($colCed3, 7, utf8_decode("Cédula"), 1, 0, 'C', true);
             $pdf->Cell($colNom3, 7, utf8_decode("Participante"), 1, 0, 'C', true);
-            $pdf->Cell($colMat3, 7, utf8_decode("Materia"), 1, 0, 'C', true);
+            $pdf->Cell($colMat3, 7, utf8_decode($tituloColMateria), 1, 0, 'C', true);
             $pdf->Cell(25, 7, utf8_decode("N. Regular"), 1, 0, 'C', true);
             $pdf->Cell(25, 7, utf8_decode("N. Recuperativa"), 1, 0, 'C', true);
             $pdf->Cell(25, 7, utf8_decode("Estatus Final"), 1, 1, 'C', true);
@@ -380,4 +433,5 @@ if ($hay_recuperativos) {
         $pdf->Image($data['img_pie'], 10, 195, $pageWidthL - 20, 15);
     }
 }
+
 

@@ -24,7 +24,7 @@ if (isset($_SESSION['user_id'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if it's an action (like delete)
     if (isset($_POST['action']) && $_POST['action'] === 'delete') {
-        if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 4) {
+        if (!tieneAcceso([4])) {
             // Unauthorized
             header('Location: ../public/index.php');
             exit;
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (isset($_POST['action']) && $_POST['action'] === 'delete_ajax') {
         header('Content-Type: application/json');
-        if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 4) {
+        if (!tieneAcceso([4])) {
             echo json_encode(['success' => false, 'error' => 'No autorizado']);
             exit;
         }

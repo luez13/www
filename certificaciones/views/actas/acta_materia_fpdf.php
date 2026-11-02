@@ -97,42 +97,53 @@ $pdf->SetY(max($pdf->GetY() + 10, 230));
 if ($pdf->GetY() > 240) { $pdf->AddPage(); $pdf->SetY(40); }
 
 $yFirma = $pdf->GetY();
-$firmantesMateria = [
-    [
+$firmantesMateria = [];
+
+if (!empty($data['encargado'])) {
+    $firmantesMateria[] = [
         'nombre' => $data['encargado'],
         'cargo' => $data['cargo_encargado'],
         'firma_digital' => isset($data['firma_encargado']) ? $data['firma_encargado'] : ''
-    ],
-    [
+    ];
+}
+if (!empty($data['coordinador'])) {
+    $firmantesMateria[] = [
         'nombre' => $data['coordinador'],
         'cargo' => $data['cargo_coordinador'],
         'firma_digital' => isset($data['firma_coordinador']) ? $data['firma_coordinador'] : ''
-    ],
-    [
+    ];
+}
+if (!empty($data['docente'])) {
+    $firmantesMateria[] = [
         'nombre' => $data['docente'],
         'cargo' => 'Facilitador(a)',
         'firma_digital' => isset($data['firma_docente']) ? $data['firma_docente'] : ''
-    ]
-];
+    ];
+}
 
 $numFirmas = count($firmantesMateria);
-$colW = $contentWidth / $numFirmas;
+if ($numFirmas > 0) {
+    $colW = $contentWidth / $numFirmas;
+    $anchoLinea = 46;
+    $anchoBloque = min($colW, 65);
 
-for ($i = 0; $i < $numFirmas; $i++) {
-    $x = $marginX + ($i * $colW);
-    $lineMarg = 5;
-    $f = $firmantesMateria[$i];
-    
-    // Línea
-    $pdf->Line($x + $lineMarg, $yFirma, $x + $colW - $lineMarg, $yFirma);
-    
-    $pdf->SetXY($x, $yFirma + 2);
-    $pdf->SetFont('Times', 'B', 9);
-    $pdf->MultiCell($colW, 4, utf8_decode($f['nombre']), 0, 'C');
-    
-    $pdf->SetX($x);
-    $pdf->SetFont('Times', '', 8);
-    $pdf->MultiCell($colW, 3.5, utf8_decode($f['cargo']), 0, 'C');
+    for ($i = 0; $i < $numFirmas; $i++) {
+        $x = $marginX + ($i * $colW);
+        $centroX = $x + ($colW / 2);
+        $xBloque = $centroX - ($anchoBloque / 2);
+        $f = $firmantesMateria[$i];
+        
+        // Línea centrada con ancho normal estándar
+        $pdf->Line($centroX - ($anchoLinea / 2), $yFirma, $centroX + ($anchoLinea / 2), $yFirma);
+        
+        $pdf->SetXY($xBloque, $yFirma + 2);
+        $pdf->SetFont('Times', 'B', 9);
+        $pdf->MultiCell($anchoBloque, 4, utf8_decode($f['nombre']), 0, 'C');
+        
+        $pdf->SetX($xBloque);
+        $pdf->SetFont('Times', '', 8);
+        $pdf->MultiCell($anchoBloque, 3.5, utf8_decode($f['cargo']), 0, 'C');
+    }
 }
 
 // 5. PIE DE PÁGINA

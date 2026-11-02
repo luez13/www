@@ -27,7 +27,7 @@ $img_pie = realpath(__DIR__ . '/../public/assets/img/piePagina.jpg');
 $tituloActaBase = ($tipo_acta === 'Recuperativo') ? "ACTA DE CIERRE (RECUPERATIVO) DEL " : "ACTA DE CIERRE DEL ";
 
 function formatoNombre($texto) {
-    return mb_convert_case(mb_strtolower($texto, 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
+    return mb_convert_case(mb_strtolower(trim($texto), 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
 }
 
 function formatoTexto($texto) {
@@ -59,10 +59,10 @@ function formatearPeriodo($textoRaw, $lapsoNumBd) {
     return trim($ordinal . " " . $tipo);
 }
 
-// --- 3. OBTENER DATOS DE LA BD ---
+// --- 3. OBTENER DATOS DE LA BD (Incluyendo c.id_extension y u.titulo) ---
 $sql_info = "SELECT m.nombre_materia, m.duracion_bimestres, m.lapso_academico, m.total_horas, m.modalidad, 
-                    c.nombre_curso, c.id_curso, c.tipo_curso,
-                    u.nombre as nom_doc, u.apellido as ape_doc, u.cedula as ced_doc, u.firma_digital as firma_doc
+                    c.nombre_curso, c.id_curso, c.tipo_curso, c.id_extension,
+                    u.titulo as tit_doc, u.nombre as nom_doc, u.apellido as ape_doc, u.cedula as ced_doc, u.firma_digital as firma_doc
              FROM cursos.materias_bimestre m
              JOIN cursos.cursos c ON m.id_curso = c.id_curso
              LEFT JOIN cursos.usuarios u ON m.docente_id = u.id
@@ -74,36 +74,82 @@ $info = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$info) { die("Materia no encontrada."); }
 
 // 🔒 Validación de Seguridad Multi-Tenant
-if (!$_SESSION['es_multisede'] && $_SESSION['id_extension'] != $info['id_extension']) {
+if ($_SESSION['id_rol'] != 7 && empty($_SESSION['es_multisede']) && !empty($info['id_extension']) && $_SESSION['id_extension'] != $info['id_extension']) {
     die("Acceso denegado: Esta materia no pertenece a su dependencia operativa.");
 }
 
-// --- 4. DATOS DEL COORDINADOR ---
-$nombre_coordinador = "Coordinación de Formación Permanente";
-$cargo_coordinador = "Coordinador(a)";
+// --- 4. CARGAR CONFIGURACIÓN GLOBAL Y FIRMANTES ---
+$id_extension_curso = !empty($info['id_extension']) ? (int)$info['id_extension'] : (isset($_SESSION['id_extension']) ? (int)$_SESSION['id_extension'] : 1);
+
+$configs_globales = [];
+try {
+    $stmtCfg = $conn->query("SELECT clave_config, valor_config FROM cursos.config_sistema WHERE clave_config IN ('ID_CARGO_COORD_FP_POR_DEFECTO', 'ID_CARGO_ENCARGADO_POR_DEFECTO', 'ID_CARGO_VICERRECTORADO_POR_DEFECTO')");
+    $configs_globales = $stmtCfg->fetchAll(PDO::FETCH_KEY_PAIR);
+} catch (Exception $e) {
+    $configs_globales = [];
+}
+
+// --- 4.1 DATOS DEL COORDINADOR ---
+$nombre_coordinador = "";
+$cargo_coordinador = "";
 $firma_coordinador = "";
+$coord_sys = null;
 
-$id_extension_curso = $info['id_extension'];
+$coord_deshabilitado_global = (array_key_exists('ID_CARGO_COORD_FP_POR_DEFECTO', $configs_globales) && trim((string)$configs_globales['ID_CARGO_COORD_FP_POR_DEFECTO']) === '');
 
-$stmtCargo2 = $conn->prepare("SELECT nombre, apellido, nombre_cargo, firma_digital FROM cursos.cargos WHERE (nombre_cargo ILIKE '%Coord%' OR nombre_cargo ILIKE '%Director%') AND activo = true AND id_extension = :id_extension LIMIT 1");
-$stmtCargo2->execute(['id_extension' => $id_extension_curso]);
-$coord_sys = $stmtCargo2->fetch(PDO::FETCH_ASSOC);
+if (!$coord_deshabilitado_global) {
+    // 1) Si hay un ID configurado en Configuración Global, priorizarlo (o buscar por extensión si es otra sede)
+    if (!empty($configs_globales['ID_CARGO_COORD_FP_POR_DEFECTO'])) {
+        $stmtCargoCfg = $conn->prepare("SELECT titulo, nombre, apellido, nombre_cargo, firma_digital FROM cursos.cargos WHERE id_cargo = :id AND activo = true LIMIT 1");
+        $stmtCargoCfg->execute(['id' => (int)$configs_globales['ID_CARGO_COORD_FP_POR_DEFECTO']]);
+        $coord_sys = $stmtCargoCfg->fetch(PDO::FETCH_ASSOC);
+    }
+    // 2) Si no se encontró por ID global, buscar cargo activo de la extensión del curso
+    if (!$coord_sys && $id_extension_curso) {
+        $stmtCargo2 = $conn->prepare("SELECT titulo, nombre, apellido, nombre_cargo, firma_digital FROM cursos.cargos WHERE (nombre_cargo ILIKE '%Coord%' OR nombre_cargo ILIKE '%Director%') AND activo = true AND id_extension = :id_extension LIMIT 1");
+        $stmtCargo2->execute(['id_extension' => $id_extension_curso]);
+        $coord_sys = $stmtCargo2->fetch(PDO::FETCH_ASSOC);
+    }
+}
+
 if ($coord_sys) {
-    $nombre_coordinador = $coord_sys['nombre'] . ' ' . $coord_sys['apellido'];
+    $tit_coord = !empty($coord_sys['titulo']) ? trim($coord_sys['titulo']) . ' ' : '';
+    $nombre_coordinador = trim($tit_coord . $coord_sys['nombre'] . ' ' . $coord_sys['apellido']);
     $cargo_coordinador = $coord_sys['nombre_cargo'];
     $firma_coordinador = $coord_sys['firma_digital'];
 }
 
-// --- 4.5 DATOS DEL ENCARGADO DEL ÁREA ---
-$nombre_encargado = "Vicerrectorado Territorial";
-$cargo_encargado = "Encargado(a)";
+// --- 4.2 DATOS DEL VICERRECTORADO / ENCARGADO DEL ÁREA ---
+$nombre_encargado = "";
+$cargo_encargado = "";
 $firma_encargado = "";
+$enc_sys = null;
 
-$stmtCargoEnc = $conn->prepare("SELECT nombre, apellido, nombre_cargo, firma_digital FROM cursos.cargos WHERE (nombre_cargo ILIKE '%Vice-Rector%' OR nombre_cargo ILIKE '%Vicerrector%') AND activo = true AND id_extension = :id_extension LIMIT 1");
-$stmtCargoEnc->execute(['id_extension' => $id_extension_curso]);
-$enc_sys = $stmtCargoEnc->fetch(PDO::FETCH_ASSOC);
+$id_cfg_enc = !empty($configs_globales['ID_CARGO_VICERRECTORADO_POR_DEFECTO'])
+    ? (int)$configs_globales['ID_CARGO_VICERRECTORADO_POR_DEFECTO']
+    : (!empty($configs_globales['ID_CARGO_ENCARGADO_POR_DEFECTO']) ? (int)$configs_globales['ID_CARGO_ENCARGADO_POR_DEFECTO'] : 0);
+
+$enc_deshabilitado_global = (
+    (array_key_exists('ID_CARGO_VICERRECTORADO_POR_DEFECTO', $configs_globales) || array_key_exists('ID_CARGO_ENCARGADO_POR_DEFECTO', $configs_globales))
+    && $id_cfg_enc === 0
+);
+
+if (!$enc_deshabilitado_global) {
+    if ($id_cfg_enc > 0) {
+        $stmtEncCfg = $conn->prepare("SELECT titulo, nombre, apellido, nombre_cargo, firma_digital FROM cursos.cargos WHERE id_cargo = :id AND activo = true LIMIT 1");
+        $stmtEncCfg->execute(['id' => $id_cfg_enc]);
+        $enc_sys = $stmtEncCfg->fetch(PDO::FETCH_ASSOC);
+    }
+    if (!$enc_sys && $id_extension_curso) {
+        $stmtCargoEnc = $conn->prepare("SELECT titulo, nombre, apellido, nombre_cargo, firma_digital FROM cursos.cargos WHERE (nombre_cargo ILIKE '%Vice-Rector%' OR nombre_cargo ILIKE '%Vicerrector%' OR nombre_cargo ILIKE '%Encargad%') AND activo = true AND id_extension = :id_extension LIMIT 1");
+        $stmtCargoEnc->execute(['id_extension' => $id_extension_curso]);
+        $enc_sys = $stmtCargoEnc->fetch(PDO::FETCH_ASSOC);
+    }
+}
+
 if ($enc_sys) {
-    $nombre_encargado = $enc_sys['nombre'] . ' ' . $enc_sys['apellido'];
+    $tit_enc = !empty($enc_sys['titulo']) ? trim($enc_sys['titulo']) . ' ' : '';
+    $nombre_encargado = trim($tit_enc . $enc_sys['nombre'] . ' ' . $enc_sys['apellido']);
     $cargo_encargado = $enc_sys['nombre_cargo'];
     $firma_encargado = $enc_sys['firma_digital'];
 }
@@ -193,6 +239,9 @@ if ($tipo_acta === 'Recuperativo') {
 
 $meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
+$tit_docente = !empty($info['tit_doc']) ? trim($info['tit_doc']) . ' ' : '';
+$nombre_docente_completo = !empty($info['nom_doc']) ? formatoNombre($tit_docente . $info['nom_doc'] . ' ' . $info['ape_doc']) : 'No Asignado';
+
 $data = [
     'tipo_acta' => $tipo_acta,
     'tipo_curso' => $info['tipo_curso'],
@@ -202,7 +251,7 @@ $data = [
     'periodo_titulo' => formatearPeriodo($info['duracion_bimestres'], $info['lapso_academico']),
     'horas' => $info['total_horas'],
     'modalidad' => str_replace([' (Clases síncronas/asíncronas)', ' (Clases sincronas/asincronas)'], '', formatoTexto($info['modalidad'])),
-    'docente' => formatoNombre($info['nom_doc'] . ' ' . $info['ape_doc']),
+    'docente' => $nombre_docente_completo,
     'firma_docente' => $info['firma_doc'],
     'coordinador' => formatoNombre($nombre_coordinador),
     'cargo_coordinador' => formatoTexto($cargo_coordinador),
@@ -231,9 +280,9 @@ $acta_existente = $stmt_check_acta->fetch(PDO::FETCH_ASSOC);
 
 $fecha_final_usada = time(); // Por defecto, ahora
 
-// Verificar si el Rol 4 envió una fecha histórica forzada
+// Verificar si el Rol 4 o Rol 7 envió una fecha histórica forzada
 if (isset($_GET['fecha_historica']) && !empty($_GET['fecha_historica'])) {
-    if (isset($_SESSION['id_rol']) && $_SESSION['id_rol'] == 4) {
+    if (tieneAcceso([4])) {
         $fecha_final_usada = strtotime($_GET['fecha_historica']);
     }
 } else {

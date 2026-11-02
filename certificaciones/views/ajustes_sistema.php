@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../controllers/init.php';
 
 // Verificar permisos
-if ($_SESSION['id_rol'] != 4) {
+if (!tieneAcceso([4])) {
     die('<div class="alert alert-danger m-3">Acceso denegado.</div>');
 }
 ?>
@@ -15,7 +15,7 @@ if ($_SESSION['id_rol'] != 4) {
             <h6 class="m-0 font-weight-bold text-primary">Firmante por Defecto: Coordinador</h6>
         </div>
         <div class="card-body">
-            <p>Selecciona la persona que ocupará el cargo de "Coordinador de Formación Permanente" por defecto.</p>
+            <p>Selecciona la persona que ocupará el cargo de "Coordinador de Formación Permanente" por defecto (o selecciona <b>Sin firmante</b> para omitirlo).</p>
 
             <form id="formAjustesSistema">
                 <input type="hidden" name="action" value="guardar_config">
@@ -24,7 +24,7 @@ if ($_SESSION['id_rol'] != 4) {
                     <div class="col-md-8">
                         <label for="selectCoordPorDefecto" class="form-label">Coordinador de Formación
                             Permanente:</label>
-                        <select class="form-select" id="selectCoordPorDefecto" name="valor_config" required>
+                        <select class="form-select" id="selectCoordPorDefecto" name="valor_config">
                             <option value="">Cargando firmantes...</option>
                         </select>
                     </div>
@@ -42,7 +42,7 @@ if ($_SESSION['id_rol'] != 4) {
             <h6 class="m-0 font-weight-bold text-primary">Firmante por Defecto: Encargado del Área</h6>
         </div>
         <div class="card-body">
-            <p>Selecciona la persona que ocupará el cargo de "Encargado del Área de Formación Permanente" por defecto.</p>
+            <p>Selecciona la persona que ocupará el cargo de "Encargado del Área de Formación Permanente" por defecto (o selecciona <b>Sin firmante</b> para omitirlo).</p>
 
             <form id="formAjustesEncargado">
                 <input type="hidden" name="action" value="guardar_config">
@@ -50,7 +50,7 @@ if ($_SESSION['id_rol'] != 4) {
                 <div class="row align-items-end">
                     <div class="col-md-8">
                         <label for="selectEncargadoPorDefecto" class="form-label">Encargado del Área:</label>
-                        <select class="form-select" id="selectEncargadoPorDefecto" name="valor_config" required>
+                        <select class="form-select" id="selectEncargadoPorDefecto" name="valor_config">
                             <option value="">Cargando firmantes...</option>
                         </select>
                     </div>
@@ -68,7 +68,7 @@ if ($_SESSION['id_rol'] != 4) {
             <h6 class="m-0 font-weight-bold text-primary">Firmante por Defecto: Vicerrectorado Académico</h6>
         </div>
         <div class="card-body">
-            <p>Selecciona la persona que ocupará el cargo de "Vicerrectorado Académico" por defecto.</p>
+            <p>Selecciona la persona que ocupará el cargo de "Vicerrectorado Académico" por defecto (o selecciona <b>Sin firmante</b> para omitirlo).</p>
 
             <form id="formAjustesVicerrectora">
                 <input type="hidden" name="action" value="guardar_config">
@@ -76,7 +76,7 @@ if ($_SESSION['id_rol'] != 4) {
                 <div class="row align-items-end">
                     <div class="col-md-8">
                         <label for="selectVicerrectoraPorDefecto" class="form-label">Vicerrectorado Académico:</label>
-                        <select class="form-select" id="selectVicerrectoraPorDefecto" name="valor_config" required>
+                        <select class="form-select" id="selectVicerrectoraPorDefecto" name="valor_config">
                             <option value="">Cargando firmantes...</option>
                         </select>
                     </div>
@@ -141,7 +141,7 @@ if ($_SESSION['id_rol'] != 4) {
 <script>
     $(document).ready(function () {
 
-        // --- LÓGICA PARA EL SELECTOR DEL COORDINADOR (SIN CAMBIOS) ---
+        // --- LÓGICA PARA EL SELECTOR DEL COORDINADOR ---
         const selectorCoord = $('#selectCoordPorDefecto');
 
         const CargarFirmantes = () => {
@@ -152,14 +152,16 @@ if ($_SESSION['id_rol'] != 4) {
             return $.getJSON('../controllers/ConfigSistemaController.php', { action: 'obtener_config_clave', clave: 'ID_CARGO_COORD_FP_POR_DEFECTO' })
                 .done(function (response) {
                     if (response.success && response.data) {
-                        selectorCoord.val(response.data.valor_config);
+                        selectorCoord.val(response.data.valor_config || '');
+                    } else {
+                        selectorCoord.val('');
                     }
                 });
         };
 
         CargarFirmantes().then(function (response) {
             if (response.success) {
-                selectorCoord.empty().append('<option value="">-- Seleccione un firmante --</option>');
+                selectorCoord.empty().append('<option value="">-- Sin firmante (Dejar en blanco) --</option>');
                 response.data.forEach(firmante => {
                     selectorCoord.append(`<option value="${firmante.id}">${firmante.texto_display}</option>`);
                 });
@@ -179,7 +181,7 @@ if ($_SESSION['id_rol'] != 4) {
             $.post('../controllers/ConfigSistemaController.php', formData, function (response) {
                 let feedback = $('#ajustes-feedback');
                 if (response.success) {
-                    feedback.html('<div class="alert alert-success">Ajuste guardado correctamente.</div>');
+                    feedback.html('<div class="alert alert-success">' + (response.message || 'Ajuste guardado correctamente.') + '</div>');
                 } else {
                     feedback.html('<div class="alert alert-danger">Error: ' + (response.message || 'No se pudo guardar.') + '</div>');
                 }
@@ -191,21 +193,23 @@ if ($_SESSION['id_rol'] != 4) {
             });
         });
 
-        // --- ✅ LÓGICA PARA EL NUEVO SELECTOR DE ENCARGADO DEL ÁREA ---
+        // --- LÓGICA PARA EL SELECTOR DE ENCARGADO DEL ÁREA ---
         const selectorEncargado = $('#selectEncargadoPorDefecto');
 
         const CargarValorActualEncargado = () => {
             return $.getJSON('../controllers/ConfigSistemaController.php', { action: 'obtener_config_clave', clave: 'ID_CARGO_ENCARGADO_POR_DEFECTO' })
                 .done(function (response) {
                     if (response.success && response.data) {
-                        selectorEncargado.val(response.data.valor_config);
+                        selectorEncargado.val(response.data.valor_config || '');
+                    } else {
+                        selectorEncargado.val('');
                     }
                 });
         };
 
         CargarFirmantes().then(function (response) {
             if (response.success) {
-                selectorEncargado.empty().append('<option value="">-- Seleccione un firmante --</option>');
+                selectorEncargado.empty().append('<option value="">-- Sin firmante (Dejar en blanco) --</option>');
                 response.data.forEach(firmante => {
                     selectorEncargado.append(`<option value="${firmante.id}">${firmante.texto_display}</option>`);
                 });
@@ -225,7 +229,7 @@ if ($_SESSION['id_rol'] != 4) {
             $.post('../controllers/ConfigSistemaController.php', formData, function (response) {
                 let feedback = $('#ajustes-feedback-encargado');
                 if (response.success) {
-                    feedback.html('<div class="alert alert-success">Ajuste guardado correctamente.</div>');
+                    feedback.html('<div class="alert alert-success">' + (response.message || 'Ajuste guardado correctamente.') + '</div>');
                 } else {
                     feedback.html('<div class="alert alert-danger">Error: ' + (response.message || 'No se pudo guardar.') + '</div>');
                 }
@@ -237,21 +241,23 @@ if ($_SESSION['id_rol'] != 4) {
             });
         });
 
-        // --- ✅ LÓGICA PARA EL SELECTOR DE VICERRECTORADO ---
+        // --- LÓGICA PARA EL SELECTOR DE VICERRECTORADO ---
         const selectorVicerrectora = $('#selectVicerrectoraPorDefecto');
 
         const CargarValorActualVicerrectora = () => {
             return $.getJSON('../controllers/ConfigSistemaController.php', { action: 'obtener_config_clave', clave: 'ID_CARGO_VICERRECTORADO_POR_DEFECTO' })
                 .done(function (response) {
                     if (response.success && response.data) {
-                        selectorVicerrectora.val(response.data.valor_config);
+                        selectorVicerrectora.val(response.data.valor_config || '');
+                    } else {
+                        selectorVicerrectora.val('');
                     }
                 });
         };
 
         CargarFirmantes().then(function (response) {
             if (response.success) {
-                selectorVicerrectora.empty().append('<option value="">-- Seleccione un firmante --</option>');
+                selectorVicerrectora.empty().append('<option value="">-- Sin firmante (Dejar en blanco) --</option>');
                 response.data.forEach(firmante => {
                     selectorVicerrectora.append(`<option value="${firmante.id}">${firmante.texto_display}</option>`);
                 });
@@ -271,7 +277,7 @@ if ($_SESSION['id_rol'] != 4) {
             $.post('../controllers/ConfigSistemaController.php', formData, function (response) {
                 let feedback = $('#ajustes-feedback-vicerrectora');
                 if (response.success) {
-                    feedback.html('<div class="alert alert-success">Ajuste guardado correctamente.</div>');
+                    feedback.html('<div class="alert alert-success">' + (response.message || 'Ajuste guardado correctamente.') + '</div>');
                 } else {
                     feedback.html('<div class="alert alert-danger">Error: ' + (response.message || 'No se pudo guardar.') + '</div>');
                 }

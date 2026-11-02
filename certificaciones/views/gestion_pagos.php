@@ -43,9 +43,10 @@ foreach ($todos_comprobantes as $comp) {
 }
 asort($cursos_filtros);
 
-// Obtener TODOS los cursos para el modal de edición
-$stmtCursos = $db->prepare("SELECT id_curso, nombre_curso FROM cursos.cursos ORDER BY nombre_curso ASC");
-$stmtCursos->execute();
+// Obtener exclusivamente los cursos del departamento activo para el modal de edición
+$id_extension_activa = isset($_SESSION['id_extension']) ? (int)$_SESSION['id_extension'] : 1;
+$stmtCursos = $db->getConn()->prepare("SELECT id_curso, nombre_curso FROM cursos.cursos WHERE id_extension = :id_extension ORDER BY nombre_curso ASC");
+$stmtCursos->execute(['id_extension' => $id_extension_activa]);
 $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -558,7 +559,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                         return 'Reporte de Pagos - ' + tabName;
                     },
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
                         orthogonal: 'export',
                         format: {
                             body: function (data, row, column, node) {
@@ -594,7 +595,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                     },
                     orientation: 'landscape',
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
                         orthogonal: 'export',
                         format: {
                             body: function (data, row, column, node) {
@@ -609,7 +610,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                                 if (column === 8) { // Referencia
                                     return data.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                                 }
-                                if (column === 9) { // Banco
+                                if (column === 12) { // Banco
                                     return data.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                                 }
                                 return data.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -626,7 +627,7 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                         return 'Reporte de Pagos - ' + tabName;
                     },
                     exportOptions: {
-                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                        columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
                     }
                 }
             ],
@@ -1028,18 +1029,15 @@ $lista_todos_cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
                         else if (nuevoMoneda === 'Pesos') data[7] = '<span class="badge badge-info">Pesos</span>';
                         else data[7] = '<span class="badge badge-primary">Bolívares</span>';
 
-                        // Índice 8: Referencia / Banco
-                        // Preservar la observación si existe
-                        let currentVal8 = (typeof data[8] === 'object' && data[8] !== null) ? data[8].display : data[8];
-                        let oldObs = '';
-                        if (currentVal8 && currentVal8.includes('<hr class="m-1">')) {
-                            oldObs = currentVal8.substring(currentVal8.indexOf('<hr class="m-1">'));
-                        }
+                        // Índice 8: Referencia
                         let refMostrar = nuevaRef ? nuevaRef : 'N/A';
-                        data[8] = `<strong>${refMostrar}</strong><br><small class="text-muted">${nuevoBanco}</small>${oldObs}`;
+                        data[8] = `<strong>${refMostrar}</strong>`;
 
-                        // Índice 9: Monto
-                        data[9] = `<span class="text-success font-weight-bold" style="font-size: 1.1rem;">${simbolo}${nuevoMonto}</span>`;
+                        // Índice 12: Banco
+                        data[12] = `<strong>${nuevoBanco ? nuevoBanco : 'N/A'}</strong>`;
+
+                        // Índice 13: Monto
+                        data[13] = `<span class="text-success font-weight-bold" style="font-size: 1.1rem;">${simbolo}${nuevoMonto}</span>`;
 
                         // Guardar y redibujar la fila
                         row.data(data).draw(false);
